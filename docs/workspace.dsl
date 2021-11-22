@@ -22,7 +22,9 @@ workspace {
         softwareSystem = softwareSystem "Teacher Identity Service" "A DfE service for users to engage with their DfE Identity"{
         webapp = container "Teacher Identity Web Application" "A web application for users to engage with their DfE Identity"{
             findMyTrnController = component "FindTrn Controller" "A controller written in Ruby that guides a user through finding their TRN" "Ruby"
-            emailComponent = component "Email verification component" "A component that proves a user has access to an email address" "Ruby"
+            emailComponent = component "Email verification component" "A component that proves a user has access to an email address" "Ruby"            
+            omniauthInWebApp = component "OmniAuth" "An oAuth2/OIDC client, written in Ruby." "Ruby Gem"
+            appViews = component "Web UI Views" "Views written in Ruby that deliver the UI" "Ruby"
         }
         identityBroker = container "Identity Data Broker" "The data store for the identity broker. Contains attributes about people for matching purposes" "Postgres/Elastic/Neo4j"{
             tags "DataStore"
@@ -62,7 +64,7 @@ workspace {
 
         # relationships between containers/components
         govUkAccountSSO = softwareSystem "GOV.UK Account" "A Central Government system providing SSO services to government agencies"
-        webapp -> govUKIntegrator "Authenticates users using"
+        omniauthInWebApp -> openIdConnectServer "Authenticates users using"
         openIdConnectServer -> govUkAccountSSO "Federates with"
         openIdConnectServer -> identityBrokerAPI "Enriches token with user attributes from"
         openIdConnectServer -> identityBrokerAPI "Updates data store with incoming attributes from GOV.UK Account"
