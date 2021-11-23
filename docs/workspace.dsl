@@ -28,6 +28,7 @@ workspace {
         }
         identityBroker = container "Identity Data Broker" "The data store for the identity broker. Contains attributes about people for matching purposes" "Postgres/Elastic/Neo4j"{
             tags "DataStore"
+            identityDataModel = component "Identity Data Model" "Relational data model used to represent an teachers identity"
         }
         identityBrokerAPI = container "Identity Data Broker API" "This API serves matching user attributes, given a set of other attributes about a user"{
             associateController = component "Associate Controller" "A controller written in Ruby that accepts and processes incoming requests to associate data attributes with records, or other attributes." "Ruby"
