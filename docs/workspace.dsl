@@ -78,6 +78,7 @@ workspace {
         associateController -> databaseLayer "Writes new association data to"
         findController -> DQTAPIClient "Queries DQT via"        
         findController -> databaseLayer "Queries additional user attributes in"
+        findMyTrnController -> associateController "Associates TRNs with other coordinates"
     }
 
     views { 
