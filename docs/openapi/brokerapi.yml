@@ -1,0 +1,101 @@
+swagger: "2.0"
+info:
+  description: "This is the TeacherID Broker API"
+  version: "1.0.0"
+  title: "TeacherID Broker API"
+host: "dfe-twd-ts-brokerapi"
+basePath: "/api"
+schemes:
+- "https"
+paths:
+  /associate:
+    post:
+      summary: "Associate data points regarding a user"
+      description: "Used by calling systems to share associations between user attributes and identifiers.  For example, connecting an email address to a TRN, or a NINO to a service's local identifier"
+      operationId: "associate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Association Object"
+        required: true
+        schema:
+          $ref: "#/definitions/Association"
+      responses:
+        "405":
+          description: "Invalid input"
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Association"
+  /find:
+    post:
+      summary: "Find associations across datasets given the input user details"
+      description: "Used to retrieve identifiers and user attributes related to the supplied user identifiers and user attributes."
+      operationId: "find"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Find Object"
+        required: true
+        schema:
+          $ref: "#/definitions/Find"
+      responses:
+        "405":
+          description: "Invalid input"
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Association"
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:  
+  Association:
+    type: "object"
+    required:
+    - "userAttributes"
+    - "sourceSystem"
+    properties:
+      userAttributes:
+        type: "array"
+        items:
+          $ref: "#/definitions/UserAttribute"
+      sourceSystem:
+        type: "string"
+        description: "The identifier of the system making the association"
+  UserAttribute:
+    type: "object"
+    required:
+    - "type"
+    - "value"
+    properties:
+      type:
+        type: "string"
+        example: "email"
+      value:
+        type: "string"
+        description: "The value of the identifier"
+        example: "john.doe@digital.education.gov.uk"
+  Find:
+    type: "object"
+    required:
+    - "userAttributes"
+    properties:
+      userAttributes:
+        type: "array"
+        items:
+          $ref: "#/definitions/UserAttribute"
+      matchType:
+        type: "string"
+        example: "TRN,Email"
+        description: "If specified, returns only user attributes found with the specified type."
