@@ -7,6 +7,8 @@ paths:
   /associate:
     post:
       summary: Associate data points regarding a user
+      security: 
+      - api_key: []
       description: >-
         Used by calling systems to share associations between user attributes
         and identifiers.  For example, connecting an email address to a TRN, or
@@ -31,6 +33,8 @@ paths:
   /find:
     post:
       summary: Find associations across datasets given the input user details
+      security: 
+      - api_key: []
       description: >-
         Used to retrieve identifiers and user attributes related to the supplied
         user identifiers and user attributes.
