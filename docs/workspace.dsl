@@ -27,6 +27,7 @@ workspace {
             findMyTrnViews = component "Web UI Views" "Views written in Ruby that deliver the UI" "Ruby"
             DQTAPIClient = component "DQT API Client" "A component that interacts with the DQT API" "Ruby"
             ZendeskClient = component "ZenDesk API Client" "A component that interacts with the ZenDesk" "Ruby"
+            Logger = component "Logger" "A component that is responsible for logging user activity on the service" "Ruby"
         }
         }
         dqt = softwareSystem "Database of Qualified Teachers (DQT)" "A system that stores and maintains records of people in education."{
@@ -60,6 +61,7 @@ workspace {
         findMyTrnModel -> emailComponent "Verifies ownership of email via"
         findMyTrnModel -> DQTAPIClient "Queries DQT via"
         findMyTrnModel -> ZendeskClient "Creates helpdesk tickets via"
+        findMyTrnModel -> Logger "Writes audit logs to"
     }
 
     views { 
