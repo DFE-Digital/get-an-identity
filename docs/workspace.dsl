@@ -53,6 +53,7 @@ workspace {
 
         # relationships between containers/components        
         DQTAPIClient -> dqtAPI "Queries for user attributes using"
+        ZendeskClient -> zendesk "Creates tickets in"
         dqtAPI -> dqtCRM "Makes calls to"
         findMyTrnController -> findMyTrnModel "Executes business logic inside"
         findMyTrnController -> findMyTrnViews "Interacts with users using"
