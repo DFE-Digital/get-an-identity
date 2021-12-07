@@ -26,12 +26,15 @@ workspace {
             emailComponent = component "Email verification component" "A component that proves a user has access to an email address" "Ruby"
             findMyTrnViews = component "Web UI Views" "Views written in Ruby that deliver the UI" "Ruby"
             DQTAPIClient = component "DQT API Client" "A component that interacts with the DQT API" "Ruby"
+            ZendeskClient = component "ZenDesk API Client" "A component that interacts with the ZenDesk" "Ruby"
         }
         }
         dqt = softwareSystem "Database of Qualified Teachers (DQT)" "A system that stores and maintains records of people in education."{
             dqtAPI = container "DQT API" "API offering some basic search functionality over the Database of Qualified Teachers (DQT)" "C Sharp"  
             dqtCRM = container "DQT CRM" "A Microsoft CRM Dynamics implementation that contains data on people with Qualified Teacher Status (QTS) and other attributes." "Microsoft Dynamics CRM"
         }
+
+        zendesk = softwareSystem "ZenDesk" "A SaaS Ticketing system that is used by the TRA support team." "SaaS Managed"
         
         # direct users
         intlqtsUser -> findMyTrnController "Uses"
@@ -42,11 +45,11 @@ workspace {
         npqUser -> findMyTrnController "Uses"
 
         # delegate users
-        schoolAdminUser -> findMyTrnController "Uses on behalf of ..."
-        ittProviderUser -> findMyTrnController "Uses on behalf of ..."
-        employer -> findMyTrnController "Uses on behalf of ..."
-        sectorDeliveryOrgs -> findMyTrnController "Uses on behalf of ..."
-        sectorAssuranceBodies -> findMyTrnController "Uses on behalf of ..."
+        schoolAdminUser -> findMyTrnController "Uses on behalf of"
+        ittProviderUser -> findMyTrnController "Uses on behalf of"
+        employer -> findMyTrnController "Uses on behalf of"
+        sectorDeliveryOrgs -> findMyTrnController "Uses on behalf of"
+        sectorAssuranceBodies -> findMyTrnController "Uses on behalf of"
 
         # relationships between containers/components        
         DQTAPIClient -> dqtAPI "Queries for user attributes using"
@@ -55,6 +58,7 @@ workspace {
         findMyTrnController -> findMyTrnViews "Interacts with users using"
         findMyTrnModel -> emailComponent "Verifies ownership of email via"
         findMyTrnModel -> DQTAPIClient "Queries DQT via"
+        findMyTrnModel -> ZendeskClient "Creates helpdesk tickets via"
     }
 
     views { 
