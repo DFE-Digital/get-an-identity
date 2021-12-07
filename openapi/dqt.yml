@@ -1,0 +1,556 @@
+openapi: 3.0.1
+info:
+  title: DQT CRM API
+  description: 'API for Database of Qualified Teachers (DQT), allowing for retrieval of data for teacher including qualifications.'
+  version: v1
+servers:
+  - url: https://test-api-customerengagement.platform.education.gov.uk/dqt-crm/v1
+paths:
+  '/teachers/{trn}':
+    get:
+      summary: Teacher
+      description: Get an individual teacher by their trn
+      operationId: teacher
+      parameters:
+        - name: trn
+          in: path
+          description: Teacher Reference Number (TRN) e.g. 1001000
+          required: true
+          schema:
+            type: string
+        - name: birthdate
+          in: query
+          description: 'Birthdate in the format: yyyy-mm-dd'
+          required: true
+          schema:
+            type: string
+        - name: nino
+          in: query
+          description: National Insurance number - used if trn does not match e.g. A1A123A12
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: Bearer token authentication.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A teacher
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teacher'
+              example:
+                application/json:
+                  trn: '1234567'
+                  ni_number: 1234AB12A
+                  name: Test Test
+                  dob: '1990-01-20T00:00:00.0000000+00:00'
+                  active_alert: false
+                  state: 0
+                  state_name: Active
+                  qualified_teacher_status:
+                    name: 'Qualified Teacher: Under the EC Directive'
+                    qts_date: '2018-07-05T23:00:00.0000000+00:00'
+                    state: 0
+                    state_name: Active
+                  induction:
+                    completion_date: '2015-07-02T23:00:00.0000000+00:00'
+                    status: Pass
+                    state: 0
+                    state_name: Active
+                  initial_teacher_training:
+                    programme_start_date: '2017-08-20T23:00:00.0000000+00:00'
+                    programme_end_date: '2018-08-20T23:00:00.0000000+00:00'
+                    programme_type: School Direct training programme
+                    result: Pass
+                    subject1: French
+                    subject2: German
+                    subject3: Spanish
+                    qualification: Postgraduate Certificate in Education
+                    state: 0
+                    state_name: Active
+                  qualifications:
+                    - name: NPQML
+                      date_awarded: '2018-03-30T00:00:00.0000000+00:00'
+                    - name: NPQSL
+                      date_awarded: '2021-04-19T00:00:00.0000000+00:00'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+        '404':
+          description: The specified resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+        '429':
+          description: Too many requests made try again later
+          headers:
+            retry-after:
+              description: Amount of time in seconds to wait before trying again
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+  /WhoAmI:
+    get:
+      summary: WhoAmI
+      description: Test url to ensure auth is functioning
+      operationId: WhoAmI
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token authentication.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Auth information from CRM
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhoAmI'
+              example:
+                BusinessUnitId: string
+                UserId: string
+                OrganizationId: string
+        '429':
+          description: Too many requests made try again later
+          headers:
+            retry-after:
+              description: Amount of time in seconds to wait before trying again
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+  /heart-beat:
+    get:
+      summary: heart-beat
+      description: Test url to ensure eapim is up
+      operationId: heart-beat
+      responses:
+        '200':
+          description: The standard/only response from the method.
+          content:
+            application/json: { }
+        '429':
+          description: Too many requests made try again later
+          headers:
+            retry-after:
+              description: Amount of time in seconds to wait before trying again
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+  /trn_details:
+    get:
+      summary: Search for TRNs
+      description: Get a list of TRN details that match the provided email address 
+      operationId: trnDetails
+      parameters:
+        - name: email
+          in: query
+          description: Email address
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A TRN match
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TRNMatch'
+              example:
+                application/json:
+                  - email_addresses:
+                      - first@example.com
+                      - second@example.com
+                    itt_establishments:
+                      - name: Establishment Name
+                        ukprn: 12345678
+                    ni_number: 1234AB12A
+                    person:
+                      dob: '1990-01-20T00:00:00.0000000+00:00'
+                      firstname: Test
+                      lastname: Test
+                      middlename: Middle Names
+                      name: Test Middle Names Test
+                    trn: '1234567'
+                    uid: 1
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+        '404':
+          description: The specified resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+        '429':
+          description: Too many requests made try again later
+          headers:
+            retry-after:
+              description: Amount of time in seconds to wait before trying again
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: string
+                message: string
+components:
+  schemas:
+    Error:
+      required:
+        - statusCode
+        - message
+      type: object
+      properties:
+        statusCode:
+          type: string
+        message:
+          type: string
+      description: Details of any error that has occured
+    WhoAmI:
+      type: object
+      properties:
+        BusinessUnitId:
+          type: string
+        UserId:
+          type: string
+        OrganizationId:
+          type: string
+    Teacher:
+      required:
+        - trn
+        - active_alert
+        - state
+        - state_name
+      type: object
+      properties:
+        trn:
+          $ref: '#/components/schemas/TRN'
+        ni_number:
+          $ref: '#/components/schemas/NINumber'
+        active_alert:
+          type: boolean
+          description: Does the teacher have an active alert against them
+        name:
+          type: string
+          description: Full name of the teacher
+        dob:
+          type: string
+          description: Teacher's date of birth e.g. 1990-01-15
+          format: date
+        state:
+          type: integer
+          description: 'State of object in the database as an integer, i.e. 0|1'
+        state_name:
+          type: string
+          description: State of object in the database as a word i.e. active|inactive
+        qualified_teacher_status:
+          $ref: '#/components/schemas/QualifiedTeacherStatus'
+        induction:
+          $ref: '#/components/schemas/Induction'
+        initial_teacher_training:
+          $ref: '#/components/schemas/InitialTeacherTraining'
+        qualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Qualification'
+      description: An individual teacher
+      example:
+        application/json:
+          trn: '1234567'
+          ni_number: 1234AB12A
+          name: Test Test
+          dob: '1990-01-20T00:00:00.0000000+00:00'
+          active_alert: false
+          state: 0
+          state_name: Active
+          qualified_teacher_status:
+            name: 'Qualified Teacher: Under the EC Directive'
+            qts_date: '2018-07-05T23:00:00.0000000+00:00'
+            state: 0
+            state_name: Active
+          induction:
+            completion_date: '2015-07-02T23:00:00.0000000+00:00'
+            status: Pass
+            state: 0
+            state_name: Active
+          initial_teacher_training:
+            programme_start_date: '2017-08-20T23:00:00.0000000+00:00'
+            programme_end_date: '2018-08-20T23:00:00.0000000+00:00'
+            programme_type: School Direct training programme
+            result: Pass
+            subject1: French
+            subject2: German
+            subject3: Spanish
+            qualification: Postgraduate Certificate in Education
+            state: 0
+            state_name: Active
+          qualifications:
+            - name: NPQML
+              date_awarded: '2018-03-30T00:00:00.0000000+00:00'
+            - name: NPQSL
+              date_awarded: '2021-04-19T00:00:00.0000000+00:00'
+    EmailAddress:
+      description: Email address
+      type: string
+    NINumber:
+      description: National Insurance Number without spaces e.g. QQ123456C
+      type: string
+    TRN:
+      description: Teacher reference number e.g. 0012345
+      pattern: '^[0-9]{7}$'
+      type: string
+    Person:
+      type: object
+      properties:
+        dob:
+          type: string
+          description: Person's date of birth e.g. 1990-01-15
+          format: date
+        firstname:
+          type: string
+          description: Person's first name
+        lastname:
+          type: string
+          description: Person's last name
+        middlename:
+          type: string
+          description: Person's middle names
+        name:
+          type: string
+          description: Person's full name
+        previouslastname:
+          type: string
+          description: Person's previous last name
+      example:
+        application/json:
+          dob: '1990-01-20T00:00:00.0000000+00:00'
+          firstname: First
+          lastname: Last
+          middlename: Middle Names
+          name: First Last
+          previouslastname: Previous Last Name
+    TRNMatch:
+      type: object
+      properties:
+        email_addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        itt_establishments:
+          type: array
+          items:
+            $ref: '#/components/schemas/IttEstablishment'
+        ni_number:
+          $ref: '#/components/schemas/NINumber'
+        person:
+          $ref: '#/components/schemas/Person'
+        trn:
+          $ref: '#/components/schemas/TRN'
+        uid:
+          type: integer
+          description: Unique identifier for the matched person
+      example:
+        application/json:
+          email_addresses:
+            - first@example.com
+            - last@example.com
+          itt_establishments:
+            - name: Test Establishment
+              ukprn: 12345678
+          ni_number: 1234AB12A
+          person:
+            dob: '1990-01-20T00:00:00.0000000+00:00' 
+            firstname: First
+            lastname: Last
+            middlename: Middle Names
+            name: First Middle Names Last
+            previouslastname: Previous Last Name
+          trn: '1234567'
+          uid: 1
+    QualifiedTeacherStatus:
+      required:
+        - state
+        - state_name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Basis under which teacher is qualified to teach
+        qts_date:
+          type: string
+          description: 'Date teacher gained qualified teacher status, returned as an ISO-8601 formatted date'
+          format: date-time
+        state:
+          type: integer
+          description: 'State of object in the database as an integer, i.e. 0|1'
+        state_name:
+          type: string
+          description: State of object in the database as a word i.e. active|inactive
+      description: Summary of if the teacher is qualified to teach
+      example:
+        name: 'Qualified Teacher: Under the EC Directive'
+        qts_date: '2018-07-05T23:00:00.0000000+00:00'
+        state: 0
+        state_name: Active
+    Induction:
+      required:
+        - state
+        - state_name
+      type: object
+      properties:
+        completion_date:
+          type: string
+          description: 'Date teacher completed their induction, returned as an ISO-8601 formatted date'
+          format: date-time
+        status:
+          type: string
+          description: 'Result of induction, e.g. Pass'
+        state:
+          type: integer
+          description: 'State of object in the database as an integer, i.e. 0|1'
+        state_name:
+          type: string
+          description: State of object in the database as a word i.e. active|inactive
+      description: Summary of teacher's statutory induction
+      example:
+        completion_date: '2015-07-02T23:00:00.0000000+00:00'
+        status: Pass
+        state: 0
+        state_name: Active
+    InitialTeacherTraining:
+      required:
+        - state
+        - state_name
+      type: object
+      properties:
+        programme_start_date:
+          type: string
+          description: 'Date the training or programme was started, returned as an ISO-8601 formatted date'
+          format: date-time
+        programme_end_date:
+          type: string
+          description: 'Date the training or programme was completed, returned as an ISO-8601 formatted date'
+          format: date-time
+        programme_type:
+          type: string
+          description: What programme the training was taken under
+        result:
+          type: string
+          description: Result of the programme e.g. Pass
+        subject1:
+          type: string
+          description: Name of 1st subject taken
+        subject2:
+          type: string
+          description: Name of the 2nd subject taken
+        subject3:
+          type: string
+          description: Name of the 3rd subject taken
+        qualification:
+          type: string
+          description: Name of qualification gained e.g. Postgraduate Certificate in Education
+        state:
+          type: integer
+          description: 'State of object in the database as an integer, i.e. 0|1'
+        state_name:
+          type: string
+          description: State of object in the database as a word i.e. active|inactive
+      description: Programme teacher took towards qualified teacher status
+      example:
+        programme_start_date: '2017-08-20T23:00:00.0000000+00:00'
+        programme_end_date: '2018-08-20T23:00:00.0000000+00:00'
+        programme_type: School Direct training programme
+        result: Pass
+        subject1: French
+        subject2: German
+        subject3: Spanish
+        qualification: Postgraduate Certificate in Education
+        state: 0
+        state_name: Active
+    Qualification:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of qualification gained
+        date_awarded:
+          type: string
+          description: 'Date the qualification was awarded, returned as an ISO-8601 formatted date'
+          format: date-time
+      description: Details of any supplementary qualifications the teacher has taken
+      example:
+        name: NPQML
+        date_awarded: '2018-03-30T00:00:00.0000000+00:00'
+    IttEstablishment:
+      type: object
+      properties:
+        ukprn:
+          type: integer
+          description: UKPRN of the training establishment
+        name:
+          type: string
+          description: Name of the training establishment
+      example:
+        ukprn: 1234567
+        name: Example ITT
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      name: Ocp-Apim-Subscription-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      name: subscription-key
+      in: query
+security:
+  - apiKeyHeader: [ ]
+  - apiKeyQuery: [ ]
