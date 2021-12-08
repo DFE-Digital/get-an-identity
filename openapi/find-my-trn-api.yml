@@ -7,22 +7,17 @@ servers:
 paths:
   /trn-email-match:
     get:
-      summary: 'teacher endpoint: returns trn details given an email'
+      summary: 'teacher endpoint: returns trn details given an email address'
       parameters:
-        - name: email
+        - name: emailaddress
           in: query
-          description: email of person
+          description: email address of person
           required: true
           schema:
             type: string         
       responses:
         '200':
           description: 'Ok'
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -115,9 +110,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/trndetails'
 
-  /itt-establishments:
+  /itt-providers:
       get:
-        summary: 'reference list of: itt establishment details'
+        summary: 'reference list of: itt provider details'
               
         responses:
           '200':
@@ -130,10 +125,10 @@ paths:
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/ittestablishments'
+                  $ref: '#/components/schemas/ittproviders'
 
-  /unlock-trn-trecord:
-    get:
+  /unlock-trn-record:
+    put:
       summary: 'unlock trn record'
       parameters:
         - name: uid
@@ -171,7 +166,7 @@ components:
       type: string
       example: 'email1@abc.com'
 
-    ittestablishments:
+    ittproviders:
         type: array
         $ref: '#/components/schemas/ittestablishment'
 
@@ -226,13 +221,12 @@ components:
           type: string
           example: "NY456789C"
         
-        ittestablishment:           # could this return multiple?
+        ittestablishment:           # might not need this?
           type: string
           example: "A nice ITT provider"
 
         uid:
           type: string
-          format: date
           example: "UID234234592837ekjngkdjfngkdj"
               
     Error:            # Can be referenced as '#/components/schemas/Error'
