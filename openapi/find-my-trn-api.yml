@@ -1,0 +1,285 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: teacher-identity
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /trn-email-match:
+    get:
+      summary: 'teacher endpoint: returns trn details given an email address'
+      parameters:
+        - name: emailaddress
+          in: query
+          description: email address of person
+          required: true
+          schema:
+            type: string         
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/trndetails'
+
+  /trn-details-match:
+    get:
+      summary: 'teacher endpoint: returns trn details given an email'
+      parameters:
+        - name: emailaddress
+          in: query
+          description: email address
+          required: false
+          schema:
+            type: string
+        
+        - name: firstname
+          in: query
+          description: first name of person
+          required: false
+          schema:
+            type: string
+        
+        - name: middlename
+          in: query
+          description: middle name of person
+          required: false
+          schema:
+            type: string
+
+        - name: lastname
+          in: query
+          description: last name of person
+          required: false
+          schema:
+            type: string
+        
+        - name: previousfirstname
+          in: query
+          description: pervious first name of person
+          required: false
+          schema:
+            type: string
+        
+        - name: previouslastname
+          in: query
+          description: previous last name of person
+          required: false
+          schema:
+            type: string
+        
+        - name: dateofbirth
+          in: query
+          description: dob of person
+          required: false
+          schema:
+            type: string
+
+        - name: nino
+          in: query
+          description: nino of person
+          required: false
+          schema:
+            type: string         
+        
+        - name: ittprovidername
+          in: query
+          description:  name of teacher training provider
+          required: false
+          schema:
+            type: string
+
+        - name: ittproviderukprn
+          in: query
+          description: ukprn of itt provider
+          required: false
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: 'Ok'
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/trndetails'
+
+  /itt-providers:
+      get:
+        summary: 'reference list of: itt provider details'
+              
+        responses:
+          '200':
+            description: 'Ok'
+            headers:
+              x-next:
+                description: A link to the next page of responses
+                schema:
+                  type: string
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ittproviders'
+
+  /unlock-trn-record:
+    put:
+      summary: 'unlock trn record'
+      parameters:
+        - name: uid
+          in: query
+          description: uid of record to unlock
+          required: true
+          schema:
+            type: string         
+      responses:
+        '200':
+          description: 'Ok'
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+components:
+  #-------------------------------
+  # Reusable schemas (data models)
+  #-------------------------------
+  schemas:
+    #-------------------------------------------------
+    # TRN details: Top level response model
+    #-------------------------------------------------
+    trndetails:
+        type: array
+        $ref: '#/components/schemas/trnmatch'
+          
+
+    emailaddresses:        # Can be referenced as '#/components/schemas/emailaddresses'
+        type: array
+        $ref: '#/components/schemas/emailaddress'
+
+    emailaddress:             # Can be referenced as '#/components/schemas/emailaddress'
+      type: string
+      example: 'email1@abc.com'
+
+    ittproviders:
+        type: array
+        $ref: '#/components/schemas/ittestablishment'
+
+    ittestablishment:
+      type: object
+      properties:
+        ukprn:
+          type: string
+        establishmentname:
+          type: string
+
+#-------------------------------------------------
+    # trn match properties: 
+#-------------------------------------------------
+
+    trnmatch:              # Can be referenced as '#/components/schemas/trnmatch'
+      type: object
+      properties:
+        trn:
+          type: string
+          example: '99456789'     # can add a format check
+
+        emailaddresses:
+          $ref: '#/components/schemas/emailaddresses'
+
+        firstname:
+          type: string
+          example: 'Jenny'
+        
+        middlename:
+          type: string
+          example: 'jo'
+
+        lastname:
+          type: string
+          example: 'jones'
+        
+        previousfirstname:
+          type: string
+          example: 'Sam'
+        
+        previouslastname:
+          type: string
+          example: 'Smith'
+
+        dateofbirth:
+          type: string
+          format: date
+          example: "1972-06-23"
+        
+        nino:
+          type: string
+          example: "NY456789C"
+        
+        ittestablishment:           # might not need this?
+          type: string
+          example: "A nice ITT provider"
+
+        uid:
+          type: string
+          example: "UID234234592837ekjngkdjfngkdj"
+              
+    Error:            # Can be referenced as '#/components/schemas/Error'
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+  #-------------------------------
+  # Reusable operation parameters
+  #-------------------------------
+  parameters:
+    offsetParam:      # Can be referenced via '#/components/parameters/offsetParam'
+      name: offset
+      in: query
+      description: Number of items to skip before returning the results.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    limitParam:       # Can be referenced as '#/components/parameters/limitParam'
+      name: limit
+      in: query
+      description: Maximum number of items to return.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 20
+  #-------------------------------
+  # Reusable responses
+  #-------------------------------
+  responses:
+    404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
+      description: The specified resource was not found.
+    ImageResponse:     # Can be referenced as '#/components/responses/ImageResponse'
+      description: An image.
+      content:
+        image/*:
+          schema:
+            type: string
+            format: binary
+    GenericError:      # Can be referenced as '#/components/responses/GenericError'
+      description: An error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+
