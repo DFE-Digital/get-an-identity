@@ -17,5 +17,5 @@ We will use the existing DQT API, and extend it where necessary to support the f
 ## Consequences
 
 * We dont have to write an API from scratch
-* We are dependant on the DQT API team to make any changes
+* We are dependent on the DQT API team to make any changes
 
