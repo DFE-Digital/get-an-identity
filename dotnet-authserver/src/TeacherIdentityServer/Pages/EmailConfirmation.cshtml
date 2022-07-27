@@ -1,0 +1,25 @@
+﻿@page "/email-confirmation"
+@model TeacherIdentityServer.Pages.EmailConfirmationModel
+@{
+    ViewBag.Title = "Confirm your email address";
+}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+    <form action="@Url.EmailConfirmation()" method="post" asp-antiforgery="true">
+      <h1 class="govuk-heading-xl">Confirm your email address</h1>
+
+      <p class="govuk-body">We’ve emailed a confirmation code to email @Model.Email</p>
+
+      <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*">
+        <govuk-input-label class="govuk-label--s" />
+      </govuk-input>
+
+      <p>
+        <a href="#" class="govuk-body govuk-link">I have not received an email</a>
+      </p>
+
+      <govuk-button type="submit">Continue</govuk-button>
+    </form>
+  </div>
+</div>
