@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentityServer.Models;
 
-namespace TeacherIdentityServer.Pages;
+namespace TeacherIdentityServer.Pages.SignIn;
 
 public class EmailConfirmationModel : PageModel
 {
@@ -15,15 +15,12 @@ public class EmailConfirmationModel : PageModel
         _dbContext = dbContext;
     }
 
-    public string? Email => HttpContext.Session.GetAuthenticateModel().EmailAddress;
+    public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
 
     [BindProperty]
     [Display(Name = "Enter your code")]
     [Required(ErrorMessage = "Enter your confirmation code")]
     public string? Code { get; set; }
-
-    [FromQuery]
-    public string ReturnUrl { get; set; } = null!;
 
     public void OnGet()
     {
@@ -41,7 +38,7 @@ public class EmailConfirmationModel : PageModel
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
         if (user is not null)
         {
-            return await this.SignInUser(user, ReturnUrl);
+            return await this.SignInUser(user);
         }
         else
         {

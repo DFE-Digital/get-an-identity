@@ -10,8 +10,10 @@ namespace TeacherIdentityServer;
 
 public static class PageModelExtensions
 {
-    public static async Task<IActionResult> SignInUser(this PageModel page, TeacherIdentityUser user, string returnUrl)
+    public static async Task<IActionResult> SignInUser(this PageModel page, TeacherIdentityUser user)
     {
+        var authenticateState = page.HttpContext.GetAuthenticationState();
+
         var claims = new[]
         {
             new Claim(Claims.Subject, user.UserId.ToString()),
@@ -27,6 +29,6 @@ public static class PageModelExtensions
 
         await page.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-        return page.LocalRedirect(returnUrl);
+        return page.LocalRedirect(authenticateState.AuthorizationUrl);
     }
 }

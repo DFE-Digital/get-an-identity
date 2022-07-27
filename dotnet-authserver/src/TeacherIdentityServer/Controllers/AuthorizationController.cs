@@ -7,7 +7,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using TeacherIdentityServer.Models;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentityServer.Controllers;
@@ -17,18 +16,15 @@ public class AuthorizationController : Controller
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
-    private readonly TeacherIdentityServerDbContext _dbContext;
 
     public AuthorizationController(
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
-        IOpenIddictScopeManager scopeManager,
-        TeacherIdentityServerDbContext dbContext)
+        IOpenIddictScopeManager scopeManager)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
-        _dbContext = dbContext;
     }
 
     [HttpGet("~/connect/authorize")]
