@@ -16,12 +16,14 @@
   <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/govuk-apple-touch-icon-152x152.png">
   <link rel="apple-touch-icon" href="/assets/images/govuk-apple-touch-icon.png">
 
-  <link rel="stylesheet" href="~/Styles/panel.css">
+  @Html.Raw(GovUk.Frontend.AspNetCore.HtmlSnippets.StyleImports)
+  <link rel="stylesheet" asp-href-include="~/Styles/*.css">
 
   <meta property="og:image" content="/assets/images/govuk-opengraph-image.png">
 </head>
 
 <body class="govuk-template__body ">
+  @Html.Raw(GovUk.Frontend.AspNetCore.HtmlSnippets.BodyInitScript)
   <govuk-skip-link />
 
   <header class="govuk-header " role="banner" data-module="govuk-header">
@@ -71,6 +73,7 @@
       </div>
     </div>
   </footer>
+  @Html.Raw(GovUk.Frontend.AspNetCore.HtmlSnippets.ScriptImports)
 </body>
 
 </html>

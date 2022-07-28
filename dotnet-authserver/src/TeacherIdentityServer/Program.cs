@@ -8,7 +8,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGovUkFrontend();
+builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
 builder.Services.AddAuthentication()
     .AddCookie(options =>

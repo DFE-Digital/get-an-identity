@@ -1,0 +1,27 @@
+@import '../lib/govuk-frontend/govuk/_base.scss';
+
+.app-panel--interruption {
+  background-color: govuk-colour("blue");
+  color: govuk-colour("white");
+  text-align: left;
+
+  p,
+  .govuk-list,
+  .govuk-body,
+  .govuk-label,
+  .govuk-fieldset__legend,
+  .govuk-hint {
+    color: govuk-colour("white");
+  }
+
+  *:last-child {
+    margin-bottom: 0;
+  }
+
+  .govuk-radios__label::before,
+  & ::after {
+    color: govuk-colour("black");
+    border-color: govuk-colour("black");
+    background-color: govuk-colour("white");
+  }
+}
