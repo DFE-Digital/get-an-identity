@@ -83,7 +83,8 @@ builder.Services.AddOpenIddict()
 
         options.DisableAccessTokenEncryption();
 
-        options.RegisterScopes(CustomScopes.CustomScope);
+        options.RegisterClaims(CustomClaims.QualifiedTeacherTrn);
+        options.RegisterScopes(CustomScopes.QualifiedTeacher);
     });
 // TODO Validation?
 
@@ -156,7 +157,7 @@ using (var scope = app.Services.CreateAsyncScope())
                 Permissions.ResponseTypes.CodeIdToken,
                 Permissions.Scopes.Email,
                 Permissions.Scopes.Profile,
-                $"scp:{CustomScopes.CustomScope}"
+                $"scp:{CustomScopes.QualifiedTeacher}"
             },
             Requirements =
             {

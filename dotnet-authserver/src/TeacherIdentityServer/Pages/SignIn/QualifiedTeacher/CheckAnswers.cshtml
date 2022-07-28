@@ -1,0 +1,70 @@
+﻿@page "dqt/check-answers"
+@model TeacherIdentityServer.Pages.SignIn.QualifiedTeacher.CheckAnswersModel
+@{
+    ViewBag.Title = "Check your answers";
+}
+
+<form action="@Url.QualifiedTeacherCheckAnswers()" method="post" asp-antiforgery="true">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <h1 class="govuk-heading-xl">Check your answers</h1>
+
+      <govuk-summary-list>
+        <govuk-summary-list-row>
+          <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.EmailAddress)</govuk-summary-list-row-key>
+          <govuk-summary-list-row-value>@Model.EmailAddress</govuk-summary-list-row-value>
+          <govuk-summary-list-row-actions>
+            <govuk-summary-list-row-action href="#" visually-hidden-text="@Html.DisplayTextFor(m => m.EmailAddress)">Change</govuk-summary-list-row-action>
+          </govuk-summary-list-row-actions>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+          <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.Name)</govuk-summary-list-row-key>
+          <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+          <govuk-summary-list-row-actions>
+            <govuk-summary-list-row-action href="@Url.QualifiedTeacherName()" visually-hidden-text="@Html.DisplayTextFor(m => m.Name)">Change</govuk-summary-list-row-action>
+          </govuk-summary-list-row-actions>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+          <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.DateOfBirth)</govuk-summary-list-row-key>
+          <govuk-summary-list-row-value>@Model.DateOfBirth.ToString("d MMMM yyyy")</govuk-summary-list-row-value>
+          <govuk-summary-list-row-actions>
+            <govuk-summary-list-row-action href="@Url.QualifiedTeacherDateOfBirth()" visually-hidden-text="@Html.DisplayTextFor(m => m.DateOfBirth)">Change</govuk-summary-list-row-action>
+          </govuk-summary-list-row-actions>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+          <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.Nino)</govuk-summary-list-row-key>
+          <govuk-summary-list-row-value>@(Model.Nino ?? "Not given")</govuk-summary-list-row-value>
+          <govuk-summary-list-row-actions>
+            <govuk-summary-list-row-action href="@Url.QualifiedTeacherHaveNino()" visually-hidden-text="@Html.DisplayTextFor(m => m.Nino)">Change</govuk-summary-list-row-action>
+          </govuk-summary-list-row-actions>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+          <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.Trn)</govuk-summary-list-row-key>
+          <govuk-summary-list-row-value>@(Model.Trn ?? "Not given")</govuk-summary-list-row-value>
+          <govuk-summary-list-row-actions>
+            <govuk-summary-list-row-action href="@Url.QualifiedTeacherTrn()" visually-hidden-text="@Html.DisplayTextFor(m => m.Trn)">Change</govuk-summary-list-row-action>
+          </govuk-summary-list-row-actions>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+          <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.HaveYouBeenAwardedQts)</govuk-summary-list-row-key>
+          <govuk-summary-list-row-value>@(Model.HaveYouBeenAwardedQts ? "Yes" : "No")</govuk-summary-list-row-value>
+          <govuk-summary-list-row-actions>
+            <govuk-summary-list-row-action href="@Url.QualifiedTeacherHaveQts()" visually-hidden-text="@Html.DisplayTextFor(m => m.HaveYouBeenAwardedQts)">Change</govuk-summary-list-row-action>
+          </govuk-summary-list-row-actions>
+        </govuk-summary-list-row>
+        @if (Model.HaveYouBeenAwardedQts)
+        {
+          <govuk-summary-list-row>
+            <govuk-summary-list-row-key>@Html.DisplayNameFor(m => m.WhereDidYouGetYourQts)</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@(Model.WhereDidYouGetYourQts ?? "Not given")</govuk-summary-list-row-value>
+            <govuk-summary-list-row-actions>
+              <govuk-summary-list-row-action href="@Url.QualifiedTeacherHowQts()" visually-hidden-text="@Html.DisplayTextFor(m => m.WhereDidYouGetYourQts)">Change</govuk-summary-list-row-action>
+            </govuk-summary-list-row-actions>
+          </govuk-summary-list-row>
+        }
+      </govuk-summary-list>
+
+      <govuk-button type="submit">Continue</govuk-button>
+    </div>
+  </div>
+</form>

@@ -9,7 +9,23 @@ public static class UrlHelperExtensions
 
     public static string EmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/EmailConfirmation", "asid");
 
-    public static string Name(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/Name", "asid");
+    public static string QualifiedTeacherStart(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Index", "asid");
+
+    public static string QualifiedTeacherName(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Name", "asid");
+
+    public static string QualifiedTeacherDateOfBirth(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/DateOfBirth", "asid");
+
+    public static string QualifiedTeacherHaveNino(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/HaveNino", "asid");
+
+    public static string QualifiedTeacherNino(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Nino", "asid");
+
+    public static string QualifiedTeacherTrn(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Trn", "asid");
+
+    public static string QualifiedTeacherHaveQts(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/HaveQts", "asid");
+
+    public static string QualifiedTeacherHowQts(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/HowQts", "asid");
+
+    public static string QualifiedTeacherCheckAnswers(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/CheckAnswers", "asid");
 
     /// <summary>
     /// Generates a link to a Razor page and copies the query parameters specified by <paramref name="propagateQueryParams"/>

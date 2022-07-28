@@ -78,9 +78,6 @@ public class AuthorizationController : Controller
         }
 
         var userId = result.Principal.FindFirst(Claims.Subject)!.Value;
-        var email = result.Principal.FindFirst(Claims.Email)!.Value;
-        var givenName = result.Principal.FindFirst(Claims.GivenName)!.Value;
-        var familyName = result.Principal.FindFirst(Claims.FamilyName)!.Value;
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??
@@ -114,11 +111,14 @@ public class AuthorizationController : Controller
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
-                var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)
-                    .AddClaim(Claims.Subject, userId)
-                    .AddClaim(Claims.Email, email)
-                    .AddClaim(Claims.GivenName, givenName)
-                    .AddClaim(Claims.FamilyName, familyName);
+                var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                identity.AddClaims(
+                    ExtractClaims(result.Principal,
+                        Claims.Subject,
+                        Claims.Email,
+                        Claims.GivenName,
+                        Claims.FamilyName,
+                        CustomClaims.QualifiedTeacherTrn));
 
                 var principal = new ClaimsPrincipal(identity);
 
@@ -241,6 +241,17 @@ public class AuthorizationController : Controller
         throw new InvalidOperationException("The specified grant type is not supported.");
     }
 
+    private static IEnumerable<Claim> ExtractClaims(ClaimsPrincipal principal, params string[] claimTypes)
+    {
+        foreach (var claim in principal.Claims)
+        {
+            if (claimTypes.Contains(claim.Type))
+            {
+                yield return claim;
+            }
+        }
+    }
+
     private static IEnumerable<string> GetDestinations(Claim claim, ClaimsPrincipal principal)
     {
         // Note: by default, claims are NOT automatically included in the access and identity tokens.
@@ -277,6 +288,12 @@ public class AuthorizationController : Controller
 
             // Never include the security stamp in the access and identity tokens, as it's a secret value.
             case "AspNet.Identity.SecurityStamp": yield break;
+
+            case CustomClaims.QualifiedTeacherTrn:
+                yield return Destinations.AccessToken;
+                yield return Destinations.IdentityToken;
+
+                yield break;
 
             default:
                 yield return Destinations.AccessToken;

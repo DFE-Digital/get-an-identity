@@ -41,12 +41,12 @@ public class AuthenticationStateMiddleware
 
         if (authenticationStateFeature is not null)
         {
-            if (authenticationStateFeature.AuthenticationState.Id == default)
+            if (authenticationStateFeature.AuthenticationState.JourneyId == default)
             {
-                throw new InvalidOperationException($"{nameof(AuthenticationState)} must have {nameof(AuthenticationState.Id)} set.");
+                throw new InvalidOperationException($"{nameof(AuthenticationState)} must have {nameof(AuthenticationState.JourneyId)} set.");
             }
 
-            var sessionKey = GetSessionKey(authenticationStateFeature.AuthenticationState.Id);
+            var sessionKey = GetSessionKey(authenticationStateFeature.AuthenticationState.JourneyId);
             var serializedAuthenticationState = authenticationStateFeature.AuthenticationState.Serialize();
             context.Session.SetString(sessionKey, serializedAuthenticationState);
         }
