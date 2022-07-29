@@ -24,7 +24,7 @@ There are many ways to implement this kind of data integration and single sign o
 
 * [GOV.UK Sign in](https://www.sign-in.service.gov.uk/). We do intent to integrate and leverage this service. However, it doesn't alone provide us with sufficient coverage of our use cases in order to achieve our goals and objectives. It is also not in a state (at the time of writing) where we can on board sufficiently as to provide benefit. We have complete a successful [GOV.UK Sign in technical spike POC](https://github.com/DFE-Digital/get-an-identity/tree/main/openid_connect_poc) where we integrated a dummy Ruby web application (representing one of our digital services) with the GOV.UK Sign in service. We feel we can extend our service later in order to provide:
     * An alternative trusted GOV identity
-    * Better identity verification (using the GOV sign Identity wallet service)
+    * Better identity verification (using the GOV.UK Sign in Identity wallet service)
 
 We also considered:
 
