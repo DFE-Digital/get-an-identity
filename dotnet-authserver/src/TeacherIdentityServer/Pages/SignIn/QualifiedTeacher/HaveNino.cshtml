@@ -1,0 +1,23 @@
+﻿@page "/dqt/have-nino"
+@model TeacherIdentityServer.Pages.SignIn.QualifiedTeacher.HaveNinoModel
+@{
+    ViewBag.Title = "Do you have a National Insurance number?";
+}
+
+<form action="@Url.QualifiedTeacherHaveNino()" method="post" asp-antiforgery="true">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <govuk-radios asp-for="DoYouHaveANationalInsuranceNumber">
+        <govuk-radios-fieldset>
+          <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl" is-page-heading="true">
+            Do you have a National Insurance number?
+          </govuk-radios-fieldset-legend>
+          <govuk-radios-item value="true">Yes</govuk-radios-item>
+          <govuk-radios-item value="false">No</govuk-radios-item>
+        </govuk-radios-fieldset>
+      </govuk-radios>
+
+      <govuk-button type="submit">Continue</govuk-button>
+    </div>
+  </div>
+</form>

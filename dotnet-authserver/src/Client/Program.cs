@@ -30,7 +30,7 @@ builder.Services
         options.Scope.Add("email");
         options.Scope.Add("openid");
         options.Scope.Add("profile");
-        options.Scope.Add("custom_scope");
+        options.Scope.Add("qualified_teacher");
 
         options.SaveTokens = true;
 
@@ -53,7 +53,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.UseRouting();
 

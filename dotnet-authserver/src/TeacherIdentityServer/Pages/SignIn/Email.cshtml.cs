@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TeacherIdentityServer.Pages;
+namespace TeacherIdentityServer.Pages.SignIn;
 
 [BindProperties]
 public class EmailModel : PageModel
@@ -22,7 +22,7 @@ public class EmailModel : PageModel
             return Page();
         }
 
-        HttpContext.Session.UpdateAuthenticateModel(authModel => authModel.EmailAddress = Email);
+        HttpContext.GetAuthenticationState().EmailAddress = Email;
 
         return Redirect(Url.EmailConfirmation());
     }

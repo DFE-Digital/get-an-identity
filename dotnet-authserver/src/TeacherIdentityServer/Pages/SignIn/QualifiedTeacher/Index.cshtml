@@ -1,0 +1,24 @@
+﻿@page "/dqt"
+@{
+    ViewBag.Title = "We’ll ask you some questions to check against our records";
+}
+
+<govuk-panel class="app-panel--interruption">
+  <govuk-panel-title>We’ll ask you some questions to check against our records</govuk-panel-title>
+
+  <govuk-panel-body>
+    <p class="govuk-body">We’ll ask for your:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>name</li>
+      <li>date of birth</li>
+      <li>National Insurance number, if you have one</li>
+      <li>teacher reference number (TRN)</li>
+    </ul>
+
+    <p class="govuk-body govuk-!-margin-bottom-6">
+        If you do not have your TRN or National Insurance number available, we may ask some follow-up questions.
+    </p>
+
+    <govuk-button-link href="@Url.QualifiedTeacherName()" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button-link>
+  </govuk-panel-body>
+</govuk-panel>

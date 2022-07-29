@@ -3,21 +3,39 @@ using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using TeacherIdentityServer;
 using TeacherIdentityServer.Models;
+using TeacherIdentityServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGovUkFrontend();
+builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
 builder.Services.AddAuthentication()
     .AddCookie(options =>
     {
-        options.LoginPath = new PathString("/account");
         options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+
+        options.Events.OnRedirectToLogin = ctx =>
+        {
+            var authStateId = Guid.NewGuid();
+            var authState = new AuthenticationState(authStateId, ctx.Properties.RedirectUri!);
+            ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authState));
+
+            // TODO Use IUrlHelper here
+
+            ctx.Response.Redirect("/email" + QueryString.Create(AuthenticationStateMiddleware.IdQueryParameterName, authStateId.ToString()));
+
+            return Task.CompletedTask;
+        };
     });
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+
+builder.Services.AddRazorPages(options =>
+{
+    // Every page within the SignIn folder must have AuthenticationState passed to it
+    options.Conventions.AddFolderApplicationModelConvention("/SignIn", model => model.Filters.Add(new RequireAuthenticationStateFilter()));
+});
 
 builder.Services.AddSession();
 
@@ -29,11 +47,6 @@ builder.Services.AddDbContext<TeacherIdentityServerDbContext>(options =>
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.AccessDeniedPath = new PathString("/account");
-});
 
 builder.Services.AddOpenIddict()
     .AddCore(options =>
@@ -70,7 +83,8 @@ builder.Services.AddOpenIddict()
 
         options.DisableAccessTokenEncryption();
 
-        options.RegisterScopes(CustomScopes.CustomScope);
+        options.RegisterClaims(CustomClaims.QualifiedTeacherTrn);
+        options.RegisterScopes(CustomScopes.QualifiedTeacher);
     });
 // TODO Validation?
 
@@ -91,6 +105,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseSession();
+
+app.UseMiddleware<AuthenticationStateMiddleware>();
 
 app.UseRouting();
 
@@ -141,7 +157,7 @@ using (var scope = app.Services.CreateAsyncScope())
                 Permissions.ResponseTypes.CodeIdToken,
                 Permissions.Scopes.Email,
                 Permissions.Scopes.Profile,
-                $"scp:{CustomScopes.CustomScope}"
+                $"scp:{CustomScopes.QualifiedTeacher}"
             },
             Requirements =
             {

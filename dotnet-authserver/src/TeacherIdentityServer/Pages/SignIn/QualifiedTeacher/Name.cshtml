@@ -1,0 +1,57 @@
+﻿@page "/dqt/name"
+@using TeacherIdentityServer.Pages.SignIn.QualifiedTeacher
+@model TeacherIdentityServer.Pages.SignIn.QualifiedTeacher.NameModel
+@{
+    ViewBag.Title = "What’s your name?";
+}
+
+<form method="@Url.QualifiedTeacherName()" method="post" asp-antiforgery="true">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <h1 class="govuk-heading-xl">What’s your name?</h1>
+
+      <h2 class="govuk-heading-m">Use the name on your official documents</h2>
+      <p class="govuk-body">
+        You should tell us the name that appears on your passport, driving licence or marriage certificate, if you have one.
+        We’ll try to match it against our records.
+      </p>
+
+      <p class="govuk-body">If the names on your documents are different, give us the most recent one.</p>
+
+      <h2 class="govuk-heading-m">Your name</h2>
+      <p class="govuk-body">The name you give will be shown on official documents and certificates.</p>
+
+      <govuk-input asp-for="FirstName" autocomplete="given-name"/>
+
+      <govuk-input asp-for="LastName" autocomplete="family-name"/>
+
+      <govuk-radios asp-for="HaveYouEverChangedYourName">
+        <govuk-radios-fieldset>
+          <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m">Have you ever changed your name?</govuk-radios-fieldset-legend>
+          <govuk-radios-item value="@HaveYouEverChangedYourNameOption.No">@HaveYouEverChangedYourNameOption.No.GetDisplayName()</govuk-radios-item>
+          <govuk-radios-item value="@HaveYouEverChangedYourNameOption.Yes">
+            @HaveYouEverChangedYourNameOption.Yes.GetDisplayName()
+            <govuk-radios-item-conditional>
+              <h2 class="govuk-heading-m govuk-!-margin-top-4">What was your previous name?</h2>
+
+              <p class="govuk-body">You don’t have to tell us your previous name, but it will help us identify you.</p>
+              <p class="govuk-body">If we cannot match your current name against our records, we’ll try to match your previous name.</p>
+              <p class="govuk-body">If you changed your name more than once, tell us your most recent previous name.</p>
+
+              <govuk-input asp-for="PreviousFirstName">
+                <govuk-input-label class="govuk-label--s"/>
+              </govuk-input>
+
+              <govuk-input asp-for="PreviousLastName">
+                <govuk-input-label class="govuk-label--s"/>
+              </govuk-input>
+            </govuk-radios-item-conditional>
+          </govuk-radios-item>
+          <govuk-radios-item value="@HaveYouEverChangedYourNameOption.PreferNotToSay">@HaveYouEverChangedYourNameOption.PreferNotToSay.GetDisplayName()</govuk-radios-item>
+        </govuk-radios-fieldset>
+      </govuk-radios>
+
+      <govuk-button type="submit">Continue</govuk-button>
+    </div>
+  </div>
+</form>
