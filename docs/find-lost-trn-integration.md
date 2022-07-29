@@ -1,6 +1,6 @@
 # Find a lost TRN integration with the authorization server
 
-When the `qualified_teacher` scope is requested by a client, the authorization server needs to integrate with the
+When the `trn` scope is requested by a client, the authorization server needs to integrate with the
 Find a lost TRN service in order to resolve a DQT contact record (via a TRN). The details of how data is handed over
 from the authorization server to Find and back again are listed below.
 
@@ -11,7 +11,7 @@ sequenceDiagram
     participant authz_server
     participant find_lost_trn
     participant dqt_api
-    client->>authz_server: redirects user to the authorization endpoint with 'qualified_teacher' scope
+    client->>authz_server: redirects user to the authorization endpoint with 'trn' scope
     authz_server->>authz_server: prompts user for email
     alt existing user
         authz_server->dqt_api: lookup DQT contact record with matching teacher_id
@@ -60,7 +60,7 @@ TODO: Do we want a different endpoint on find for these type of requests?
 ## Handover from Find a lost TRN to the authorization server
 
 Once it's found a TRN, Find a lost TRN needs to redirect back to the authorization server with that TRN.
-The `redirect_uri` specified in the initial request to Find a lost TRN should have an additional query parameter appended - `user`. The `user` query parameter should contain a JWT that includes the TRN (TODO: plus more data - names, DOB?). The `JWT` should be signed with the same pre-shared key referenced above.
+The `redirect_uri` specified in the initial request to Find a lost TRN should have an additional query parameter appended - `user`. The `user` query parameter should contain a JWT that includes the TRN (TODO: plus more data - names, DOB?). The JWT should be signed with the same pre-shared key referenced above.
 
 When the authorization server receives the callback, it should validate the JWT has been signed by the pre-shared key. If validation fails an error should be shown; the authorization process must *not* complete.
 
