@@ -15,7 +15,7 @@ Get an Identity service started life as "Teacher Identity" where it went through
 * Create better user experiences by reducing the amount of times we ask for core personal data.
 * More securely ask for, store, monitor, share and grant access to our users PII data.
 * Create better user experiences by being able to use (and link records to) other DfE data sets to gain insights into useage, workforce patterns etc. that allow us to save teachers time and effort in using our services.
-* Enable better interventions (by being able to more accurately and reliably identify a user securely) it allows us greater opportunities to automate services such as teacher training incentive payments, automate safeguarding measures etc.
+* Enable better interventions (by being able to more accurately and reliably identify a user securely); this allows us greater opportunities to automate services such as teacher training incentive payments, automate safeguarding measures etc.
 * More easily fix data gaps and errors.
 
 There are many ways to implement this kind of data integration and single sign on functionality. There are indeed a number of GOV solutions in this space. We have considered using:
