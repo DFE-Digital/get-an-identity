@@ -41,9 +41,7 @@ builder.Services.AddSession();
 
 builder.Services.AddDbContext<TeacherIdentityServerDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-
-    options.UseOpenIddict();
+    TeacherIdentityServerDbContext.ConfigureOptions(options, builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -52,7 +50,8 @@ builder.Services.AddOpenIddict()
     .AddCore(options =>
     {
         options.UseEntityFrameworkCore()
-            .UseDbContext<TeacherIdentityServerDbContext>();
+            .UseDbContext<TeacherIdentityServerDbContext>()
+            .ReplaceDefaultEntities<Application, Authorization, Scope, Token, string>();
     })
     .AddServer(options =>
     {
@@ -86,7 +85,6 @@ builder.Services.AddOpenIddict()
         options.RegisterClaims(CustomClaims.QualifiedTeacherTrn);
         options.RegisterScopes(CustomScopes.QualifiedTeacher);
     });
-// TODO Validation?
 
 var app = builder.Build();
 
