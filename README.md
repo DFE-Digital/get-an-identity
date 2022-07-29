@@ -12,10 +12,10 @@ Information coming soon...
 | Name           | URL                                                                                                            |
 | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | Design History | [get-an-identity](https://tra-digital-design-history.herokuapp.com/get-an-identity/)                 |
-| Tech. Arch.    | [high-level-technical-design](/docs/images/get-an-identity-v-hld.jpg)
+| Tech. Arch.    | [high-level-technical-design](/docs/images/get-an-identity-v-hld.jpg) |
 | ADR'S          | [technical-decisions](/docs/architecture/decisions/) |
-| Tech Docs      | [tech-docs-site](https://teacher-services-tech-docs.london.cloudapps.digital/)
-| TRN Design     | [trn-design-history](https://tra-digital-design-history.herokuapp.com/teacher-self-service-portal/trn-holders/)
+| Tech Docs      | [tech-docs-site](https://teacher-services-tech-docs.london.cloudapps.digital/) |
+| TRN Design     | [trn-design-history](https://tra-digital-design-history.herokuapp.com/teacher-self-service-portal/trn-holders/) |
 ### Details and configuration
 
 | Name           | Description                                   | Status
