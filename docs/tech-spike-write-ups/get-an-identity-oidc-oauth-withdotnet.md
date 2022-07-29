@@ -2,6 +2,7 @@
 
 
 ## Summary
+ 
 The spike to build “Get an identity” as a Single Sign-on (SSO) provider based on OAuth v2.0 and OpenID using .Net and OpenIddict librariesConne was successful. We took the [decision](/docs/architecture/decisions/0005-use-dotNet-C%23-for-get-an-identity-auth-server.md) to:
 
 1. Build "Get an Identity" as an Auth Server.
