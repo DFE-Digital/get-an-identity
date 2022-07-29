@@ -116,7 +116,7 @@ This involves running another spike but in a different host language that has mo
 
 ## Quick pros:
 
-Alleviates some of the risks around having to fork and own complex open source libraries
+- Alleviates some of the risks around having to fork and own complex open source libraries
 
 #### Quick cons:
 
