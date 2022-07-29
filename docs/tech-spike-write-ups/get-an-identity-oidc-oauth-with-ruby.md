@@ -118,7 +118,7 @@ This involves running another spike but in a different host language that has mo
 
 Alleviates some of the risks around having to fork and own complex open source libraries
 
-## Quick cons:
+#### Quick cons:
 
 Still requires extensive knowledge of OAuth and OIDC, is vulnerable to churn and attrition
 Requires implementing Find in C#, or somehow passing messages a’la JWT strategy above; might end up in a situation where we end up building multiple solutions where just one will do
