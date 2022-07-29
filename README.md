@@ -32,7 +32,7 @@ Information coming soon...
 ## How the application works
 
 The application will provide an authentication server for teacher services digital applications (clients) to use in order to provide
-an "account" style function (where needed), authentication and authorisation flows based on OIDC/OATH 2.0 protocols. It will define
+an "account" style function (where needed), authentication and authorisation flows based on OIDC/OAUTH 2.0 protocols. It will define
 and make available to clients a set of data scopes, containing data claims relating to the end user. The service will create and store a
 unique identifier for the end user. This identifier can be used by clients to create a foreign key data relationship for that user allowing us to
 more easily tie data sets together (without using TRN's), in order to provide better data insights for more effective policy making,
