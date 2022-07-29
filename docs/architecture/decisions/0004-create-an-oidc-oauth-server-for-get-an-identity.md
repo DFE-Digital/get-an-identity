@@ -20,7 +20,7 @@ Get an Identity service started life as "Teacher Identity" where it went through
 
 There are many ways to implement this kind of data integration and single sign on functionality. There are indeed a number of GOV solutions in this space. We have considered using:
 
-* [DfE sign](https://services.signin.education.gov.uk/). This service doesn't meet our use case because it is DfE Sign-in is how schools and other education organisations access DfE online services. Our users access our services as individuals outside of an educational organisation e.g. apply for a job, apply for initial training are not services where an organisation is relevant.
+* [DfE Sign-in](https://services.signin.education.gov.uk/). This service doesn't meet our use case because DfE Sign-in is how schools and other education organisations access DfE online services. Our users access our services as individuals outside of an educational organisation e.g. apply for a job, apply for initial training. These are not services where an organisation is relevant.
 
 * [GOV.UK Sign in](https://www.sign-in.service.gov.uk/). We do intent to integrate and leverage this service. However, it doesn't alone provide us with sufficient coverage of our use cases in order to achieve our goals and objectives. It is also not in a state (at the time of writing) where we can on board sufficiently as to provide benefit. We have complete a successful [GOV.UK Sign in technical spike POC](https://github.com/DFE-Digital/get-an-identity/tree/main/openid_connect_poc) where we integrated a dummy Ruby web application (representing one of our digital services) with the GOV.UK Sign in service. We feel we can extend our service later in order to provide:
     * An alternative trusted GOV identity
