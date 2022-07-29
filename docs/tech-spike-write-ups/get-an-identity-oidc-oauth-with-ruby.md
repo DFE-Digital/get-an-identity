@@ -120,7 +120,7 @@ This involves running another spike but in a different host language that has mo
 
 #### Quick cons:
 
-Still requires extensive knowledge of OAuth and OIDC, is vulnerable to churn and attrition
-Requires implementing Find in C#, or somehow passing messages a’la JWT strategy above; might end up in a situation where we end up building multiple solutions where just one will do
-Does nothing to eliminate the ops overhead of running a SSO service
-Not likely to be a magnitude less effort than doing this in Ruby
+- Still requires extensive knowledge of OAuth and OIDC, is vulnerable to churn and attrition
+- Requires implementing Find in C#, or somehow passing messages a’la JWT strategy above; might end up in a situation where we end up building multiple solutions where just one will do
+- Does nothing to eliminate the ops overhead of running a SSO service
+- Not likely to be a magnitude less effort than doing this in Ruby
