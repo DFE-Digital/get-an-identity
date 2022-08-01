@@ -81,7 +81,7 @@ public class AuthorizationController : Controller
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??
-            throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
+            throw new InvalidOperationException("The client application cannot be found.");
 
         // Retrieve the permanent authorizations associated with the user and the calling client application.
         var authorizations = await _authorizationManager.FindAsync(
@@ -122,9 +122,6 @@ public class AuthorizationController : Controller
 
                 var principal = new ClaimsPrincipal(identity);
 
-                // Note: in this sample, the granted scopes match the requested scope
-                // but you may want to allow the user to uncheck specific scopes.
-                // For that, simply restrict the list of scopes before calling SetScopes.
                 principal.SetScopes(request.GetScopes());
                 principal.SetResources(await _scopeManager.ListResourcesAsync(principal.GetScopes()).ToListAsync());
 
@@ -166,11 +163,6 @@ public class AuthorizationController : Controller
             // In every other case, render the consent form.
             default:
                 throw new NotImplementedException();
-                //return View(new AuthorizeViewModel
-                //{
-                //    ApplicationName = await _applicationManager.GetLocalizedDisplayNameAsync(application),
-                //    Scope = request.Scope
-                //});
         }
     }
 
@@ -195,9 +187,6 @@ public class AuthorizationController : Controller
         }
         else if (request.IsClientCredentialsGrantType())
         {
-            // Note: the client credentials are automatically validated by OpenIddict:
-            // if client_id or client_secret are invalid, this action won't be invoked.
-
             var application = await _applicationManager.FindByClientIdAsync(request.ClientId!);
             if (application == null)
             {
@@ -254,10 +243,6 @@ public class AuthorizationController : Controller
 
     private static IEnumerable<string> GetDestinations(Claim claim, ClaimsPrincipal principal)
     {
-        // Note: by default, claims are NOT automatically included in the access and identity tokens.
-        // To allow OpenIddict to serialize them, you must attach them a destination, that specifies
-        // whether they should be included in access tokens, in identity tokens or in both.
-
         switch (claim.Type)
         {
             case Claims.Name:
@@ -266,7 +251,9 @@ public class AuthorizationController : Controller
                 yield return Destinations.AccessToken;
 
                 if (principal.HasScope(Scopes.Profile))
+                {
                     yield return Destinations.IdentityToken;
+                }
 
                 yield break;
 
@@ -274,15 +261,9 @@ public class AuthorizationController : Controller
                 yield return Destinations.AccessToken;
 
                 if (principal.HasScope(Scopes.Email))
+                {
                     yield return Destinations.IdentityToken;
-
-                yield break;
-
-            case Claims.Role:
-                yield return Destinations.AccessToken;
-
-                if (principal.HasScope(Scopes.Roles))
-                    yield return Destinations.IdentityToken;
+                }
 
                 yield break;
 
