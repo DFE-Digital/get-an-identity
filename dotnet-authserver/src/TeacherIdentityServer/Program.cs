@@ -21,6 +21,9 @@ builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 builder.Services.AddAuthentication()
     .AddCookie(options =>
     {
+        options.Cookie.Name = "gai-auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
         options.Events.OnRedirectToLogin = ctx =>
@@ -45,7 +48,12 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AddFolderApplicationModelConvention("/SignIn", model => model.Filters.Add(new RequireAuthenticationStateFilter()));
 });
 
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = "gai-session";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 builder.Services.AddDbContext<TeacherIdentityServerDbContext>(options =>
 {
