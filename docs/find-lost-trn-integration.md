@@ -36,6 +36,7 @@ This redirect includes some additional context, specified as query parameters:
 | email | The verified email address as captured by the authorization server. This allows Find a lost TRN to skip asking the user for their email address again. |
 | redirect_uri | This is the callback URL on the authorization server that Find should redirect the user to once it has resolved a TRN. |
 | client_title | The name of the client that initiated the authorization journey. This enables 'branding' both the the authorization server and Find a lost TRN such that the user perceives the journey as a single service e.g. 'Register for a National Professional Qualification'. |
+| journey_id | A unique ID for this authorization journey instance. |
 | sig | This is a signed hash of the previous query parameters using a pre-shared key. |
 
 ### Context signature query parameter
