@@ -1,12 +1,20 @@
 using GovUk.Frontend.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
+using Prometheus;
 using TeacherIdentityServer;
+using TeacherIdentityServer.Configuration;
 using TeacherIdentityServer.Models;
 using TeacherIdentityServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration
+    .AddJsonEnvironmentVariable("VCAP_SERVICES", configurationKeyPrefix: "VCAP_SERVICES")
+    .AddJsonEnvironmentVariable("VCAP_APPLICATION", configurationKeyPrefix: "VCAP_APPLICATION");
+
+MetricLabels.ConfigureLabels(builder.Configuration);
 
 builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
@@ -108,6 +116,8 @@ app.UseMiddleware<AuthenticationStateMiddleware>();
 
 app.UseRouting();
 
+app.UseHttpMetrics();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -116,6 +126,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapRazorPages();
+    endpoints.MapMetrics();
 });
 
 using (var scope = app.Services.CreateAsyncScope())
