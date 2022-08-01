@@ -116,7 +116,8 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseStatusCodePagesWithReExecute("~/error");
+    app.UseExceptionHandler("/error");
+    app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
     app.UseHsts();
 }
 
