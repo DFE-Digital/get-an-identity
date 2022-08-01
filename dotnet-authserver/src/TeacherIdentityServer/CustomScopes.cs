@@ -2,5 +2,5 @@
 
 public static class CustomScopes
 {
-    public const string QualifiedTeacher = "qualified_teacher";
+    public const string Trn = "trn";
 }

@@ -126,11 +126,17 @@ public class Program
 
                 options.DisableAccessTokenEncryption();
 
-                options.RegisterClaims(CustomClaims.QualifiedTeacherTrn);
-                options.RegisterScopes(CustomScopes.QualifiedTeacher);
+                options.RegisterClaims(CustomClaims.Trn);
+                options.RegisterScopes(CustomScopes.Trn);
             });
 
         builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+        builder.Services.AddOptions<FindALostTrnIntegrationOptions>()
+            .Bind(builder.Configuration.GetSection("FindALostTrnIntegration"))
+            .ValidateDataAnnotations();
+
+        builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
 
         var app = builder.Build();
 
@@ -171,6 +177,8 @@ public class Program
             {
                 await context.Response.WriteAsync("OK");
             });
+
+            // TODO Remove the stub Find endpoints for production deployments
         });
 
         using (var scope = app.Services.CreateAsyncScope())
@@ -211,7 +219,7 @@ public class Program
                         Permissions.ResponseTypes.CodeIdToken,
                         Permissions.Scopes.Email,
                         Permissions.Scopes.Profile,
-                        $"scp:{CustomScopes.QualifiedTeacher}"
+                        $"scp:{CustomScopes.Trn}"
                     },
                     Requirements =
                     {

@@ -1,4 +1,5 @@
-﻿@page "/dqt"
+﻿@page "/trn"
+@model TeacherIdentityServer.Pages.SignIn.TrnModel
 @{
     ViewBag.Title = "We’ll ask you some questions to check against our records";
 }
@@ -19,6 +20,8 @@
         If you do not have your TRN or National Insurance number available, we may ask some follow-up questions.
     </p>
 
-    <govuk-button-link href="@Url.QualifiedTeacherName()" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button-link>
+    <form action="@Url.Trn()" method="post" asp-antiforgery="true">
+      <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+    </form>
   </govuk-panel-body>
 </govuk-panel>

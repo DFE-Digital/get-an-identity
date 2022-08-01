@@ -19,7 +19,7 @@ public class HomeController : Controller
             UserId = User.FindFirst("sub")?.Value,
             FirstName = User.FindFirst("given_name")?.Value,
             LastName = User.FindFirst("family_name")?.Value,
-            Trn = User.FindFirst("qualified_teacher:trn")?.Value
+            Trn = User.FindFirst("trn")?.Value
         };
 
         return View(model);

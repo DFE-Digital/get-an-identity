@@ -10,23 +10,9 @@ public static class UrlHelperExtensions
 
     public static string EmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");
 
-    public static string QualifiedTeacherStart(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Index");
+    public static string Trn(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/Trn");
 
-    public static string QualifiedTeacherName(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Name");
-
-    public static string QualifiedTeacherDateOfBirth(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/DateOfBirth");
-
-    public static string QualifiedTeacherHaveNino(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/HaveNino");
-
-    public static string QualifiedTeacherNino(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Nino");
-
-    public static string QualifiedTeacherTrn(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Trn");
-
-    public static string QualifiedTeacherHaveQts(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/HaveQts");
-
-    public static string QualifiedTeacherHowQts(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/HowQts");
-
-    public static string QualifiedTeacherCheckAnswers(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/CheckAnswers");
+    public static string TrnCallback(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
 
     /// <summary>
     /// Generates a link to a Razor page and appends the authentication journey id query parameter.
