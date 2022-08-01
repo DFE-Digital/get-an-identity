@@ -1,0 +1,78 @@
+name: Build authorization server
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+env:
+  CONTAINER_REGISTRY: ghcr.io
+
+defaults:
+  run:
+    working-directory: dotnet-authserver
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    outputs:
+      docker_image: ${{ steps.image.outputs.tag }}
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: teacher_identity
+          POSTGRES_PASSWORD: teacher_identity
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Lint
+      run: |
+        #https://github.com/dotnet/format/issues/1433
+        dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json
+        dotnet-format --verify-no-changes
+
+    - name: Build
+      run: dotnet build --configuration Release
+
+    - name: Publish
+      run: dotnet publish --configuration Release --no-build src/TeacherIdentityServer/TeacherIdentityServer.csproj
+
+    - name: Docker image tag
+      id: image
+      run: |
+        echo ::set-output name=tag::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.CONTAINER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Docker build & push
+      uses: docker/build-push-action@v2
+      with:
+        context: dotnet-authserver/src/TeacherIdentityServer
+        push: true
+        tags: ${{ steps.image.outputs.tag }}
+        build-args: |
+          GIT_SHA=${{ github.sha }}

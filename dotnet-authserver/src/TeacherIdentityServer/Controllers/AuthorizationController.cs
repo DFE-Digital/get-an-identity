@@ -211,10 +211,10 @@ public class AuthorizationController : Controller
                 Claims.Name, Claims.Role);
 
             // Use the client_id as the subject identifier.
-            identity.AddClaim(Claims.Subject, await _applicationManager.GetClientIdAsync(application),
+            identity.AddClaim(Claims.Subject, (await _applicationManager.GetClientIdAsync(application))!,
                 Destinations.AccessToken, Destinations.IdentityToken);
 
-            identity.AddClaim(Claims.Name, await _applicationManager.GetDisplayNameAsync(application),
+            identity.AddClaim(Claims.Name, (await _applicationManager.GetDisplayNameAsync(application))!,
                 Destinations.AccessToken, Destinations.IdentityToken);
 
             // Note: In the original OAuth 2.0 specification, the client credentials grant
