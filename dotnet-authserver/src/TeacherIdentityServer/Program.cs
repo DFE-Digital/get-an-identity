@@ -1,5 +1,6 @@
 using GovUk.Frontend.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OpenIddict.Abstractions;
 using Prometheus;
 using TeacherIdentityServer;
@@ -60,9 +61,11 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+var pgConnectionString = GetPostgresConnectionString();
+
 builder.Services.AddDbContext<TeacherIdentityServerDbContext>(options =>
 {
-    TeacherIdentityServerDbContext.ConfigureOptions(options, builder.Configuration.GetConnectionString("DefaultConnection"));
+    TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString);
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -226,3 +229,24 @@ using (var scope = app.Services.CreateAsyncScope())
 }
 
 app.Run();
+
+string GetPostgresConnectionString()
+{
+    return builder.Configuration.GetConnectionString("DefaultConnection") ?? GetConnectionStringForPaasService();
+
+    string GetConnectionStringForPaasService()
+    {
+        var connStrBuilder = new NpgsqlConnectionStringBuilder()
+        {
+            Host = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:host"),
+            Database = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:name"),
+            Username = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:username"),
+            Password = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:password"),
+            Port = builder.Configuration.GetValue<int>("VCAP_SERVICES:postgres:0:credentials:port"),
+            SslMode = SslMode.Require,
+            TrustServerCertificate = true
+        };
+
+        return connStrBuilder.ConnectionString;
+    }
+}
