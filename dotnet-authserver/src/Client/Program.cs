@@ -19,7 +19,7 @@ builder.Services
     .AddCookie("Cookies")
     .AddOpenIdConnect("oidc", options =>
     {
-        options.Authority = "https://localhost:7236";
+        options.Authority = builder.Configuration.GetValue<string>("SignInAuthority");
 
         options.ClientId = "client";
         options.ClientSecret = "super-secret";
