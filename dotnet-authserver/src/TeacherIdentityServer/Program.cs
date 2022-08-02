@@ -141,6 +141,11 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
     endpoints.MapRazorPages();
     endpoints.MapMetrics();
+
+    endpoints.MapGet("/health", async context =>
+    {
+        await context.Response.WriteAsync("OK");
+    });
 });
 
 using (var scope = app.Services.CreateAsyncScope())
