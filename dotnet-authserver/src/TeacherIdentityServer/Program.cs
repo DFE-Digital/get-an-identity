@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using GovUk.Frontend.AspNetCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -130,6 +131,11 @@ public class Program
                 options.RegisterScopes(CustomScopes.Trn);
             });
 
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+        });
+
         builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
         builder.Services.AddOptions<FindALostTrnIntegrationOptions>()
@@ -149,6 +155,7 @@ public class Program
         {
             app.UseExceptionHandler("/error");
             app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
+            app.UseForwardedHeaders();
             app.UseHsts();
             app.UseHttpsRedirection();
         }
