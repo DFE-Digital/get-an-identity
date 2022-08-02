@@ -22,7 +22,7 @@ The next phase will see us extend and scale this to remove the reliance on TRN a
 * Allow those trainee teachers and teachers to tie their credentials to their DfE records
 * Enable us to more easily produce a single view of those users and join up their records across multiple services.
 
-More information can be found in the [service’s design history]((https://tra-digital-design-history.herokuapp.com/)).
+More information can be found in the [service’s design history](https://tra-digital-design-history.herokuapp.com/).
 
 ## Challenges
 Some of the challenges we face are…
