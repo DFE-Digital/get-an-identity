@@ -1,4 +1,5 @@
 using GovUk.Frontend.AspNetCore;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using OpenIddict.Abstractions;
@@ -38,9 +39,12 @@ builder.Services.AddAuthentication()
             var authState = new AuthenticationState(authStateId, ctx.Properties.RedirectUri!);
             ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authState));
 
-            // TODO Use IUrlHelper here
+            var urlHelperFactory = ctx.HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.Mvc.Routing.IUrlHelperFactory>();
+            var actionContext = ctx.HttpContext.RequestServices.GetRequiredService<IActionContextAccessor>().ActionContext!;
+            var urlHelper = urlHelperFactory.GetUrlHelper(actionContext);
 
-            ctx.Response.Redirect("/email" + QueryString.Create(AuthenticationStateMiddleware.IdQueryParameterName, authStateId.ToString()));
+            var redirectUrl = authState.GetNextHopUrl(urlHelper);
+            ctx.Response.Redirect(redirectUrl);
 
             return Task.CompletedTask;
         };
@@ -109,6 +113,8 @@ builder.Services.AddOpenIddict()
         options.RegisterClaims(CustomClaims.QualifiedTeacherTrn);
         options.RegisterScopes(CustomScopes.QualifiedTeacher);
     });
+
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
 var app = builder.Build();
 

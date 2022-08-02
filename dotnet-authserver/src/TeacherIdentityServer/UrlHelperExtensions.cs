@@ -1,49 +1,43 @@
 ﻿using Flurl;
 using Microsoft.AspNetCore.Mvc;
+using TeacherIdentityServer.State;
 
 namespace TeacherIdentityServer;
 
 public static class UrlHelperExtensions
 {
-    public static string Email(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/Email", "asid");
+    public static string Email(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/Email");
 
-    public static string EmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/EmailConfirmation", "asid");
+    public static string EmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");
 
-    public static string QualifiedTeacherStart(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Index", "asid");
+    public static string QualifiedTeacherStart(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Index");
 
-    public static string QualifiedTeacherName(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Name", "asid");
+    public static string QualifiedTeacherName(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Name");
 
-    public static string QualifiedTeacherDateOfBirth(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/DateOfBirth", "asid");
+    public static string QualifiedTeacherDateOfBirth(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/DateOfBirth");
 
-    public static string QualifiedTeacherHaveNino(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/HaveNino", "asid");
+    public static string QualifiedTeacherHaveNino(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/HaveNino");
 
-    public static string QualifiedTeacherNino(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Nino", "asid");
+    public static string QualifiedTeacherNino(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Nino");
 
-    public static string QualifiedTeacherTrn(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/Trn", "asid");
+    public static string QualifiedTeacherTrn(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/Trn");
 
-    public static string QualifiedTeacherHaveQts(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/HaveQts", "asid");
+    public static string QualifiedTeacherHaveQts(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/HaveQts");
 
-    public static string QualifiedTeacherHowQts(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/HowQts", "asid");
+    public static string QualifiedTeacherHowQts(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/HowQts");
 
-    public static string QualifiedTeacherCheckAnswers(this IUrlHelper urlHelper) => urlHelper.PageWithQueryParams("/SignIn/QualifiedTeacher/CheckAnswers", "asid");
+    public static string QualifiedTeacherCheckAnswers(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/QualifiedTeacher/CheckAnswers");
 
     /// <summary>
-    /// Generates a link to a Razor page and copies the query parameters specified by <paramref name="propagateQueryParams"/>
-    /// from the current request to the generated link.
+    /// Generates a link to a Razor page and appends the authentication journey id query parameter.
     /// </summary>
-    private static string PageWithQueryParams(
+    private static string PageWithAuthenticationJourneyId(
         this IUrlHelper urlHelper,
-        string pageName,
-        params string[] propagateQueryParams)
+        string pageName)
     {
-        var currentQueryParams = urlHelper.ActionContext.HttpContext.Request.Query;
-        var url = new Url(urlHelper.Page(pageName));
+        var authenticationState = urlHelper.ActionContext.HttpContext.GetAuthenticationState();
 
-        foreach (var q in propagateQueryParams)
-        {
-            url.SetQueryParam(q, currentQueryParams[q]);
-        }
-
-        return url;
+        return new Url(urlHelper.Page(pageName))
+            .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authenticationState.JourneyId);
     }
 }
