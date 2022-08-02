@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using GovUk.Frontend.AspNetCore;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
 using Prometheus;
@@ -97,9 +99,18 @@ builder.Services.AddOpenIddict()
             .AllowHybridFlow()
             .AllowClientCredentialsFlow();
 
-        options
-            .AddDevelopmentEncryptionCertificate()
-            .AddDevelopmentSigningCertificate();
+        if (builder.Environment.IsDevelopment())
+        {
+            options
+                .AddDevelopmentEncryptionCertificate()
+                .AddDevelopmentSigningCertificate();
+        }
+        else
+        {
+            options
+                .AddEncryptionKey(LoadKey("EncryptionKey"))
+                .AddSigningKey(LoadKey("SigningKey"));
+        }
 
         options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
@@ -255,4 +266,12 @@ string GetPostgresConnectionString()
 
         return connStrBuilder.ConnectionString;
     }
+}
+
+SecurityKey LoadKey(string configurationKey)
+{
+    var rsa = RSA.Create();
+    rsa.FromXmlString(builder.Configuration[configurationKey]);
+
+    return new RsaSecurityKey(rsa);
 }
