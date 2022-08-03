@@ -104,7 +104,7 @@ public class Program
                     .AllowHybridFlow()
                     .AllowClientCredentialsFlow();
 
-                if (builder.Environment.IsDevelopment())
+                if (builder.Environment.IsDevelopment() || builder.Environment.IsEndToEndTests())
                 {
                     options
                         .AddDevelopmentEncryptionCertificate()
