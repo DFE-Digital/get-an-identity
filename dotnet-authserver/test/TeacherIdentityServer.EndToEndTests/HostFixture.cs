@@ -106,6 +106,8 @@ public class HostFixture : IAsyncLifetime
     private static IConfiguration GetTestConfiguration() =>
         new ConfigurationBuilder()
             .AddUserSecrets<HostFixture>()
+            .AddJsonFile("appsettings.json")
+            .AddEnvironmentVariables()
             .Build();
 
     public sealed class Host<T> : IAsyncDisposable

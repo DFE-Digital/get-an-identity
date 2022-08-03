@@ -144,9 +144,9 @@ public class Program
             app.UseExceptionHandler("/error");
             app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
             app.UseHsts();
+            app.UseHttpsRedirection();
         }
 
-        app.UseHttpsRedirection();
         app.UseStaticFiles();
 
         app.UseSession();
