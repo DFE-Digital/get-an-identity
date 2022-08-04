@@ -2,5 +2,5 @@
 
 public static class CustomClaims
 {
-    public const string QualifiedTeacherTrn = "qualified_teacher:trn";
+    public const string Trn = "trn";
 }

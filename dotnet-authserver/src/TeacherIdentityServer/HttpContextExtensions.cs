@@ -30,9 +30,9 @@ public static class HttpContextExtensions
             new Claim(Claims.FamilyName, user.LastName!)
         };
 
-        if (authorizationRequest.HasScope(CustomScopes.QualifiedTeacher) && user.Trn is not null)
+        if (authorizationRequest.HasScope(CustomScopes.Trn) && user.Trn is not null)
         {
-            claims.Add(new Claim(CustomClaims.QualifiedTeacherTrn, user.Trn));
+            claims.Add(new Claim(CustomClaims.Trn, user.Trn));
         }
 
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);

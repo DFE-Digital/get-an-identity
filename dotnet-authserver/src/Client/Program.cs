@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using GovUk.Frontend.AspNetCore;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Client;
 
@@ -36,7 +37,7 @@ public class Program
                 options.Scope.Add("email");
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
-                options.Scope.Add("qualified_teacher");
+                options.Scope.Add("trn");
 
                 options.SaveTokens = true;
 
@@ -55,11 +56,17 @@ public class Program
                 }
             });
 
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+        });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsProduction())
         {
+            app.UseForwardedHeaders();
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }

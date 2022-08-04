@@ -57,16 +57,16 @@ public class AuthenticationState
             return urlHelper.EmailConfirmation();
         }
 
-        // For now we only support flows that have the qualified_teacher scope specified
-        if (!request.HasScope(CustomScopes.QualifiedTeacher))
+        // For now we only support flows that have the trn scope specified
+        if (!request.HasScope(CustomScopes.Trn))
         {
-            throw new NotSupportedException($"The '{CustomScopes.QualifiedTeacher}' must be specified.");
+            throw new NotSupportedException($"The '{CustomScopes.Trn}' must be specified.");
         }
 
         // qualified_teacher scope is specified; launch the journey to collect TRN
-        if (request.HasScope(CustomScopes.QualifiedTeacher) && Trn is null)
+        if (request.HasScope(CustomScopes.Trn) && Trn is null)
         {
-            return urlHelper.QualifiedTeacherStart();
+            return urlHelper.Trn();
         }
 
         // We should be signed in at this point - complete authorization

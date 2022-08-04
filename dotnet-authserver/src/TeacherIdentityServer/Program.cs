@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using GovUk.Frontend.AspNetCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -126,11 +127,22 @@ public class Program
 
                 options.DisableAccessTokenEncryption();
 
-                options.RegisterClaims(CustomClaims.QualifiedTeacherTrn);
-                options.RegisterScopes(CustomScopes.QualifiedTeacher);
+                options.RegisterClaims(CustomClaims.Trn);
+                options.RegisterScopes(CustomScopes.Trn);
             });
 
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+        });
+
         builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+        builder.Services.AddOptions<FindALostTrnIntegrationOptions>()
+            .Bind(builder.Configuration.GetSection("FindALostTrnIntegration"))
+            .ValidateDataAnnotations();
+
+        builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
 
         var app = builder.Build();
 
@@ -143,6 +155,7 @@ public class Program
         {
             app.UseExceptionHandler("/error");
             app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
+            app.UseForwardedHeaders();
             app.UseHsts();
             app.UseHttpsRedirection();
         }
@@ -171,6 +184,8 @@ public class Program
             {
                 await context.Response.WriteAsync("OK");
             });
+
+            // TODO Remove the stub Find endpoints for production deployments
         });
 
         using (var scope = app.Services.CreateAsyncScope())
@@ -211,7 +226,7 @@ public class Program
                         Permissions.ResponseTypes.CodeIdToken,
                         Permissions.Scopes.Email,
                         Permissions.Scopes.Profile,
-                        $"scp:{CustomScopes.QualifiedTeacher}"
+                        $"scp:{CustomScopes.Trn}"
                     },
                     Requirements =
                     {
