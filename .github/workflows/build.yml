@@ -53,6 +53,23 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release
 
+    - name: Install Playwright
+      run: pwsh ./test/TeacherIdentityServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
+
+    - name: End-to-end tests
+      id: e2e-tests
+      run: dotnet test ./test/TeacherIdentityServer.EndToEndTests/ --configuration Release --no-build --logger trx
+      env:
+        AuthorizationServer__ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
+
+    - name: Test report
+      uses: dorny/test-reporter@v1
+      if: always() && (steps.e2e-tests.outcome == 'success' || steps.e2e-tests.outcome == 'failure')
+      with:
+        name: Test results
+        path: 'dotnet-authserver/test/TeacherIdentityServer.EndToEndTests/**/*.trx'
+        reporter: dotnet-trx
+
     - name: Publish
       run: dotnet publish --configuration Release --no-build src/TeacherIdentityServer/TeacherIdentityServer.csproj
 
