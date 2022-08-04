@@ -53,21 +53,16 @@ In essence, the query parameters above (except 'sig') are hashed using HMAC SHA2
 ### Example:
 Given a base64-encoded pre-shared key of `L8mg9SK6ymyvwTQ4j0kl6rIxQv4wR3XWFcD8ctMrk4w=`
 
-`https://find-a-lost-trn.education.gov.uk/?redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&sig=s8uqqS8kQdKrByoKNZIka%2FlvpRn2FqHQo6dt2HIm9qM%3D`
-
-TODO: Do we want a different endpoint on find for these type of requests?
+`https://find-a-lost-trn.education.gov.uk/identity?redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&sig=s8uqqS8kQdKrByoKNZIka%2FlvpRn2FqHQo6dt2HIm9qM%3D`
 
 
 ## Handover from Find a lost TRN to the authorization server
 
-Once it's found a TRN, Find a lost TRN needs to redirect back to the authorization server with that TRN.
-The `redirect_uri` specified in the initial request to Find a lost TRN should have an additional query parameter appended - `user`. The `user` query parameter should contain a JWT that includes the TRN (TODO: plus more data - names, DOB?). The JWT should be signed with the same pre-shared key referenced above.
+Once Find a lost TRN has completed its journey (whether successfully resolving a TRN or not), it needs to redirect back to the authorization server with the user's information.
+The `redirect_uri` specified in the initial request to Find a lost TRN should have an additional query parameter appended - `user`. The `user` query parameter should contain a JWT that includes the user's names, DOB, NINO and TRN, if known. The JWT should be signed with the same pre-shared key referenced above.
 
 When the authorization server receives the callback, it should validate the JWT has been signed by the pre-shared key. If validation fails an error should be shown; the authorization process must *not* complete.
 
 ### Example:
 
-`https://authserveruri/?user=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJnaXZlbl9uYW1lIjoiRmlyc3ROYW1lIiwiZmFtaWx5X25hbWUiOiJMYXN0TmFtZSIsInRybiI6IjEyMzQ1NjciLCJuYmYiOjE2NTkxMDYyOTksImV4cCI6MTY1OTE5MjY5OSwiaWF0IjoxNjU5MTA2Mjk5LCJpc3MiOiJodHRwczovL2ZpbmQtYS1sb3N0LXRybi5lZHVjYXRpb24uZ292LnVrLyIsImF1ZCI6Imh0dHBzOi8vYXV0aHNlcnZlcnVyaS8ifQ.9NbHCIP6jqqFQBvbrZkRNpq22Tv2mwEbcHY9QzNo6Wg`
-
-
-TODO: If Find cannot resolve a TRN should it still redirect back to the authorization server?
+`https://authserveruri/?user=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJnaXZlbl9uYW1lIjoiRmlyc3ROYW1lIiwiZmFtaWx5X25hbWUiOiJMYXN0TmFtZSIsInRybiI6IjEyMzQ1NjciLCJiaXJ0aGRhdGUiOiIxOTkwLTAxLTAxIiwibmlubyI6IlFRMTIzNDU2QyIsIm5iZiI6MTY1OTYxMzUzMywiZXhwIjoxNjU5NjE3MTMzLCJpYXQiOjE2NTk2MTM1MzN9.MZSUNq2jG1loFD0X5H76pMmNnN-CMLjAMdCqBrvYz_8`
