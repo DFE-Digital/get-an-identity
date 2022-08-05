@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using Flurl;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TeacherIdentity.AuthServer;
 
@@ -14,11 +14,11 @@ namespace StubFindALostTrnServer.MyFeature.Pages;
 [BindProperties]
 public class IndexModel : PageModel
 {
-    private readonly FindALostTrnIntegrationOptions _options;
+    private readonly FindALostTrnIntegrationHelper _findALostTrnIntegrationHelper;
 
-    public IndexModel(IOptions<FindALostTrnIntegrationOptions> options)
+    public IndexModel(FindALostTrnIntegrationHelper findALostTrnIntegrationHelper)
     {
-        _options = options.Value;
+        _findALostTrnIntegrationHelper = findALostTrnIntegrationHelper;
     }
 
     [Display(Name = "Email address")]
@@ -56,7 +56,7 @@ public class IndexModel : PageModel
             return Page();
         }
 
-        var pskBytes = Convert.FromBase64String(_options.SharedKey);
+        var pskBytes = Encoding.UTF8.GetBytes(_findALostTrnIntegrationHelper.Options.SharedKey);
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -83,6 +83,15 @@ public class IndexModel : PageModel
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        // TODO Validate signature
+        var url = new Url($"{Request.Path}{Request.QueryString}");
+        var passedSig = Request.Query["sig"].ToString();
+        var urlWithoutSig = url.RemoveQueryParam("sig");
+
+        var sig = _findALostTrnIntegrationHelper.CalculateSignature(urlWithoutSig);
+
+        if (!sig.Equals(passedSig, StringComparison.OrdinalIgnoreCase))
+        {
+            context.Result = new BadRequestResult();
+        }
     }
 }

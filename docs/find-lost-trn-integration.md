@@ -37,7 +37,7 @@ This redirect includes some additional context, specified as query parameters:
 | redirect_uri | This is the callback URL on the authorization server that Find should redirect the user to once it has resolved a TRN. |
 | client_title | The name of the client that initiated the authorization journey. This enables 'branding' both the the authorization server and Find a lost TRN such that the user perceives the journey as a single service e.g. 'Register for a National Professional Qualification'. |
 | journey_id | A unique ID for this authorization journey instance. |
-| sig | This is a signed hash of the previous query parameters using a pre-shared key. |
+| sig | This is a signed hash of the previous query parameters using a pre-shared key in hexadecimal format. |
 
 ### Context signature query parameter
 
@@ -51,9 +51,9 @@ In essence, the query parameters above (except 'sig') are hashed using HMAC SHA2
 2. Hash what remains using the secure pre-shared key and the HMAC SHA256 algorithm.
 
 ### Example:
-Given a base64-encoded pre-shared key of `L8mg9SK6ymyvwTQ4j0kl6rIxQv4wR3XWFcD8ctMrk4w=`
+Given a pre-shared key of `qNhFcrwurK5Rf9qJeH7KaU3F`
 
-`https://find-a-lost-trn.education.gov.uk/identity?redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&sig=s8uqqS8kQdKrByoKNZIka%2FlvpRn2FqHQo6dt2HIm9qM%3D`
+`https://find-a-lost-trn.education.gov.uk/identity?redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&sig=66674de036d2f47ddf5585f6fcbe2d0334b2de979b8fc13ee65826adf07aae99`
 
 
 ## Handover from Find a lost TRN to the authorization server
