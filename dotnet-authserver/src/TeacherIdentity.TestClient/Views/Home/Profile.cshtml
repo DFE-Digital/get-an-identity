@@ -1,11 +1,13 @@
 ﻿@model ProfileModel
 
 <p class="govuk-body">
-  Hi @Model.FirstName @Model.LastName
+  Hi
+  <span data-testid="first-name">@Model.FirstName</span>
+  <span data-testid="last-name">@Model.LastName</span>
 </p>
 
 <p class="govuk-body">
   Email: <span data-testid="email">@Model.Email</span><br />
   User ID: @Model.UserId<br />
-  TRN: @Model.Trn<br />
+  TRN: <span data-testid="trn">@Model.Trn</span><br />
 </p>

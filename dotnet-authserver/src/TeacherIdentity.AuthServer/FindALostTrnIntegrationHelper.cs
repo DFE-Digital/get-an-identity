@@ -35,6 +35,8 @@ public class FindALostTrnIntegrationHelper
         _logger = logger;
     }
 
+    public FindALostTrnIntegrationOptions Options => _optionsAccessor.Value;
+
     public async Task<string> GetHandoverUrl(AuthenticationState authenticationState)
     {
         var clientId = authenticationState.GetAuthorizationRequest().ClientId!;
@@ -69,7 +71,7 @@ public class FindALostTrnIntegrationHelper
 
         var userJwt = userJwtObj.ToString();
 
-        var pskBytes = Convert.FromBase64String(_optionsAccessor.Value.SharedKey);
+        var pskBytes = Encoding.UTF8.GetBytes(_optionsAccessor.Value.SharedKey);
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
 
         var tokenHandler = new JwtSecurityTokenHandler
@@ -86,7 +88,7 @@ public class FindALostTrnIntegrationHelper
                     IssuerSigningKey = signingCredentials.Key,
                     ValidateAudience = false,
                     ValidateIssuer = false,
-                    ValidateIssuerSigningKey = false,
+                    ValidateIssuerSigningKey = true,
                     ValidateLifetime = false
                 },
                 out _);
@@ -100,15 +102,15 @@ public class FindALostTrnIntegrationHelper
         return true;
     }
 
-    private string CalculateSignature(string handoverUrl)
+    public string CalculateSignature(string handoverUrl)
     {
-        var sharedKeyBytes = Convert.FromBase64String(_optionsAccessor.Value.SharedKey);
+        var sharedKeyBytes = Encoding.UTF8.GetBytes(_optionsAccessor.Value.SharedKey);
 
         var queryParams = new Url(handoverUrl).Query;
         var queryParamBytes = Encoding.UTF8.GetBytes(queryParams);
 
         var hashBytes = HMACSHA256.HashData(sharedKeyBytes, queryParamBytes);
-        var hash = Convert.ToBase64String(hashBytes);
+        var hash = Convert.ToHexString(hashBytes);
 
         return hash;
     }
