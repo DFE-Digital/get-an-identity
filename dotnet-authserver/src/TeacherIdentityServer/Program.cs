@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenIddict.Abstractions;
 using Prometheus;
+using Sentry.AspNetCore;
+using Serilog;
 using TeacherIdentityServer.Configuration;
 using TeacherIdentityServer.Models;
 using TeacherIdentityServer.State;
@@ -20,6 +22,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
+
         builder.WebHost.ConfigureKestrel(options =>
         {
             options.AddServerHeader = false;
@@ -28,6 +32,11 @@ public class Program
         builder.Configuration
             .AddJsonEnvironmentVariable("VCAP_SERVICES", configurationKeyPrefix: "VCAP_SERVICES")
             .AddJsonEnvironmentVariable("VCAP_APPLICATION", configurationKeyPrefix: "VCAP_APPLICATION");
+
+        if (builder.Environment.IsProduction())
+        {
+            builder.WebHost.UseSentry();
+        }
 
         MetricLabels.ConfigureLabels(builder.Configuration);
 
@@ -144,7 +153,24 @@ public class Program
 
         builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
 
+        builder.Services.Configure<SentryAspNetCoreOptions>(options =>
+        {
+            var paasEnvironmentName = builder.Configuration["PaasEnvironment"];
+            if (!string.IsNullOrEmpty(paasEnvironmentName))
+            {
+                options.Environment = paasEnvironmentName;
+            }
+
+            var gitSha = builder.Configuration["GitSha"];
+            if (!string.IsNullOrEmpty(gitSha))
+            {
+                options.Release = gitSha;
+            }
+        });
+
         var app = builder.Build();
+
+        app.UseSerilogRequestLogging();
 
         if (app.Environment.IsDevelopment())
         {
@@ -167,6 +193,11 @@ public class Program
         app.UseMiddleware<AuthenticationStateMiddleware>();
 
         app.UseRouting();
+
+        if (builder.Environment.IsProduction())
+        {
+            app.UseSentryTracing();
+        }
 
         app.UseHttpMetrics();
 
