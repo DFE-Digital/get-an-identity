@@ -20,7 +20,7 @@ public class SignIn : IClassFixture<HostFixture>
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
 
-            dbContext.Users.Add(new TeacherIdentityUser()
+            dbContext.Users.Add(new User()
             {
                 EmailAddress = email,
                 FirstName = "Joe",

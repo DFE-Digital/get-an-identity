@@ -44,7 +44,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn
             authenticationState.LastName = findALostTrnUser.FindFirst(Claims.FamilyName)!.Value;
 
             var userId = Guid.NewGuid();
-            var user = new TeacherIdentityUser()
+            var user = new User()
             {
                 EmailAddress = authenticationState.EmailAddress,
                 FirstName = authenticationState.FirstName,

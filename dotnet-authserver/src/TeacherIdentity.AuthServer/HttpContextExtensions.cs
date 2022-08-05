@@ -15,7 +15,7 @@ public static class HttpContextExtensions
         httpContext.Features.Get<AuthenticationStateFeature>()?.AuthenticationState ??
             throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
 
-    public static async Task<IActionResult> SignInUser(this HttpContext httpContext, TeacherIdentityUser user)
+    public static async Task<IActionResult> SignInUser(this HttpContext httpContext, User user)
     {
         var authenticationState = httpContext.GetAuthenticationState();
         var authorizationRequest = authenticationState.GetAuthorizationRequest();
