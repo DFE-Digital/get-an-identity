@@ -84,6 +84,9 @@ public class Program
 
         var pgConnectionString = GetPostgresConnectionString();
 
+        var healthCheckBuilder = builder.Services.AddHealthChecks()
+            .AddNpgSql(pgConnectionString);
+
         builder.Services.AddDbContext<TeacherIdentityServerDbContext>(options =>
         {
             TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString);
@@ -200,6 +203,8 @@ public class Program
         }
 
         app.UseHttpMetrics();
+
+        app.UseHealthChecks("/status");
 
         app.UseAuthentication();
 
