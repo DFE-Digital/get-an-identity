@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
+using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.TestCommon;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
@@ -17,6 +18,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     {
         DbHelper = new DbHelper(Configuration.GetConnectionString("DefaultConnection"));
         await DbHelper.ResetSchema();
+
+        await ConfigureTestClients();
     }
 
     Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
@@ -36,6 +39,17 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IPageApplicationModelProvider, RemoveAutoValidateAntiforgeryPageApplicationModelProvider>();
 
         });
+    }
+
+    private async Task ConfigureTestClients()
+    {
+        using var scope = Services.CreateAsyncScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+
+        foreach (var client in TestClients.All)
+        {
+            await manager.CreateAsync(client);
+        }
     }
 
     private static IConfiguration GetTestConfiguration() =>
