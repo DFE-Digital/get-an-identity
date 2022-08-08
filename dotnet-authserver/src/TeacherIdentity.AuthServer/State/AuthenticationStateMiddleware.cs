@@ -5,34 +5,21 @@ public class AuthenticationStateMiddleware
     public const string IdQueryParameterName = "asid";
 
     private readonly RequestDelegate _next;
-    private readonly ILogger<AuthenticationStateMiddleware> _logger;
+    private readonly IAuthenticationStateProvider _authenticationStateProvider;
 
-    public AuthenticationStateMiddleware(RequestDelegate next, ILogger<AuthenticationStateMiddleware> logger)
+    public AuthenticationStateMiddleware(RequestDelegate next, IAuthenticationStateProvider authenticationStateProvider)
     {
         _next = next;
-        _logger = logger;
+        _authenticationStateProvider = authenticationStateProvider;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.Request.Query.TryGetValue(IdQueryParameterName, out var asidStr) &&
-            Guid.TryParse(asidStr, out var asid))
-        {
-            var sessionKey = GetSessionKey(asid);
-            var serializedAuthenticationState = context.Session.GetString(sessionKey);
+        var authenticationState = _authenticationStateProvider.GetAuthenticationState(context);
 
-            if (serializedAuthenticationState is not null)
-            {
-                try
-                {
-                    var authenticationState = AuthenticationState.Deserialize(serializedAuthenticationState);
-                    context.Features.Set(new AuthenticationStateFeature(authenticationState));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Failed deserializing {nameof(AuthenticationState)}.");
-                }
-            }
+        if (authenticationState is not null)
+        {
+            context.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
 
         await _next(context);
@@ -46,11 +33,7 @@ public class AuthenticationStateMiddleware
                 throw new InvalidOperationException($"{nameof(AuthenticationState)} must have {nameof(AuthenticationState.JourneyId)} set.");
             }
 
-            var sessionKey = GetSessionKey(authenticationStateFeature.AuthenticationState.JourneyId);
-            var serializedAuthenticationState = authenticationStateFeature.AuthenticationState.Serialize();
-            context.Session.SetString(sessionKey, serializedAuthenticationState);
+            _authenticationStateProvider.SetAuthenticationState(context, authenticationStateFeature.AuthenticationState);
         }
     }
-
-    private static string GetSessionKey(Guid asid) => $"auth-state:{asid:N}";
 }

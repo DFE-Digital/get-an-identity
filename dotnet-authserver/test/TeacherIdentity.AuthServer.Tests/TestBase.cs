@@ -1,4 +1,7 @@
-﻿namespace TeacherIdentity.AuthServer.Tests;
+﻿using TeacherIdentity.AuthServer.State;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
+
+namespace TeacherIdentity.AuthServer.Tests;
 
 public abstract class TestBase : IClassFixture<HostFixture>
 {
@@ -15,4 +18,10 @@ public abstract class TestBase : IClassFixture<HostFixture>
     public HostFixture HostFixture { get; }
 
     public HttpClient HttpClient { get; }
+
+    public AuthenticationStateHelper CreateAuthenticationStateHelper(Action<AuthenticationState>? configureAuthenticationState = null)
+    {
+        var testAuthStateProvider = (TestAuthenticationStateProvider)HostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
+        return AuthenticationStateHelper.Create(configureAuthenticationState, testAuthStateProvider);
+    }
 }

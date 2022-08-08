@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.TestCommon;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -38,6 +40,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // (we want to be able to POST directly from a test without having to set antiforgery cookies etc.)
             services.AddSingleton<IPageApplicationModelProvider, RemoveAutoValidateAntiforgeryPageApplicationModelProvider>();
 
+            services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
         });
     }
 

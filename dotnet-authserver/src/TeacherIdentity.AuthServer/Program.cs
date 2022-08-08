@@ -158,6 +158,8 @@ public class Program
 
         builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
 
+        builder.Services.AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>();
+
         builder.Services.Configure<SentryAspNetCoreOptions>(options =>
         {
             var paasEnvironmentName = builder.Configuration["PaasEnvironment"];
