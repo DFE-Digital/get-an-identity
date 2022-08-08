@@ -117,7 +117,9 @@ public class Program
                     .AllowHybridFlow()
                     .AllowClientCredentialsFlow();
 
-                if (builder.Environment.IsDevelopment() || builder.Environment.IsEndToEndTests())
+                if (builder.Environment.IsDevelopment() ||
+                    builder.Environment.IsUnitTests() ||
+                    builder.Environment.IsEndToEndTests())
                 {
                     options
                         .AddDevelopmentEncryptionCertificate()
@@ -180,7 +182,7 @@ public class Program
             app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
         }
-        else
+        else if (!app.Environment.IsUnitTests())
         {
             app.UseExceptionHandler("/error");
             app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
