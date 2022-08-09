@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
-public abstract class TestBase : IClassFixture<HostFixture>
+public abstract partial class TestBase : IClassFixture<HostFixture>
 {
     protected TestBase(HostFixture hostFixture)
     {
@@ -18,6 +18,8 @@ public abstract class TestBase : IClassFixture<HostFixture>
     public HostFixture HostFixture { get; }
 
     public HttpClient HttpClient { get; }
+
+    public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
     public AuthenticationStateHelper CreateAuthenticationStateHelper(Action<AuthenticationState>? configureAuthenticationState = null)
     {

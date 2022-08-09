@@ -41,6 +41,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IPageApplicationModelProvider, RemoveAutoValidateAntiforgeryPageApplicationModelProvider>();
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
+            services.AddSingleton<TestData>();
         });
     }
 
