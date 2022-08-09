@@ -3,10 +3,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Flurl;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.State;
@@ -37,7 +37,7 @@ public class FindALostTrnIntegrationHelper
 
     public FindALostTrnIntegrationOptions Options => _optionsAccessor.Value;
 
-    public async Task<string> GetHandoverUrl(AuthenticationState authenticationState)
+    public async Task<(string Url, IDictionary<string, string> FormValues)> GetHandoverRequest(AuthenticationState authenticationState)
     {
         var clientId = authenticationState.GetAuthorizationRequest().ClientId!;
         var client = (await _applicationManager.FindByClientIdAsync(clientId))!;
@@ -48,28 +48,30 @@ public class FindALostTrnIntegrationHelper
         var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
         var callbackUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{urlHelper.TrnCallback()}";
 
-        var url = new Url(_optionsAccessor.Value.HandoverEndpoint)
-            .SetQueryParam("email", authenticationState.EmailAddress)
-            .SetQueryParam("redirect_uri", callbackUrl)
-            .SetQueryParam("client_title", clientDisplayName ?? string.Empty)
-            .SetQueryParam("journey_id", authenticationState.JourneyId);
+        var formValues = new Dictionary<string, string>()
+        {
+            { "email", authenticationState.EmailAddress! },
+            { "redirect_uri", callbackUrl },
+            { "client_title", clientDisplayName ?? string.Empty },
+            { "journey_id", authenticationState.JourneyId.ToString() }
+        };
 
-        var sig = CalculateSignature(url);
-        url.SetQueryParam("sig", sig);
+        var sig = CalculateSignature(formValues);
+        formValues.Add("sig", sig);
 
-        return url;
+        return (_optionsAccessor.Value.HandoverEndpoint, formValues);
     }
 
-    public bool ValidateCallback(string callbackUrl, [NotNullWhen(true)] out ClaimsPrincipal? user)
+    public bool ValidateCallback(IDictionary<string, string>? formValues, [NotNullWhen(true)] out ClaimsPrincipal? user)
     {
         user = default;
 
-        if (!new Url(callbackUrl).QueryParams.TryGetFirst("user", out var userJwtObj))
+        if (formValues is null || !formValues.TryGetValue("user", out var userJwtValues))
         {
             return false;
         }
 
-        var userJwt = userJwtObj.ToString();
+        var userJwt = userJwtValues.ToString();
 
         var pskBytes = Encoding.UTF8.GetBytes(_optionsAccessor.Value.SharedKey);
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
@@ -102,14 +104,17 @@ public class FindALostTrnIntegrationHelper
         return true;
     }
 
-    public string CalculateSignature(string handoverUrl)
+    public string CalculateSignature(IDictionary<string, string> formValues)
     {
         var sharedKeyBytes = Encoding.UTF8.GetBytes(_optionsAccessor.Value.SharedKey);
 
-        var queryParams = new Url(handoverUrl).Query;
-        var queryParamBytes = Encoding.UTF8.GetBytes(queryParams);
+        var canonicalizedValues = string.Join(
+            "&",
+            formValues.OrderBy(kvp => kvp.Key).Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
 
-        var hashBytes = HMACSHA256.HashData(sharedKeyBytes, queryParamBytes);
+        var canonicalizedValuesBytes = Encoding.UTF8.GetBytes(canonicalizedValues);
+
+        var hashBytes = HMACSHA256.HashData(sharedKeyBytes, canonicalizedValuesBytes);
         var hash = Convert.ToHexString(hashBytes);
 
         return hash;

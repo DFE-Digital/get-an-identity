@@ -20,7 +20,12 @@
         If you do not have your TRN or National Insurance number available, we may ask some follow-up questions.
     </p>
 
-    <form action="@Url.Trn()" method="post" asp-antiforgery="true">
+    <form action="@Model.HandoverUrl" method="post" asp-antiforgery="false">
+      @foreach (var p in Model.HandoverParameters!)
+      {
+        <input type="hidden" name="@(p.Key)" value="@(p.Value)"/>
+      }
+
       <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
     </form>
   </govuk-panel-body>

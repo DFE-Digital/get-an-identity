@@ -25,9 +25,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{D8D752A9-F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.EndToEndTests", "test\TeacherIdentity.AuthServer.EndToEndTests\TeacherIdentity.AuthServer.EndToEndTests.csproj", "{9D2CB114-86CB-4431-A9E1-5C0AD5AA3988}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherIdentity.AuthServer.Tests", "test\TeacherIdentity.AuthServer.Tests\TeacherIdentity.AuthServer.Tests.csproj", "{1AAAB1A6-7BC8-47F9-9919-C3404B3BF02E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.Tests", "test\TeacherIdentity.AuthServer.Tests\TeacherIdentity.AuthServer.Tests.csproj", "{1AAAB1A6-7BC8-47F9-9919-C3404B3BF02E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherIdentity.AuthServer.TestCommon", "test\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj", "{F101CEA4-DA68-449A-8096-0413C4248B83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.TestCommon", "test\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj", "{F101CEA4-DA68-449A-8096-0413C4248B83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
