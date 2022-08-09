@@ -117,7 +117,9 @@ public class Program
                     .AllowHybridFlow()
                     .AllowClientCredentialsFlow();
 
-                if (builder.Environment.IsDevelopment() || builder.Environment.IsEndToEndTests())
+                if (builder.Environment.IsDevelopment() ||
+                    builder.Environment.IsUnitTests() ||
+                    builder.Environment.IsEndToEndTests())
                 {
                     options
                         .AddDevelopmentEncryptionCertificate()
@@ -156,6 +158,8 @@ public class Program
 
         builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
 
+        builder.Services.AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>();
+
         builder.Services.Configure<SentryAspNetCoreOptions>(options =>
         {
             var paasEnvironmentName = builder.Configuration["PaasEnvironment"];
@@ -180,7 +184,7 @@ public class Program
             app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
         }
-        else
+        else if (!app.Environment.IsUnitTests())
         {
             app.UseExceptionHandler("/error");
             app.UseStatusCodePagesWithReExecute("/error", "?code={0}");

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.TestCommon;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 

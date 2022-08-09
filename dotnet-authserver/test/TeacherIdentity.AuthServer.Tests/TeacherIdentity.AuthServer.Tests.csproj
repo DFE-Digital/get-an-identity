@@ -4,16 +4,17 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UserSecretsId>TeacherIdentityServerEndToEndTests</UserSecretsId>
+    <UserSecretsId>TeacherIdentityAuthServerTests</UserSecretsId>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.17.1" />
+    <PackageReference Include="Faker.Net" Version="2.0.154" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-    <PackageReference Include="Microsoft.Playwright" Version="1.24.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TeacherIdentity.TestClient\TeacherIdentity.TestClient.csproj" />
+    <ProjectReference Include="..\..\src\TeacherIdentity.AuthServer\TeacherIdentity.AuthServer.csproj" />
     <ProjectReference Include="..\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@
 using Respawn;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.EndToEndTests;
+namespace TeacherIdentity.AuthServer.TestCommon;
 
 public class DbHelper
 {

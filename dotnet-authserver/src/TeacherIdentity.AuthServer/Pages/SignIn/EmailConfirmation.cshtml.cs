@@ -32,7 +32,7 @@ public class EmailConfirmationModel : PageModel
 
         if (!ModelState.IsValid)
         {
-            return Page();
+            return this.PageWithErrors();
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();

@@ -9,6 +9,7 @@ public class EmailModel : PageModel
 {
     [Display(Name = "Your email address")]
     [Required(ErrorMessage = "Enter your email address")]
+    [EmailAddress(ErrorMessage = "Enter a valid email address")]
     public string? Email { get; set; }
 
     public void OnGet()
@@ -19,7 +20,7 @@ public class EmailModel : PageModel
     {
         if (!ModelState.IsValid)
         {
-            return Page();
+            return this.PageWithErrors();
         }
 
         HttpContext.GetAuthenticationState().EmailAddress = Email;
