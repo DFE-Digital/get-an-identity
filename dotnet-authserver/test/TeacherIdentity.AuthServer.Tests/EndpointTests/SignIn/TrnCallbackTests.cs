@@ -15,17 +15,22 @@ public class TrnCallbackTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn-callback?user={Uri.EscapeDataString(CreateJwt())}");
+        var content = new FormUrlEncodedContentBuilder()
+            .Add("user", CreateJwt())
+            .ToContent();
+
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn-callback", content);
     }
 
     [Fact]
-    public async Task Get_MissingUserQueryParameter_ReturnsError()
+    public async Task Post_MissingUserQueryParameter_ReturnsError()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddress = Faker.Internet.Email());
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -35,11 +40,17 @@ public class TrnCallbackTests : TestBase
     }
 
     [Fact]
-    public async Task Get_InvalidCallback_ReturnsError()
+    public async Task Post_InvalidCallback_ReturnsError()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}&user={Uri.EscapeDataString(CreateJwt())}xxx");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("user", CreateJwt() + "xxx")
+                .ToContent()
+        };
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -49,7 +60,7 @@ public class TrnCallbackTests : TestBase
     }
 
     [Fact]
-    public async Task Get_ValidCallback_CreatesUserAndCompletesAuthorization()
+    public async Task Post_ValidCallback_CreatesUserAndCompletesAuthorization()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -62,7 +73,12 @@ public class TrnCallbackTests : TestBase
 
         var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}&user={Uri.EscapeDataString(jwt)}");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("user", jwt)
+                .ToContent()
+        };
 
         // Act
         var response = await HttpClient.SendAsync(request);

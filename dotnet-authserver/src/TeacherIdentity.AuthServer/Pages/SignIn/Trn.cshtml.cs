@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -12,14 +11,15 @@ public class TrnModel : PageModel
         _findALostTrnIntegrationHelper = findALostTrnIntegrationHelper;
     }
 
-    public void OnGet()
-    {
-    }
+    public IReadOnlyDictionary<string, string>? HandoverParameters { get; set; }
 
-    public async Task<IActionResult> OnPost()
+    public string? HandoverUrl { get; set; }
+
+    public async Task OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
-        var handoverUrl = await _findALostTrnIntegrationHelper.GetHandoverUrl(authenticationState);
-        return Redirect(handoverUrl);
+        var (url, parameters) = await _findALostTrnIntegrationHelper.GetHandoverRequest(authenticationState);
+        HandoverUrl = url;
+        HandoverParameters = parameters.ToDictionary(f => f.Key, f => f.Value.ToString());
     }
 }
