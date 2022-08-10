@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using OpenIddict.Abstractions;
 using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
@@ -18,7 +17,7 @@ namespace TeacherIdentity.AuthServer;
 
 public class Program
 {
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -227,84 +226,6 @@ public class Program
 
             // TODO Remove the stub Find endpoints for production deployments
         });
-
-        using (var scope = app.Services.CreateAsyncScope())
-        {
-            var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-
-            var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-            await dbContext.Database.EnsureCreatedAsync();
-
-            // Web client
-            {
-                var client = await manager.FindByClientIdAsync("client");
-                if (client is not null)
-                {
-                    await manager.DeleteAsync(client);
-                }
-
-                await manager.CreateAsync(new OpenIddictApplicationDescriptor()
-                {
-                    ClientId = "client",
-                    ClientSecret = "super-secret",
-                    //ConsentType = ConsentTypes.Explicit,
-                    ConsentType = ConsentTypes.Implicit,
-                    DisplayName = "Sample TeacherIdentity.TestClient app",
-                    RedirectUris =
-                    {
-                        new Uri("https://localhost:7261/oidc/callback"),
-                        new Uri("http://localhost:55342/oidc/callback"),  // End to end tests
-                    },
-                    Permissions =
-                    {
-                        Permissions.Endpoints.Authorization,
-                        Permissions.Endpoints.Token,
-                        Permissions.GrantTypes.AuthorizationCode,
-                        Permissions.GrantTypes.Implicit,
-                        Permissions.ResponseTypes.Code,
-                        Permissions.ResponseTypes.IdToken,
-                        Permissions.ResponseTypes.CodeIdToken,
-                        Permissions.Scopes.Email,
-                        Permissions.Scopes.Profile,
-                        $"scp:{CustomScopes.Trn}"
-                    },
-                    Requirements =
-                    {
-                        //Requirements.Features.ProofKeyForCodeExchange
-                    }
-                });
-            }
-
-            // Console app client
-            {
-                var client = await manager.FindByClientIdAsync("client2");
-                if (client is not null)
-                {
-                    await manager.DeleteAsync(client);
-                }
-
-                await manager.CreateAsync(new OpenIddictApplicationDescriptor()
-                {
-                    ClientId = "client2",
-                    ClientSecret = "another-big-secret",
-                    //ConsentType = ConsentTypes.Explicit,
-                    ConsentType = ConsentTypes.Implicit,
-                    DisplayName = "Sample TeacherIdentity.TestClient app 2",
-                    Permissions =
-                    {
-                        Permissions.Endpoints.Token,
-                        Permissions.GrantTypes.ClientCredentials,
-                        Permissions.ResponseTypes.Token,
-                        //Permissions.Scopes.Email,
-                        //Permissions.Scopes.Profile,
-                    },
-                    Requirements =
-                    {
-                        //Requirements.Features.ProofKeyForCodeExchange
-                    }
-                });
-            }
-        }
 
         app.Run();
 

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TeacherIdentity.AuthServer.Clients": {
+      "commandName": "Project",
+      "commandLineArgs": "--environment Local"
+    }
+  }
+}
