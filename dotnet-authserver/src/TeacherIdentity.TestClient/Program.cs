@@ -28,7 +28,7 @@ public class Program
             {
                 options.Authority = builder.Configuration.GetValue<string>("SignInAuthority");
 
-                options.ClientId = "client";
+                options.ClientId = "testclient";
                 options.ClientSecret = "super-secret";
                 options.ResponseType = "code id_token";
                 options.CallbackPath = new PathString("/oidc/callback");

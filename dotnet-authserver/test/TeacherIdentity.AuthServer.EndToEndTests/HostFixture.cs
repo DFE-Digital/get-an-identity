@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.Clients;
 using TeacherIdentity.AuthServer.TestCommon;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
@@ -66,6 +67,10 @@ public class HostFixture : IAsyncLifetime
 
         _authServerHost = CreateAuthServerHost(testConfiguration);
         AuthServerServices = _authServerHost.Services;
+
+        var clientHelper = new ClientConfigurationHelper(AuthServerServices);
+        var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>();
+        await clientHelper.UpsertClients(clients);
 
         _clientHost = CreateClientHost(testConfiguration);
 
