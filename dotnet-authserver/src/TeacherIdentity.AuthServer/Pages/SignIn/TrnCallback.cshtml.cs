@@ -44,7 +44,7 @@ public class TrnCallbackModel : PageModel
             throw new NotImplementedException();
         }
 
-        if (!RequiredClaimsAreProvided(findALostTrnUser, "trn", Claims.GivenName, Claims.FamilyName))
+        if (!RequiredClaimsAreProvided(findALostTrnUser, "trn", Claims.GivenName, Claims.FamilyName, Claims.Birthdate))
         {
             return BadRequest();
         }
@@ -52,11 +52,13 @@ public class TrnCallbackModel : PageModel
         authenticationState.Trn = findALostTrnUser.FindFirst("trn")!.Value;
         authenticationState.FirstName = findALostTrnUser.FindFirst(Claims.GivenName)!.Value;
         authenticationState.LastName = findALostTrnUser.FindFirst(Claims.FamilyName)!.Value;
+        authenticationState.DateOfBirth = DateOnly.ParseExact(findALostTrnUser.FindFirst(Claims.Birthdate)!.Value, "yyyy-MM-dd");
 
         var userId = Guid.NewGuid();
         var user = new User()
         {
-            EmailAddress = authenticationState.EmailAddress,
+            DateOfBirth = authenticationState.DateOfBirth!.Value,
+            EmailAddress = authenticationState.EmailAddress!,
             FirstName = authenticationState.FirstName,
             LastName = authenticationState.LastName,
             Trn = authenticationState.Trn,

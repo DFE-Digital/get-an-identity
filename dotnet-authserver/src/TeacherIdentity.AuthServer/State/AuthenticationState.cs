@@ -2,11 +2,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Json;
 
 namespace TeacherIdentity.AuthServer.State;
 
 public class AuthenticationState
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+    {
+        Converters =
+        {
+            new DateOnlyConverter()
+        }
+    };
+
     public AuthenticationState(
         Guid journeyId,
         string authorizationUrl)
@@ -24,7 +33,7 @@ public class AuthenticationState
     public string? LastName { get; set; }
     public string? PreviousFirstName { get; set; }
     public string? PreviousLastName { get; set; }
-    public DateTime? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public string? Nino { get; set; }
     public bool? HaveQts { get; set; }
     public bool? DidAUniversityScittOrSchoolAwardQts { get; set; }
@@ -32,7 +41,7 @@ public class AuthenticationState
     public string? Trn { get; set; }
 
     public static AuthenticationState Deserialize(string serialized) =>
-        JsonSerializer.Deserialize<AuthenticationState>(serialized) ??
+        JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
 
     public OpenIddictRequest GetAuthorizationRequest()
@@ -79,5 +88,5 @@ public class AuthenticationState
         throw new Exception("Cannot continue authorization journey.");
     }
 
-    public string Serialize() => JsonSerializer.Serialize(this);
+    public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
 }
