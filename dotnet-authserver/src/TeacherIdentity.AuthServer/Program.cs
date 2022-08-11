@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using GovUk.Frontend.AspNetCore;
+using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using TeacherIdentity.AuthServer.Configuration;
+using TeacherIdentity.AuthServer.Middleware;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -39,14 +41,21 @@ public class Program
 
         MetricLabels.ConfigureLabels(builder.Configuration);
 
+        builder.Services.AddAntiforgery(options =>
+        {
+            options.Cookie.Name = "tis-antiforgery";
+            options.SuppressXFrameOptionsHeader = true;
+        });
+
         builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>
             {
-                options.Cookie.Name = "gai-auth";
+                options.Cookie.Name = "tis-auth";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
                 options.Events.OnRedirectToLogin = ctx =>
@@ -76,7 +85,7 @@ public class Program
 
         builder.Services.AddSession(options =>
         {
-            options.Cookie.Name = "gai-session";
+            options.Cookie.Name = "tis-session";
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
         });
@@ -174,6 +183,8 @@ public class Program
             }
         });
 
+        builder.Services.AddCsp(nonceByteAmount: 32);
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();
@@ -197,6 +208,33 @@ public class Program
         app.UseSession();
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
+
+        // Add security headers middleware but exclude the endpoints managed by OpenIddict
+        app.UseWhen(
+            ctx => !ctx.Request.Path.StartsWithSegments(new PathString("/connect")),
+            a =>
+            {
+                a.UseMiddleware<AppendSecurityResponseHeadersMiddleware>();
+
+                a.UseCsp(options =>
+                {
+                    options.ByDefaultAllow
+                        .FromSelf();
+
+                    options.AllowScripts
+                        .FromSelf()
+                        .From("'sha256-j7OoGArf6XW6YY4cAyS3riSSvrJRqpSi1fOF9vQ5SrI='")  // Hash of 'document.form.submit();' from the authorization POST back page in OpenIddict
+                        .AddNonce();
+
+                    // Ensure ASP.NET Core's auto refresh works
+                    // See https://github.com/dotnet/aspnetcore/issues/33068
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        options.AllowConnections
+                            .ToAnywhere();
+                    }
+                });
+            });
 
         app.UseRouting();
 

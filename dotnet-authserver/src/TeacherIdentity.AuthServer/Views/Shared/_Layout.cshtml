@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@addTagHelper *, Joonasw.AspNetCore.SecurityHeaders
+<!DOCTYPE html>
 <html lang="en" class="govuk-template ">
 
 <head>
@@ -23,7 +24,7 @@
 </head>
 
 <body class="govuk-template__body ">
-  @Html.Raw(GovUk.Frontend.AspNetCore.HtmlSnippets.BodyInitScript)
+  <script asp-add-nonce="true">document.body.className = document.body.className + ' js-enabled';</script>
   <govuk-skip-link />
 
   <header class="govuk-header " role="banner" data-module="govuk-header">
@@ -73,7 +74,8 @@
       </div>
     </div>
   </footer>
-  @Html.Raw(GovUk.Frontend.AspNetCore.HtmlSnippets.ScriptImports)
+  <script src="/govuk-frontend-4.1.0.min.js"></script>
+  <script asp-add-nonce="true">window.GOVUKFrontend.initAll()</script>
 </body>
 
 </html>

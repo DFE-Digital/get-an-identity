@@ -16,6 +16,7 @@
     <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
     <PackageReference Include="Flurl" Version="3.0.6" />
     <PackageReference Include="GovUk.Frontend.AspNetCore" Version="1.0.0-beta1" />
+    <PackageReference Include="Joonasw.AspNetCore.SecurityHeaders" Version="4.0.1" />
     <PackageReference Include="LibSassBuilder" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.7" />
@@ -36,6 +37,10 @@
 
   <ItemGroup>
     <None Include="Pages\StubFindALostTrn\Identity.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Filters\" />
   </ItemGroup>
 
 </Project>

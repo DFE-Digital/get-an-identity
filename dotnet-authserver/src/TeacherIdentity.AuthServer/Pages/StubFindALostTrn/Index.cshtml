@@ -1,5 +1,6 @@
 ﻿@page "/FindALostTrn"
 @model TeacherIdentity.AuthServer.Pages.StubFindALostTrn.IndexModel
+@addTagHelper *, Joonasw.AspNetCore.SecurityHeaders
 
 @if (!Model.IsCallback)
 {
@@ -25,7 +26,7 @@ else
     <input type="hidden" name="user" value="@Model.UserJwt" />
   </form>
 
-  <script type="text/javascript">
+  <script type="text/javascript" asp-add-nonce="true">
     document.forms['callbackform'].submit();
   </script>
 }
