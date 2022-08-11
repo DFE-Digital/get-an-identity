@@ -14,6 +14,8 @@ public static class UrlHelperExtensions
 
     public static string TrnCallback(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
 
+    public static string Confirmation(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/Confirmation");
+
     /// <summary>
     /// Generates a link to a Razor page and appends the authentication journey id query parameter.
     /// </summary>

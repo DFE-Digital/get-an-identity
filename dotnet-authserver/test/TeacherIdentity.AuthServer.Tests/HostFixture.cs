@@ -26,6 +26,19 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
 
+    public async Task SignInUser(Guid userId, AuthenticationStateHelper authenticationStateHelper, HttpClient httpClient)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{authenticationStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("UserId", userId.ToString())
+                .ToContent()
+        };
+
+        var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("UnitTests");
@@ -39,6 +52,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // Remove the built-in antiforgery filters
             // (we want to be able to POST directly from a test without having to set antiforgery cookies etc.)
             services.AddSingleton<IPageApplicationModelProvider, RemoveAutoValidateAntiforgeryPageApplicationModelProvider>();
+
+            // Add the /_sign-in endpoint
+            services.AddSingleton<IStartupFilter>(new AddSignInEndpointStartupFilter());
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
@@ -62,6 +78,18 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
             .Build();
+
+    private class AddSignInEndpointStartupFilter : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
+        {
+            next(app);
+
+            app.MapWhen(
+                ctx => ctx.Request.Path == new PathString("/_sign-in") && ctx.Request.Method == HttpMethods.Post,
+                app => app.UseMiddleware<SignInUserMiddleware>());
+        };
+    }
 
     private class RemoveAutoValidateAntiforgeryPageApplicationModelProvider : IPageApplicationModelProvider
     {

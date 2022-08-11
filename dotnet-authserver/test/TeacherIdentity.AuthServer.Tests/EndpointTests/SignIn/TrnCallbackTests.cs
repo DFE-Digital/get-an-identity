@@ -60,7 +60,7 @@ public class TrnCallbackTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidCallback_CreatesUserAndCompletesAuthorization()
+    public async Task Post_ValidCallback_CreatesUserAndRedirectsToConfirmation()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -85,7 +85,7 @@ public class TrnCallbackTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
+        Assert.Equal("/sign-in/confirmation", new Url(response.Headers.Location).Path);
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -101,7 +101,7 @@ public class TrnCallbackTests : TestBase
 
             Assert.Equal(firstName, user!.FirstName);
             Assert.Equal(lastName, user!.LastName);
-            //Assert.Equal(dateOfBirth, user!.DateOfBirth);
+            Assert.Equal(dateOfBirth, user!.DateOfBirth);
             Assert.Equal(trn, user!.Trn);
         });
     }

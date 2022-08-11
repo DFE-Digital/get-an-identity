@@ -26,7 +26,7 @@ public sealed class AuthenticationStateHelper
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
-            $"&scope=email%20profile" +
+            $"&scope=email%20profile%20trn" +
             $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}";
 
         var authenticationState = new AuthenticationState(journeyId, authorizationUrl);

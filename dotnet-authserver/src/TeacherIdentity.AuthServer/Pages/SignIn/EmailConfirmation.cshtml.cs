@@ -36,15 +36,17 @@ public class EmailConfirmationModel : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
-        authenticationState.EmailAddressConfirmed = true;
 
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
         if (user is not null)
         {
             await HttpContext.SignInUser(user);
-
-            authenticationState.UserId = user.UserId;
-            authenticationState.Trn = user.Trn;
+            authenticationState.FirstTimeUser = false;
+        }
+        else
+        {
+            authenticationState.EmailAddressConfirmed = true;
+            authenticationState.FirstTimeUser = true;
         }
 
         return Redirect(authenticationState.GetNextHopUrl(Url));

@@ -3,21 +3,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TeacherIdentity.AuthServer.State;
 
-public class RequireAuthenticationStateFilter : IPageFilter
+public class RequireAuthenticationStateFilter : IAuthorizationFilter
 {
-    public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
-    {
-    }
-
-    public void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    public void OnAuthorization(AuthorizationFilterContext context)
     {
         if (context.HttpContext.Features.Get<AuthenticationStateFeature>() is null)
         {
             context.Result = new BadRequestResult();
         }
-    }
-
-    public void OnPageHandlerSelected(PageHandlerSelectedContext context)
-    {
     }
 }

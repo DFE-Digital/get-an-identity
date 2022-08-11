@@ -39,7 +39,6 @@ public class IndexModel : PageModel
 
     [BindProperty]
     [Display(Name = "TRN")]
-    [Required(ErrorMessage = "Enter TRN")]
     public string? Trn { get; set; }
 
     public bool IsCallback { get; set; }
@@ -63,17 +62,23 @@ public class IndexModel : PageModel
         var pskBytes = Encoding.UTF8.GetBytes(_findALostTrnIntegrationHelper.Options.SharedKey);
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
 
+        var subject = new ClaimsIdentity(new[]
+        {
+            new Claim("email", Email!),
+            new Claim("birthdate", DateOfBirth!.Value.ToString("yyyy-MM-dd")),
+            new Claim("given_name", FirstName!),
+            new Claim("family_name", LastName!)
+        });
+
+        if (!string.IsNullOrEmpty(Trn))
+        {
+            subject.AddClaim(new Claim("trn", Trn!));
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwt = tokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor()
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim("email", Email!),
-                new Claim("birthdate", DateOfBirth!.Value.ToString("yyyy-MM-dd")),
-                new Claim("given_name", FirstName!),
-                new Claim("family_name", LastName!),
-                new Claim("trn", Trn!),
-            }),
+            Subject = subject,
             SigningCredentials = signingCredentials
         });
 

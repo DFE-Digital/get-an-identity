@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
@@ -15,9 +14,11 @@ public static class HttpContextExtensions
         httpContext.Features.Get<AuthenticationStateFeature>()?.AuthenticationState ??
             throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
 
-    public static async Task<IActionResult> SignInUser(this HttpContext httpContext, User user)
+    public static async Task SignInUser(this HttpContext httpContext, User user)
     {
         var authenticationState = httpContext.GetAuthenticationState();
+        authenticationState.Populate(user);
+
         var authorizationRequest = authenticationState.GetAuthorizationRequest();
 
         var claims = new List<Claim>()
@@ -39,7 +40,5 @@ public static class HttpContextExtensions
         var principal = new ClaimsPrincipal(identity);
 
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-        return new RedirectResult(authenticationState.AuthorizationUrl);
     }
 }
