@@ -1,8 +1,10 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Json;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.State;
 
@@ -27,18 +29,15 @@ public class AuthenticationState
     public Guid JourneyId { get; }
     public string AuthorizationUrl { get; }
     public Guid? UserId { get; set; }
+    public bool? FirstTimeUser { get; set; }
     public string? EmailAddress { get; set; }
     public bool EmailAddressConfirmed { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public string? PreviousFirstName { get; set; }
-    public string? PreviousLastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
-    public string? Nino { get; set; }
-    public bool? HaveQts { get; set; }
-    public bool? DidAUniversityScittOrSchoolAwardQts { get; set; }
-    public string? QtsProviderName { get; set; }
     public string? Trn { get; set; }
+    public bool HaveCompletedFindALostTrnJourney { get; set; }
+    public bool HaveCompletedConfirmationPage { get; set; }
 
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
@@ -69,23 +68,38 @@ public class AuthenticationState
         // For now we only support flows that have the trn scope specified
         if (!request.HasScope(CustomScopes.Trn))
         {
-            throw new NotSupportedException($"The '{CustomScopes.Trn}' must be specified.");
+            throw new NotSupportedException($"The '{CustomScopes.Trn}' scope must be specified.");
         }
 
-        // qualified_teacher scope is specified; launch the journey to collect TRN
-        if (request.HasScope(CustomScopes.Trn) && Trn is null)
+        // trn scope is specified; launch the journey to collect TRN
+        if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedFindALostTrnJourney)
         {
             return urlHelper.Trn();
         }
 
-        // We should be signed in at this point - complete authorization
-        if (UserId.HasValue)
+        // We should have a known user at this point
+        Debug.Assert(UserId.HasValue);
+
+        // Confirmation bookend page
+        if (!HaveCompletedConfirmationPage)
         {
-            return AuthorizationUrl;
+            return urlHelper.Confirmation();
         }
 
-        // We should never get here
-        throw new Exception("Cannot continue authorization journey.");
+        // We're done - complete authorization
+        return AuthorizationUrl;
+    }
+
+    public void Populate(User user)
+    {
+        UserId = user.UserId;
+        EmailAddress = user.EmailAddress;
+        EmailAddressConfirmed = true;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
+        DateOfBirth = user.DateOfBirth;
+        Trn = user.Trn;
+        HaveCompletedFindALostTrnJourney = true;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

@@ -43,10 +43,14 @@ public class SignIn : IClassFixture<HostFixture>
         // Fill in the sign in form (email + PIN)
 
         await page.FillAsync("text=Email", email);
-        await page.ClickAsync("text=Continue");
+        await page.ClickAsync("button:has-text('Continue')");
 
         await page.FillAsync("text=Enter your code", "123456");
-        await page.ClickAsync("text=Continue");
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the confirmation page
+
+        await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be back at the client, signed in
 
@@ -78,17 +82,17 @@ public class SignIn : IClassFixture<HostFixture>
         // Fill in the sign in form (email + PIN)
 
         await page.FillAsync("text=Email", email);
-        await page.ClickAsync("text=Continue");
+        await page.ClickAsync("button:has-text('Continue')");
 
         await page.FillAsync("text=Enter your code", "123456");
-        await page.ClickAsync("text=Continue");
+        await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be at the first bookend page
 
         var urlPath = new Uri(page.Url).LocalPath;
         Assert.EndsWith("/trn", urlPath);
 
-        await page.ClickAsync("text=Continue");
+        await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be on our stub Find page
 
@@ -103,7 +107,11 @@ public class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
         await page.FillAsync("#Trn", trn);
 
-        await page.ClickAsync("text=Continue");
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the confirmation page
+
+        await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be back on the client, signed in
 

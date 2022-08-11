@@ -1,0 +1,60 @@
+﻿@page "/sign-in/confirmation"
+@model TeacherIdentity.AuthServer.Pages.SignIn.ConfirmationModel
+@{
+    ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You're signed in";
+}
+
+@if (Model.FirstTimeUser)
+{
+    <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
+      <govuk-panel-title>Continue with your NPQ registration</govuk-panel-title>
+
+      <govuk-panel-body>
+        @if (Model.GotTrn)
+        {
+            <p class="govuk-body" data-testid="known-trn-content">Thank you, we’ve finished checking our records.</p>
+        }
+        else
+        {
+            <div data-testid="unknown-trn-content">
+              <h2 class="govuk-heading-m">You can continue without a match</h2>
+              <p class="govuk-body">We will attempt to match your record again. If we cannot, someone might be in touch to ask for more information.</p>
+            </div>
+        }
+
+        <h2 class="govuk-heading-m">Next time</h2>
+        <p class="govuk-body govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
+
+        <form action="@Url.Confirmation()" method="post" asp-antiforgery="true">
+          <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+        </form>
+      </govuk-panel-body>
+    </govuk-panel>
+}
+else
+{
+    <div class="govuk-grid-row" data-testid="known-user-content">
+      <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">You're signed in</h1>
+
+        <govuk-summary-list>
+          <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+          </govuk-summary-list-row>
+          <govuk-summary-list-row>
+            <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+          </govuk-summary-list-row>
+          <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@(Model.DateOfBirth.ToString("d MMMM yyyy"))</govuk-summary-list-row-value>
+          </govuk-summary-list-row>
+        </govuk-summary-list>
+
+        <form action="@Url.Confirmation()" method="post" asp-antiforgery="true">
+          <govuk-button type="submit">Continue</govuk-button>
+        </form>
+      </div>
+    </div>
+}

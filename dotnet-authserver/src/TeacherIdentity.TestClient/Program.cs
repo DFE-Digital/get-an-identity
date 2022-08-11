@@ -23,7 +23,10 @@ public class Program
                 options.DefaultScheme = "Cookies";
                 options.DefaultChallengeScheme = "oidc";
             })
-            .AddCookie("Cookies")
+            .AddCookie("Cookies", options =>
+            {
+                options.ExpireTimeSpan = TimeSpan.FromSeconds(30);
+            })
             .AddOpenIdConnect("oidc", options =>
             {
                 options.Authority = builder.Configuration.GetValue<string>("SignInAuthority");
