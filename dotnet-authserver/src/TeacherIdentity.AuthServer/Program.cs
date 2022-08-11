@@ -39,14 +39,17 @@ public class Program
 
         MetricLabels.ConfigureLabels(builder.Configuration);
 
+        builder.Services.AddAntiforgery(options => options.Cookie.Name = "tis-antiforgery");
+
         builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>
             {
-                options.Cookie.Name = "gai-auth";
+                options.Cookie.Name = "tis-auth";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
                 options.Events.OnRedirectToLogin = ctx =>
@@ -76,7 +79,7 @@ public class Program
 
         builder.Services.AddSession(options =>
         {
-            options.Cookie.Name = "gai-session";
+            options.Cookie.Name = "tis-session";
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
         });
