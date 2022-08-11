@@ -4,6 +4,7 @@ using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Prometheus;
@@ -184,6 +185,11 @@ public class Program
         });
 
         builder.Services.AddCsp(nonceByteAmount: 32);
+
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddSingleton<IDistributedCache, DevelopmentFileDistributedCache>();
+        }
 
         var app = builder.Build();
 
