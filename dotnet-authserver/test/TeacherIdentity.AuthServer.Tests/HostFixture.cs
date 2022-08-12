@@ -58,6 +58,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
+            services.AddSingleton<IClock, TestClock>();
         });
     }
 

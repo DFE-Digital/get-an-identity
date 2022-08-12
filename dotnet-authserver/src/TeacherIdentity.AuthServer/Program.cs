@@ -250,6 +250,8 @@ public class Program
             builder.Services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
         }
 
+        builder.Services.AddSingleton<IClock, SystemClock>();
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();
