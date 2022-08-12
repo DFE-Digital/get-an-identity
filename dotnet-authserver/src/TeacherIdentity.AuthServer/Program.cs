@@ -237,15 +237,18 @@ public class Program
             builder.Services.AddSingleton<IDistributedCache, DevelopmentFileDistributedCache>();
         }
 
-        builder.Services.AddHangfire(configuration => configuration
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(pgConnectionString));
+        if (!builder.Environment.IsUnitTests())
+        {
+            builder.Services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UsePostgreSqlStorage(pgConnectionString));
 
-        builder.Services.AddHangfireServer();
+            builder.Services.AddHangfireServer();
 
-        builder.Services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
+            builder.Services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
+        }
 
         var app = builder.Build();
 
@@ -324,7 +327,10 @@ public class Program
                 await context.Response.WriteAsync("OK");
             });
 
-            endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: "Hangfire", "/_hangfire");
+            if (!builder.Environment.IsUnitTests())
+            {
+                endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: "Hangfire", "/_hangfire");
+            }
 
             // TODO Remove the stub Find endpoints for production deployments
         });
