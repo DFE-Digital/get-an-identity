@@ -15,6 +15,8 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
         });
     }
 
+    public IClock Clock => HostFixture.Services.GetRequiredService<IClock>();
+
     public HostFixture HostFixture { get; }
 
     public HttpClient HttpClient { get; }
