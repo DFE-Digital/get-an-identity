@@ -1,5 +1,8 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using GovUk.Frontend.AspNetCore;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -74,7 +77,49 @@ public class Program
 
                     return Task.CompletedTask;
                 };
+            })
+            .AddBasic(options =>
+            {
+                options.Realm = "TeacherIdentity.AuthServer";
+
+                options.Events = new idunno.Authentication.Basic.BasicAuthenticationEvents()
+                {
+                    OnValidateCredentials = context =>
+                    {
+                        var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                        var username = config["AdminCredentials:Username"];
+                        var password = config["AdminCredentials:Password"];
+
+                        if (context.Username == username && context.Password == password)
+                        {
+                            var claims = new[]
+                            {
+                                new Claim(
+                                    ClaimTypes.NameIdentifier,
+                                    context.Username,
+                                    ClaimValueTypes.String,
+                                    context.Options.ClaimsIssuer),
+                                new Claim(
+                                    ClaimTypes.Name,
+                                    context.Username,
+                                    ClaimValueTypes.String,
+                                    context.Options.ClaimsIssuer)
+                            };
+
+                            context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, context.Scheme.Name));
+
+                            context.Success();
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("Hangfire", policy => policy.AddAuthenticationSchemes("Basic").RequireAuthenticatedUser());
+        });
 
         builder.Services.AddControllersWithViews();
 
@@ -191,6 +236,14 @@ public class Program
             builder.Services.AddSingleton<IDistributedCache, DevelopmentFileDistributedCache>();
         }
 
+        builder.Services.AddHangfire(configuration => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(pgConnectionString));
+
+        builder.Services.AddHangfireServer();
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();
@@ -267,6 +320,8 @@ public class Program
             {
                 await context.Response.WriteAsync("OK");
             });
+
+            endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: "Hangfire", "/_hangfire");
 
             // TODO Remove the stub Find endpoints for production deployments
         });
