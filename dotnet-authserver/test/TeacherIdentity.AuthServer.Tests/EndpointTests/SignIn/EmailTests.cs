@@ -74,7 +74,7 @@ public class EmailTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateAndRedirectsToConfirmation(bool emailIsKnown)
+    public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToConfirmation(bool emailIsKnown)
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -100,5 +100,7 @@ public class EmailTests : TestBase
         Assert.Equal("/sign-in/email-confirmation", new Url(response.Headers.Location).Path);
 
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
+
+        A.CallTo(() => HostFixture.PinGenerator!.GenerateEmailConfirmationPin(email)).MustHaveHappenedOnceExactly();
     }
 }

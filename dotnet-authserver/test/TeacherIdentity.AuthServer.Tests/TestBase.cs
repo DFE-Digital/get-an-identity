@@ -13,6 +13,8 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
         {
             AllowAutoRedirect = false
         });
+
+        HostFixture.ResetMocks();
     }
 
     public IClock Clock => HostFixture.Services.GetRequiredService<IClock>();

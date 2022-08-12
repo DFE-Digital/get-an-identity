@@ -31,6 +31,8 @@ public class TeacherIdentityServerDbContext : DbContext
             .UseOpenIddict<Application, Authorization, Scope, Token, string>();
     }
 
+    public DbSet<EmailConfirmationPin> EmailConfirmationPins => Set<EmailConfirmationPin>();
+
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

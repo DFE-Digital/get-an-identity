@@ -16,6 +16,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public DbHelper? DbHelper { get; private set; }
 
+    public IPinGenerator? PinGenerator { get; private set; }
+
     public async Task InitializeAsync()
     {
         DbHelper = new DbHelper(Configuration.GetConnectionString("DefaultConnection"));
@@ -25,6 +27,19 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     }
 
     Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
+
+    public void ResetMocks()
+    {
+        ClearRecordedCalls(PinGenerator);
+
+        void ClearRecordedCalls(object? fakedObject)
+        {
+            if (fakedObject is not null)
+            {
+                Fake.ClearRecordedCalls(fakedObject);
+            }
+        }
+    }
 
     public async Task SignInUser(Guid userId, AuthenticationStateHelper authenticationStateHelper, HttpClient httpClient)
     {
@@ -59,6 +74,13 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
+
+            services.Decorate<IPinGenerator>(inner =>
+            {
+                var spy = A.Fake<IPinGenerator>(o => o.Wrapping(inner));
+                PinGenerator = spy;
+                return spy;
+            });
         });
     }
 
