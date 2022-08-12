@@ -252,6 +252,8 @@ public class Program
 
         builder.Services.AddSingleton<IClock, SystemClock>();
 
+        builder.Services.AddTransient<IPinGenerator, PinGenerator>();
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();

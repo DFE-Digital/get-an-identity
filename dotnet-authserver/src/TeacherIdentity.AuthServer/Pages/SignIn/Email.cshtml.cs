@@ -7,6 +7,13 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 [BindProperties]
 public class EmailModel : PageModel
 {
+    private readonly IPinGenerator _pinGenerator;
+
+    public EmailModel(IPinGenerator pinGenerator)
+    {
+        _pinGenerator = pinGenerator;
+    }
+
     [Display(Name = "Your email address")]
     [Required(ErrorMessage = "Enter your email address")]
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
@@ -16,7 +23,7 @@ public class EmailModel : PageModel
     {
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -24,6 +31,9 @@ public class EmailModel : PageModel
         }
 
         HttpContext.GetAuthenticationState().EmailAddress = Email;
+
+        var pin = await _pinGenerator.GenerateEmailConfirmationPin(Email!);
+        // TODO Email the PIN
 
         return Redirect(Url.EmailConfirmation());
     }
