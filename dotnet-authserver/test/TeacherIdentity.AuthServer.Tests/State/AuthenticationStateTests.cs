@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FakeItEasy;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Moq;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
 
@@ -14,7 +14,7 @@ public class AuthenticationStateTests
     public void GetNextHopUrl(AuthenticationState authenticationState, string expectedResult)
     {
         // Arrange
-        var urlHelper = new Mock<IUrlHelper>();
+        var urlHelper = A.Fake<IUrlHelper>();
 
         var httpContext = new DefaultHttpContext();
         httpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
@@ -26,13 +26,11 @@ public class AuthenticationStateTests
             RouteData = new RouteData()
         };
 
-        urlHelper.SetupGet(mock => mock.ActionContext).Returns(actionContext);
+        A.CallTo(() => urlHelper.ActionContext).Returns(actionContext);
 
         void ConfigureMockForPage(string pageName, string returns)
         {
-            urlHelper
-                .Setup(mock =>
-                    mock.RouteUrl(It.Is<UrlRouteContext>(ctx => (string)((RouteValueDictionary)ctx.Values!)["page"]! == pageName)))
+            A.CallTo(() => urlHelper.RouteUrl(A<UrlRouteContext>.That.Matches(ctx => (string)((RouteValueDictionary)ctx.Values!)["page"]! == pageName)))
                 .Returns(returns);
         }
 
@@ -43,7 +41,7 @@ public class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/Confirmation", "/sign-in/confirmation");
 
         // Act
-        var result = authenticationState.GetNextHopUrl(urlHelper.Object);
+        var result = authenticationState.GetNextHopUrl(urlHelper);
 
         // Assert
         Assert.Equal(expectedResult, result);
