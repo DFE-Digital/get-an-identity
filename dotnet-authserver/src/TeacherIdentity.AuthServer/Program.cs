@@ -14,6 +14,7 @@ using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using TeacherIdentity.AuthServer.Configuration;
+using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Middleware;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
@@ -243,6 +244,8 @@ public class Program
             .UsePostgreSqlStorage(pgConnectionString));
 
         builder.Services.AddHangfireServer();
+
+        builder.Services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
 
         var app = builder.Build();
 
