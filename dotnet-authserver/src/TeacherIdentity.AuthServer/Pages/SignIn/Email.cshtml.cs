@@ -1,15 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [BindProperties]
 public class EmailModel : PageModel
 {
-    private readonly IPinGenerator _pinGenerator;
+    private readonly IEmailConfirmationService _pinGenerator;
 
-    public EmailModel(IPinGenerator pinGenerator)
+    public EmailModel(IEmailConfirmationService pinGenerator)
     {
         _pinGenerator = pinGenerator;
     }
@@ -32,7 +33,7 @@ public class EmailModel : PageModel
 
         HttpContext.GetAuthenticationState().EmailAddress = Email;
 
-        var pin = await _pinGenerator.GenerateEmailConfirmationPin(Email!);
+        var pin = await _pinGenerator.GeneratePin(Email!);
         // TODO Email the PIN
 
         return Redirect(Url.EmailConfirmation());

@@ -1,13 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using TeacherIdentity.AuthServer;
+using TeacherIdentity.AuthServer.Services;
 
-namespace TeacherIdentity.AuthServer.Tests;
+namespace TeacherIdentity.AuthServer.Tests.Services;
 
-public class PinGeneratorTests : IClassFixture<DbFixture>
+public class EmailConfirmationServiceTests : IClassFixture<DbFixture>
 {
     private readonly DbFixture _dbFixture;
 
-    public PinGeneratorTests(DbFixture dbFixture)
+    public EmailConfirmationServiceTests(DbFixture dbFixture)
     {
         _dbFixture = dbFixture;
     }
@@ -23,14 +25,14 @@ public class PinGeneratorTests : IClassFixture<DbFixture>
         var configuration = new ConfigurationManager();
         configuration["EmailConfirmationPinLifetimeSeconds"] = lifetime.TotalSeconds.ToString();
 
-        var logger = NullLogger<PinGenerator>.Instance;
+        var logger = NullLogger<EmailConfirmationService>.Instance;
 
-        var pinGenerator = new PinGenerator(dbContext, clock, configuration, logger);
+        var service = new EmailConfirmationService(dbContext, clock, configuration, logger);
 
         var email = Faker.Internet.Email();
 
         // Act
-        var pin = await pinGenerator.GenerateEmailConfirmationPin(email);
+        var pin = await service.GeneratePin(email);
 
         // Assert
         var emailConfirmationPins = await dbContext.EmailConfirmationPins.Where(p => p.Email == email).ToListAsync();

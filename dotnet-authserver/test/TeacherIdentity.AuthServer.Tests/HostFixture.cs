@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -16,7 +17,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public DbHelper? DbHelper { get; private set; }
 
-    public IPinGenerator? PinGenerator { get; private set; }
+    public IEmailConfirmationService? PinGenerator { get; private set; }
 
     public async Task InitializeAsync()
     {
@@ -75,9 +76,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
 
-            services.Decorate<IPinGenerator>(inner =>
+            services.Decorate<IEmailConfirmationService>(inner =>
             {
-                var spy = A.Fake<IPinGenerator>(o => o.Wrapping(inner));
+                var spy = A.Fake<IEmailConfirmationService>(o => o.Wrapping(inner));
                 PinGenerator = spy;
                 return spy;
             });

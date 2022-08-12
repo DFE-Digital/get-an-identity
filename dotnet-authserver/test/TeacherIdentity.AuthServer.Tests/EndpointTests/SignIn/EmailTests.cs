@@ -101,6 +101,6 @@ public class EmailTests : TestBase
 
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 
-        A.CallTo(() => HostFixture.PinGenerator!.GenerateEmailConfirmationPin(email)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => HostFixture.PinGenerator!.GeneratePin(email)).MustHaveHappenedOnceExactly();
     }
 }
