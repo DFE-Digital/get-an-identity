@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      docker_image: ${{ steps.image.outputs.tag }}
+      authserver: ${{ steps.image_tags.outputs.authserver }}
+      testclient: ${{ steps.image_tags.outputs.testclient }}
 
     services:
       postgres:
@@ -117,3 +118,59 @@ jobs:
         context: dotnet-authserver/src/TeacherIdentity.TestClient
         push: true
         tags: ${{ steps.image-tags.outputs.testclient }}
+
+  validate_terraform:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.0.10
+
+    - name: Check formatting
+      run: terraform fmt -check
+      working-directory: terraform
+
+    - name: Validate
+      run: |
+        terraform init -backend=false
+        terraform validate -no-color
+      working-directory: terraform
+
+    - name: Lint
+      uses: reviewdog/action-tflint@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        tflint_rulesets: azurerm
+        working_directory: terraform
+      continue-on-error: true  # temporary- we're getting sporadic 503 errors here in action setup
+
+  deploy_dev:
+    name: Deploy to dev environment
+    needs: [build, validate_terraform]
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'pull_request' && github.event.pull_request.draft == false) || github.event_name == 'workflow_dispatch'
+    environment:
+      name: dev
+      url: ${{ steps.deploy.outputs.environment_url }}
+    concurrency: deploy_dev
+
+    outputs:
+      environment_url: ${{ steps.deploy.outputs.environment_url }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/workflows/actions/deploy-environment
+      id: deploy
+      with:
+        environment_name: dev
+        docker_image: ghcr.io/dfe-digital/get-an-identity
+        authserver_tag: authserver-${{ github.sha }}
+        testclient_tag: testclient-${{ github.sha }}
+        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+        terraform_vars: workspace_variables/dev.tfvars.json
+        terraform_backend_vars: workspace_variables/dev.backend.tfvars
