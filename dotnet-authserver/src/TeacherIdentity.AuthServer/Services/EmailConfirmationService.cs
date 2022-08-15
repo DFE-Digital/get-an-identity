@@ -1,21 +1,22 @@
 ﻿using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer;
+namespace TeacherIdentity.AuthServer.Services;
 
-public class PinGenerator : IPinGenerator
+public class EmailConfirmationService : IEmailConfirmationService
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
-    private readonly ILogger<PinGenerator> _logger;
+    private readonly ILogger<EmailConfirmationService> _logger;
     private readonly TimeSpan _pinLifetime;
 
-    public PinGenerator(
+    public EmailConfirmationService(
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IConfiguration configuration,
-        ILogger<PinGenerator> logger)
+        ILogger<EmailConfirmationService> logger)
     {
         _dbContext = dbContext;
         _clock = clock;
@@ -23,7 +24,7 @@ public class PinGenerator : IPinGenerator
         _pinLifetime = TimeSpan.FromSeconds(configuration.GetValue<int>("EmailConfirmationPinLifetimeSeconds"));
     }
 
-    public async Task<string> GenerateEmailConfirmationPin(string email)
+    public async Task<string> GeneratePin(string email)
     {
         // Generate a random PIN then try to insert it into the DB for the specified email address.
         // If it's a duplicate, repeat...
@@ -65,5 +66,17 @@ public class PinGenerator : IPinGenerator
         return pin;
 
         static string GeneratePin() => RandomNumberGenerator.GetInt32(fromInclusive: 100_000, toExclusive: 999_999 + 1).ToString();
+    }
+
+    public async Task<bool> VerifyPin(string email, string pin)
+    {
+        var emailConfirmationPin = await _dbContext.EmailConfirmationPins
+            .Where(e => e.Email == email && e.Pin == pin)
+            .Select(e => new { e.IsActive, e.Expires })
+            .SingleOrDefaultAsync();
+
+        return emailConfirmationPin is not null &&
+            emailConfirmationPin.IsActive &&
+            emailConfirmationPin.Expires > _clock.UtcNow;
     }
 }

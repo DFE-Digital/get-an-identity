@@ -17,6 +17,7 @@ using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Middleware;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -248,7 +249,7 @@ public class Program
 
         builder.Services.AddSingleton<IClock, SystemClock>();
 
-        builder.Services.AddTransient<IPinGenerator, PinGenerator>();
+        builder.Services.AddTransient<IEmailConfirmationService, EmailConfirmationService>();
 
         var app = builder.Build();
 

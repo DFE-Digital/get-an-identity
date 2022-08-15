@@ -45,7 +45,8 @@ public class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Email", email);
         await page.ClickAsync("button:has-text('Continue')");
 
-        await page.FillAsync("text=Enter your code", "123456");
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be on the confirmation page
@@ -84,7 +85,8 @@ public class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Email", email);
         await page.ClickAsync("button:has-text('Continue')");
 
-        await page.FillAsync("text=Enter your code", "123456");
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be at the first bookend page

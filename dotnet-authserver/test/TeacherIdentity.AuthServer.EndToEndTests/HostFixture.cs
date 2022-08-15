@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Clients;
+using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.TestCommon;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
@@ -22,11 +23,17 @@ public class HostFixture : IAsyncLifetime
     private IPlaywright? _playright;
     private bool _disposed = false;
 
+    private readonly List<(string Email, string Pin)> _capturedEmailConfirmationPins = new();
+
     public IServiceProvider AuthServerServices { get; private set; } = null!;
 
     public IBrowser Browser { get; private set; } = null!;
 
     public DbHelper? DbHelper { get; private set; }
+
+    public IEmailConfirmationService? EmailConfirmationService { get; private set; }
+
+    public IReadOnlyCollection<(string Email, string Pin)> CapturedEmailConfirmationPins => _capturedEmailConfirmationPins.AsReadOnly();
 
     public Task<IBrowserContext> CreateBrowserContext() =>
         Browser!.NewContextAsync(new BrowserNewContextOptions() { BaseURL = ClientBaseUrl });
@@ -88,7 +95,7 @@ public class HostFixture : IAsyncLifetime
         Browser = await _playright.Chromium.LaunchAsync(browserOptions);
     }
 
-    private static Host<TeacherIdentity.AuthServer.Program> CreateAuthServerHost(IConfiguration testConfiguration) =>
+    private Host<TeacherIdentity.AuthServer.Program> CreateAuthServerHost(IConfiguration testConfiguration) =>
         Host<TeacherIdentity.AuthServer.Program>.CreateHost(
             AuthServerBaseUrl,
             builder =>
@@ -98,10 +105,13 @@ public class HostFixture : IAsyncLifetime
                 builder.ConfigureServices(services =>
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
+
+                    services.Decorate<IEmailConfirmationService>(inner =>
+                        new CapturePinsEmailConfirmationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                 });
             });
 
-    private static Host<TestClient.Program> CreateClientHost(IConfiguration testConfiguration) =>
+    private Host<TestClient.Program> CreateClientHost(IConfiguration testConfiguration) =>
         Host<TestClient.Program>.CreateHost(
             ClientBaseUrl,
             builder =>
@@ -208,5 +218,28 @@ public class HostFixture : IAsyncLifetime
                 }
             }
         }
+    }
+
+    private class CapturePinsEmailConfirmationServiceDecorator : IEmailConfirmationService
+    {
+        public delegate void CapturePin(string email, string pin);
+
+        private readonly IEmailConfirmationService _inner;
+        private readonly CapturePin _capturePin;
+
+        public CapturePinsEmailConfirmationServiceDecorator(IEmailConfirmationService inner, CapturePin capturePin)
+        {
+            _inner = inner;
+            _capturePin = capturePin;
+        }
+
+        public async Task<string> GeneratePin(string email)
+        {
+            var pin = await _inner.GeneratePin(email);
+            _capturePin(email, pin);
+            return pin;
+        }
+
+        public Task<bool> VerifyPin(string email, string pin) => _inner.VerifyPin(email, pin);
     }
 }
