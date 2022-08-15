@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using GovUk.Frontend.AspNetCore;
@@ -51,6 +52,16 @@ public class Program
         });
 
         builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
+
+        builder.Services.AddHttpClient<DqtApiClient>(httpClient =>
+        {
+            var apiSecret = builder.Configuration.GetSection("DqtApi").GetValue<string>("apiSecret");
+            var apiUrl = builder.Configuration.GetSection("DqtApi").GetValue<string>("ApiUrl");
+            httpClient.BaseAddress = new Uri(apiUrl);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiSecret);
+
+        });
+        builder.Services.AddSingleton<IDqtApiClient, DqtApiClient>();
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>

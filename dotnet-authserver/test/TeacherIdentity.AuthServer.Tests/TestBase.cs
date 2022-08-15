@@ -13,7 +13,6 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
         {
             AllowAutoRedirect = false
         });
-
         HostFixture.ResetMocks();
     }
 
@@ -22,6 +21,7 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
     public HostFixture HostFixture { get; }
 
     public HttpClient HttpClient { get; }
+
 
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 

@@ -1,8 +1,10 @@
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -13,15 +15,19 @@ public class TrnCallbackModel : PageModel
     private readonly FindALostTrnIntegrationHelper _findALostTrnIntegrationHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly ILogger<TrnCallbackModel> _logger;
+    private readonly IDqtApiClient _dqtApiClient;
 
     public TrnCallbackModel(
         FindALostTrnIntegrationHelper findALostTrnIntegrationHelper,
         TeacherIdentityServerDbContext dbContext,
-        ILogger<TrnCallbackModel> logger)
+        ILogger<TrnCallbackModel> logger,
+        IConfiguration configuration,
+        IDqtApiClient apiClient)
     {
         _findALostTrnIntegrationHelper = findALostTrnIntegrationHelper;
         _dbContext = dbContext;
         _logger = logger;
+        _dqtApiClient = apiClient;
     }
 
     public async Task<IActionResult> OnPost()
@@ -56,14 +62,18 @@ public class TrnCallbackModel : PageModel
             EmailAddress = authenticationState.EmailAddress!,
             FirstName = findALostTrnUser.FindFirst(Claims.GivenName)!.Value,
             LastName = findALostTrnUser.FindFirst(Claims.FamilyName)!.Value,
-            Trn = findALostTrnUser.FindFirst("trn")?.Value,
             UserId = userId
         };
 
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
-        await HttpContext.SignInUser(user);
+        var trn = findALostTrnUser.FindFirst(CustomClaims.Trn)!.Value;
+        authenticationState.Trn = trn;
+
+        await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, TsPersonId = userId.ToString() });
+
+        await HttpContext.SignInUser(user, authenticationState.Trn!);
 
         return Redirect(authenticationState.GetNextHopUrl(Url));
 

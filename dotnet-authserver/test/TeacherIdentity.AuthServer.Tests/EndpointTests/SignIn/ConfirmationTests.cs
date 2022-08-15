@@ -1,4 +1,6 @@
-﻿namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
+﻿using TeacherIdentity.AuthServer.Models;
+
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 public class ConfirmationTests : TestBase
 {
@@ -17,7 +19,7 @@ public class ConfirmationTests : TestBase
     public async Task Get_UserNotKnown_ReturnsBadRequest()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: false, hasTrn: false);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -31,7 +33,7 @@ public class ConfirmationTests : TestBase
     public async Task Get_FirstTimeUserWithTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, hasTrn: true, firstTimeUser: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -50,7 +52,7 @@ public class ConfirmationTests : TestBase
     public async Task Get_FirstTimeUserWithoutTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, hasTrn: false, firstTimeUser: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true, hasTrn: false);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -92,7 +94,7 @@ public class ConfirmationTests : TestBase
     public async Task Post_UserNotKnown_ReturnsBadRequest()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: false, hasTrn: false);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder().ToContent()
@@ -130,7 +132,7 @@ public class ConfirmationTests : TestBase
         bool hasTrn = true,
         bool firstTimeUser = false)
     {
-        var user = userKnown ? (await TestData.CreateUser(trn: hasTrn ? TestData.GenerateTrn() : null)) : null;
+        var user = userKnown ? (await TestData.CreateUser()) : null;
 
         var authenticationStateHelper = CreateAuthenticationStateHelper(authState =>
         {
@@ -148,7 +150,8 @@ public class ConfirmationTests : TestBase
 
                 if (hasTrn)
                 {
-                    authState.Trn = user.Trn;
+                    authState.Trn = TestData.GenerateTrn();
+                    A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId)).Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, TsPersonId = user!.UserId.ToString() });
                 }
             }
         });

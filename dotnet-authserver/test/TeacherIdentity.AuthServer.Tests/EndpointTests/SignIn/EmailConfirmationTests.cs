@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -89,6 +90,35 @@ public class EmailConfirmationTests : TestBase
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressConfirmed);
         Assert.True(authStateHelper.AuthenticationState.FirstTimeUser);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects()
+    {
+        // Arrange
+        var trn = "1234567";
+        var email = Faker.Internet.Email();
+        var teacherIdentity = new DqtTeacherIdentityInfo() { Trn = trn };
+        A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(A<Guid>.Ignored)).Returns(teacherIdentity);
+        var user = await TestData.CreateUser();
+        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailConfirmationService>();
+        var pin = await emailConfirmationService.GeneratePin(user.EmailAddress);
+
+        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal("/sign-in/confirmation", new Url(response.Headers.Location).Path);
+        Assert.Equal(trn, authStateHelper.AuthenticationState.Trn);
     }
 
     [Fact]
