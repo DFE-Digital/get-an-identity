@@ -75,8 +75,28 @@ variable "data_protection_storage_account_name" {
 }
 
 variable "deploy_test_server_app" {
-  type = bool
+  type    = bool
   default = false
+}
+
+variable "keyvault_logging_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "storage_diagnostics_logging_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "storage_log_categories" {
+  type    = list(string)
+  default = []
+}
+
+variable "log_analytics_sku" {
+  type    = string
+  default = "PerGB2018"
 }
 
 locals {
@@ -87,4 +107,9 @@ locals {
   postgres_database_name           = "get-an-identity-${var.environment_name}${var.app_suffix}-pg-database"
   redis_database_name              = "get-an-identity-${var.environment_name}${var.app_suffix}-redis-svc"
   app_insights_name                = "get-an-identity-${var.environment_name}${var.app_suffix}-app-ins-svc"
+
+  keyvault_logging_enabled            = var.keyvault_logging_enabled
+  storage_diagnostics_logging_enabled = length(var.storage_log_categories) > 0
+  storage_log_categories              = var.storage_log_categories
+  storage_log_retention_days          = var.environment_name == "prd" ? 365 : 30
 }

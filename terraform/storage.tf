@@ -24,7 +24,7 @@ resource "azurerm_storage_account" "data-protection" {
 }
 
 
-resource "azurerm_storage_encryption_scope" "forms-encryption" {
+resource "azurerm_storage_encryption_scope" "data-protection-encryption" {
   name                               = "microsoftmanaged"
   storage_account_id                 = azurerm_storage_account.data-protection.id
   source                             = "Microsoft.Storage"
@@ -36,4 +36,31 @@ resource "azurerm_storage_container" "uploads" {
   name                  = "uploads"
   storage_account_name  = azurerm_storage_account.data-protection.name
   container_access_type = "private"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "data-protection-storage-diagnostics" {
+  name                       = "${var.data_protection_storage_account_name}-diagnostics"
+  target_resource_id         = azurerm_storage_account.data-protection.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.analytics.id
+
+  dynamic "log" {
+    for_each = local.storage_log_categories
+    content {
+      category = log.value
+      enabled  = local.storage_diagnostics_logging_enabled
+
+      retention_policy {
+        enabled = local.storage_diagnostics_logging_enabled
+        days    = local.storage_log_retention_days
+      }
+    }
+  }
+
+  metric {
+    category = "Transaction"
+    enabled  = true
+    retention_policy {
+      enabled = true
+    }
+  }
 }

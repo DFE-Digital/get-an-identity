@@ -46,7 +46,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
 }
 
 resource "azurerm_linux_web_app" "test-server-app" {
-  count               = var.deploy_test_server_app
+  count               = var.deploy_test_server_app ? 1 : 0
   name                = local.get_an_identity_test_client_name
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
@@ -65,11 +65,6 @@ resource "azurerm_linux_web_app" "test-server-app" {
   app_settings = {
     HOSTING_ENVIRONMENT                    = local.hosting_environment,
     APPLICATION_INSIGHTS_CONNECTION_STRING = azurerm_application_insights.insights.connection_string
-    POSTGRES_CONNECTION_STRING             = "Host=${local.postgres_server_name};Username=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name}"
-    REDIS_URL                              = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
-    AZURE_STORAGE_ACCOUNT_NAME             = azurerm_storage_account.data-protection.name,
-    AZURE_STORAGE_ACCESS_KEY               = azurerm_storage_account.data-protection.primary_access_key,
-    AZURE_STORAGE_CONTAINER                = azurerm_storage_container.uploads.name
   }
 
   lifecycle {
@@ -120,6 +115,20 @@ resource "azurerm_redis_cache" "redis" {
     ]
   }
 
+}
+
+resource "azurerm_log_analytics_workspace" "analytics" {
+  name                = "getanid-${var.environment_name}-log-analytics-workspace"
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+  sku                 = var.log_analytics_sku
+  retention_in_days   = local.storage_log_retention_days
+
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
 }
 
 resource "azurerm_application_insights" "insights" {
