@@ -44,6 +44,9 @@ services.AddOpenIddict()
         options.UseEntityFrameworkCore()
             .UseDbContext<TeacherIdentityServerDbContext>()
             .ReplaceDefaultEntities<Application, Authorization, Scope, Token, string>();
+
+        options.AddApplicationStore<TeacherIdentityApplicationStore>();
+        options.ReplaceApplicationManager<TeacherIdentityApplicationManager>();
     });
 
 var serviceProvider = services.BuildServiceProvider();
