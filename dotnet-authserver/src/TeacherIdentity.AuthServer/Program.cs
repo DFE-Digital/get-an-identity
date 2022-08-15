@@ -35,10 +35,6 @@ public class Program
             options.AddServerHeader = false;
         });
 
-        builder.Configuration
-            .AddJsonEnvironmentVariable("VCAP_SERVICES", configurationKeyPrefix: "VCAP_SERVICES")
-            .AddJsonEnvironmentVariable("VCAP_APPLICATION", configurationKeyPrefix: "VCAP_APPLICATION");
-
         if (builder.Environment.IsProduction())
         {
             builder.WebHost.UseSentry();
@@ -137,7 +133,7 @@ public class Program
             options.Cookie.IsEssential = true;
         });
 
-        var pgConnectionString = GetPostgresConnectionString();
+        var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
         var healthCheckBuilder = builder.Services.AddHealthChecks()
             .AddNpgSql(pgConnectionString);
@@ -340,27 +336,6 @@ public class Program
         });
 
         app.Run();
-
-        string GetPostgresConnectionString()
-        {
-            return builder.Configuration.GetConnectionString("DefaultConnection") ?? GetConnectionStringForPaasService();
-
-            string GetConnectionStringForPaasService()
-            {
-                var connStrBuilder = new NpgsqlConnectionStringBuilder()
-                {
-                    Host = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:host"),
-                    Database = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:name"),
-                    Username = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:username"),
-                    Password = builder.Configuration.GetValue<string>("VCAP_SERVICES:postgres:0:credentials:password"),
-                    Port = builder.Configuration.GetValue<int>("VCAP_SERVICES:postgres:0:credentials:port"),
-                    SslMode = SslMode.Require,
-                    TrustServerCertificate = true
-                };
-
-                return connStrBuilder.ConnectionString;
-            }
-        }
 
         SecurityKey LoadKey(string configurationKey)
         {
