@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
+using Notify.Client;
 using Npgsql;
 using Prometheus;
 using Sentry.AspNetCore;
@@ -245,6 +246,22 @@ public class Program
             builder.Services.AddHangfireServer();
 
             builder.Services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
+        }
+
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddSingleton(new NotificationClient(builder.Configuration["NotifyApiKey"]));
+            builder.Services.AddSingleton<IEmailSender, NotifyEmailSender>();
+
+            // Use Hangfire for scheduling emails in the background (so we get retries etc.).
+            // As the implementation needs to be able to resolve itself we need two service registrations here;
+            // one for the interface (that decorates the 'base' notify implementation) and another for the concrete type.
+            builder.Services.Decorate<IEmailSender, BackgroundEmailSender>();
+            builder.Services.AddSingleton<BackgroundEmailSender>(sp => (BackgroundEmailSender)sp.GetRequiredService<IEmailSender>());
+        }
+        else
+        {
+            builder.Services.AddSingleton<IEmailSender, NoopEmailSender>();
         }
 
         builder.Services.AddSingleton<IClock, SystemClock>();

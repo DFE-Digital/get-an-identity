@@ -19,6 +19,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public IEmailConfirmationService? EmailConfirmationService { get; private set; }
 
+    public IEmailSender? EmailSender { get; private set; }
+
     public async Task InitializeAsync()
     {
         DbHelper = new DbHelper(Configuration.GetConnectionString("DefaultConnection"));
@@ -32,6 +34,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public void ResetMocks()
     {
         ClearRecordedCalls(EmailConfirmationService);
+        ClearRecordedCalls(EmailSender);
 
         void ClearRecordedCalls(object? fakedObject)
         {
@@ -76,12 +79,18 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
 
-            services.Decorate<IEmailConfirmationService>(inner =>
+            AddSpy<IEmailConfirmationService>(spy => EmailConfirmationService = spy);
+            AddSpy<IEmailSender>(spy => EmailSender = spy);
+
+            void AddSpy<T>(Action<T> assignSpy) where T : class
             {
-                var spy = A.Fake<IEmailConfirmationService>(o => o.Wrapping(inner));
-                EmailConfirmationService = spy;
-                return spy;
-            });
+                services.Decorate<T>(inner =>
+                {
+                    var spy = A.Fake<T>(o => o.Wrapping(inner));
+                    assignSpy(spy);
+                    return spy;
+                });
+            }
         });
     }
 
