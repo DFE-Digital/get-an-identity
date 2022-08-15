@@ -99,6 +99,19 @@ variable "log_analytics_sku" {
   default = "PerGB2018"
 }
 
+variable "docker_image" {
+  type    = string
+  default = "ghcr.io/dfe-digital/get-an-identity"
+}
+
+variable "authserver_tag" {
+  type = string
+}
+variable "testclient_tag" {
+  type = string
+}
+
+
 locals {
   hosting_environment              = var.environment_name
   get_an_identity_app_name         = "get-an-identity-${var.environment_name}${var.app_suffix}-auth-server"
