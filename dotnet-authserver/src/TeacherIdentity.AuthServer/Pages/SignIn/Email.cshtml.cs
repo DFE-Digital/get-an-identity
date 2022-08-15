@@ -9,10 +9,14 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class EmailModel : PageModel
 {
     private readonly IEmailConfirmationService _emailConfirmationService;
+    private readonly IEmailSender _emailSender;
 
-    public EmailModel(IEmailConfirmationService emailConfirmationService)
+    public EmailModel(
+        IEmailConfirmationService emailConfirmationService,
+        IEmailSender emailSender)
     {
         _emailConfirmationService = emailConfirmationService;
+        _emailSender = emailSender;
     }
 
     [Display(Name = "Your email address")]
@@ -34,7 +38,7 @@ public class EmailModel : PageModel
         HttpContext.GetAuthenticationState().EmailAddress = Email;
 
         var pin = await _emailConfirmationService.GeneratePin(Email!);
-        // TODO Email the PIN
+        await _emailSender.SendEmailAddressConfirmationEmail(Email!, pin);
 
         return Redirect(Url.EmailConfirmation());
     }
