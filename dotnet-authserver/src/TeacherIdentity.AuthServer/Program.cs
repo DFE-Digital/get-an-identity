@@ -153,6 +153,9 @@ public class Program
                 options.UseEntityFrameworkCore()
                     .UseDbContext<TeacherIdentityServerDbContext>()
                     .ReplaceDefaultEntities<Application, Authorization, Scope, Token, string>();
+
+                options.AddApplicationStore<TeacherIdentityApplicationStore>();
+                options.ReplaceApplicationManager<TeacherIdentityApplicationManager>();
             })
             .AddServer(options =>
             {

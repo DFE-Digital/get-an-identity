@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Models;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Clients;
@@ -22,13 +23,14 @@ public class ClientConfigurationHelper
         {
             var application = await manager.FindByClientIdAsync(clientConfig.ClientId ?? throw new Exception("Missing ClientId"));
 
-            var descriptor = new OpenIddictApplicationDescriptor()
+            var descriptor = new TeacherIdentityApplicationDescriptor()
             {
                 ClientId = clientConfig.ClientId,
                 ClientSecret = clientConfig.ClientSecret,
                 Type = ClientTypes.Confidential,
                 ConsentType = ConsentTypes.Implicit,
-                DisplayName = clientConfig.DisplayName
+                DisplayName = clientConfig.DisplayName,
+                ServiceUrl = clientConfig.ServiceUrl
             };
 
             foreach (var redirectUri in clientConfig.RedirectUris ?? Array.Empty<string>())
