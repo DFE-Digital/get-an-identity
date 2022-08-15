@@ -17,7 +17,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public DbHelper? DbHelper { get; private set; }
 
-    public IEmailConfirmationService? PinGenerator { get; private set; }
+    public IEmailConfirmationService? EmailConfirmationService { get; private set; }
 
     public async Task InitializeAsync()
     {
@@ -31,7 +31,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public void ResetMocks()
     {
-        ClearRecordedCalls(PinGenerator);
+        ClearRecordedCalls(EmailConfirmationService);
 
         void ClearRecordedCalls(object? fakedObject)
         {
@@ -79,7 +79,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.Decorate<IEmailConfirmationService>(inner =>
             {
                 var spy = A.Fake<IEmailConfirmationService>(o => o.Wrapping(inner));
-                PinGenerator = spy;
+                EmailConfirmationService = spy;
                 return spy;
             });
         });
