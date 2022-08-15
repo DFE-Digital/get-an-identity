@@ -74,7 +74,13 @@ variable "data_protection_storage_account_name" {
   default = null
 }
 
+variable "deploy_test_server_app" {
+  type = bool
+  default = false
+}
+
 locals {
+  hosting_environment              = var.environment_name
   get_an_identity_app_name         = "get-an-identity-${var.environment_name}${var.app_suffix}-auth-server"
   get_an_identity_test_client_name = "get-an-identity-${var.environment_name}${var.app_suffix}-test-client"
   postgres_server_name             = "get-an-identity-${var.environment_name}${var.app_suffix}-pg-svr"

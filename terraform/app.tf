@@ -29,7 +29,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
   }
 
   app_settings = {
-    HOSTING_ENVIRONMENT                    = var.environment_name,
+    HOSTING_ENVIRONMENT                    = local.hosting_environment,
     APPLICATION_INSIGHTS_CONNECTION_STRING = azurerm_application_insights.insights.connection_string
     POSTGRES_CONNECTION_STRING             = "Host=${local.postgres_server_name};Username=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name}"
     REDIS_URL                              = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
@@ -46,7 +46,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
 }
 
 resource "azurerm_linux_web_app" "test-server-app" {
-  count               = var.environment_name == "dev" ? 1 : 0
+  count               = var.deploy_test_server_app
   name                = local.get_an_identity_test_client_name
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
@@ -63,7 +63,7 @@ resource "azurerm_linux_web_app" "test-server-app" {
   }
 
   app_settings = {
-    HOSTING_ENVIRONMENT                    = var.environment_name,
+    HOSTING_ENVIRONMENT                    = local.hosting_environment,
     APPLICATION_INSIGHTS_CONNECTION_STRING = azurerm_application_insights.insights.connection_string
     POSTGRES_CONNECTION_STRING             = "Host=${local.postgres_server_name};Username=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name}"
     REDIS_URL                              = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
