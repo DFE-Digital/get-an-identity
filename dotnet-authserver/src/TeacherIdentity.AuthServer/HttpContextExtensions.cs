@@ -17,7 +17,7 @@ public static class HttpContextExtensions
     public static async Task SignInUser(this HttpContext httpContext, User user, string? trn)
     {
         var authenticationState = httpContext.GetAuthenticationState();
-        authenticationState.Populate(user);
+        authenticationState.Populate(user, trn);
 
         var authorizationRequest = authenticationState.GetAuthorizationRequest();
 

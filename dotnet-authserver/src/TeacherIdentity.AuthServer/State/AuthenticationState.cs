@@ -90,7 +90,7 @@ public class AuthenticationState
         return AuthorizationUrl;
     }
 
-    public void Populate(User user)
+    public void Populate(User user, string? trn)
     {
         UserId = user.UserId;
         EmailAddress = user.EmailAddress;
@@ -99,6 +99,7 @@ public class AuthenticationState
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedFindALostTrnJourney = true;
+        Trn = trn;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

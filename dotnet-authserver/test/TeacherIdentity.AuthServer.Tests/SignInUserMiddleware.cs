@@ -15,8 +15,9 @@ public class SignInUserMiddleware
     public async Task Invoke(HttpContext context)
     {
         var userId = Guid.Parse(context.Request.Form["UserId"]);
-        var trn = context.Request.Form["Trn"];
+        var trn = context.Request.Form["Trn"].FirstOrDefault();
+
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
-        await context.SignInUser(user, trn);
+        await context.SignInUser(user, !string.IsNullOrEmpty(trn) ? trn : null);
     }
 }

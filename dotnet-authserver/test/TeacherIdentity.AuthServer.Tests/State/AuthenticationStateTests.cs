@@ -59,11 +59,12 @@ public class AuthenticationStateTests
             LastName = Faker.Name.Last(),
             UserId = Guid.NewGuid()
         };
+        var trn = "1234567";
 
         var authenticationState = new AuthenticationState(Guid.NewGuid(), "/");
 
         // Act
-        authenticationState.Populate(user);
+        authenticationState.Populate(user, trn);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
@@ -74,6 +75,7 @@ public class AuthenticationStateTests
         Assert.True(authenticationState.EmailAddressConfirmed);
         Assert.Null(authenticationState.FirstTimeUser);  // Should not be changed
         Assert.True(authenticationState.HaveCompletedFindALostTrnJourney);
+        Assert.Equal(trn, authenticationState.Trn);
     }
 
     public static TheoryData<AuthenticationState, string> GetNextHopUrlData

@@ -13,6 +13,7 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
         {
             AllowAutoRedirect = false
         });
+
         HostFixture.ResetMocks();
     }
 

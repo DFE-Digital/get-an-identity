@@ -33,7 +33,7 @@ public class ConfirmationTests : TestBase
     public async Task Get_FirstTimeUserWithTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true, hasTrn: true);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -133,6 +133,7 @@ public class ConfirmationTests : TestBase
         bool firstTimeUser = false)
     {
         var user = userKnown ? (await TestData.CreateUser()) : null;
+        var trn = userKnown && hasTrn ? TestData.GenerateTrn() : null;
 
         var authenticationStateHelper = CreateAuthenticationStateHelper(authState =>
         {
@@ -150,15 +151,17 @@ public class ConfirmationTests : TestBase
 
                 if (hasTrn)
                 {
-                    authState.Trn = TestData.GenerateTrn();
-                    A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId)).Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, TsPersonId = user!.UserId.ToString() });
+                    authState.Trn = trn!;
+
+                    A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId))
+                        .Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, TsPersonId = user!.UserId.ToString() });
                 }
             }
         });
 
         if (userKnown)
         {
-            await HostFixture.SignInUser(user!.UserId, authenticationStateHelper, httpClient);
+            await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, trn);
         }
 
         return authenticationStateHelper;
