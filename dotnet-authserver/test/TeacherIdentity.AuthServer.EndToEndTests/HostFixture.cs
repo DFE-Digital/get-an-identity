@@ -224,10 +224,10 @@ public class HostFixture : IAsyncLifetime
 
     private class TestDqtApiClient : IDqtApiClient
     {
-        public Task<DqtTeacherIdentityInfo> GetTeacherIdentityInfo(Guid userId)
+        public Task<DqtTeacherIdentityInfo?> GetTeacherIdentityInfo(Guid userId)
         {
             var ti = new DqtTeacherIdentityInfo() { TsPersonId = userId.ToString(), Trn = "1234567" };
-            return Task.FromResult(ti);
+            return Task.FromResult(ti)!;
         }
 
         public Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo? info)
