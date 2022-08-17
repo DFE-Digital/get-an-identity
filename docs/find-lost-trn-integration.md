@@ -85,7 +85,7 @@ The body is a JSON object with a single property - `subject`. This should contai
 
 Finally, Find a lost TRN should redirect the user to the `redirect_uri` specified in the initial handover request.
 
-When the authorization server receives the callback, it will look up the user information that was persisted against the journey ID by the API call. Using that information it will register the user and completed the authorization process.
+When the authorization server receives the callback, it will look up the user information that was persisted against the journey ID by the API call. Using that information it will register the user and complete the authorization process.
 
 ### Example API call:
 
