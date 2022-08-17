@@ -23,7 +23,6 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
 
     public HttpClient HttpClient { get; }
 
-
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
     public AuthenticationStateHelper CreateAuthenticationStateHelper(Action<AuthenticationState>? configureAuthenticationState = null)

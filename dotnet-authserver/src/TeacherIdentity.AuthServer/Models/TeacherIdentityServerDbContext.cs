@@ -33,6 +33,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<EmailConfirmationPin> EmailConfirmationPins => Set<EmailConfirmationPin>();
 
+    public DbSet<JourneyTrnLookupState> JourneyTrnLookupStates => Set<JourneyTrnLookupState>();
+
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
