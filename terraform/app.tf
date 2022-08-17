@@ -1,5 +1,5 @@
 resource "azurerm_service_plan" "service-plan" {
-  name                = "getanid-authserver-${var.environment_name}-app-spln"
+  name                = local.app_service_plan_name
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
   os_type             = "Linux"
@@ -143,7 +143,7 @@ resource "azurerm_redis_cache" "redis" {
 }
 
 resource "azurerm_log_analytics_workspace" "analytics" {
-  name                = "getanid-${var.environment_name}-log-analytics-workspace"
+  name                = local.log_analytics_workspace_name
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
   sku                 = var.log_analytics_sku
@@ -157,7 +157,7 @@ resource "azurerm_log_analytics_workspace" "analytics" {
 }
 
 resource "azurerm_application_insights" "insights" {
-  name                 = "getanid-${var.environment_name}-appinsights"
+  name                 = local.app_insights_name
   location             = data.azurerm_resource_group.group.location
   resource_group_name  = data.azurerm_resource_group.group.name
   application_type     = "web"
