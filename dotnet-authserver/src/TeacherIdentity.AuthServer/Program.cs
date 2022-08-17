@@ -6,6 +6,8 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -15,6 +17,7 @@ using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using TeacherIdentity.AuthServer.Configuration;
+using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
 using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Json;
 using TeacherIdentity.AuthServer.Middleware;
@@ -300,6 +303,8 @@ public class Program
 
         builder.Services.AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>();
 
+        builder.Services.AddSingleton<IActionDescriptorProvider, RemoveStubFindEndpointsActionDescriptorProvider>();
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();
@@ -381,8 +386,6 @@ public class Program
             {
                 endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: "Hangfire", "/_hangfire");
             }
-
-            // TODO Remove the stub Find endpoints for production deployments
         });
 
         app.Run();
