@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +20,6 @@ public class TrnCallbackModel : PageModel
         FindALostTrnIntegrationHelper findALostTrnIntegrationHelper,
         TeacherIdentityServerDbContext dbContext,
         ILogger<TrnCallbackModel> logger,
-        IConfiguration configuration,
         IDqtApiClient apiClient)
     {
         _findALostTrnIntegrationHelper = findALostTrnIntegrationHelper;
@@ -47,7 +45,7 @@ public class TrnCallbackModel : PageModel
         // We don't expect to have an existing user at this point
         if (authenticationState.UserId.HasValue)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         if (!RequiredClaimsAreProvided(findALostTrnUser, Claims.GivenName, Claims.FamilyName, Claims.Birthdate))
@@ -68,12 +66,13 @@ public class TrnCallbackModel : PageModel
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
-        var trn = findALostTrnUser.FindFirst(CustomClaims.Trn)!.Value;
-        authenticationState.Trn = trn;
+        var trn = findALostTrnUser.FindFirst(CustomClaims.Trn)?.Value;
+        if (!string.IsNullOrEmpty(trn))
+        {
+            await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, TsPersonId = userId.ToString() });
+        }
 
-        await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, TsPersonId = userId.ToString() });
-
-        await HttpContext.SignInUser(user, authenticationState.Trn!);
+        await HttpContext.SignInUser(user, trn);
 
         return Redirect(authenticationState.GetNextHopUrl(Url));
 

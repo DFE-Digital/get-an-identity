@@ -1,4 +1,5 @@
-﻿using TeacherIdentity.AuthServer.Models;
+﻿using FakeItEasy;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -9,6 +10,7 @@ public class SignIn : IClassFixture<HostFixture>
     public SignIn(HostFixture hostFixture)
     {
         _hostFixture = hostFixture;
+        _hostFixture.ResetMocks();
     }
 
     [Fact]
@@ -21,15 +23,20 @@ public class SignIn : IClassFixture<HostFixture>
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
 
+            var userId = Guid.NewGuid();
+
             dbContext.Users.Add(new User()
             {
                 EmailAddress = email,
                 FirstName = "Joe",
                 LastName = "Bloggs",
-                UserId = Guid.NewGuid(),
+                UserId = userId,
             });
 
             await dbContext.SaveChangesAsync();
+
+            A.CallTo(() => _hostFixture.DqtApiClient.GetTeacherIdentityInfo(userId))
+                .Returns(new DqtTeacherIdentityInfo() { Trn = trn, TsPersonId = userId.ToString() });
         }
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -64,13 +71,15 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(email, signedInEmail);
     }
 
-    [Fact]
-    public async Task NewUser_IsRedirectedToFindAndRegistersAnAccountOnCallback()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task NewUser_IsRedirectedToFindAndRegistersAnAccountOnCallback(bool hasTrn)
     {
-        var email = "joe.bloggs+new-user@example.com";
+        var email = $"joe.bloggs+new-user-{(hasTrn ? "with-trn" : "without-trn")}@example.com";
         var firstName = "Joe";
         var lastName = "Bloggs";
-        var trn = "2345678";
+        var trn = hasTrn ? "2345678" : null;
         var dateOfBirth = new DateOnly(1990, 1, 2);
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -108,7 +117,7 @@ public class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
         await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
         await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
-        await page.FillAsync("#Trn", trn);
+        await page.FillAsync("#Trn", trn ?? string.Empty);
 
         await page.ClickAsync("button:has-text('Continue')");
 
@@ -125,6 +134,6 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(firstName, await page.InnerTextAsync("data-testid=first-name"));
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
         Assert.Equal(email, await page.InnerTextAsync("data-testid=email"));
-        Assert.Equal(trn, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
     }
 }

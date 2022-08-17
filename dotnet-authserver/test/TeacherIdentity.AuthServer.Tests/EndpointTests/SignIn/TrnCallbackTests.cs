@@ -60,8 +60,10 @@ public class TrnCallbackTests : TestBase
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
-    [Fact]
-    public async Task Post_ValidCallback_CreatesUserAndRedirectsToConfirmation()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_ValidCallback_CreatesUserCallsDqtApiAndRedirectsToConfirmation(bool hasTrn)
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -70,9 +72,11 @@ public class TrnCallbackTests : TestBase
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = TestData.GenerateTrn();
+        var trn = hasTrn ? TestData.GenerateTrn() : null;
 
-        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>._)).Returns(Task.FromResult(Task.CompletedTask));
+        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
+            .Returns(Task.CompletedTask);
+
         var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
@@ -104,12 +108,24 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(firstName, user!.FirstName);
             Assert.Equal(lastName, user!.LastName);
             Assert.Equal(dateOfBirth, user!.DateOfBirth);
-            A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString() && x.Trn == authStateHelper.AuthenticationState.Trn!))).MustHaveHappenedOnceExactly();
+
+            if (hasTrn)
+            {
+                A.CallTo(() => HostFixture.DqtApiClient
+                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString() && x.Trn == trn)))
+                    .MustHaveHappenedOnceExactly();
+            }
+            else
+            {
+                A.CallTo(() => HostFixture.DqtApiClient
+                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString())))
+                    .MustNotHaveHappened();
+            }
         });
     }
 
     [Fact]
-    public async Task Post_ValidCallback_ApiCallFails_returns_error()
+    public async Task Post_ValidCallbackButApiCallFails_ReturnsError()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -122,6 +138,7 @@ public class TrnCallbackTests : TestBase
         authStateHelper.AuthenticationState.Trn = trn;
 
         A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>._)).Throws(new InvalidOperationException());
+
         var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
@@ -135,7 +152,7 @@ public class TrnCallbackTests : TestBase
         var ex = await Record.ExceptionAsync(() => HttpClient.SendAsync(request));
 
         // Assert
-        Assert.IsType<InvalidOperationException>(ex);
+        Assert.NotNull(ex);
     }
 
     private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
@@ -145,35 +162,47 @@ public class TrnCallbackTests : TestBase
             authState.EmailAddressConfirmed = true;
         });
 
+    private const string GenerateRandomTrnSentinel = "0000000";
+
     private string CreateJwt(
         string? email = null,
         string? firstName = null,
         string? lastName = null,
         DateOnly? dateOfBirth = null,
-        string? trn = null)
+        string? trn = GenerateRandomTrnSentinel)
     {
         email ??= Faker.Internet.Email();
         firstName ??= Faker.Name.First();
         lastName ??= Faker.Name.Last();
         dateOfBirth ??= DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        trn ??= TestData.GenerateTrn();
+
+        if (trn == GenerateRandomTrnSentinel)
+        {
+            trn = TestData.GenerateTrn();
+        }
 
         var findALostTrnIntegrationHelper = HostFixture.Services.GetRequiredService<FindALostTrnIntegrationHelper>();
 
         var pskBytes = Encoding.UTF8.GetBytes(findALostTrnIntegrationHelper.Options.SharedKey);
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
 
+        var subject = new ClaimsIdentity(new[]
+        {
+            new Claim("email", email!),
+            new Claim("birthdate", dateOfBirth!.Value.ToString("yyyy-MM-dd")),
+            new Claim("given_name", firstName!),
+            new Claim("family_name", lastName!)
+        });
+
+        if (trn is not null)
+        {
+            subject.AddClaim(new Claim("trn", trn!));
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwt = tokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor()
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim("email", email!),
-                new Claim("birthdate", dateOfBirth!.Value.ToString("yyyy-MM-dd")),
-                new Claim("given_name", firstName!),
-                new Claim("family_name", lastName!),
-                new Claim("trn", trn!),
-            }),
+            Subject = subject,
             SigningCredentials = signingCredentials
         });
 

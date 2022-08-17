@@ -45,12 +45,13 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         }
     }
 
-    public async Task SignInUser(Guid userId, AuthenticationStateHelper authenticationStateHelper, HttpClient httpClient)
+    public async Task SignInUser(AuthenticationStateHelper authenticationStateHelper, HttpClient httpClient, Guid userId, string? trn)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{authenticationStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
                 .Add("UserId", userId.ToString())
+                .Add("Trn", trn ?? string.Empty)
                 .ToContent()
         };
 

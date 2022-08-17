@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using FakeItEasy;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
@@ -31,6 +32,8 @@ public class HostFixture : IAsyncLifetime
     public IBrowser Browser { get; private set; } = null!;
 
     public DbHelper? DbHelper { get; private set; }
+
+    public IDqtApiClient DqtApiClient = A.Fake<IDqtApiClient>();
 
     public IEmailConfirmationService? EmailConfirmationService { get; private set; }
 
@@ -97,6 +100,11 @@ public class HostFixture : IAsyncLifetime
         Browser = await _playright.Chromium.LaunchAsync(browserOptions);
     }
 
+    public void ResetMocks()
+    {
+        Fake.ClearRecordedCalls(DqtApiClient);
+    }
+
     private Host<TeacherIdentity.AuthServer.Program> CreateAuthServerHost(IConfiguration testConfiguration) =>
         Host<TeacherIdentity.AuthServer.Program>.CreateHost(
             AuthServerBaseUrl,
@@ -107,7 +115,7 @@ public class HostFixture : IAsyncLifetime
                 builder.ConfigureServices(services =>
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
-                    services.AddSingleton<IDqtApiClient, TestDqtApiClient>();
+                    services.AddSingleton<IDqtApiClient>(DqtApiClient);
                     services.Decorate<IEmailConfirmationService>(inner =>
                         new CapturePinsEmailConfirmationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                 });
@@ -219,20 +227,6 @@ public class HostFixture : IAsyncLifetime
                     using var _ = CreateDefaultClient();
                 }
             }
-        }
-    }
-
-    private class TestDqtApiClient : IDqtApiClient
-    {
-        public Task<DqtTeacherIdentityInfo?> GetTeacherIdentityInfo(Guid userId)
-        {
-            var ti = new DqtTeacherIdentityInfo() { TsPersonId = userId.ToString(), Trn = "1234567" };
-            return Task.FromResult(ti)!;
-        }
-
-        public Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo? info)
-        {
-            return Task.CompletedTask;
         }
     }
 

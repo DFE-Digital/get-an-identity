@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -54,14 +52,12 @@ public class EmailConfirmationModel : PageModel
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
         if (user is not null)
         {
+            // N.B. If the user didn't match to a TRN when they registered then we won't get a result back from this API call
             var dqtIdentityInfo = await _dqtApiClient.GetTeacherIdentityInfo(user.UserId);
-            if (dqtIdentityInfo != null)
-            {
-                await HttpContext.SignInUser(user, dqtIdentityInfo.Trn);
-            }
+
+            await HttpContext.SignInUser(user, dqtIdentityInfo?.Trn);
 
             authenticationState.FirstTimeUser = false;
-            authenticationState.Trn = dqtIdentityInfo!.Trn;
         }
         else
         {
