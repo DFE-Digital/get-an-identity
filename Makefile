@@ -40,6 +40,11 @@ set-azure-account: ${environment}
 	echo "Logging on to ${AZURE_SUBSCRIPTION}"
 	az account set -s ${AZURE_SUBSCRIPTION}
 
+ci:	## Run in automation environment
+	$(eval DISABLE_PASSCODE=true)
+	$(eval AUTO_APPROVE=-auto-approve)
+	$(eval SP_AUTH=true)
+
 tags: ##Tags that will be added to resource group on it's creation in ARM template
 	$(eval RG_TAGS=$(shell echo '{"Portfolio": "Early years and Schools Group", "Parent Business":"Teaching Regulation Agency", "Product" : "Get an Identity", "Service Line": "Teaching Workforce", "Service": "Teacher Services", "Service Offering": "Get an Identity", "Environment" : "$(ENV_TAG)"}' | jq . ))
 
