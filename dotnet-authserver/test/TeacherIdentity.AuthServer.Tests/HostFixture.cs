@@ -18,7 +18,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public DbHelper? DbHelper { get; private set; }
 
     public IEmailConfirmationService? EmailConfirmationService { get; private set; }
-
+    public IDqtApiClient? DqtApiClient { get; private set; }
     public IEmailSender? EmailSender { get; private set; }
 
     public async Task InitializeAsync()
@@ -81,6 +81,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
             AddSpy<IEmailConfirmationService>(spy => EmailConfirmationService = spy);
             AddSpy<IEmailSender>(spy => EmailSender = spy);
+            DqtApiClient = A.Fake<IDqtApiClient>();
+            services.AddSingleton<IDqtApiClient>(DqtApiClient);
 
             void AddSpy<T>(Action<T> assignSpy) where T : class
             {

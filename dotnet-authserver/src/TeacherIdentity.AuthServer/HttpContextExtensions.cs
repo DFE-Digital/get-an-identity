@@ -14,7 +14,7 @@ public static class HttpContextExtensions
         httpContext.Features.Get<AuthenticationStateFeature>()?.AuthenticationState ??
             throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
 
-    public static async Task SignInUser(this HttpContext httpContext, User user)
+    public static async Task SignInUser(this HttpContext httpContext, User user, string? trn)
     {
         var authenticationState = httpContext.GetAuthenticationState();
         authenticationState.Populate(user);
@@ -31,9 +31,9 @@ public static class HttpContextExtensions
             new Claim(Claims.FamilyName, user.LastName!)
         };
 
-        if (authorizationRequest.HasScope(CustomScopes.Trn) && user.Trn is not null)
+        if (authorizationRequest.HasScope(CustomScopes.Trn) && trn is not null)
         {
-            claims.Add(new Claim(CustomClaims.Trn, user.Trn));
+            claims.Add(new Claim(CustomClaims.Trn, trn));
         }
 
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);

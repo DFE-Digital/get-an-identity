@@ -4,7 +4,7 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public partial class TestData
 {
-    public Task<User> CreateUser(string? email = null, string? trn = null) => WithDbContext(async dbContext =>
+    public Task<User> CreateUser(string? email = null) => WithDbContext(async dbContext =>
     {
         var user = new User()
         {
@@ -12,7 +12,6 @@ public partial class TestData
             EmailAddress = email ?? Faker.Internet.Email(),
             FirstName = Faker.Name.First(),
             LastName = Faker.Name.Last(),
-            Trn = trn
         };
 
         dbContext.Users.Add(user);

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Clients;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.TestCommon;
 
@@ -77,6 +78,7 @@ public class HostFixture : IAsyncLifetime
 
         var clientHelper = new ClientConfigurationHelper(AuthServerServices);
         var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>();
+
         await clientHelper.UpsertClients(clients);
 
         _clientHost = CreateClientHost(testConfiguration);
@@ -105,7 +107,7 @@ public class HostFixture : IAsyncLifetime
                 builder.ConfigureServices(services =>
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
-
+                    services.AddSingleton<IDqtApiClient, TestDqtApiClient>();
                     services.Decorate<IEmailConfirmationService>(inner =>
                         new CapturePinsEmailConfirmationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                 });
@@ -217,6 +219,20 @@ public class HostFixture : IAsyncLifetime
                     using var _ = CreateDefaultClient();
                 }
             }
+        }
+    }
+
+    private class TestDqtApiClient : IDqtApiClient
+    {
+        public Task<DqtTeacherIdentityInfo?> GetTeacherIdentityInfo(Guid userId)
+        {
+            var ti = new DqtTeacherIdentityInfo() { TsPersonId = userId.ToString(), Trn = "1234567" };
+            return Task.FromResult(ti)!;
+        }
+
+        public Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo? info)
+        {
+            return Task.CompletedTask;
         }
     }
 

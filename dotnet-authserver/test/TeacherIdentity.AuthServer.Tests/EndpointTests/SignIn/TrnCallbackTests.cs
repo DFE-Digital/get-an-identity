@@ -4,6 +4,7 @@ using System.Text;
 using Flurl;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -71,6 +72,7 @@ public class TrnCallbackTests : TestBase
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = TestData.GenerateTrn();
 
+        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>._)).Returns(Task.FromResult(Task.CompletedTask));
         var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
@@ -89,7 +91,7 @@ public class TrnCallbackTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            var user = await dbContext.Users.Where(u => u.Trn == trn).SingleOrDefaultAsync();
+            var user = await dbContext.Users.Where(u => u.FirstName == firstName && u.LastName == lastName && u.DateOfBirth == dateOfBirth).SingleOrDefaultAsync();
 
             Assert.NotNull(user);
 
@@ -102,8 +104,38 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(firstName, user!.FirstName);
             Assert.Equal(lastName, user!.LastName);
             Assert.Equal(dateOfBirth, user!.DateOfBirth);
-            Assert.Equal(trn, user!.Trn);
+            A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString() && x.Trn == authStateHelper.AuthenticationState.Trn!))).MustHaveHappenedOnceExactly();
         });
+    }
+
+    [Fact]
+    public async Task Post_ValidCallback_ApiCallFails_returns_error()
+    {
+        // Arrange
+        var authStateHelper = CreateAuthenticationStateHelper();
+
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = TestData.GenerateTrn();
+        authStateHelper.AuthenticationState.Trn = trn;
+
+        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>._)).Throws(new InvalidOperationException());
+        var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("user", jwt)
+                .ToContent()
+        };
+
+        // Act
+        var ex = await Record.ExceptionAsync(() => HttpClient.SendAsync(request));
+
+        // Assert
+        Assert.IsType<InvalidOperationException>(ex);
     }
 
     private AuthenticationStateHelper CreateAuthenticationStateHelper() =>

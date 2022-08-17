@@ -15,6 +15,7 @@ public class SignIn : IClassFixture<HostFixture>
     public async Task ExistingUser_CanSignInSuccessfullyWithEmailAndPin()
     {
         var email = "joe.bloggs+existing-user@example.com";
+        var trn = "1234567";
 
         {
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
@@ -26,7 +27,6 @@ public class SignIn : IClassFixture<HostFixture>
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = Guid.NewGuid(),
-                Trn = "1234567"
             });
 
             await dbContext.SaveChangesAsync();
@@ -60,6 +60,7 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(clientAppHost, pageUrlHost);
 
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
+        Assert.Equal(trn, await page.InnerTextAsync("data-testid=trn"));
         Assert.Equal(email, signedInEmail);
     }
 

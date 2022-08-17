@@ -98,7 +98,6 @@ public class AuthenticationState
         FirstName = user.FirstName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
-        Trn = user.Trn;
         HaveCompletedFindALostTrnJourney = true;
     }
 

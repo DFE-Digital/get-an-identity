@@ -57,7 +57,6 @@ public class AuthenticationStateTests
             EmailAddress = Faker.Internet.Email(),
             FirstName = Faker.Name.First(),
             LastName = Faker.Name.Last(),
-            Trn = "1234567",
             UserId = Guid.NewGuid()
         };
 
@@ -71,7 +70,6 @@ public class AuthenticationStateTests
         Assert.Equal(user.EmailAddress, authenticationState.EmailAddress);
         Assert.Equal(user.FirstName, authenticationState.FirstName);
         Assert.Equal(user.LastName, authenticationState.LastName);
-        Assert.Equal(user.Trn, authenticationState.Trn);
         Assert.Equal(user.UserId, authenticationState.UserId);
         Assert.True(authenticationState.EmailAddressConfirmed);
         Assert.Null(authenticationState.FirstTimeUser);  // Should not be changed

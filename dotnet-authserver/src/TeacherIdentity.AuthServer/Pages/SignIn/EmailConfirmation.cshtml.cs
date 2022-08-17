@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -11,13 +12,16 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class EmailConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IDqtApiClient _dqtApiClient;
     private readonly IEmailConfirmationService _emailConfirmationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
-        IEmailConfirmationService emailConfirmationService)
+        IEmailConfirmationService emailConfirmationService,
+        IDqtApiClient apiClient)
     {
         _dbContext = dbContext;
+        _dqtApiClient = apiClient;
         _emailConfirmationService = emailConfirmationService;
     }
 
@@ -50,8 +54,14 @@ public class EmailConfirmationModel : PageModel
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
         if (user is not null)
         {
-            await HttpContext.SignInUser(user);
+            var dqtIdentityInfo = await _dqtApiClient.GetTeacherIdentityInfo(user.UserId);
+            if (dqtIdentityInfo != null)
+            {
+                await HttpContext.SignInUser(user, dqtIdentityInfo.Trn);
+            }
+
             authenticationState.FirstTimeUser = false;
+            authenticationState.Trn = dqtIdentityInfo!.Trn;
         }
         else
         {
