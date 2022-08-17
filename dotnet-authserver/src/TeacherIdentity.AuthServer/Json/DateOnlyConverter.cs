@@ -5,23 +5,39 @@ namespace TeacherIdentity.AuthServer.Json;
 
 public class DateOnlyConverter : JsonConverter<DateOnly>
 {
-    private readonly string _serializationFormat;
+    private const string DefaultDateFormat = "yyyy-MM-dd";
 
-    public DateOnlyConverter() : this(null)
+    private readonly string _dateFormat;
+
+    public DateOnlyConverter()
+        : this(DefaultDateFormat)
     {
     }
 
-    public DateOnlyConverter(string? serializationFormat)
+    public DateOnlyConverter(string dateFormat)
     {
-        _serializationFormat = serializationFormat ?? "yyyy-MM-dd";
+        _dateFormat = dateFormat;
     }
 
     public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var value = reader.GetString();
-        return DateOnly.Parse(value!);
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            throw new InvalidOperationException($"Cannot get the value of a token type '{reader.TokenType}' as a string.");
+        }
+
+        var asString = reader.GetString();
+        if (!DateOnly.TryParseExact(asString, _dateFormat, out var value))
+        {
+            throw new JsonException("The JSON value is not in a supported DateOnly format.");
+        }
+
+        return value;
     }
 
-    public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options) =>
-        writer.WriteStringValue(value.ToString(_serializationFormat));
+    public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options)
+    {
+        var asString = value.ToString(_dateFormat);
+        writer.WriteStringValue(asString);
+    }
 }

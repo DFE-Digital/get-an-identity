@@ -11,14 +11,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Notify.Client;
-using Npgsql;
 using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.Jobs;
+using TeacherIdentity.AuthServer.Json;
 using TeacherIdentity.AuthServer.Middleware;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Security;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -124,14 +125,29 @@ public class Program
                         return Task.CompletedTask;
                     }
                 };
-            });
+            })
+            .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
 
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("Hangfire", policy => policy.AddAuthenticationSchemes("Basic").RequireAuthenticatedUser());
+            options.AddPolicy(
+                "Hangfire",
+                policy => policy
+                    .AddAuthenticationSchemes("Basic")
+                    .RequireAuthenticatedUser());
+
+            options.AddPolicy(
+                "TrnLookup",
+                policy => policy
+                    .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
+                    .RequireAuthenticatedUser());
         });
 
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new DateOnlyConverter());
+            });
 
         builder.Services.AddRazorPages(options =>
         {
@@ -281,6 +297,8 @@ public class Program
         builder.Services.AddSingleton<IClock, SystemClock>();
 
         builder.Services.AddTransient<IEmailConfirmationService, EmailConfirmationService>();
+
+        builder.Services.AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>();
 
         var app = builder.Build();
 
