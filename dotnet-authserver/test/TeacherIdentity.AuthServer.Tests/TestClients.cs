@@ -23,10 +23,13 @@ public static class TestClients
             Permissions.Endpoints.Token,
             Permissions.GrantTypes.AuthorizationCode,
             Permissions.ResponseTypes.Code,
-            Permissions.ResponseTypes.CodeIdToken,
             Permissions.Scopes.Email,
             Permissions.Scopes.Profile,
             $"scp:{CustomScopes.Trn}"
+        },
+        Requirements =
+        {
+            Requirements.Features.ProofKeyForCodeExchange
         }
     };
 }

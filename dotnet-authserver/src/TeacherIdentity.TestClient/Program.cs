@@ -33,8 +33,9 @@ public class Program
 
                 options.ClientId = "testclient";
                 options.ClientSecret = "super-secret";
-                options.ResponseType = "code id_token";
+                options.ResponseType = "code";
                 options.CallbackPath = new PathString("/oidc/callback");
+                options.UsePkce = true;
 
                 options.Scope.Clear();
                 options.Scope.Add("email");
