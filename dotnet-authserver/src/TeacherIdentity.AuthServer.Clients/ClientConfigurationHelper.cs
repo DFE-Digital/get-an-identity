@@ -30,7 +30,11 @@ public class ClientConfigurationHelper
                 Type = ClientTypes.Confidential,
                 ConsentType = ConsentTypes.Implicit,
                 DisplayName = clientConfig.DisplayName,
-                ServiceUrl = clientConfig.ServiceUrl
+                ServiceUrl = clientConfig.ServiceUrl,
+                Requirements =
+                {
+                    Requirements.Features.ProofKeyForCodeExchange
+                }
             };
 
             foreach (var redirectUri in clientConfig.RedirectUris ?? Array.Empty<string>())
@@ -43,10 +47,7 @@ public class ClientConfigurationHelper
                 Permissions.Endpoints.Authorization,
                 Permissions.Endpoints.Token,
                 Permissions.GrantTypes.AuthorizationCode,
-                Permissions.GrantTypes.Implicit,
                 Permissions.ResponseTypes.Code,
-                Permissions.ResponseTypes.IdToken,
-                Permissions.ResponseTypes.CodeIdToken,
                 Permissions.Scopes.Email,
                 Permissions.Scopes.Profile,
                 $"scp:{CustomScopes.Trn}"
