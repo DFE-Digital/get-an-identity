@@ -1,9 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Flurl;
+﻿using Flurl;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -16,42 +12,18 @@ public class TrnCallbackTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        var content = new FormUrlEncodedContentBuilder()
-            .Add("user", CreateJwt())
-            .ToContent();
-
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn-callback", content);
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn-callback");
     }
 
     [Fact]
-    public async Task Post_MissingUserQueryParameter_ReturnsError()
+    public async Task Get_MissingStateInDb_ReturnsError()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddress = Faker.Internet.Email());
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Post_InvalidCallback_ReturnsError()
-    {
-        // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-                .Add("user", CreateJwt() + "xxx")
-                .ToContent()
-        };
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -63,7 +35,7 @@ public class TrnCallbackTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Post_ValidCallback_CreatesUserCallsDqtApiAndRedirectsToConfirmation(bool hasTrn)
+    public async Task Get_ValidCallback_CreatesUserLocksLookupStateCallsDqtApiAndRedirectsToConfirmation(bool hasTrn)
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -77,14 +49,9 @@ public class TrnCallbackTests : TestBase
         A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
             .Returns(Task.CompletedTask);
 
-        var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-                .Add("user", jwt)
-                .ToContent()
-        };
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -98,13 +65,8 @@ public class TrnCallbackTests : TestBase
             var user = await dbContext.Users.Where(u => u.FirstName == firstName && u.LastName == lastName && u.DateOfBirth == dateOfBirth).SingleOrDefaultAsync();
 
             Assert.NotNull(user);
-
             Assert.Equal(authStateHelper.AuthenticationState.UserId, user!.UserId);
-
-            // It's important that the email used to register the user is the one in our auth state,
-            // not the one in the callback from Find
             Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, user!.EmailAddress);
-
             Assert.Equal(firstName, user!.FirstName);
             Assert.Equal(lastName, user!.LastName);
             Assert.Equal(dateOfBirth, user!.DateOfBirth);
@@ -121,11 +83,35 @@ public class TrnCallbackTests : TestBase
                     !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString())))
                     .MustNotHaveHappened();
             }
+
+            var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);
+            Assert.Equal(Clock.UtcNow, lookupState.Locked);
         });
     }
 
     [Fact]
-    public async Task Post_ValidCallbackButApiCallFails_ReturnsError()
+    public async Task Get_LookupStateIsLocked_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = CreateAuthenticationStateHelper();
+
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, locked: Clock.UtcNow);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_ValidCallbackButApiCallFails_ReturnsError()
     {
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper();
@@ -139,14 +125,9 @@ public class TrnCallbackTests : TestBase
 
         A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>._)).Throws(new InvalidOperationException());
 
-        var jwt = CreateJwt(email, firstName, lastName, dateOfBirth, trn);
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-                .Add("user", jwt)
-                .ToContent()
-        };
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
 
         // Act
         var ex = await Record.ExceptionAsync(() => HttpClient.SendAsync(request));
@@ -164,48 +145,33 @@ public class TrnCallbackTests : TestBase
 
     private const string GenerateRandomTrnSentinel = "0000000";
 
-    private string CreateJwt(
-        string? email = null,
+    private Task SaveLookupState(
+        Guid journeyId,
         string? firstName = null,
         string? lastName = null,
         DateOnly? dateOfBirth = null,
-        string? trn = GenerateRandomTrnSentinel)
+        string? trn = GenerateRandomTrnSentinel,
+        DateTime? locked = null)
     {
-        email ??= Faker.Internet.Email();
-        firstName ??= Faker.Name.First();
-        lastName ??= Faker.Name.Last();
-        dateOfBirth ??= DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-
         if (trn == GenerateRandomTrnSentinel)
         {
             trn = TestData.GenerateTrn();
         }
 
-        var findALostTrnIntegrationHelper = HostFixture.Services.GetRequiredService<FindALostTrnIntegrationHelper>();
-
-        var pskBytes = Encoding.UTF8.GetBytes(findALostTrnIntegrationHelper.Options.SharedKey);
-        var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
-
-        var subject = new ClaimsIdentity(new[]
+        return TestData.WithDbContext(async dbContext =>
         {
-            new Claim("email", email!),
-            new Claim("birthdate", dateOfBirth!.Value.ToString("yyyy-MM-dd")),
-            new Claim("given_name", firstName!),
-            new Claim("family_name", lastName!)
+            dbContext.JourneyTrnLookupStates.Add(new JourneyTrnLookupState()
+            {
+                JourneyId = journeyId,
+                Created = Clock.UtcNow,
+                DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                FirstName = firstName ?? Faker.Name.First(),
+                LastName = lastName ?? Faker.Name.Last(),
+                Trn = trn,
+                Locked = locked
+            });
+
+            await dbContext.SaveChangesAsync();
         });
-
-        if (trn is not null)
-        {
-            subject.AddClaim(new Claim("trn", trn!));
-        }
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var jwt = tokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor()
-        {
-            Subject = subject,
-            SigningCredentials = signingCredentials
-        });
-
-        return jwt;
     }
 }

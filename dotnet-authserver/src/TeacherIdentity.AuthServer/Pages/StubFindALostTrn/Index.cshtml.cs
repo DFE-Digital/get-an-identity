@@ -1,22 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.IdentityModel.Tokens;
 
 namespace TeacherIdentity.AuthServer.Pages.StubFindALostTrn;
 
 public class IndexModel : PageModel
 {
-    private readonly FindALostTrnIntegrationHelper _findALostTrnIntegrationHelper;
-
-    public IndexModel(FindALostTrnIntegrationHelper findALostTrnIntegrationHelper)
-    {
-        _findALostTrnIntegrationHelper = findALostTrnIntegrationHelper;
-    }
-
     [BindProperty]
     [Display(Name = "Email address")]
     [Required(ErrorMessage = "Enter your email address")]
@@ -41,53 +31,42 @@ public class IndexModel : PageModel
     [Display(Name = "TRN")]
     public string? Trn { get; set; }
 
-    public bool IsCallback { get; set; }
-
     public string? RedirectUri { get; set; }
-
-    public string? UserJwt { get; set; }
 
     public void OnGet()
     {
         Email = HttpContext.Session.GetString("FindALostTrn:Email");
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
             return Page();
         }
 
-        var pskBytes = Encoding.UTF8.GetBytes(_findALostTrnIntegrationHelper.Options.SharedKey);
-        var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(pskBytes), SecurityAlgorithms.HmacSha256Signature);
-
-        var subject = new ClaimsIdentity(new[]
-        {
-            new Claim("email", Email!),
-            new Claim("birthdate", DateOfBirth!.Value.ToString("yyyy-MM-dd")),
-            new Claim("given_name", FirstName!),
-            new Claim("family_name", LastName!)
-        });
-
-        if (!string.IsNullOrEmpty(Trn))
-        {
-            subject.AddClaim(new Claim("trn", Trn!));
-        }
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var jwt = tokenHandler.CreateEncodedJwt(new SecurityTokenDescriptor()
-        {
-            Subject = subject,
-            SigningCredentials = signingCredentials
-        });
+        await PersistLookupState();
 
         var redirectUri = HttpContext.Session.GetString("FindALostTrn:RedirectUri")!;
+        return Redirect(redirectUri);
 
-        // Yuk; we're re-using the same view here as we can't easily switch to another with Razor Pages
-        IsCallback = true;
-        RedirectUri = redirectUri;
-        UserJwt = jwt;
-        return Page();
+        async Task PersistLookupState()
+        {
+            var apiKey = "stub-find";
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            httpClient.BaseAddress = new Uri($"{Request.Scheme}://{Request.Host}");
+
+            var journeyId = HttpContext.Session.GetString("FindALostTrn:JourneyId");
+
+            await httpClient.PutAsJsonAsync($"/api/find-trn/user/{journeyId}", new
+            {
+                FirstName = FirstName!,
+                LastName = LastName!,
+                DateOfBirth = DateOfBirth!.Value.ToString("yyyy-MM-dd"),
+                Trn = Trn
+            });
+        }
     }
 }
