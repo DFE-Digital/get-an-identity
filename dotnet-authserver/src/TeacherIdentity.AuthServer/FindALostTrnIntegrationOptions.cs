@@ -9,4 +9,7 @@ public class FindALostTrnIntegrationOptions
 
     [Required]
     public string SharedKey { get; set; } = null!;
+
+    [Required]
+    public bool EnableStubEndpoints { get; set; }
 }
