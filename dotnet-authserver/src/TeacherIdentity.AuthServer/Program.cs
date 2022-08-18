@@ -326,15 +326,27 @@ public class Program
 
         app.UseSerilogRequestLogging();
 
+        app.UseWhen(
+            context => !context.Request.Path.StartsWithSegments("/api"),
+            a =>
+            {
+                if (app.Environment.IsDevelopment())
+                {
+                    a.UseDeveloperExceptionPage();
+                }
+                else if (!app.Environment.IsUnitTests())
+                {
+                    a.UseExceptionHandler("/error");
+                    a.UseStatusCodePagesWithReExecute("/error", "?code={0}");
+                }
+            });
+
         if (app.Environment.IsDevelopment())
         {
-            app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
         }
         else if (!app.Environment.IsUnitTests())
         {
-            app.UseExceptionHandler("/error");
-            app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
             app.UseForwardedHeaders();
             app.UseHsts();
             app.UseHttpsRedirection();
