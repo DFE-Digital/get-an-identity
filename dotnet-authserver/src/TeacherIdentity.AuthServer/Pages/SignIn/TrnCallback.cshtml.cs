@@ -65,7 +65,7 @@ public class TrnCallbackModel : PageModel
         var trn = lookupState.Trn;
         if (!string.IsNullOrEmpty(trn))
         {
-            await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, TsPersonId = userId.ToString() });
+            await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = userId });
         }
 
         await HttpContext.SignInUser(user, trn);

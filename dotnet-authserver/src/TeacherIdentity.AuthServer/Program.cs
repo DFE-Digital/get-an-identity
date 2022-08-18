@@ -62,19 +62,26 @@ public class Program
 
         builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
-        builder.Services.AddOptions<DqtApiOptions>()
-            .Bind(builder.Configuration.GetSection("DqtApi"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddOptions<DqtApiOptions>()
+                .Bind(builder.Configuration.GetSection("DqtApi"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
-        builder.Services
-            .AddSingleton<IDqtApiClient, DqtApiClient>()
-            .AddHttpClient<DqtApiClient>((sp, httpClient) =>
-            {
-                var options = sp.GetRequiredService<IOptions<DqtApiOptions>>();
-                httpClient.BaseAddress = new Uri(options.Value.BaseAddress);
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.ApiKey);
-            });
+            builder.Services
+                .AddSingleton<IDqtApiClient, DqtApiClient>()
+                .AddHttpClient<DqtApiClient>((sp, httpClient) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<DqtApiOptions>>();
+                    httpClient.BaseAddress = new Uri(options.Value.BaseAddress);
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.ApiKey);
+                });
+        }
+        else
+        {
+            builder.Services.AddSingleton<IDqtApiClient, FakeDqtApiClient>();
+        }
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>

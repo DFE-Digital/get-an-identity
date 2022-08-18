@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -74,13 +75,13 @@ public class TrnCallbackTests : TestBase
             if (hasTrn)
             {
                 A.CallTo(() => HostFixture.DqtApiClient
-                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString() && x.Trn == trn)))
+                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId && x.Trn == trn)))
                     .MustHaveHappenedOnceExactly();
             }
             else
             {
                 A.CallTo(() => HostFixture.DqtApiClient
-                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.TsPersonId == user!.UserId.ToString())))
+                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId)))
                     .MustNotHaveHappened();
             }
 

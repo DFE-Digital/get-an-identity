@@ -1,6 +1,4 @@
-﻿using TeacherIdentity.AuthServer.Models;
-
-namespace TeacherIdentity.AuthServer.Services.DqtApi;
+﻿namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public class DqtApiClient : IDqtApiClient
 {
@@ -19,7 +17,7 @@ public class DqtApiClient : IDqtApiClient
 
     public async Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo info)
     {
-        var response = await _client.PutAsJsonAsync($"/v2/teachers/teacher-identity/{info.Trn}", new { info.TsPersonId });
+        var response = await _client.PutAsJsonAsync($"/v2/teachers/teacher-identity/{info.Trn}", new { TsPersonId = info.UserId });
         response.EnsureSuccessStatusCode();
     }
 }
