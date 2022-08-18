@@ -1,4 +1,4 @@
-﻿using TeacherIdentity.AuthServer.Models;
+﻿using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -154,7 +154,7 @@ public class ConfirmationTests : TestBase
                     authState.Trn = trn!;
 
                     A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId))
-                        .Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, TsPersonId = user!.UserId.ToString() });
+                        .Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, UserId = user!.UserId });
                 }
             }
         });

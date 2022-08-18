@@ -1,5 +1,6 @@
 ﻿using FakeItEasy;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -36,7 +37,7 @@ public class SignIn : IClassFixture<HostFixture>
             await dbContext.SaveChangesAsync();
 
             A.CallTo(() => _hostFixture.DqtApiClient.GetTeacherIdentityInfo(userId))
-                .Returns(new DqtTeacherIdentityInfo() { Trn = trn, TsPersonId = userId.ToString() });
+                .Returns(new DqtTeacherIdentityInfo() { Trn = trn, UserId = userId });
         }
 
         await using var context = await _hostFixture.CreateBrowserContext();

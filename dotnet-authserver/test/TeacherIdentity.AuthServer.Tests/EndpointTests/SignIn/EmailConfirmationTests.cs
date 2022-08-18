@@ -1,5 +1,5 @@
 ﻿using Flurl;
-using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
