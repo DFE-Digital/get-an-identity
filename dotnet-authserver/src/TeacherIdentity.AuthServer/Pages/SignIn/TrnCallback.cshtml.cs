@@ -11,15 +11,18 @@ public class TrnCallbackModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
     private readonly IClock _clock;
+    private readonly ILogger<TrnCallbackModel> _logger;
 
     public TrnCallbackModel(
         TeacherIdentityServerDbContext dbContext,
         IDqtApiClient apiClient,
-        IClock clock)
+        IClock clock,
+        ILogger<TrnCallbackModel> logger)
     {
         _dbContext = dbContext;
         _dqtApiClient = apiClient;
         _clock = clock;
+        _logger = logger;
     }
 
     public async Task<IActionResult> OnGet()
@@ -27,8 +30,14 @@ public class TrnCallbackModel : PageModel
         var authenticationState = HttpContext.GetAuthenticationState();
 
         var lookupState = await _dbContext.JourneyTrnLookupStates.SingleOrDefaultAsync(s => s.JourneyId == authenticationState.JourneyId);
-        if (lookupState is null || lookupState.Locked.HasValue)
+        if (lookupState is null)
         {
+            _logger.LogError("No TRN lookup state found for journey {JourneyId}.", authenticationState.JourneyId);
+            return BadRequest();
+        }
+        else if (lookupState.Locked.HasValue)
+        {
+            _logger.LogWarning("TRN lookup state for journey {JourneyId} is locked.", authenticationState.JourneyId);
             return BadRequest();
         }
 
