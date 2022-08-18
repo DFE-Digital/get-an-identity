@@ -78,7 +78,7 @@ public class AuthorizationController : Controller
                 });
         }
 
-        var userId = result.Principal.FindFirst(Claims.Subject)!.Value;
+        var subject = result.Principal.FindFirst(Claims.Subject)!.Value;
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??
@@ -86,7 +86,7 @@ public class AuthorizationController : Controller
 
         // Retrieve the permanent authorizations associated with the user and the calling client application.
         var authorizations = await _authorizationManager.FindAsync(
-            subject: userId,
+            subject: subject,
             client: (await _applicationManager.GetIdAsync(application))!,
             status: Statuses.Valid,
             type: AuthorizationTypes.Permanent,
@@ -133,7 +133,7 @@ public class AuthorizationController : Controller
                 {
                     authorization = await _authorizationManager.CreateAsync(
                         principal: principal,
-                        subject: userId,
+                        subject: subject,
                         client: (await _applicationManager.GetIdAsync(application))!,
                         type: AuthorizationTypes.Permanent,
                         scopes: principal.GetScopes());

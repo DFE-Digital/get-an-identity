@@ -31,6 +31,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using static OpenIddict.Server.OpenIddictServerEvents;
 
 namespace TeacherIdentity.AuthServer;
 
@@ -205,6 +206,9 @@ public class Program
             })
             .AddServer(options =>
             {
+                options.AddEventHandler<ApplyAuthorizationResponseContext>(
+                    builder => builder.UseSingletonHandler<ProcessAuthorizationResponseHandler>());
+
                 options
                     .SetAuthorizationEndpointUris("/connect/authorize")
                     //.SetLogoutEndpointUris

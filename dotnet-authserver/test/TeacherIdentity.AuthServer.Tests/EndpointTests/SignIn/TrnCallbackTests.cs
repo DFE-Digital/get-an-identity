@@ -59,7 +59,7 @@ public class TrnCallbackTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/sign-in/confirmation", new Url(response.Headers.Location).Path);
+        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
 
         await TestData.WithDbContext(async dbContext =>
         {

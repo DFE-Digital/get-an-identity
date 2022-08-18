@@ -37,7 +37,6 @@ public class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/EmailConfirmation", "/sign-in/email-confirmation");
         ConfigureMockForPage("/SignIn/Trn", "/sign-in/trn");
         ConfigureMockForPage("/SignIn/TrnCallback", "/sign-in/trn-callback");
-        ConfigureMockForPage("/SignIn/Confirmation", "/sign-in/confirmation");
 
         // Act
         var result = authenticationState.GetNextHopUrl(urlHelper);
@@ -59,11 +58,12 @@ public class AuthenticationStateTests
             UserId = Guid.NewGuid()
         };
         var trn = "1234567";
+        var firstTimeUser = true;
 
         var authenticationState = new AuthenticationState(Guid.NewGuid(), "/");
 
         // Act
-        authenticationState.Populate(user, trn);
+        authenticationState.Populate(user, firstTimeUser, trn);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
@@ -72,7 +72,7 @@ public class AuthenticationStateTests
         Assert.Equal(user.LastName, authenticationState.LastName);
         Assert.Equal(user.UserId, authenticationState.UserId);
         Assert.True(authenticationState.EmailAddressVerified);
-        Assert.Null(authenticationState.FirstTimeUser);  // Should not be changed
+        Assert.Equal(firstTimeUser, authenticationState.FirstTimeUser);
         Assert.True(authenticationState.HaveCompletedFindALostTrnJourney);
         Assert.Equal(trn, authenticationState.Trn);
     }
@@ -104,19 +104,6 @@ public class AuthenticationStateTests
                     $"/sign-in/email-confirmation?asid={journeyId}"
                 },
 
-                // Known user, not confirmed
-                {
-                    new AuthenticationState(journeyId, authorizationUrl)
-                    {
-                        EmailAddress = "john.doe@example.com",
-                        EmailAddressVerified = true,
-                        UserId = Guid.NewGuid(),
-                        Trn = "1234567",
-                        FirstTimeUser = false
-                    },
-                    $"/sign-in/confirmation?asid={journeyId}"
-                },
-
                 // Unknown user, not redirected to Find yet
                 {
                     new AuthenticationState(journeyId, authorizationUrl)
@@ -139,7 +126,7 @@ public class AuthenticationStateTests
                         HaveCompletedFindALostTrnJourney = true,
                         UserId = Guid.NewGuid()
                     },
-                    $"/sign-in/confirmation?asid={journeyId}"
+                    authorizationUrl
                 },
 
                 // Known user, confirmed
@@ -150,22 +137,7 @@ public class AuthenticationStateTests
                         EmailAddressVerified = true,
                         UserId = Guid.NewGuid(),
                         Trn = "1234567",
-                        FirstTimeUser = false,
-                        HaveCompletedConfirmationPage = true
-                    },
-                    authorizationUrl
-                },
-
-                // Unknown user, has completed Find journey & confirmed
-                {
-                    new AuthenticationState(journeyId, authorizationUrl)
-                    {
-                        EmailAddress = "john.doe@example.com",
-                        EmailAddressVerified = true,
-                        UserId = Guid.NewGuid(),
-                        FirstTimeUser = true,
-                        HaveCompletedFindALostTrnJourney = true,
-                        HaveCompletedConfirmationPage = true
+                        FirstTimeUser = false
                     },
                     authorizationUrl
                 },

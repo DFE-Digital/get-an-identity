@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -47,12 +48,18 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         }
     }
 
-    public async Task SignInUser(AuthenticationStateHelper authenticationStateHelper, HttpClient httpClient, Guid userId, string? trn)
+    public async Task SignInUser(
+        AuthenticationStateHelper authenticationStateHelper,
+        HttpClient httpClient,
+        Guid userId,
+        bool firstTimeUser,
+        string? trn)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{authenticationStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
                 .Add("UserId", userId.ToString())
+                .Add("FirstTimeUser", firstTimeUser.ToString())
                 .Add("Trn", trn ?? string.Empty)
                 .ToContent()
         };
@@ -77,6 +84,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
             // Add the /_sign-in endpoint
             services.AddSingleton<IStartupFilter>(new AddSignInEndpointStartupFilter());
+
+            // Disable the HTTPS requirement for OpenIddict
+            services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
