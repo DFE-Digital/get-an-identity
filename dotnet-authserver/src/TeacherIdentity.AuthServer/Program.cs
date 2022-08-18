@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Notify.Client;
 using Prometheus;
@@ -61,15 +62,19 @@ public class Program
 
         builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
 
-        builder.Services.AddHttpClient<DqtApiClient>(httpClient =>
-        {
-            var apiSecret = builder.Configuration.GetSection("DqtApi").GetValue<string>("apiSecret");
-            var apiUrl = builder.Configuration.GetSection("DqtApi").GetValue<string>("ApiUrl");
-            httpClient.BaseAddress = new Uri(apiUrl);
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiSecret);
+        builder.Services.AddOptions<DqtApiOptions>()
+            .Bind(builder.Configuration.GetSection("DqtApi"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-        });
-        builder.Services.AddSingleton<IDqtApiClient, DqtApiClient>();
+        builder.Services
+            .AddSingleton<IDqtApiClient, DqtApiClient>()
+            .AddHttpClient<DqtApiClient>((sp, httpClient) =>
+            {
+                var options = sp.GetRequiredService<IOptions<DqtApiOptions>>();
+                httpClient.BaseAddress = new Uri(options.Value.BaseAddress);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.ApiKey);
+            });
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>
@@ -244,7 +249,8 @@ public class Program
 
         builder.Services.AddOptions<FindALostTrnIntegrationOptions>()
             .Bind(builder.Configuration.GetSection("FindALostTrnIntegration"))
-            .ValidateDataAnnotations();
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
 

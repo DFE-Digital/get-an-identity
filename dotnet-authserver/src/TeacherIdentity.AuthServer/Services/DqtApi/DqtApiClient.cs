@@ -4,12 +4,10 @@ namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public class DqtApiClient : IDqtApiClient
 {
-    private IConfiguration _configuration;
-    private HttpClient _client;
+    private readonly HttpClient _client;
 
-    public DqtApiClient(IConfiguration configuration, HttpClient httpClient)
+    public DqtApiClient(HttpClient httpClient)
     {
-        _configuration = configuration;
         _client = httpClient;
     }
 
