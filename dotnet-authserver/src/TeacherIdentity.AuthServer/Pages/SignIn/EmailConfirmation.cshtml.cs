@@ -56,9 +56,7 @@ public class EmailConfirmationModel : PageModel
             // N.B. If the user didn't match to a TRN when they registered then we won't get a result back from this API call
             var dqtIdentityInfo = await _dqtApiClient.GetTeacherIdentityInfo(user.UserId);
 
-            await HttpContext.SignInUser(user, dqtIdentityInfo?.Trn);
-
-            authenticationState.FirstTimeUser = false;
+            await HttpContext.SignInUser(user, firstTimeUser: false, dqtIdentityInfo?.Trn);
         }
         else
         {

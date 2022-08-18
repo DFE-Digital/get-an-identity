@@ -1,32 +1,12 @@
 ﻿using TeacherIdentity.AuthServer.Services.DqtApi;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Authorization;
 
-public class ConfirmationTests : TestBase
+public class AuthorizeTests : TestBase
 {
-    public ConfirmationTests(HostFixture hostFixture)
+    public AuthorizeTests(HostFixture hostFixture)
         : base(hostFixture)
     {
-    }
-
-    [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
-    {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/confirmation");
-    }
-
-    [Fact]
-    public async Task Get_UserNotKnown_ReturnsBadRequest()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: false, hasTrn: false);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
     [Fact]
@@ -34,7 +14,7 @@ public class ConfirmationTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true, hasTrn: true);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.AuthorizationUrl);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -53,7 +33,7 @@ public class ConfirmationTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true, hasTrn: false);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.AuthorizationUrl);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -72,7 +52,7 @@ public class ConfirmationTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.AuthorizationUrl);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -84,55 +64,13 @@ public class ConfirmationTests : TestBase
         Assert.NotNull(doc.GetElementByTestId("known-user-content"));
     }
 
-    [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
-    {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/confirmation");
-    }
-
-    [Fact]
-    public async Task Post_UserNotKnown_ReturnsBadRequest()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: false, hasTrn: false);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder().ToContent()
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Post_ValidRequest_UpdatedAuthenticationStateAndRedirects()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/confirmation?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder().ToContent()
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.True(authStateHelper.AuthenticationState.HaveCompletedConfirmationPage);
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.AuthenticationState.AuthorizationUrl, response.Headers.Location?.OriginalString);
-    }
-
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
         HttpClient httpClient,
         bool userKnown = true,
         bool hasTrn = true,
         bool firstTimeUser = false)
     {
-        var user = userKnown ? (await TestData.CreateUser()) : null;
+        var user = userKnown ? await TestData.CreateUser() : null;
         var trn = userKnown && hasTrn ? TestData.GenerateTrn() : null;
 
         var authenticationStateHelper = CreateAuthenticationStateHelper(authState =>
@@ -161,7 +99,7 @@ public class ConfirmationTests : TestBase
 
         if (userKnown)
         {
-            await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, trn);
+            await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeUser, trn);
         }
 
         return authenticationStateHelper;

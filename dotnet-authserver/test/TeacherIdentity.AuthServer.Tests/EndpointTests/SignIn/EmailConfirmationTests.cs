@@ -120,7 +120,7 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/sign-in/confirmation", new Url(response.Headers.Location).Path);
+        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);

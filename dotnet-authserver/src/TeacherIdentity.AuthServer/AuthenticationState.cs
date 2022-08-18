@@ -38,7 +38,6 @@ public class AuthenticationState
     public DateOnly? DateOfBirth { get; set; }
     public string? Trn { get; set; }
     public bool HaveCompletedFindALostTrnJourney { get; set; }
-    public bool HaveCompletedConfirmationPage { get; set; }
 
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
@@ -81,17 +80,11 @@ public class AuthenticationState
         // We should have a known user at this point
         Debug.Assert(UserId.HasValue);
 
-        // Confirmation bookend page
-        if (!HaveCompletedConfirmationPage)
-        {
-            return urlHelper.Confirmation();
-        }
-
         // We're done - complete authorization
         return AuthorizationUrl;
     }
 
-    public void Populate(User user, string? trn)
+    public void Populate(User user, bool firstTimeUser, string? trn)
     {
         UserId = user.UserId;
         EmailAddress = user.EmailAddress;
@@ -100,6 +93,7 @@ public class AuthenticationState
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedFindALostTrnJourney = true;
+        FirstTimeUser = firstTimeUser;
         Trn = trn;
     }
 

@@ -1,7 +1,25 @@
-﻿@page "/sign-in/confirmation"
-@model TeacherIdentity.AuthServer.Pages.SignIn.ConfirmationModel
+﻿@page "/connect/authorize"
+@model TeacherIdentity.AuthServer.Pages.Authorization.AuthorizeModel
 @{
     ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You're signed in";
+
+    async Task RenderForm(string? buttonClasses = null)
+    {
+        var parameters = from parameter in Model.ApplyAuthorizationResponseContext!.Response.GetParameters()
+                         let values = (string?[]?)parameter.Value
+                         where values is not null
+                         from value in values
+                         where !string.IsNullOrEmpty(value)
+                         select (parameter.Key, Value: value);
+
+        <form action="@Model.ApplyAuthorizationResponseContext!.RedirectUri" method="post" asp-antiforgery="false">
+          @foreach (var (key, value) in parameters)
+          {
+            <input type="hidden" name="@key" value="@value">
+          }
+          <govuk-button type="submit" class="@buttonClasses">Continue</govuk-button>
+        </form>
+    }
 }
 
 @if (Model.FirstTimeUser)
@@ -25,9 +43,9 @@
         <h2 class="govuk-heading-m">Next time</h2>
         <p class="govuk-body govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
 
-        <form action="@Url.Confirmation()" method="post" asp-antiforgery="true">
-          <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
-        </form>
+        @{
+          await RenderForm("app-button--inverse govuk-!-margin-bottom-0");
+        }
       </govuk-panel-body>
     </govuk-panel>
 }
@@ -52,9 +70,9 @@ else
           </govuk-summary-list-row>
         </govuk-summary-list>
 
-        <form action="@Url.Confirmation()" method="post" asp-antiforgery="true">
-          <govuk-button type="submit">Continue</govuk-button>
-        </form>
-      </div>
+        @{
+          await RenderForm();
+        }
+        </div>
     </div>
 }
