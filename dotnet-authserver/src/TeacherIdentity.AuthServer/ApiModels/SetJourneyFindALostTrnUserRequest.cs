@@ -10,5 +10,6 @@ public class SetJourneyFindALostTrnUserRequest
     public string LastName { get; set; } = null!;
     [Required]
     public DateOnly DateOfBirth { get; set; }
+    [StringLength(maximumLength: 7, MinimumLength = 7)]
     public string? Trn { get; set; }
 }
