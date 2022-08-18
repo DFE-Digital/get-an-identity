@@ -174,3 +174,30 @@ jobs:
         azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
         terraform_vars: workspace_variables/dev.tfvars.json
         terraform_backend_vars: workspace_variables/dev.backend.tfvars
+
+  deploy_preprod:
+    name: Deploy to preprod environment
+    needs: [build, validate_terraform]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: preprod
+      url: ${{ steps.deploy.outputs.environment_url }}
+    concurrency: deploy_preprod
+
+    outputs:
+      environment_url: ${{ steps.deploy.outputs.environment_url }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/workflows/actions/deploy-environment
+      id: deploy
+      with:
+        environment_name: preprod
+        docker_image: ghcr.io/dfe-digital/get-an-identity
+        authserver_tag: authserver-${{ github.sha }}
+        testclient_tag: testclient-${{ github.sha }}
+        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+        terraform_vars: workspace_variables/preprod.tfvars.json
+        terraform_backend_vars: workspace_variables/preprod.backend.tfvars
