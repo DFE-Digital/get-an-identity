@@ -1,6 +1,6 @@
 ﻿using Notify.Client;
 
-namespace TeacherIdentity.AuthServer.Services;
+namespace TeacherIdentity.AuthServer.Services.Email;
 
 public class NotifyEmailSender : IEmailSender
 {

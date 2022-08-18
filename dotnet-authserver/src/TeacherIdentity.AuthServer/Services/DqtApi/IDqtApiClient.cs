@@ -1,6 +1,6 @@
 ﻿using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Services;
+namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public interface IDqtApiClient
 {

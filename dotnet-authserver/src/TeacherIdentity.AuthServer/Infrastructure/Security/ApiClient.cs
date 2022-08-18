@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace TeacherIdentity.AuthServer.Security;
+namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 
 public class ApiClient
 {

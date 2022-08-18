@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TeacherIdentity.AuthServer.Json;
+namespace TeacherIdentity.AuthServer.Infrastructure.Json;
 
 public class DateOnlyConverter : JsonConverter<DateOnly>
 {

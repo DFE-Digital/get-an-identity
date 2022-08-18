@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.Clients;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 
 var configuration = new ConfigurationManager();
 

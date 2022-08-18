@@ -1,6 +1,6 @@
 ﻿using Flurl;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -70,7 +70,7 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailConfirmationService>();
+        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailConfirmationService.GeneratePin(email);
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
@@ -88,7 +88,7 @@ public class EmailConfirmationTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal("/sign-in/trn", new Url(response.Headers.Location).Path);
 
-        Assert.True(authStateHelper.AuthenticationState.EmailAddressConfirmed);
+        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.True(authStateHelper.AuthenticationState.FirstTimeUser);
     }
 
@@ -104,7 +104,7 @@ public class EmailConfirmationTests : TestBase
         A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user.UserId))
             .Returns(hasTrn ? new DqtTeacherIdentityInfo() { Trn = trn! } : null);
 
-        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailConfirmationService>();
+        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailConfirmationService.GeneratePin(user.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress);
@@ -122,7 +122,7 @@ public class EmailConfirmationTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal("/sign-in/confirmation", new Url(response.Headers.Location).Path);
 
-        Assert.True(authStateHelper.AuthenticationState.EmailAddressConfirmed);
+        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
         Assert.False(authStateHelper.AuthenticationState.FirstTimeUser);
         Assert.Equal(trn, authStateHelper.AuthenticationState.Trn);

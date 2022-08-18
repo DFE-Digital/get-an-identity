@@ -1,6 +1,6 @@
 ﻿using OpenIddict.Abstractions;
 
-namespace TeacherIdentity.AuthServer.Models;
+namespace TeacherIdentity.AuthServer.Oidc;
 
 public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescriptor
 {

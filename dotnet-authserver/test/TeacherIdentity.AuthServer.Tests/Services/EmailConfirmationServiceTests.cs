@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using TeacherIdentity.AuthServer;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.Services;
 
@@ -143,13 +143,13 @@ public class EmailConfirmationServiceTests : IClassFixture<DbFixture>
         Assert.True(result);
     }
 
-    private EmailConfirmationService CreateEmailConfirmationService(TeacherIdentityServerDbContext dbContext, IClock clock)
+    private EmailVerificationService CreateEmailConfirmationService(TeacherIdentityServerDbContext dbContext, IClock clock)
     {
         var configuration = new ConfigurationManager();
         configuration["EmailConfirmationPinLifetimeSeconds"] = _pinLifetime.TotalSeconds.ToString();
 
-        var logger = NullLogger<EmailConfirmationService>.Instance;
+        var logger = NullLogger<EmailVerificationService>.Instance;
 
-        return new EmailConfirmationService(dbContext, clock, configuration, logger);
+        return new EmailVerificationService(dbContext, clock, configuration, logger);
     }
 }

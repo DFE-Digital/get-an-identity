@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer;
+﻿namespace TeacherIdentity.AuthServer.Oidc;
 
 public static class CustomScopes
 {

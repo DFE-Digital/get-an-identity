@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using OpenIddict.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Models;
+namespace TeacherIdentity.AuthServer.Oidc;
 
 public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreApplicationStore<Application, Authorization, Token, TeacherIdentityServerDbContext, string>
 {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TeacherIdentity.AuthServer;
+namespace TeacherIdentity.AuthServer.Services.TrnLookup;
 
 public class FindALostTrnIntegrationOptions
 {

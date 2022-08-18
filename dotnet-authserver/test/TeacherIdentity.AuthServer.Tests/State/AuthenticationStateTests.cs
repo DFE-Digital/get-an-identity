@@ -1,5 +1,4 @@
-﻿using FakeItEasy;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
 using TeacherIdentity.AuthServer.Models;
@@ -72,7 +71,7 @@ public class AuthenticationStateTests
         Assert.Equal(user.FirstName, authenticationState.FirstName);
         Assert.Equal(user.LastName, authenticationState.LastName);
         Assert.Equal(user.UserId, authenticationState.UserId);
-        Assert.True(authenticationState.EmailAddressConfirmed);
+        Assert.True(authenticationState.EmailAddressVerified);
         Assert.Null(authenticationState.FirstTimeUser);  // Should not be changed
         Assert.True(authenticationState.HaveCompletedFindALostTrnJourney);
         Assert.Equal(trn, authenticationState.Trn);
@@ -110,7 +109,7 @@ public class AuthenticationStateTests
                     new AuthenticationState(journeyId, authorizationUrl)
                     {
                         EmailAddress = "john.doe@example.com",
-                        EmailAddressConfirmed = true,
+                        EmailAddressVerified = true,
                         UserId = Guid.NewGuid(),
                         Trn = "1234567",
                         FirstTimeUser = false
@@ -123,7 +122,7 @@ public class AuthenticationStateTests
                     new AuthenticationState(journeyId, authorizationUrl)
                     {
                         EmailAddress = "john.doe@example.com",
-                        EmailAddressConfirmed = true,
+                        EmailAddressVerified = true,
                         FirstTimeUser = true,
                         HaveCompletedFindALostTrnJourney = false
                     },
@@ -135,7 +134,7 @@ public class AuthenticationStateTests
                     new AuthenticationState(journeyId, authorizationUrl)
                     {
                         EmailAddress = "john.doe@example.com",
-                        EmailAddressConfirmed = true,
+                        EmailAddressVerified = true,
                         FirstTimeUser = true,
                         HaveCompletedFindALostTrnJourney = true,
                         UserId = Guid.NewGuid()
@@ -148,7 +147,7 @@ public class AuthenticationStateTests
                     new AuthenticationState(journeyId, authorizationUrl)
                     {
                         EmailAddress = "john.doe@example.com",
-                        EmailAddressConfirmed = true,
+                        EmailAddressVerified = true,
                         UserId = Guid.NewGuid(),
                         Trn = "1234567",
                         FirstTimeUser = false,
@@ -162,7 +161,7 @@ public class AuthenticationStateTests
                     new AuthenticationState(journeyId, authorizationUrl)
                     {
                         EmailAddress = "john.doe@example.com",
-                        EmailAddressConfirmed = true,
+                        EmailAddressVerified = true,
                         UserId = Guid.NewGuid(),
                         FirstTimeUser = true,
                         HaveCompletedFindALostTrnJourney = true,

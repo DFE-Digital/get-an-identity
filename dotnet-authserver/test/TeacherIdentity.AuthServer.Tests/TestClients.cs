@@ -1,4 +1,5 @@
 ﻿using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
