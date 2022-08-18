@@ -7,7 +7,6 @@ using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -17,13 +16,18 @@ using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using TeacherIdentity.AuthServer.Configuration;
+using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
+using TeacherIdentity.AuthServer.Infrastructure.Json;
+using TeacherIdentity.AuthServer.Infrastructure.Middleware;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Jobs;
-using TeacherIdentity.AuthServer.Json;
-using TeacherIdentity.AuthServer.Middleware;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Security;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.Email;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -299,7 +303,7 @@ public class Program
 
         builder.Services.AddSingleton<IClock, SystemClock>();
 
-        builder.Services.AddTransient<IEmailConfirmationService, EmailConfirmationService>();
+        builder.Services.AddTransient<IEmailVerificationService, EmailVerificationService>();
 
         builder.Services.AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>();
 

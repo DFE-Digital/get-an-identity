@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Serilog.Context;
 
-namespace TeacherIdentity.AuthServer.Security;
+namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
 {

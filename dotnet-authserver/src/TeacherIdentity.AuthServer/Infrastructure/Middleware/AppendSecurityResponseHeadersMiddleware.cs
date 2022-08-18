@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Middleware;
+﻿namespace TeacherIdentity.AuthServer.Infrastructure.Middleware;
 
 public class AppendSecurityResponseHeadersMiddleware
 {

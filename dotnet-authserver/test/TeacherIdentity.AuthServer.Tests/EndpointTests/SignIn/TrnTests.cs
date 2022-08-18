@@ -32,7 +32,7 @@ public class TrnTests : TestBase
         CreateAuthenticationStateHelper(authState =>
         {
             authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressConfirmed = true;
+            authState.EmailAddressVerified = true;
             authState.FirstTimeUser = true;
         });
 }

@@ -1,6 +1,6 @@
 ﻿using Hangfire;
 
-namespace TeacherIdentity.AuthServer.Services;
+namespace TeacherIdentity.AuthServer.Services.Email;
 
 public class BackgroundEmailSender : IEmailSender
 {

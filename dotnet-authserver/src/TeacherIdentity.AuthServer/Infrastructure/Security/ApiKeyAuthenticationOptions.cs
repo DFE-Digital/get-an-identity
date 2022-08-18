@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 
-namespace TeacherIdentity.AuthServer.Security;
+namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 
 public class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions
 {

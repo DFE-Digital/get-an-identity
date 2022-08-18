@@ -140,7 +140,7 @@ public class TrnCallbackTests : TestBase
         CreateAuthenticationStateHelper(authState =>
         {
             authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressConfirmed = true;
+            authState.EmailAddressVerified = true;
         });
 
     private const string GenerateRandomTrnSentinel = "0000000";

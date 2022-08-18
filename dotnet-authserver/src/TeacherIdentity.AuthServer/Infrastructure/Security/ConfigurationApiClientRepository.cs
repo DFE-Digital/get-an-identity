@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Security;
+﻿namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 
 public class ConfigurationApiClientRepository : IApiClientRepository
 {

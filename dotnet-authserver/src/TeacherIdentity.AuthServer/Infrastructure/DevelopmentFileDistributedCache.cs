@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace TeacherIdentity.AuthServer;
+namespace TeacherIdentity.AuthServer.Infrastructure;
 
 public class DevelopmentFileDistributedCache : IDistributedCache
 {
@@ -125,7 +125,7 @@ public class DevelopmentFileDistributedCache : IDistributedCache
         public DateTimeOffset? AbsoluteExpiration { get; set; }
 
         public bool IsExpired =>
-            (AbsoluteExpiration.HasValue && AbsoluteExpiration.Value < DateTimeOffset.UtcNow) ||
-            (SlidingExpiration.HasValue && LastAccess + SlidingExpiration.Value < DateTimeOffset.UtcNow);
+            AbsoluteExpiration.HasValue && AbsoluteExpiration.Value < DateTimeOffset.UtcNow ||
+            SlidingExpiration.HasValue && LastAccess + SlidingExpiration.Value < DateTimeOffset.UtcNow;
     }
 }

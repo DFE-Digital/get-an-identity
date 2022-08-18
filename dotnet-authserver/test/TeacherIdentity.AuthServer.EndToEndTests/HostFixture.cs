@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Clients;
-using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.TestCommon;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
@@ -35,7 +35,7 @@ public class HostFixture : IAsyncLifetime
 
     public IDqtApiClient DqtApiClient = A.Fake<IDqtApiClient>();
 
-    public IEmailConfirmationService? EmailConfirmationService { get; private set; }
+    public IEmailVerificationService? EmailConfirmationService { get; private set; }
 
     public IReadOnlyCollection<(string Email, string Pin)> CapturedEmailConfirmationPins => _capturedEmailConfirmationPins.AsReadOnly();
 
@@ -116,7 +116,7 @@ public class HostFixture : IAsyncLifetime
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient);
-                    services.Decorate<IEmailConfirmationService>(inner =>
+                    services.Decorate<IEmailVerificationService>(inner =>
                         new CapturePinsEmailConfirmationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                 });
             });
@@ -230,14 +230,14 @@ public class HostFixture : IAsyncLifetime
         }
     }
 
-    private class CapturePinsEmailConfirmationServiceDecorator : IEmailConfirmationService
+    private class CapturePinsEmailConfirmationServiceDecorator : IEmailVerificationService
     {
         public delegate void CapturePin(string email, string pin);
 
-        private readonly IEmailConfirmationService _inner;
+        private readonly IEmailVerificationService _inner;
         private readonly CapturePin _capturePin;
 
-        public CapturePinsEmailConfirmationServiceDecorator(IEmailConfirmationService inner, CapturePin capturePin)
+        public CapturePinsEmailConfirmationServiceDecorator(IEmailVerificationService inner, CapturePin capturePin)
         {
             _inner = inner;
             _capturePin = capturePin;

@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Services;
+﻿namespace TeacherIdentity.AuthServer.Services.Email;
 
 public class NoopEmailSender : IEmailSender
 {

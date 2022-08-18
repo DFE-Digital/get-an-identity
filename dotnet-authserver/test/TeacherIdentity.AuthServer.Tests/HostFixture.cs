@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.Email;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -17,7 +19,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public DbHelper? DbHelper { get; private set; }
 
-    public IEmailConfirmationService? EmailConfirmationService { get; private set; }
+    public IEmailVerificationService? EmailConfirmationService { get; private set; }
     public IDqtApiClient? DqtApiClient { get; private set; }
     public IEmailSender? EmailSender { get; private set; }
 
@@ -80,7 +82,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
 
-            AddSpy<IEmailConfirmationService>(spy => EmailConfirmationService = spy);
+            AddSpy<IEmailVerificationService>(spy => EmailConfirmationService = spy);
             AddSpy<IEmailSender>(spy => EmailSender = spy);
             DqtApiClient = A.Fake<IDqtApiClient>();
             services.AddSingleton<IDqtApiClient>(DqtApiClient);

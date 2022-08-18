@@ -3,20 +3,20 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Services;
+namespace TeacherIdentity.AuthServer.Services.EmailVerification;
 
-public class EmailConfirmationService : IEmailConfirmationService
+public class EmailVerificationService : IEmailVerificationService
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
-    private readonly ILogger<EmailConfirmationService> _logger;
+    private readonly ILogger<EmailVerificationService> _logger;
     private readonly TimeSpan _pinLifetime;
 
-    public EmailConfirmationService(
+    public EmailVerificationService(
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IConfiguration configuration,
-        ILogger<EmailConfirmationService> logger)
+        ILogger<EmailVerificationService> logger)
     {
         _dbContext = dbContext;
         _clock = clock;

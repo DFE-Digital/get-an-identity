@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
@@ -11,11 +12,11 @@ public class EmailConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
-    private readonly IEmailConfirmationService _emailConfirmationService;
+    private readonly IEmailVerificationService _emailConfirmationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
-        IEmailConfirmationService emailConfirmationService,
+        IEmailVerificationService emailConfirmationService,
         IDqtApiClient apiClient)
     {
         _dbContext = dbContext;
@@ -61,7 +62,7 @@ public class EmailConfirmationModel : PageModel
         }
         else
         {
-            authenticationState.EmailAddressConfirmed = true;
+            authenticationState.EmailAddressVerified = true;
             authenticationState.FirstTimeUser = true;
         }
 

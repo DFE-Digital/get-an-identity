@@ -138,7 +138,7 @@ public class ConfirmationTests : TestBase
         var authenticationStateHelper = CreateAuthenticationStateHelper(authState =>
         {
             authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressConfirmed = true;
+            authState.EmailAddressVerified = true;
 
             if (userKnown)
             {

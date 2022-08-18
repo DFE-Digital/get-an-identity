@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
-using TeacherIdentity.AuthServer.State;
 
-namespace TeacherIdentity.AuthServer;
+namespace TeacherIdentity.AuthServer.Services.TrnLookup;
 
 public class FindALostTrnIntegrationHelper
 {

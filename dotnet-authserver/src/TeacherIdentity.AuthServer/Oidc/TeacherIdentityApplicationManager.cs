@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
+using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Models;
+namespace TeacherIdentity.AuthServer.Oidc;
 
 public class TeacherIdentityApplicationManager : OpenIddictApplicationManager<Application>
 {

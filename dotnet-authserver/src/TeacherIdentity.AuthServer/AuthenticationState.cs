@@ -3,10 +3,11 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OpenIddict.Abstractions;
-using TeacherIdentity.AuthServer.Json;
+using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 
-namespace TeacherIdentity.AuthServer.State;
+namespace TeacherIdentity.AuthServer;
 
 public class AuthenticationState
 {
@@ -31,7 +32,7 @@ public class AuthenticationState
     public Guid? UserId { get; set; }
     public bool? FirstTimeUser { get; set; }
     public string? EmailAddress { get; set; }
-    public bool EmailAddressConfirmed { get; set; }
+    public bool EmailAddressVerified { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
@@ -60,7 +61,7 @@ public class AuthenticationState
         }
 
         // Email needs to be confirmed with a PIN
-        if (!EmailAddressConfirmed)
+        if (!EmailAddressVerified)
         {
             return urlHelper.EmailConfirmation();
         }
@@ -94,7 +95,7 @@ public class AuthenticationState
     {
         UserId = user.UserId;
         EmailAddress = user.EmailAddress;
-        EmailAddressConfirmed = true;
+        EmailAddressVerified = true;
         FirstName = user.FirstName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;

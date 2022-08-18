@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services.TrnLookup;
 
 namespace TeacherIdentity.AuthServer.Pages.StubFindALostTrn;
 

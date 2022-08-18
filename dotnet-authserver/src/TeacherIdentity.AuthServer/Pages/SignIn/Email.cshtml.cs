@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Services;
+using TeacherIdentity.AuthServer.Services.Email;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [BindProperties]
 public class EmailModel : PageModel
 {
-    private readonly IEmailConfirmationService _emailConfirmationService;
+    private readonly IEmailVerificationService _emailConfirmationService;
     private readonly IEmailSender _emailSender;
 
     public EmailModel(
-        IEmailConfirmationService emailConfirmationService,
+        IEmailVerificationService emailConfirmationService,
         IEmailSender emailSender)
     {
         _emailConfirmationService = emailConfirmationService;
