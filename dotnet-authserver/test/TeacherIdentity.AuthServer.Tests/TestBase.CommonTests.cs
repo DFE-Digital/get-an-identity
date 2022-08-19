@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Tests;

@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Models;
+namespace TeacherIdentity.AuthServer.Models;
 
 public class User
 {

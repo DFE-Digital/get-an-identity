@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 

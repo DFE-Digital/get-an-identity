@@ -1,4 +1,4 @@
-﻿using OpenIddict.Abstractions;
+using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

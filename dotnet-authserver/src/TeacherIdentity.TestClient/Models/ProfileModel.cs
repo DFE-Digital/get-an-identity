@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.TestClient.Models;
+namespace TeacherIdentity.TestClient.Models;
 
 public class ProfileModel
 {

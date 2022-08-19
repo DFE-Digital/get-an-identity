@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 

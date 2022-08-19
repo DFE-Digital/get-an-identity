@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Services.DqtApi;
+namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public class DqtApiClient : IDqtApiClient
 {

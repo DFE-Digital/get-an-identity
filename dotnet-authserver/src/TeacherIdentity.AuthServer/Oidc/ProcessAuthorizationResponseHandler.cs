@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Server;
 using static OpenIddict.Abstractions.OpenIddictConstants;

@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.State;
+namespace TeacherIdentity.AuthServer.State;
 
 public class AuthenticationStateFeature
 {

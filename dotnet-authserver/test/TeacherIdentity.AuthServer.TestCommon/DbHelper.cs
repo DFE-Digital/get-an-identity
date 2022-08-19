@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Respawn;
 using TeacherIdentity.AuthServer.Models;
 

@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 public class TrnTests : TestBase
 {

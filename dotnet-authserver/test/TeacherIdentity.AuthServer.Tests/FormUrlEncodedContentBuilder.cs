@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Tests;
+namespace TeacherIdentity.AuthServer.Tests;
 
 public class FormUrlEncodedContentBuilder
 {
