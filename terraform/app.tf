@@ -45,7 +45,10 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     NotifyApiKey                                 = local.infrastructure_secrets.NOTIFY_API_KEY,
     AdminCredentials__Username                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
     AdminCredentials__Password                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
-    Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN
+    Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN,
+    FindALostTrnIntegration__HandoverEndpoint    = "/FindALostTrn/Identity",
+    FindALostTrnIntegration__EnableStubEndpoints = "true",
+    FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY
   }
 
   lifecycle {
