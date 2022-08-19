@@ -58,6 +58,11 @@ public class Program
                     connectionString: builder.Configuration.GetConnectionString("DataProtectionBlobStorage"),
                     containerName: builder.Configuration["DataProtectionKeysContainerName"],
                     blobName: "keys");
+
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            });
         }
 
         MetricLabels.ConfigureLabels(builder.Configuration);

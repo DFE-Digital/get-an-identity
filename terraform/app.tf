@@ -37,7 +37,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     EnvironmentName                              = local.hosting_environment,
     ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string
     ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
-    REDIS_URL                                    = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
+    ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
     ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
     DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
     DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
