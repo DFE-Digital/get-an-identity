@@ -49,7 +49,9 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN,
     FindALostTrnIntegration__HandoverEndpoint    = "/FindALostTrn/Identity",
     FindALostTrnIntegration__EnableStubEndpoints = "true",
-    FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY
+    FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY,
+    DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
+    DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS
   }
 
   lifecycle {
