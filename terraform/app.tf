@@ -123,6 +123,14 @@ resource "azurerm_postgresql_flexible_server_database" "postgres-database" {
   server_id = azurerm_postgresql_flexible_server.postgres-server.id
 }
 
+resource "azurerm_postgresql_firewall_rule" "postgres-firewall" {
+  name                = "AllowAzure"
+  resource_group_name = data.azurerm_resource_group.group.name
+  server_name         = local.postgres_server_name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
+}
+
 resource "azurerm_redis_cache" "redis" {
   name                = local.redis_database_name
   location            = data.azurerm_resource_group.group.location
