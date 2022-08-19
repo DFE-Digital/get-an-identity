@@ -1,7 +1,10 @@
 variable "environment_name" {
   type = string
 }
-
+variable "resource_prefix" {
+  type    = string
+  default = ""
+}
 variable "app_suffix" {
   type    = string
   default = ""
@@ -114,12 +117,14 @@ variable "testclient_tag" {
 
 locals {
   hosting_environment              = var.environment_name
-  get_an_identity_app_name         = "get-an-identity-${var.environment_name}${var.app_suffix}-auth-server"
-  get_an_identity_test_client_name = "get-an-identity-${var.environment_name}${var.app_suffix}-test-client"
-  postgres_server_name             = "get-an-identity-${var.environment_name}${var.app_suffix}-pg-svr"
-  postgres_database_name           = "get-an-identity-${var.environment_name}${var.app_suffix}-pg-database"
-  redis_database_name              = "get-an-identity-${var.environment_name}${var.app_suffix}-redis-svc"
-  app_insights_name                = "get-an-identity-${var.environment_name}${var.app_suffix}-app-ins-svc"
+  app_service_plan_name            = "${var.resource_prefix}getanid-${var.environment_name}-plan"
+  get_an_identity_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auth-server-app"
+  get_an_identity_test_client_name = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-test-client-app"
+  postgres_server_name             = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql"
+  postgres_database_name           = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql-db"
+  redis_database_name              = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-redis"
+  app_insights_name                = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-appi"
+  log_analytics_workspace_name     = "${var.resource_prefix}getanid-${var.environment_name}-log"
 
   keyvault_logging_enabled            = var.keyvault_logging_enabled
   storage_diagnostics_logging_enabled = length(var.storage_log_categories) > 0
