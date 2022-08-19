@@ -117,7 +117,7 @@ public class HostFixture : IAsyncLifetime
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient);
                     services.Decorate<IEmailVerificationService>(inner =>
-                        new CapturePinsEmailConfirmationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
+                        new CapturePinsEmailVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                 });
             });
 
@@ -230,14 +230,14 @@ public class HostFixture : IAsyncLifetime
         }
     }
 
-    private class CapturePinsEmailConfirmationServiceDecorator : IEmailVerificationService
+    private class CapturePinsEmailVerificationServiceDecorator : IEmailVerificationService
     {
         public delegate void CapturePin(string email, string pin);
 
         private readonly IEmailVerificationService _inner;
         private readonly CapturePin _capturePin;
 
-        public CapturePinsEmailConfirmationServiceDecorator(IEmailVerificationService inner, CapturePin capturePin)
+        public CapturePinsEmailVerificationServiceDecorator(IEmailVerificationService inner, CapturePin capturePin)
         {
             _inner = inner;
             _capturePin = capturePin;
@@ -250,6 +250,6 @@ public class HostFixture : IAsyncLifetime
             return pin;
         }
 
-        public Task<bool> VerifyPin(string email, string pin) => _inner.VerifyPin(email, pin);
+        public Task<PinVerificationFailedReasons> VerifyPin(string email, string pin) => _inner.VerifyPin(email, pin);
     }
 }

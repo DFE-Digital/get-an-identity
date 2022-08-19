@@ -326,6 +326,11 @@ public class Program
 
         builder.Services.AddSingleton<IActionDescriptorProvider, RemoveStubFindEndpointsActionDescriptorProvider>();
 
+        builder.Services.AddOptions<EmailVerificationOptions>()
+            .Bind(builder.Configuration.GetSection("EmailVerification"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();
