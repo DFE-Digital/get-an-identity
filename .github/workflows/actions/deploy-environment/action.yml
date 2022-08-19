@@ -68,6 +68,7 @@ runs:
       run: |
         make ci ${{ inputs.environment_name }} terraform-apply
         cd terraform && echo ::set-output name=url::https://$(terraform output -raw auth_server_fqdn)/
+        echo ::set-output name=postgres_server_name::$(terraform output -raw postgres_server_name)
       env:
         ARM_ACCESS_KEY: ${{ steps.get_secrets.outputs.TFSTATE-CONTAINER-ACCESS-KEY }}
         TF_VAR_azure_sp_credentials_json: ${{ inputs.azure_credentials }}
@@ -75,3 +76,14 @@ runs:
         TF_VAR_authserver_tag: ${{ inputs.authserver_tag }}
         TF_VAR_testclient_tag: ${{ inputs.testclient_tag }}
       shell: bash
+
+    - name: Public IP
+      id: ip
+      uses: haythem/public-ip@v1.2
+
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          az postgres flexible-server firewall-rule create --name ${{ steps.terraform.outputs.postgres_server_name }} --resource-group ${{ steps.config.outputs.resource_group_name }} --rule-name Allow-GithubRunner --start-ip-address ${{ steps.ip.outputs.ipv4 }} --end-ip-address ${{ steps.ip.outputs.ipv4 }}
