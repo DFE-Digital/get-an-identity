@@ -267,20 +267,23 @@ public class Program
 
         builder.Services.AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>();
 
-        builder.Services.Configure<SentryAspNetCoreOptions>(options =>
+        if (builder.Environment.IsProduction())
         {
-            var paasEnvironmentName = builder.Configuration["PaasEnvironment"];
-            if (!string.IsNullOrEmpty(paasEnvironmentName))
+            builder.Services.Configure<SentryAspNetCoreOptions>(options =>
             {
-                options.Environment = paasEnvironmentName;
-            }
+                var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
+                if (!string.IsNullOrEmpty(hostingEnvironmentName))
+                {
+                    options.Environment = hostingEnvironmentName;
+                }
 
-            var gitSha = builder.Configuration["GitSha"];
-            if (!string.IsNullOrEmpty(gitSha))
-            {
-                options.Release = gitSha;
-            }
-        });
+                var gitSha = builder.Configuration["GitSha"];
+                if (!string.IsNullOrEmpty(gitSha))
+                {
+                    options.Release = gitSha;
+                }
+            });
+        }
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
