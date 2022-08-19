@@ -1,4 +1,4 @@
-﻿using Hangfire;
+using Hangfire;
 
 namespace TeacherIdentity.AuthServer.Services.Email;
 

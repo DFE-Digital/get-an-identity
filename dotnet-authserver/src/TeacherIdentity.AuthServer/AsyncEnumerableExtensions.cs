@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer;
+namespace TeacherIdentity.AuthServer;
 
 public static class AsyncEnumerableExtensions
 {

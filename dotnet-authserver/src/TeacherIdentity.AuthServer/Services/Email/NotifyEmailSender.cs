@@ -1,4 +1,4 @@
-﻿using Notify.Client;
+using Notify.Client;
 
 namespace TeacherIdentity.AuthServer.Services.Email;
 

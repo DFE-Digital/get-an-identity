@@ -1,4 +1,4 @@
-﻿using FakeItEasy;
+using FakeItEasy;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 

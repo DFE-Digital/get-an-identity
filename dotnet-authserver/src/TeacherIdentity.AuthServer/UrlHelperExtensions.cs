@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.State;
 

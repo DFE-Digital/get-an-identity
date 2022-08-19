@@ -1,4 +1,4 @@
-﻿using AngleSharp;
+using AngleSharp;
 using AngleSharp.Html.Dom;
 
 namespace TeacherIdentity.AuthServer.Tests;

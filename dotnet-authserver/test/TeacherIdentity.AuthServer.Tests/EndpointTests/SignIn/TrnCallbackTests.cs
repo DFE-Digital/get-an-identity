@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;

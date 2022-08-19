@@ -1,4 +1,4 @@
-﻿using TeacherIdentity.AuthServer.State;
+using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests;

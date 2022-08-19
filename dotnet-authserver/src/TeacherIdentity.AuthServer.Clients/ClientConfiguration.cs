@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Clients;
+namespace TeacherIdentity.AuthServer.Clients;
 
 public class ClientConfiguration
 {

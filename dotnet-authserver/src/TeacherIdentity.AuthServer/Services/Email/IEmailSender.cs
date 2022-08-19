@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Services.Email;
+namespace TeacherIdentity.AuthServer.Services.Email;
 
 public interface IEmailSender
 {

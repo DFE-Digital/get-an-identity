@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Tests.Infrastructure;

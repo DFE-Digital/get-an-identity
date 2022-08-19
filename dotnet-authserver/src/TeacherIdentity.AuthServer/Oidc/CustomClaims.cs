@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Oidc;
+namespace TeacherIdentity.AuthServer.Oidc;
 
 public static class CustomClaims
 {

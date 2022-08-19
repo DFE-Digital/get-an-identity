@@ -1,4 +1,4 @@
-﻿using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests;
 

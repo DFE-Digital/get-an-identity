@@ -1,4 +1,4 @@
-﻿namespace TeacherIdentity.AuthServer.Configuration;
+namespace TeacherIdentity.AuthServer.Configuration;
 
 public static class ConfigurationBuilderExtensions
 {
