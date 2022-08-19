@@ -30,6 +30,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
       docker_image     = var.docker_image
       docker_image_tag = var.authserver_tag
     }
+    health_check_path = "/health"
   }
 
   app_settings = {
