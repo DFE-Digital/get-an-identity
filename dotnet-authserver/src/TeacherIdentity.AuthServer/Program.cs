@@ -38,7 +38,7 @@ namespace TeacherIdentity.AuthServer;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -350,6 +350,11 @@ public class Program
 
         var app = builder.Build();
 
+        if (builder.Environment.IsProduction())
+        {
+            await MigrateDatabase();
+        }
+
         app.UseSerilogRequestLogging();
 
         app.UseWhen(
@@ -451,6 +456,13 @@ public class Program
             rsa.FromXmlString(builder.Configuration[configurationKey]);
 
             return new RsaSecurityKey(rsa);
+        }
+
+        async Task MigrateDatabase()
+        {
+            await using var scope = app.Services.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+            await dbContext.Database.MigrateAsync();
         }
     }
 }
