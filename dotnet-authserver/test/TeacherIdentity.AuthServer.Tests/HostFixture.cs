@@ -20,9 +20,11 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public DbHelper? DbHelper { get; private set; }
 
-    public IEmailVerificationService? EmailConfirmationService { get; private set; }
     public IDqtApiClient? DqtApiClient { get; private set; }
+
     public IEmailSender? EmailSender { get; private set; }
+
+    public IEmailVerificationService? EmailVerificationService { get; private set; }
 
     public async Task InitializeAsync()
     {
@@ -36,7 +38,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public void ResetMocks()
     {
-        ClearRecordedCalls(EmailConfirmationService);
+        ClearRecordedCalls(EmailVerificationService);
         ClearRecordedCalls(EmailSender);
 
         void ClearRecordedCalls(object? fakedObject)
@@ -92,7 +94,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
 
-            AddSpy<IEmailVerificationService>(spy => EmailConfirmationService = spy);
+            AddSpy<IEmailVerificationService>(spy => EmailVerificationService = spy);
             AddSpy<IEmailSender>(spy => EmailSender = spy);
             DqtApiClient = A.Fake<IDqtApiClient>();
             services.AddSingleton<IDqtApiClient>(DqtApiClient);

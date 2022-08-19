@@ -1,4 +1,5 @@
 using Flurl;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -41,13 +42,13 @@ public class EmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_InvalidPin_ReturnsError()
+    public async Task Post_UnknownPin_ReturnsError()
     {
         // Arrange
         var email = Faker.Internet.Email();
 
         // The real PIN generation service never generates pins that start with a '0'
-        var pin = "012345";
+        var pin = "01234";
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -61,7 +62,130 @@ public class EmailConfirmationTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "TODO content: Code is incorrect or expired");
+        await AssertEx.ResponseHasError(response, "Code", "Enter a correct security code");
+    }
+
+    [Fact]
+    public async Task Post_PinTooShort_ReturnsError()
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+        var pin = "0";
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.ResponseHasError(response, "Code", "You’ve not entered enough numbers, the code must be 5 numbers");
+    }
+
+    [Fact]
+    public async Task Post_PinTooLong_ReturnsError()
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+        var pin = "0123345678";
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.ResponseHasError(response, "Code", "You’ve entered too many numbers, the code must be 5 numbers");
+    }
+
+    [Fact]
+    public async Task Post_NonNumericPin_ReturnsError()
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+        var pin = "abc";
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.ResponseHasError(response, "Code", "The code must be 5 numbers");
+    }
+
+    [Fact]
+    public async Task Post_PinExpiredLessThanTwoHoursAgo_ReturnsErrorAndSendsANewPin()
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(email);
+        Clock.AdvanceBy(TimeSpan.FromHours(1));
+        Fake.ClearRecordedCalls(emailVerificationService);
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.ResponseHasError(response, "Code", "The security code has expired. New code sent.");
+
+        A.CallTo(() => HostFixture.EmailVerificationService!.GeneratePin(email)).MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public async Task Post_PinExpiredMoreThanTwoHoursAgo_ReturnsErrorAndDoesNotSendANewPin()
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
+        var pin = await emailVerificationService.GeneratePin(email);
+        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
+        Fake.ClearRecordedCalls(emailVerificationService);
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.ResponseHasError(response, "Code", "Enter a correct security code");
+
+        A.CallTo(() => HostFixture.EmailVerificationService!.GeneratePin(email)).MustNotHaveHappened();
     }
 
     [Fact]
@@ -70,8 +194,8 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailConfirmationService.GeneratePin(email);
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(email);
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -104,8 +228,8 @@ public class EmailConfirmationTests : TestBase
         A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user.UserId))
             .Returns(hasTrn ? new DqtTeacherIdentityInfo() { Trn = trn! } : null);
 
-        var emailConfirmationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailConfirmationService.GeneratePin(user.EmailAddress);
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")

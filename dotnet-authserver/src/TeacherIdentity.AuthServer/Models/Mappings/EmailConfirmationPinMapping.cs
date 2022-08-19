@@ -13,8 +13,6 @@ public class EmailConfirmationPinMapping : IEntityTypeConfiguration<EmailConfirm
         builder.Property(p => p.Pin).HasMaxLength(6).IsFixedLength().IsRequired();
         builder.Property(p => p.Expires).IsRequired();
         builder.Property(p => p.IsActive).IsRequired();
-        NpgsqlIndexBuilderExtensions.IncludeProperties(
-            builder.HasIndex(p => new { p.Email, p.Pin }).IsUnique().HasDatabaseName("ix_email_confirmation_pins_email_pin"),
-            p => new { p.Expires, p.IsActive });
+        builder.HasIndex(p => new { p.Email, p.Pin }).IsUnique().HasDatabaseName("ix_email_confirmation_pins_email_pin");
     }
 }

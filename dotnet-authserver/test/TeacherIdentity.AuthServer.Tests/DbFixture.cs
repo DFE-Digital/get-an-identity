@@ -10,13 +10,18 @@ public class DbFixture : IAsyncLifetime
         var configuration = GetConfiguration();
         ConnectionString = configuration.GetConnectionString("DefaultConnection");
         DbHelper = new DbHelper(ConnectionString);
+        Services = GetServices();
     }
 
     public string ConnectionString { get; }
 
     public DbHelper DbHelper { get; }
 
-    public TeacherIdentityServerDbContext GetDbContext() => new(ConnectionString);
+    public IServiceProvider Services { get; }
+
+    public TestData TestData => Services.GetRequiredService<TestData>();
+
+    public TeacherIdentityServerDbContext GetDbContext() => Services.GetRequiredService<TeacherIdentityServerDbContext>();
 
     public async Task InitializeAsync()
     {
@@ -30,4 +35,20 @@ public class DbFixture : IAsyncLifetime
             .AddUserSecrets<DbFixture>()
             .AddEnvironmentVariables()
             .Build();
+
+    private IServiceProvider GetServices()
+    {
+        var services = new ServiceCollection();
+
+        services.AddDbContext<TeacherIdentityServerDbContext>(
+            options =>
+            {
+                TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString);
+            },
+            contextLifetime: ServiceLifetime.Transient);
+
+        services.AddSingleton<TestData>();
+
+        return services.BuildServiceProvider();
+    }
 }

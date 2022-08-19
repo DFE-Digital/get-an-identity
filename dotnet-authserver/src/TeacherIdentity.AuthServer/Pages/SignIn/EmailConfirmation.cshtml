@@ -11,7 +11,7 @@
 
       <p class="govuk-body">We’ve emailed a confirmation code to email <span data-testid="email">@Model.Email</span></p>
 
-      <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" autocomplete="off">
+      <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
         <govuk-input-label class="govuk-label--s" />
       </govuk-input>
 

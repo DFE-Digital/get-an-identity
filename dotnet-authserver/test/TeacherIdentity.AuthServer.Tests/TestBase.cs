@@ -17,7 +17,7 @@ public abstract partial class TestBase : IClassFixture<HostFixture>
         HostFixture.ResetMocks();
     }
 
-    public IClock Clock => HostFixture.Services.GetRequiredService<IClock>();
+    public TestClock Clock => (TestClock)HostFixture.Services.GetRequiredService<IClock>();
 
     public HostFixture HostFixture { get; }
 

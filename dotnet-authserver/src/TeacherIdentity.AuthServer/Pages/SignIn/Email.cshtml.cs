@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -10,14 +9,10 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class EmailModel : PageModel
 {
     private readonly IEmailVerificationService _emailConfirmationService;
-    private readonly IEmailSender _emailSender;
 
-    public EmailModel(
-        IEmailVerificationService emailConfirmationService,
-        IEmailSender emailSender)
+    public EmailModel(IEmailVerificationService emailConfirmationService)
     {
         _emailConfirmationService = emailConfirmationService;
-        _emailSender = emailSender;
     }
 
     [Display(Name = "Your email address")]
@@ -38,8 +33,7 @@ public class EmailModel : PageModel
 
         HttpContext.GetAuthenticationState().EmailAddress = Email;
 
-        var pin = await _emailConfirmationService.GeneratePin(Email!);
-        await _emailSender.SendEmailAddressConfirmationEmail(Email!, pin);
+        await _emailConfirmationService.GeneratePin(Email!);
 
         return Redirect(Url.EmailConfirmation());
     }

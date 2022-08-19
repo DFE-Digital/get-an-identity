@@ -17,18 +17,17 @@ public class EmailConfirmationModel : PageModel
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
-        IDqtApiClient apiClient)
+        IDqtApiClient dqtApiClient)
     {
         _dbContext = dbContext;
-        _dqtApiClient = apiClient;
         _emailConfirmationService = emailConfirmationService;
+        _dqtApiClient = dqtApiClient;
     }
 
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
 
     [BindProperty]
     [Display(Name = "Enter your code")]
-    [Required(ErrorMessage = "Enter your code")]
     public string? Code { get; set; }
 
     public void OnGet()
@@ -37,14 +36,29 @@ public class EmailConfirmationModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
+        ValidateCode();
+
         if (!ModelState.IsValid)
         {
             return this.PageWithErrors();
         }
 
-        if (!await _emailConfirmationService.VerifyPin(Email!, Code!))
+        var verifyPinFailedReasons = await _emailConfirmationService.VerifyPin(Email!, Code!);
+
+        if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            ModelState.AddModelError(nameof(Code), "TODO content: Code is incorrect or expired");
+            var generateAnotherCode = verifyPinFailedReasons.HasFlag(PinVerificationFailedReasons.ExpiredLessThanTwoHoursAgo);
+
+            if (generateAnotherCode)
+            {
+                await _emailConfirmationService.GeneratePin(Email!);
+                ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
+            }
+            else
+            {
+                ModelState.AddModelError(nameof(Code), "Enter a correct security code");
+            }
+
             return this.PageWithErrors();
         }
 
@@ -65,5 +79,25 @@ public class EmailConfirmationModel : PageModel
         }
 
         return Redirect(authenticationState.GetNextHopUrl(Url));
+    }
+
+    private void ValidateCode()
+    {
+        if (string.IsNullOrEmpty(Code))
+        {
+            ModelState.AddModelError(nameof(Code), "Enter a correct security code");
+        }
+        else if (!Code.All(c => c >= '0' && c <= '9'))
+        {
+            ModelState.AddModelError(nameof(Code), "The code must be 5 numbers");
+        }
+        else if (Code.Length < 5)
+        {
+            ModelState.AddModelError(nameof(Code), "You’ve not entered enough numbers, the code must be 5 numbers");
+        }
+        else if (Code.Length > 5)
+        {
+            ModelState.AddModelError(nameof(Code), "You’ve entered too many numbers, the code must be 5 numbers");
+        }
     }
 }

@@ -7,4 +7,5 @@ public class EmailConfirmationPin
     public string Pin { get; set; } = null!;
     public DateTime Expires { get; set; }
     public bool IsActive { get; set; }
+    public DateTime? VerifiedOn { get; set; }
 }
