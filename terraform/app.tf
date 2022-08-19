@@ -33,20 +33,19 @@ resource "azurerm_linux_web_app" "auth-server-app" {
   }
 
   app_settings = {
-    EnvironmentName                        = local.hosting_environment,
-    APPLICATION_INSIGHTS_CONNECTION_STRING = azurerm_application_insights.insights.connection_string
-    ConnectionStrings__DefaultConnection   = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
-    REDIS_URL                              = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
-    AZURE_STORAGE_ACCOUNT_NAME             = azurerm_storage_account.data-protection.name,
-    AZURE_STORAGE_ACCESS_KEY               = azurerm_storage_account.data-protection.primary_access_key,
-    AZURE_STORAGE_CONTAINER                = azurerm_storage_container.uploads.name,
-    DOCKER_REGISTRY_SERVER_URL             = "https://ghcr.io",
-    EncryptionKey                          = local.infrastructure_secrets.ENCRYPTION_KEY1,
-    SigningKey                             = local.infrastructure_secrets.SIGNING_KEY1,
-    NotifyApiKey                           = local.infrastructure_secrets.NOTIFY_API_KEY,
-    AdminCredentials__Username             = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
-    AdminCredentials__Password             = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
-    Sentry__Dsn                            = local.infrastructure_secrets.SENTRY_DSN
+    EnvironmentName                              = local.hosting_environment,
+    APPLICATION_INSIGHTS_CONNECTION_STRING       = azurerm_application_insights.insights.connection_string
+    ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
+    REDIS_URL                                    = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
+    ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
+    DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
+    DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
+    EncryptionKey                                = local.infrastructure_secrets.ENCRYPTION_KEY1,
+    SigningKey                                   = local.infrastructure_secrets.SIGNING_KEY1,
+    NotifyApiKey                                 = local.infrastructure_secrets.NOTIFY_API_KEY,
+    AdminCredentials__Username                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
+    AdminCredentials__Password                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
+    Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN
   }
 
   lifecycle {
@@ -82,9 +81,6 @@ resource "azurerm_linux_web_app" "test-server-app" {
     APPLICATION_INSIGHTS_CONNECTION_STRING = azurerm_application_insights.insights.connection_string
     ConnectionStrings__DefaultConnection   = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
     REDIS_URL                              = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
-    AZURE_STORAGE_ACCOUNT_NAME             = azurerm_storage_account.data-protection.name,
-    AZURE_STORAGE_ACCESS_KEY               = azurerm_storage_account.data-protection.primary_access_key,
-    AZURE_STORAGE_CONTAINER                = azurerm_storage_container.uploads.name,
     DOCKER_REGISTRY_SERVER_URL             = "https://ghcr.io",
     EncryptionKey                          = local.infrastructure_secrets.ENCRYPTION_KEY1,
     SigningKey                             = local.infrastructure_secrets.SIGNING_KEY1,

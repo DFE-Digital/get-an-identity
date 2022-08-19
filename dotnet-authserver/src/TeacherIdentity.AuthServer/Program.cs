@@ -5,6 +5,7 @@ using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -51,6 +52,12 @@ public class Program
         if (builder.Environment.IsProduction())
         {
             builder.WebHost.UseSentry();
+
+            builder.Services.AddDataProtection()
+                .PersistKeysToAzureBlobStorage(
+                    connectionString: builder.Configuration.GetConnectionString("DataProtectionBlobStorage"),
+                    containerName: builder.Configuration["DataProtectionKeysContainerName"],
+                    blobName: "keys");
         }
 
         MetricLabels.ConfigureLabels(builder.Configuration);
