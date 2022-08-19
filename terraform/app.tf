@@ -35,7 +35,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
 
   app_settings = {
     EnvironmentName                              = local.hosting_environment,
-    APPLICATION_INSIGHTS_CONNECTION_STRING       = azurerm_application_insights.insights.connection_string
+    ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string
     ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
     REDIS_URL                                    = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
     ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"

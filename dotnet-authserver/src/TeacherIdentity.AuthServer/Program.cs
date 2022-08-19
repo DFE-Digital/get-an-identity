@@ -341,6 +341,8 @@ public class Program
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        builder.Services.AddApplicationInsightsTelemetry();
+
         var app = builder.Build();
 
         app.UseSerilogRequestLogging();
