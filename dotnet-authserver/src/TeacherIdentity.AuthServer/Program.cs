@@ -5,6 +5,7 @@ using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -51,6 +52,17 @@ public class Program
         if (builder.Environment.IsProduction())
         {
             builder.WebHost.UseSentry();
+
+            builder.Services.AddDataProtection()
+                .PersistKeysToAzureBlobStorage(
+                    connectionString: builder.Configuration.GetConnectionString("DataProtectionBlobStorage"),
+                    containerName: builder.Configuration["DataProtectionKeysContainerName"],
+                    blobName: "keys");
+
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            });
         }
 
         MetricLabels.ConfigureLabels(builder.Configuration);
@@ -267,20 +279,23 @@ public class Program
 
         builder.Services.AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>();
 
-        builder.Services.Configure<SentryAspNetCoreOptions>(options =>
+        if (builder.Environment.IsProduction())
         {
-            var paasEnvironmentName = builder.Configuration["PaasEnvironment"];
-            if (!string.IsNullOrEmpty(paasEnvironmentName))
+            builder.Services.Configure<SentryAspNetCoreOptions>(options =>
             {
-                options.Environment = paasEnvironmentName;
-            }
+                var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
+                if (!string.IsNullOrEmpty(hostingEnvironmentName))
+                {
+                    options.Environment = hostingEnvironmentName;
+                }
 
-            var gitSha = builder.Configuration["GitSha"];
-            if (!string.IsNullOrEmpty(gitSha))
-            {
-                options.Release = gitSha;
-            }
-        });
+                var gitSha = builder.Configuration["GitSha"];
+                if (!string.IsNullOrEmpty(gitSha))
+                {
+                    options.Release = gitSha;
+                }
+            });
+        }
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
@@ -330,6 +345,8 @@ public class Program
             .Bind(builder.Configuration.GetSection("EmailVerification"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        builder.Services.AddApplicationInsightsTelemetry();
 
         var app = builder.Build();
 

@@ -32,8 +32,8 @@ resource "azurerm_storage_encryption_scope" "data-protection-encryption" {
 }
 
 
-resource "azurerm_storage_container" "uploads" {
-  name                  = "uploads"
+resource "azurerm_storage_container" "keys" {
+  name                  = "keys"
   storage_account_name  = azurerm_storage_account.data-protection.name
   container_access_type = "private"
 }
