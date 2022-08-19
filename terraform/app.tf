@@ -33,27 +33,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     health_check_path = "/health"
   }
 
-  app_settings = {
-    EnvironmentName                              = local.hosting_environment,
-    ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string
-    ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
-    ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
-    ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
-    DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
-    DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
-    EncryptionKey                                = local.infrastructure_secrets.ENCRYPTION_KEY1,
-    SigningKey                                   = local.infrastructure_secrets.SIGNING_KEY1,
-    NotifyApiKey                                 = local.infrastructure_secrets.NOTIFY_API_KEY,
-    AdminCredentials__Username                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
-    AdminCredentials__Password                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
-    Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN,
-    FindALostTrnIntegration__HandoverEndpoint    = "/FindALostTrn/Identity",
-    FindALostTrnIntegration__EnableStubEndpoints = "true",
-    FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY,
-    DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
-    DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
-    ApiClients__Find__ApiKeys__0                 = local.infrastructure_secrets.API_CLIENTS_FIND_KEY
-  }
+  app_settings = local.app_settings
 
   lifecycle {
     ignore_changes = [
@@ -62,6 +42,20 @@ resource "azurerm_linux_web_app" "auth-server-app" {
   }
 }
 
+resource "azurerm_linux_web_app_slot" "auth-server-stage" {
+  count          = var.environment_name != "dev" ? 1 : 0
+  name           = "staging"
+  app_service_id = azurerm_linux_web_app.auth-server-app.id
+  site_config {
+    http2_enabled       = true
+    minimum_tls_version = "1.2"
+    application_stack {
+      docker_image     = var.docker_image
+      docker_image_tag = var.authserver_tag
+    }
+  }
+  app_settings = local.app_settings
+}
 resource "azurerm_linux_web_app" "test-server-app" {
   count               = var.deploy_test_server_app ? 1 : 0
   name                = local.get_an_identity_test_client_name
@@ -79,23 +73,11 @@ resource "azurerm_linux_web_app" "test-server-app" {
     minimum_tls_version = "1.2"
     application_stack {
       docker_image     = var.docker_image
-      docker_image_tag = var.testclient_tag
+      docker_image_tag = var.authserver_tag
     }
   }
 
-  app_settings = {
-    HOSTING_ENVIRONMENT                    = local.hosting_environment,
-    APPLICATION_INSIGHTS_CONNECTION_STRING = azurerm_application_insights.insights.connection_string
-    ConnectionStrings__DefaultConnection   = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
-    REDIS_URL                              = "${azurerm_redis_cache.redis.hostname}/${azurerm_redis_cache.redis.primary_access_key}",
-    DOCKER_REGISTRY_SERVER_URL             = "https://ghcr.io",
-    EncryptionKey                          = local.infrastructure_secrets.ENCRYPTION_KEY1,
-    SigningKey                             = local.infrastructure_secrets.SIGNING_KEY1,
-    NotifyApiKey                           = local.infrastructure_secrets.NOTIFY_API_KEY,
-    AdminCredentials__Username             = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
-    AdminCredentials__Password             = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD
-  }
-
+  app_settings = local.app_settings
   lifecycle {
     ignore_changes = [
       tags
@@ -126,7 +108,6 @@ resource "azurerm_postgresql_flexible_server_database" "postgres-database" {
   name      = local.postgres_database_name
   server_id = azurerm_postgresql_flexible_server.postgres-server.id
 }
-
 resource "azurerm_redis_cache" "redis" {
   name                = local.redis_database_name
   location            = data.azurerm_resource_group.group.location
