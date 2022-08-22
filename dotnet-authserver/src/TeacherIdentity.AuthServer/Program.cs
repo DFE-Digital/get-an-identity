@@ -358,7 +358,7 @@ public class Program
         app.UseSerilogRequestLogging();
 
         app.UseWhen(
-            context => !context.Request.Path.StartsWithSegments("/api"),
+            context => !context.Request.Path.StartsWithSegments("/api") && !context.Request.Path.StartsWithSegments("/connect"),
             a =>
             {
                 if (app.Environment.IsDevelopment())
