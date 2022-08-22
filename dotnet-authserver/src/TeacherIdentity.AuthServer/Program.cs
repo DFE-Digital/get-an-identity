@@ -442,6 +442,15 @@ public class Program
                 await context.Response.WriteAsync("OK");
             });
 
+            var gitSha = builder.Configuration["GitSha"];
+            if (!string.IsNullOrEmpty(gitSha))
+            {
+                endpoints.MapGet("/_sha", async context =>
+                {
+                    await context.Response.WriteAsync(gitSha);
+                });
+            }
+
             if (!builder.Environment.IsUnitTests())
             {
                 endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: "Hangfire", "/_hangfire");
