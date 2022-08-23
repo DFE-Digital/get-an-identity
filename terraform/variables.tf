@@ -77,7 +77,7 @@ variable "data_protection_storage_account_name" {
   default = null
 }
 
-variable "deploy_test_server_app" {
+variable "deploy_test_client_app" {
   type    = bool
   default = false
 }

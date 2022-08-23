@@ -31,8 +31,8 @@ public class Program
             {
                 options.Authority = builder.Configuration.GetValue<string>("SignInAuthority");
 
-                options.ClientId = "testclient";
-                options.ClientSecret = "super-secret";
+                options.ClientId = builder.Configuration.GetValue<string>("ClientId");
+                options.ClientSecret = builder.Configuration.GetValue<string>("ClientSecret");
                 options.ResponseType = "code";
                 options.CallbackPath = new PathString("/oidc/callback");
                 options.UsePkce = true;
