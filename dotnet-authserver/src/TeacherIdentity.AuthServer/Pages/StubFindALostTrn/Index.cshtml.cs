@@ -2,11 +2,19 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 
 namespace TeacherIdentity.AuthServer.Pages.StubFindALostTrn;
 
 public class IndexModel : PageModel
 {
+    private readonly IApiClientRepository _apiClientRepository;
+
+    public IndexModel(IApiClientRepository apiClientRepository)
+    {
+        _apiClientRepository = apiClientRepository;
+    }
+
     [BindProperty]
     [Display(Name = "Email address")]
     [Required(ErrorMessage = "Enter your email address")]
@@ -52,7 +60,8 @@ public class IndexModel : PageModel
 
         async Task PersistLookupState()
         {
-            var apiKey = "stub-find";
+            var apiKey = _apiClientRepository.GetClientByClientId("stub-find")?.ApiKeys?.First() ??
+                throw new InvalidOperationException("No API key found for stub-find.");
 
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
