@@ -11,22 +11,18 @@ public class ConfigurationApiClientRepository : IApiClientRepository
         _clients = GetClientsFromConfiguration(configuration);
     }
 
+    public ApiClient? GetClientByClientId(string clientId) => _clients.SingleOrDefault(c => c.ClientId == clientId);
+
     public ApiClient? GetClientByKey(string apiKey) => _clients.SingleOrDefault(c => c.ApiKeys!.Any(x => x == apiKey));
 
     private static ApiClient[] GetClientsFromConfiguration(IConfiguration configuration)
     {
         var section = configuration.GetSection(ConfigurationSection);
         return section.GetChildren().AsEnumerable()
-            .Select((kvp, value) =>
+            .Select(section =>
             {
-                var clientId = kvp.Key;
-                var client = new ApiClient()
-                {
-                    ClientId = clientId,
-                    ApiKeys = Array.Empty<string>()
-                };
-                kvp.Bind(client);
-
+                var client = new ApiClient();
+                section.Bind(client);
                 return client;
             })
             .ToArray();
