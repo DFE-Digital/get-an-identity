@@ -17,16 +17,10 @@ public class ConfigurationApiClientRepository : IApiClientRepository
     {
         var section = configuration.GetSection(ConfigurationSection);
         return section.GetChildren().AsEnumerable()
-            .Select((kvp, value) =>
+            .Select(section =>
             {
-                var clientId = kvp.Key;
-                var client = new ApiClient()
-                {
-                    ClientId = clientId,
-                    ApiKeys = Array.Empty<string>()
-                };
-                kvp.Bind(client);
-
+                var client = new ApiClient();
+                section.Bind(client);
                 return client;
             })
             .ToArray();

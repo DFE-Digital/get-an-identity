@@ -52,7 +52,8 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY,
     DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
     DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
-    ApiClients__Find__ApiKeys__0                 = local.infrastructure_secrets.API_CLIENTS_FIND_KEY
+    ApiClients__0__ClientId                      = "stub-find",
+    ApiClients__0__ApiKeys__0                    = local.infrastructure_secrets.API_CLIENTS_FIND_KEY
   }
 
   lifecycle {
