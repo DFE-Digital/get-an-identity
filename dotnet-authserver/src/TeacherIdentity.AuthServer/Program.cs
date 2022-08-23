@@ -84,7 +84,7 @@ public class Program
 
             builder.Services
                 .AddSingleton<IDqtApiClient, DqtApiClient>()
-                .AddHttpClient<DqtApiClient>((sp, httpClient) =>
+                .AddHttpClient<IDqtApiClient, DqtApiClient>((sp, httpClient) =>
                 {
                     var options = sp.GetRequiredService<IOptions<DqtApiOptions>>();
                     httpClient.BaseAddress = new Uri(options.Value.BaseAddress);
