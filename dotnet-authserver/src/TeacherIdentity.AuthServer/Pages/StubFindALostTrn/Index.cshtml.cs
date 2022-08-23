@@ -60,13 +60,16 @@ public class IndexModel : PageModel
 
             var journeyId = HttpContext.Session.GetString("FindALostTrn:JourneyId");
 
-            await httpClient.PutAsJsonAsync($"/api/find-trn/user/{journeyId}", new
-            {
-                FirstName = FirstName!,
-                LastName = LastName!,
-                DateOfBirth = DateOfBirth!.Value.ToString("yyyy-MM-dd"),
-                Trn = Trn
-            });
+            var response = await httpClient.PutAsJsonAsync(
+                $"/api/find-trn/user/{journeyId}",
+                new
+                {
+                    FirstName = FirstName!,
+                    LastName = LastName!,
+                    DateOfBirth = DateOfBirth!.Value.ToString("yyyy-MM-dd"),
+                    Trn = Trn
+                });
+            response.EnsureSuccessStatusCode();
         }
     }
 }
