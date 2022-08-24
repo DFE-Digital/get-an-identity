@@ -45,45 +45,45 @@ jobs:
       with:
         dotnet-version: '6.0.x'
 
-    - name: Lint
-      run: |
-        #https://github.com/dotnet/format/issues/1433
-        dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json
-        dotnet-format --verify-no-changes
+#    - name: Lint
+#      run: |
+#        #https://github.com/dotnet/format/issues/1433
+#        dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json
+#        dotnet-format --verify-no-changes
 
     - name: Build
       run: dotnet build --configuration Release
 
-    - name: Install Playwright
-      run: pwsh ./test/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
-
-    - name: Unit tests
-      id: unit-tests
-      run: dotnet test ./test/TeacherIdentity.AuthServer.Tests/ --configuration Release --no-build --logger trx
-      env:
-        ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
-
-    - name: Unit tests report
-      uses: dorny/test-reporter@v1
-      if: always() && (steps.unit-tests.outcome == 'success' || steps.unit-tests.outcome == 'failure')
-      with:
-        name: Unit test results
-        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.Tests/**/*.trx'
-        reporter: dotnet-trx
-
-    - name: End-to-end tests
-      id: e2e-tests
-      run: dotnet test ./test/TeacherIdentity.AuthServer.EndToEndTests/ --configuration Release --no-build --logger trx
-      env:
-        AuthorizationServer__ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
-
-    - name: End-to-end tests report
-      uses: dorny/test-reporter@v1
-      if: always() && (steps.e2e-tests.outcome == 'success' || steps.e2e-tests.outcome == 'failure')
-      with:
-        name: End-to-end test results
-        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.EndToEndTests/**/*.trx'
-        reporter: dotnet-trx
+#    - name: Install Playwright
+#      run: pwsh ./test/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
+#
+#    - name: Unit tests
+#      id: unit-tests
+#      run: dotnet test ./test/TeacherIdentity.AuthServer.Tests/ --configuration Release --no-build --logger trx
+#      env:
+#        ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
+#
+#    - name: Unit tests report
+#      uses: dorny/test-reporter@v1
+#      if: always() && (steps.unit-tests.outcome == 'success' || steps.unit-tests.outcome == 'failure')
+#      with:
+#        name: Unit test results
+#        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.Tests/**/*.trx'
+#        reporter: dotnet-trx
+#
+#    - name: End-to-end tests
+#      id: e2e-tests
+#      run: dotnet test ./test/TeacherIdentity.AuthServer.EndToEndTests/ --configuration Release --no-build --logger trx
+#      env:
+#        AuthorizationServer__ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
+#
+#    - name: End-to-end tests report
+#      uses: dorny/test-reporter@v1
+#      if: always() && (steps.e2e-tests.outcome == 'success' || steps.e2e-tests.outcome == 'failure')
+#      with:
+#        name: End-to-end test results
+#        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.EndToEndTests/**/*.trx'
+#        reporter: dotnet-trx
 
     - name: Publish
       run: |
