@@ -1,3 +1,28 @@
+locals {
+  auth_server_clients_app_settings = merge([
+    for i, v in local.infrastructure_secrets.CLIENTS : merge({
+      "Clients__${i}__ClientId"     = v.CLIENT_ID,
+      "Clients__${i}__ClientSecret" = v.CLIENT_SECRET,
+      "Clients__${i}__DisplayName"  = v.DISPLAY_NAME,
+      "Clients__${i}__ServiceUrl"   = v.SERVICE_URL
+      }, merge([
+        for k, x in v.REDIRECT_URIS : {
+          "Clients__${i}__RedirectUris__${k}" = x
+        }
+    ]...))
+  ]...)
+
+  auth_server_api_clients_app_settings = merge([
+    for i, v in local.infrastructure_secrets.API_CLIENTS : merge({
+      "ApiClients__${i}__ClientId" = v.CLIENT_ID
+      }, merge([
+        for k, x in v.API_KEYS : {
+          "ApiClients__${i}__ApiKeys__${k}" = x
+        }
+    ]...))
+  ]...)
+}
+
 resource "azurerm_service_plan" "service-plan" {
   name                = local.app_service_plan_name
   location            = data.azurerm_resource_group.group.location
@@ -33,7 +58,7 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     health_check_path = "/health"
   }
 
-  app_settings = {
+  app_settings = merge(local.auth_server_clients_app_settings, local.auth_server_api_clients_app_settings, {
     EnvironmentName                              = local.hosting_environment,
     ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string
     ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
@@ -51,10 +76,8 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     FindALostTrnIntegration__EnableStubEndpoints = "true",
     FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY,
     DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
-    DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
-    ApiClients__0__ClientId                      = "stub-find",
-    ApiClients__0__ApiKeys__0                    = local.infrastructure_secrets.API_CLIENTS_FIND_KEY
-  }
+    DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS
+  })
 
   lifecycle {
     ignore_changes = [
