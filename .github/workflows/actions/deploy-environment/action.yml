@@ -28,7 +28,6 @@ outputs:
     description: 'The base URL for the deployed environment'
     value: ${{ steps.terraform.outputs.url }}
 
-
 runs:
   using: composite
 
@@ -74,4 +73,10 @@ runs:
         TF_VAR_docker_image: ${{ inputs.docker_image }}
         TF_VAR_authserver_tag: ${{ inputs.authserver_tag }}
         TF_VAR_testclient_tag: ${{ inputs.testclient_tag }}
+      shell: bash
+
+    - name: Wait for apps to start
+      run: |
+        cd dotnet-authserver/tools/PollEndpoint
+        dotnet run -- --endpoint ${{ steps.terraform.outputs.url }}_sha --response $GITHUB_SHA
       shell: bash
