@@ -350,9 +350,11 @@ public class Program
 
         var app = builder.Build();
 
-        if (builder.Environment.IsProduction())
+        if (builder.Environment.IsProduction() &&
+            Environment.GetEnvironmentVariable("WEBSITE_ROLE_INSTANCE_ID ") == "0")
         {
             await MigrateDatabase();
+            await ConfigureClients();
         }
 
         app.UseSerilogRequestLogging();
@@ -458,6 +460,13 @@ public class Program
         });
 
         app.Run();
+
+        async Task ConfigureClients()
+        {
+            var clients = builder.Configuration.GetSection("Clients").Get<ClientConfiguration[]>();
+            var helper = new ClientConfigurationHelper(app.Services);
+            await helper.UpsertClients(clients);
+        }
 
         SecurityKey LoadKey(string configurationKey)
         {
