@@ -29,7 +29,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.TestCommon", "test\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj", "{F101CEA4-DA68-449A-8096-0413C4248B83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherIdentity.AuthServer.Clients", "src\TeacherIdentity.AuthServer.Clients\TeacherIdentity.AuthServer.Clients.csproj", "{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.Clients", "src\TeacherIdentity.AuthServer.Clients\TeacherIdentity.AuthServer.Clients.csproj", "{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{6CF572F1-4A7D-47C1-A83E-81D6D38E958B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollEndpoint", "tools\PollEndpoint\PollEndpoint.csproj", "{24A0C243-AF16-4E9C-A426-7E52F77B54D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,6 +77,10 @@ Global
 		{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24A0C243-AF16-4E9C-A426-7E52F77B54D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24A0C243-AF16-4E9C-A426-7E52F77B54D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24A0C243-AF16-4E9C-A426-7E52F77B54D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24A0C243-AF16-4E9C-A426-7E52F77B54D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -87,6 +95,7 @@ Global
 		{1AAAB1A6-7BC8-47F9-9919-C3404B3BF02E} = {D8D752A9-F33A-4CDF-86A7-EC062A41A57D}
 		{F101CEA4-DA68-449A-8096-0413C4248B83} = {D8D752A9-F33A-4CDF-86A7-EC062A41A57D}
 		{6289F94C-49B6-4B9F-B6BE-04E58C5364D2} = {AD604BAE-6A1A-46B9-87AE-4612DADA62E1}
+		{24A0C243-AF16-4E9C-A426-7E52F77B54D7} = {6CF572F1-4A7D-47C1-A83E-81D6D38E958B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0573273-2A14-42F8-8547-AC1BA6756942}
