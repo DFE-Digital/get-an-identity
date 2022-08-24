@@ -1,9 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
-using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace TeacherIdentity.AuthServer.Clients;
+namespace TeacherIdentity.AuthServer.Oidc;
 
 public class ClientConfigurationHelper
 {

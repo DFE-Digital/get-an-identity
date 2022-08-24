@@ -1,27 +1,13 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TeacherIdentity.AuthServer.Clients;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 var configuration = new ConfigurationManager();
 
-configuration.AddCommandLine(
-    args,
-    switchMappings: new Dictionary<string, string>()
-    {
-        { "--environment", "EnvironmentName" },
-        { "--connection-string", "ConnectionStrings__DefaultConnection" }
-    });
-
-var environmentName = GetRequiredConfigurationValue("EnvironmentName").ToLower();
-
-if (environmentName == "local")
-{
-    configuration
-        .AddUserSecrets<Program>()
-        .AddJsonFile("appsettings.Local.json");
-}
+configuration
+    .AddUserSecrets<Program>()
+    .AddJsonFile("appsettings.Development.json");
 
 var pgConnectionString = GetRequiredConfigurationValue("ConnectionStrings:DefaultConnection");
 var clients = configuration.GetSection("Clients").Get<ClientConfiguration[]>();

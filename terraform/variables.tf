@@ -110,10 +110,10 @@ variable "docker_image" {
 variable "authserver_tag" {
   type = string
 }
+
 variable "testclient_tag" {
   type = string
 }
-
 
 locals {
   hosting_environment              = var.environment_name
