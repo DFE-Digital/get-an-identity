@@ -1,15 +1,13 @@
-﻿@addTagHelper *, Joonasw.AspNetCore.SecurityHeaders
-@inject TeacherIdentity.AuthServer.State.IAuthenticationStateProvider AuthenticationStateProvider
-@inject OpenIddict.Abstractions.IOpenIddictApplicationManager ApplicationManager
+@addTagHelper *, Joonasw.AspNetCore.SecurityHeaders
+@inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @{
     var serviceName = "Get an identity to access Teacher Services";
     var serviceUrl = "/";
 
-    var clientId = AuthenticationStateProvider.GetAuthenticationState(ViewContext.HttpContext)?.GetAuthorizationRequest()?.ClientId;
+    var client = await CurrentClientProvider.GetCurrentClient();
 
-    if (clientId is not null)
+    if (client is not null)
     {
-        var client = (Application)(await ApplicationManager.FindByClientIdAsync(clientId))!;
         serviceName = client.DisplayName;
         serviceUrl = client.ServiceUrl ?? "/";
     }

@@ -13,14 +13,14 @@ public class BackgroundEmailSender : IEmailSender
         _backgroundJobClient = backgroundJobClient;
     }
 
-    public Task SendEmailAddressConfirmationEmail(string to, string code)
+    public Task SendEmail(string to, string subject, string body)
     {
         _backgroundJobClient.Enqueue<BackgroundEmailSender>(
-            sender => sender.SendEmailAddressConfirmationEmailInner(to, code));
+            sender => sender.SendEmailInner(to, subject, body));
 
         return Task.CompletedTask;
     }
 
-    public Task SendEmailAddressConfirmationEmailInner(string to, string code) =>
-        _innerEmailSender.SendEmailAddressConfirmationEmail(to, code);
+    public Task SendEmailInner(string to, string subject, string body) =>
+        _innerEmailSender.SendEmail(to, subject, body);
 }

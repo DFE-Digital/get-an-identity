@@ -36,6 +36,7 @@ public class EmailConfirmationModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
+        Code = Code?.Trim();
         ValidateCode();
 
         if (!ModelState.IsValid)

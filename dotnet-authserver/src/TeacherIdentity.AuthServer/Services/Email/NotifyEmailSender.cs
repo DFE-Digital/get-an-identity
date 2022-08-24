@@ -15,11 +15,8 @@ public class NotifyEmailSender : IEmailSender
         _logger = logger;
     }
 
-    public async Task SendEmailAddressConfirmationEmail(string to, string code)
+    public async Task SendEmail(string to, string subject, string body)
     {
-        var subject = "Confirm your email address";
-        var body = code;
-
         try
         {
             await _notificationClient.SendEmailAsync(
@@ -31,11 +28,11 @@ public class NotifyEmailSender : IEmailSender
                     { "body", body }
                 });
 
-            _logger.LogInformation("Successfully sent email address confirmation email via Notify to {Email}.", to);
+            _logger.LogInformation("Successfully sent {Subject} email to {Email}.", subject, to);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed sending email address confirmation email via Notify to {Email}.", to);
+            _logger.LogError(ex, "Failed sending {Subject} email to {Email}.", to);
 
             throw;
         }
