@@ -348,6 +348,8 @@ public class Program
 
         builder.Services.AddApplicationInsightsTelemetry();
 
+        builder.Services.AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>();
+
         var app = builder.Build();
 
         if (builder.Environment.IsProduction() &&

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.Email;
 
 namespace TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -12,6 +13,7 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IEmailSender _emailSender;
     private readonly IClock _clock;
+    private readonly ICurrentClientProvider _currentClientProvider;
     private readonly ILogger<EmailVerificationService> _logger;
     private readonly TimeSpan _pinLifetime;
 
@@ -19,12 +21,14 @@ public class EmailVerificationService : IEmailVerificationService
         TeacherIdentityServerDbContext dbContext,
         IEmailSender emailSender,
         IClock clock,
+        ICurrentClientProvider currentClientProvider,
         IOptions<EmailVerificationOptions> optionsAccessor,
         ILogger<EmailVerificationService> logger)
     {
         _dbContext = dbContext;
         _emailSender = emailSender;
         _clock = clock;
+        _currentClientProvider = currentClientProvider;
         _logger = logger;
         _pinLifetime = TimeSpan.FromSeconds(optionsAccessor.Value.PinLifetimeSeconds);
     }
@@ -70,7 +74,12 @@ public class EmailVerificationService : IEmailVerificationService
             break;
         }
 
-        await _emailSender.SendEmailAddressConfirmationEmail(email, pin);
+        var client = await _currentClientProvider.GetCurrentClient();
+        var clientDisplayName = client?.DisplayName ?? "Get an identity to access Teacher Services";
+
+        var emailSubject = "Confirm your email address";
+        var emailBody = $"{pin} is your {clientDisplayName} security code";
+        await _emailSender.SendEmail(email, emailSubject, emailBody);
 
         _logger.LogInformation("Generated email confirmation PIN {Pin} for {Email}", pin, email);
 

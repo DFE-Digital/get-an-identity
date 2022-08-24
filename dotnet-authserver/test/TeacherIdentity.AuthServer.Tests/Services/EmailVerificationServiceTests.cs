@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -26,7 +27,11 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var dbContext = _dbFixture.GetDbContext();
         var emailSender = A.Fake<IEmailSender>();
         var clock = new TestClock();
-        var service = CreateEmailConfirmationService(dbContext, emailSender, clock);
+        var currentClientProvider = A.Fake<ICurrentClientProvider>();
+        var service = CreateEmailConfirmationService(dbContext, emailSender, clock, currentClientProvider);
+
+        var currentClientDisplayName = "Test app";
+        A.CallTo(() => currentClientProvider.GetCurrentClient()).Returns(new Application() { DisplayName = currentClientDisplayName });
 
         var email = Faker.Internet.Email();
 
@@ -66,7 +71,10 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
                 Assert.Equal(clock.UtcNow + _pinLifetime, newPin.Expires);
             });
 
-        A.CallTo(() => emailSender.SendEmailAddressConfirmationEmail(email, pin)).MustHaveHappenedOnceExactly();
+        var expectedEmailSubject = "Confirm your email address";
+        var expectedEmailBody = $"{pin} is your {currentClientDisplayName} security code";
+
+        A.CallTo(() => emailSender.SendEmail(email, expectedEmailSubject, expectedEmailBody)).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -76,7 +84,8 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var dbContext = _dbFixture.GetDbContext();
         var emailSender = A.Fake<IEmailSender>();
         var clock = new TestClock();
-        var service = CreateEmailConfirmationService(dbContext, emailSender, clock);
+        var currentClientProvider = A.Fake<ICurrentClientProvider>();
+        var service = CreateEmailConfirmationService(dbContext, emailSender, clock, currentClientProvider);
 
         var email = Faker.Internet.Email();
 
@@ -97,7 +106,8 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var dbContext = _dbFixture.GetDbContext();
         var emailSender = A.Fake<IEmailSender>();
         var clock = new TestClock();
-        var service = CreateEmailConfirmationService(dbContext, emailSender, clock);
+        var currentClientProvider = A.Fake<ICurrentClientProvider>();
+        var service = CreateEmailConfirmationService(dbContext, emailSender, clock, currentClientProvider);
 
         var email = Faker.Internet.Email();
         var pin = await service.GeneratePin(email);
@@ -118,7 +128,8 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var dbContext = _dbFixture.GetDbContext();
         var emailSender = A.Fake<IEmailSender>();
         var clock = new TestClock();
-        var service = CreateEmailConfirmationService(dbContext, emailSender, clock);
+        var currentClientProvider = A.Fake<ICurrentClientProvider>();
+        var service = CreateEmailConfirmationService(dbContext, emailSender, clock, currentClientProvider);
 
         var email = Faker.Internet.Email();
         var anotherEmail = Faker.Internet.Email();
@@ -138,7 +149,8 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var dbContext = _dbFixture.GetDbContext();
         var emailSender = A.Fake<IEmailSender>();
         var clock = new TestClock();
-        var service = CreateEmailConfirmationService(dbContext, emailSender, clock);
+        var currentClientProvider = A.Fake<ICurrentClientProvider>();
+        var service = CreateEmailConfirmationService(dbContext, emailSender, clock, currentClientProvider);
 
         var email = Faker.Internet.Email();
         var pin = await service.GeneratePin(email);
@@ -161,7 +173,8 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var dbContext = _dbFixture.GetDbContext();
         var emailSender = A.Fake<IEmailSender>();
         var clock = new TestClock();
-        var service = CreateEmailConfirmationService(dbContext, emailSender, clock);
+        var currentClientProvider = A.Fake<ICurrentClientProvider>();
+        var service = CreateEmailConfirmationService(dbContext, emailSender, clock, currentClientProvider);
 
         var email = Faker.Internet.Email();
         var pin = await service.GeneratePin(email);
@@ -180,7 +193,8 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
     private EmailVerificationService CreateEmailConfirmationService(
         TeacherIdentityServerDbContext dbContext,
         IEmailSender emailSender,
-        IClock clock)
+        IClock clock,
+        ICurrentClientProvider currentClientProvider)
     {
         var options = Options.Create(new EmailVerificationOptions()
         {
@@ -189,6 +203,6 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
 
         var logger = NullLogger<EmailVerificationService>.Instance;
 
-        return new EmailVerificationService(dbContext, emailSender, clock, options, logger);
+        return new EmailVerificationService(dbContext, emailSender, clock, currentClientProvider, options, logger);
     }
 }
