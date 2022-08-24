@@ -18,13 +18,38 @@ public class ConfigurationApiClientRepository : IApiClientRepository
     private static ApiClient[] GetClientsFromConfiguration(IConfiguration configuration)
     {
         var section = configuration.GetSection(ConfigurationSection);
-        return section.GetChildren().AsEnumerable()
-            .Select(section =>
+
+        var clients = new List<ApiClient>();
+        var clientIds = new HashSet<string>();
+        var apiKeys = new HashSet<string>();
+
+        foreach (var s in section.GetChildren().AsEnumerable())
+        {
+            var client = new ApiClient();
+            s.Bind(client);
+            client.ApiKeys ??= Array.Empty<string>();
+
+            if (string.IsNullOrEmpty(client.ClientId))
             {
-                var client = new ApiClient();
-                section.Bind(client);
-                return client;
-            })
-            .ToArray();
+                throw new Exception($"Missing {nameof(client.ClientId)}.");
+            }
+
+            if (!clientIds.Add(client.ClientId))
+            {
+                throw new Exception($"Duplicate client configuration found for '{client.ClientId}'.");
+            }
+
+            foreach (var apiKey in client.ApiKeys)
+            {
+                if (!apiKeys.Add(apiKey))
+                {
+                    throw new Exception($"Duplicate API key found '{apiKey}'.");
+                }
+            }
+
+            clients.Add(client);
+        }
+
+        return clients.ToArray();
     }
 }
