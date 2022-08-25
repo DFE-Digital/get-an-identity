@@ -352,8 +352,7 @@ public class Program
 
         var app = builder.Build();
 
-        if (builder.Environment.IsProduction() &&
-            Environment.GetEnvironmentVariable("WEBSITE_ROLE_INSTANCE_ID ") == "0")
+        if (builder.Environment.IsProduction())
         {
             await MigrateDatabase();
             await ConfigureClients();

@@ -48,6 +48,12 @@ runs:
         TFVARS: ${{ inputs.terraform_vars }}
       working-directory: terraform
 
+    - name: Install extensions
+      run: |
+        az config set extension.use_dynamic_install=yes_without_prompt
+        pwsh -c "Install-Module powershell-yaml -Force"
+      shell: bash
+
     - uses: Azure/login@v1
       with:
         creds: ${{ inputs.azure_credentials }}
@@ -67,7 +73,7 @@ runs:
       id: terraform
       run: |
         make ci ${{ inputs.environment_name }} terraform-apply
-        cd terraform && echo ::set-output name=url::$(terraform output -raw get_an_identity_fqdn)/
+        cd terraform && echo ::set-output name=url::https://$(terraform output -raw auth_server_fqdn)/
       env:
         ARM_ACCESS_KEY: ${{ steps.get_secrets.outputs.TFSTATE-CONTAINER-ACCESS-KEY }}
         TF_VAR_azure_sp_credentials_json: ${{ inputs.azure_credentials }}

@@ -1,22 +1,20 @@
 variable "environment_name" {
   type = string
 }
+
 variable "resource_prefix" {
   type    = string
   default = ""
 }
+
 variable "app_suffix" {
   type    = string
   default = ""
 }
+
 variable "azure_sp_credentials_json" {
   type    = string
   default = null
-}
-
-variable "app_service_plan_sku" {
-  type    = string
-  default = "B1"
 }
 
 variable "postgres_flexible_server_sku" {
@@ -46,7 +44,6 @@ variable "redis_service_version" {
   type    = number
   default = 6
 }
-
 
 variable "redis_service_family" {
   type    = string
@@ -116,15 +113,15 @@ variable "testclient_tag" {
 }
 
 locals {
-  hosting_environment              = var.environment_name
-  app_service_plan_name            = "${var.resource_prefix}getanid-${var.environment_name}-plan"
-  get_an_identity_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auth-server-app"
-  get_an_identity_test_client_name = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-test-client-app"
-  postgres_server_name             = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql"
-  postgres_database_name           = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql-db"
-  redis_database_name              = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-redis"
-  app_insights_name                = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-appi"
-  log_analytics_workspace_name     = "${var.resource_prefix}getanid-${var.environment_name}-log"
+  hosting_environment             = var.environment_name
+  auth_server_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-authserver"
+  test_client_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-testclient"
+  postgres_server_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql"
+  postgres_database_name          = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql-db"
+  redis_database_name             = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-redis"
+  app_insights_name               = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-appi"
+  log_analytics_workspace_name    = "${var.resource_prefix}getanid-${var.environment_name}-log"
+  container_apps_environment_name = "${var.resource_prefix}getanid-${var.environment_name}-acaenv"
 
   keyvault_logging_enabled            = var.keyvault_logging_enabled
   storage_diagnostics_logging_enabled = length(var.storage_log_categories) > 0
