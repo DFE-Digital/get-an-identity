@@ -7,16 +7,16 @@ locals {
 
 resource "null_resource" "deploy_container_app_revision" {
   triggers = {
-    defition = var.app_definition_yaml
+    definition = var.app_definition_yaml
   }
 
   provisioner "local-exec" {
     working_dir = "${path.module}/scripts"
-    command     = "(echo $env:YAML | Out-File (New-Item -Path ${local.generated_yaml_path} -Force)) -And (./Publish-ContainerAppRevision.ps1 -YamlFile ${local.generated_yaml_path} -TimeoutSeconds ${var.timeout})"
+    command     = "&{echo $env:YAML | Out-File (New-Item -Path ${local.generated_yaml_path} -Force); ./Publish-ContainerAppRevision.ps1 -YamlFile ${local.generated_yaml_path} -TimeoutSeconds ${var.timeout}}"
     interpreter = ["pwsh", "-Command"]
     environment = {
       YAML = var.app_definition_yaml
-     }
+    }
   }
 }
 
