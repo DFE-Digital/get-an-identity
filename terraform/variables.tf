@@ -114,8 +114,8 @@ variable "testclient_tag" {
 
 locals {
   hosting_environment             = var.environment_name
-  auth_server_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-authserver"
-  test_client_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-testclient"
+  auth_server_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths"
+  test_client_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-testc"
   postgres_server_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql"
   postgres_database_name          = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql-db"
   redis_database_name             = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-redis"
