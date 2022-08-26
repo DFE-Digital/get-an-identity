@@ -1,3 +1,3 @@
-output "get_an_identity_fqdn" {
-  value = "https://${azurerm_linux_web_app.auth-server-app.default_hostname}"
+output "auth_server_fqdn" {
+  value = module.auth_server_container_app.container_app_fqdn
 }
