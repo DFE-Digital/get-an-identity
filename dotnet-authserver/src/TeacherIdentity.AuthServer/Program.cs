@@ -231,8 +231,6 @@ public class Program
 
                 options
                     .AllowAuthorizationCodeFlow()
-                    .AllowImplicitFlow()
-                    .AllowHybridFlow()
                     .AllowClientCredentialsFlow();
 
                 if (builder.Environment.IsDevelopment() ||
