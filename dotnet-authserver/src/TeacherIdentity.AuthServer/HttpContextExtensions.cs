@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
@@ -29,6 +30,7 @@ public static class HttpContextExtensions
     {
         var authenticationState = httpContext.GetAuthenticationState();
         authenticationState.Populate(user, firstTimeUser, trn);
+        Debug.Assert(authenticationState.IsComplete());
 
         var authorizationRequest = authenticationState.GetAuthorizationRequest();
 
@@ -47,6 +49,9 @@ public static class HttpContextExtensions
         {
             claims.Add(new Claim(CustomClaims.Trn, trn));
         }
+
+        // TODO In future the user might already been signed in with a different set of claims (e.g. for different scopes)
+        // We should copy over any existing claims in such a case.
 
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);
         var principal = new ClaimsPrincipal(identity);

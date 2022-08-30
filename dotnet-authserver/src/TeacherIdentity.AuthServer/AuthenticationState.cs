@@ -78,11 +78,15 @@ public class AuthenticationState
         }
 
         // We should have a known user at this point
-        Debug.Assert(UserId.HasValue);
+        Debug.Assert(IsComplete());
 
         // We're done - complete authorization
         return AuthorizationUrl;
     }
+
+    public bool IsComplete() => EmailAddressVerified &&
+        (Trn is not null || HaveCompletedFindALostTrnJourney || !GetAuthorizationRequest().HasScope(CustomScopes.Trn)) &&
+        UserId.HasValue;
 
     public void Populate(User user, bool firstTimeUser, string? trn)
     {
