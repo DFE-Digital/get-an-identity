@@ -1,4 +1,5 @@
-﻿@page "/connect/authorize"
+@page "/connect/authorize"
+@using static OpenIddict.Abstractions.OpenIddictConstants
 @model TeacherIdentity.AuthServer.Pages.Authorization.AuthorizeModel
 @{
     ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You're signed in";
@@ -12,10 +13,28 @@
                          where !string.IsNullOrEmpty(value)
                          select (parameter.Key, Value: value);
 
-        <form action="@Model.ApplyAuthorizationResponseContext!.RedirectUri" method="post" asp-antiforgery="false">
-          @foreach (var (key, value) in parameters)
+        var responseMode = Model.ApplyAuthorizationResponseContext.ResponseMode;
+        var method = responseMode == ResponseModes.FormPost ? "post" : "get";
+        var action = Model.ApplyAuthorizationResponseContext!.RedirectUri!;
+
+        if (responseMode == ResponseModes.Fragment)
+        {
+            foreach (var (key, value) in parameters)
+            {
+                action += action.Contains("#") ? "&" : "#" +
+                  Uri.EscapeDataString(key) +
+                  "=" +
+                  Uri.EscapeDataString(value);
+            }
+        }
+
+        <form action="@action" method="@method" asp-antiforgery="false">
+          @if (responseMode != ResponseModes.Fragment)
           {
-            <input type="hidden" name="@key" value="@value">
+              foreach (var (key, value) in parameters)
+              {
+                  <input type="hidden" name="@key" value="@value">
+              }
           }
           <govuk-button type="submit" class="@buttonClasses">Continue</govuk-button>
         </form>

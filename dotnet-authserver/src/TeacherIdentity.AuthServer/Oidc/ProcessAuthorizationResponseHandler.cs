@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Server;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 using static OpenIddict.Server.OpenIddictServerEvents;
 
 namespace TeacherIdentity.AuthServer.Oidc;
@@ -27,11 +26,6 @@ public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<Appl
         if (string.IsNullOrEmpty(context.RedirectUri))
         {
             return;
-        }
-
-        if (context.ResponseMode != ResponseModes.FormPost)
-        {
-            throw new NotSupportedException();
         }
 
         var endpoint = _endpointDataSources.SelectMany(s => s.Endpoints)
