@@ -9,6 +9,16 @@ public class SessionAuthenticationStateProvider : IAuthenticationStateProvider
         _logger = logger;
     }
 
+    public void ClearAuthenticationState(HttpContext httpContext)
+    {
+        if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asidStr) &&
+            Guid.TryParse(asidStr, out var asid))
+        {
+            var sessionKey = GetSessionKey(asid);
+            httpContext.Session.Remove(sessionKey);
+        }
+    }
+
     public AuthenticationState? GetAuthenticationState(HttpContext httpContext)
     {
         if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asidStr) &&

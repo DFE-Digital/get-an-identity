@@ -181,10 +181,12 @@ public class Program
                 options.JsonSerializerOptions.Converters.Add(new DateOnlyConverter());
             });
 
+        builder.Services.AddSingleton<RequireAuthenticationStateFilter>();
+
         builder.Services.AddRazorPages(options =>
         {
             // Every page within the SignIn folder must have AuthenticationState passed to it
-            options.Conventions.AddFolderApplicationModelConvention("/SignIn", model => model.Filters.Add(new RequireAuthenticationStateFilter()));
+            options.Conventions.AddFolderApplicationModelConvention("/SignIn", model => model.Filters.Add(new RequireAuthenticationStateFilterFactory()));
         });
 
         builder.Services.AddSession(options =>
