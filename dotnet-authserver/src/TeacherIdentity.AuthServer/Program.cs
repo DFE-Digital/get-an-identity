@@ -245,9 +245,18 @@ public class Program
                 }
                 else
                 {
-                    options
-                        .AddEncryptionKey(LoadKey("EncryptionKey"))
-                        .AddSigningKey(LoadKey("SigningKey"));
+                    var encryptionKeysConfig = builder.Configuration.GetSection("EncryptionKeys").Get<string[]>();
+                    var signingKeysConfig = builder.Configuration.GetSection("SigningKeys").Get<string[]>();
+
+                    foreach (var value in encryptionKeysConfig)
+                    {
+                        options.AddEncryptionKey(LoadKey(value));
+                    }
+
+                    foreach (var value in signingKeysConfig)
+                    {
+                        options.AddSigningKey(LoadKey(value));
+                    }
                 }
 
                 options.UseAspNetCore()
@@ -469,11 +478,10 @@ public class Program
             await helper.UpsertClients(clients);
         }
 
-        SecurityKey LoadKey(string configurationKey)
+        SecurityKey LoadKey(string configurationValue)
         {
             var rsa = RSA.Create();
-            rsa.FromXmlString(builder.Configuration[configurationKey]);
-
+            rsa.FromXmlString(configurationValue);
             return new RsaSecurityKey(rsa);
         }
 

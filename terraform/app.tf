@@ -32,8 +32,10 @@ locals {
       ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
       ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
       DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
-      EncryptionKey                                = local.infrastructure_secrets.ENCRYPTION_KEY1,
-      SigningKey                                   = local.infrastructure_secrets.SIGNING_KEY1,
+      EncryptionKeys__0                            = local.infrastructure_secrets.ENCRYPTION_KEY0,
+      EncryptionKeys__1                            = local.infrastructure_secrets.ENCRYPTION_KEY1,
+      SigningKeys__0                               = local.infrastructure_secrets.SIGNING_KEY0,
+      SigningKeys__1                               = local.infrastructure_secrets.SIGNING_KEY1,
       NotifyApiKey                                 = local.infrastructure_secrets.NOTIFY_API_KEY,
       AdminCredentials__Username                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
       AdminCredentials__Password                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
