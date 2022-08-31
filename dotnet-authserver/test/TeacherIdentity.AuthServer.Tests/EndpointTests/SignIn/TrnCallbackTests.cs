@@ -90,17 +90,24 @@ public class TrnCallbackTests : TestBase
         });
     }
 
-    [Fact]
-    public async Task Get_LookupStateIsLocked_ReturnsError()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Get_UserIsAlreadyRegistered_DoesNotCreateNewUserCallsDqtApiAndRedirectsToConfirmation(bool hasTrn)
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var user = await TestData.CreateUser();
+        var authStateHelper = CreateAuthenticationStateHelper(s => s.EmailAddress = user.EmailAddress);
 
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = hasTrn ? TestData.GenerateTrn() : null;
 
-        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, locked: Clock.UtcNow);
+        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
+            .Returns(Task.CompletedTask);
+
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn, locked: Clock.UtcNow, userId: user.UserId);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
 
@@ -108,7 +115,21 @@ public class TrnCallbackTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
+
+        if (hasTrn)
+        {
+            A.CallTo(() => HostFixture.DqtApiClient
+                !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId && x.Trn == trn)))
+                .MustHaveHappenedOnceExactly();
+        }
+        else
+        {
+            A.CallTo(() => HostFixture.DqtApiClient
+                !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId)))
+                .MustNotHaveHappened();
+        }
     }
 
     [Fact]
@@ -152,8 +173,14 @@ public class TrnCallbackTests : TestBase
         string? lastName = null,
         DateOnly? dateOfBirth = null,
         string? trn = GenerateRandomTrnSentinel,
-        DateTime? locked = null)
+        DateTime? locked = null,
+        Guid? userId = null)
     {
+        if (locked is not null && userId is null)
+        {
+            throw new ArgumentException($"{nameof(userId)} must be provided when {nameof(locked)} is {true}.");
+        }
+
         if (trn == GenerateRandomTrnSentinel)
         {
             trn = TestData.GenerateTrn();
@@ -169,7 +196,8 @@ public class TrnCallbackTests : TestBase
                 FirstName = firstName ?? Faker.Name.First(),
                 LastName = lastName ?? Faker.Name.Last(),
                 Trn = trn,
-                Locked = locked
+                Locked = locked,
+                UserId = userId
             });
 
             await dbContext.SaveChangesAsync();
