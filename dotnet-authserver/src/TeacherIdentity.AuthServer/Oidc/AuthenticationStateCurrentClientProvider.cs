@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
@@ -27,16 +28,15 @@ public class AuthenticationStateCurrentClientProvider : ICurrentClientProvider
             return null;
         }
 
-        var authenticationState = _authenticationStateProvider.GetAuthenticationState(_httpContextAccessor.HttpContext);
+        var authorizationRequest = _authenticationStateProvider.GetAuthenticationState(_httpContextAccessor.HttpContext)?.GetAuthorizationRequest() ??
+            _httpContextAccessor.HttpContext.GetOpenIddictServerRequest();
 
-        if (authenticationState is null)
+        if (authorizationRequest is null)
         {
             return null;
         }
 
-        var clientId = authenticationState.GetAuthorizationRequest().ClientId;
-        var application = (Application?)await _applicationManager.FindByClientIdAsync(clientId!);
-
+        var application = (Application?)await _applicationManager.FindByClientIdAsync(authorizationRequest.ClientId!);
         return application;
     }
 }
