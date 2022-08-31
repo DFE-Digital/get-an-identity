@@ -15,6 +15,14 @@
     color: govuk-colour("white");
   }
 
+  p {
+    margin-bottom: 20px;
+  }
+
+  .govuk-heading-m {
+    padding-top: 10px;
+  }
+
   *:last-child {
     margin-bottom: 0;
   }
