@@ -9,4 +9,6 @@ public class JourneyTrnLookupState
     public string LastName { get; set; } = null!;
     public DateOnly DateOfBirth { get; set; }
     public string? Trn { get; set; }
+    public User? User { get; set; }
+    public Guid? UserId { get; set; }
 }

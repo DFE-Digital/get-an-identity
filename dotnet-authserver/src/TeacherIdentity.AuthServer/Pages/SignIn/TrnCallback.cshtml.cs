@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -29,15 +30,13 @@ public class TrnCallbackModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        var lookupState = await _dbContext.JourneyTrnLookupStates.SingleOrDefaultAsync(s => s.JourneyId == authenticationState.JourneyId);
+        var lookupState = await _dbContext.JourneyTrnLookupStates
+            .Include(s => s.User)
+            .SingleOrDefaultAsync(s => s.JourneyId == authenticationState.JourneyId);
+
         if (lookupState is null)
         {
             _logger.LogError("No TRN lookup state found for journey {JourneyId}.", authenticationState.JourneyId);
-            return BadRequest();
-        }
-        else if (lookupState.Locked.HasValue)
-        {
-            _logger.LogWarning("TRN lookup state for journey {JourneyId} is locked.", authenticationState.JourneyId);
             return BadRequest();
         }
 
@@ -47,25 +46,37 @@ public class TrnCallbackModel : PageModel
             throw new NotSupportedException();
         }
 
-        var userId = Guid.NewGuid();
-        var user = new User()
+        User user;
+
+        if (lookupState.Locked.HasValue)
         {
-            DateOfBirth = lookupState.DateOfBirth,
-            EmailAddress = authenticationState.EmailAddress!,
-            FirstName = lookupState.FirstName,
-            LastName = lookupState.LastName,
-            UserId = userId
-        };
+            // User has already been registered
+            Debug.Assert(lookupState.UserId.HasValue);
+            user = lookupState.User!;
+        }
+        else
+        {
+            var userId = Guid.NewGuid();
+            user = new User()
+            {
+                DateOfBirth = lookupState.DateOfBirth,
+                EmailAddress = authenticationState.EmailAddress!,
+                FirstName = lookupState.FirstName,
+                LastName = lookupState.LastName,
+                UserId = userId
+            };
 
-        _dbContext.Users.Add(user);
-        lookupState.Locked = _clock.UtcNow;
+            _dbContext.Users.Add(user);
+            lookupState.Locked = _clock.UtcNow;
+            lookupState.UserId = userId;
 
-        await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
+        }
 
         var trn = lookupState.Trn;
         if (!string.IsNullOrEmpty(trn))
         {
-            await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = userId });
+            await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId });
         }
 
         await HttpContext.SignInUser(user, firstTimeUser: true, trn);
