@@ -37,6 +37,7 @@ This request includes some additional context, specified as form values:
 | email | The verified email address as captured by the authorization server. This allows Find a lost TRN to skip asking the user for their email address again. |
 | redirect_uri | This is the callback URL on the authorization server that Find should redirect the user to once it has resolved a TRN. |
 | client_title | The name of the client that initiated the authorization journey. This enables 'branding' both the the authorization server and Find a lost TRN such that the user perceives the journey as a single service e.g. 'Register for a National Professional Qualification'. |
+| client_url | The home page of the calling service, used to generate the header link. |
 | journey_id | A unique ID for this authorization journey instance. |
 | sig | This is a signed hash of the previous parameters using a pre-shared key in hexadecimal format. |
 
@@ -60,20 +61,21 @@ POST /identity HTTP/1.1
 Host: https://find-a-lost-trn.education.gov.uk
 Content-Type: application/x-www-form-urlencoded
 
-redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&sig=D3E09A334FAD2201A88C7199250C9670C368102B3581A5DBF9C76F503B8A0575`
+redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&client_url=https%3A%2F%2Fcalling.service.gov.uk&sig=D3E09A334FAD2201A88C7199250C9670C368102B3581A5DBF9C76F503B8A0575`
 ```
 
 1. Sort parameters and remove 'sig':
    | Parameter name | Value |
    | --- | --- |
    | client_title | The Client Title |
+   | client_url | https://calling.service.gov.uk |
    | email | joe.bloggs@example.com |
    | journey_id | 9ddccb62-ec13-4ea7-a163-c058a19b8222 |
    | redirect_uri | https://authserveruri/ |
 2. Encode parameters and combine:\
-    `client_title=The%20Client%20Title&email=joe.bloggs@example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&redirect_uri=https%3A%2F%2Fauthserveruri%2F`
+    `client_title=The%20Client%20Title&client_url=https%3A%2F%2Fcalling.service.gov.uk&email=joe.bloggs%40example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&redirect_uri=https%3A%2F%2Fauthserveruri%2F`
 3. Sign the string with the PSK\
-    `D3E09A334FAD2201A88C7199250C9670C368102B3581A5DBF9C76F503B8A0575`
+    `b9f255cecd357fc366058c2caf437f83b4b61a8998f677c67743e1a23a03cdcc`
 
 
 ## Handover from Find a lost TRN to the authorization server
