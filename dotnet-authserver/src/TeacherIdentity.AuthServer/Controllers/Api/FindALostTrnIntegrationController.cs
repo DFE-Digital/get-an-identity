@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
 using TeacherIdentity.AuthServer.ApiModels;
 using TeacherIdentity.AuthServer.Models;
 
@@ -27,7 +26,14 @@ public class FindALostTrnIntegrationController : ControllerBase
         [FromRoute] Guid journeyId,
         [FromBody] SetJourneyFindALostTrnUserRequest request)
     {
-        try
+        var existingState = await _dbContext.JourneyTrnLookupStates.FindAsync(journeyId);
+
+        if (existingState?.Locked is not null)
+        {
+            return BadRequest();
+        }
+
+        if (existingState is null)
         {
             _dbContext.JourneyTrnLookupStates.Add(new JourneyTrnLookupState()
             {
@@ -38,15 +44,17 @@ public class FindALostTrnIntegrationController : ControllerBase
                 LastName = request.LastName,
                 Trn = request.Trn
             });
-
-            await _dbContext.SaveChangesAsync();
         }
-        catch (Exception ex) when (
-            ex.InnerException is PostgresException postgresException &&
-            postgresException.SqlState == PostgresErrorCodes.UniqueViolation)
+        else
         {
-            return BadRequest();  // TODO Better error message
+            existingState.DateOfBirth = request.DateOfBirth;
+            existingState.FirstName = request.FirstName;
+            existingState.LastName = request.LastName;
+            existingState.Trn = request.Trn;
         }
+
+        await _dbContext.SaveChangesAsync();
+
         return NoContent();
     }
 }
