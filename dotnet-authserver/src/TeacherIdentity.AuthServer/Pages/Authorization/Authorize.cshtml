@@ -2,7 +2,7 @@
 @using static OpenIddict.Abstractions.OpenIddictConstants
 @model TeacherIdentity.AuthServer.Pages.Authorization.AuthorizeModel
 @{
-    ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You're signed in";
+    ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You’re signed in";
 
     async Task RenderForm(string? buttonClasses = null)
     {
@@ -71,7 +71,7 @@ else
 {
     <div class="govuk-grid-row" data-testid="known-user-content">
       <div class="govuk-grid-column-two-thirds-from-desktop">
-        <h1 class="govuk-heading-xl">You're signed in</h1>
+        <h1 class="govuk-heading-xl">You’re signed in</h1>
 
         <govuk-summary-list>
           <govuk-summary-list-row>
