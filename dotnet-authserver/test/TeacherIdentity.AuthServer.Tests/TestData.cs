@@ -6,12 +6,14 @@ namespace TeacherIdentity.AuthServer.Tests;
 public partial class TestData
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly TestClock _clock;
     private readonly Random _random = new();
     private readonly ConcurrentBag<string> _trns = new();
 
     public TestData(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+        _clock = (TestClock)serviceProvider.GetRequiredService<IClock>();
     }
 
     public string GenerateTrn()
