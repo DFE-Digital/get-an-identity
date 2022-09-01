@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Services.TrnLookup;
 
@@ -31,8 +32,9 @@ public class FindALostTrnIntegrationHelper
     public async Task<(string Url, IDictionary<string, string> FormValues)> GetHandoverRequest(AuthenticationState authenticationState)
     {
         var clientId = authenticationState.GetAuthorizationRequest().ClientId!;
-        var client = (await _applicationManager.FindByClientIdAsync(clientId))!;
-        var clientDisplayName = await _applicationManager.GetDisplayNameAsync(client);
+        var client = (Application)(await _applicationManager.FindByClientIdAsync(clientId))!;
+        var clientDisplayName = client.DisplayName;
+        var clientServiceUrl = client.ServiceUrl;
 
         var actionContext = _actionContextAccessor.ActionContext!;
         var request = actionContext.HttpContext.Request;
@@ -44,7 +46,8 @@ public class FindALostTrnIntegrationHelper
             { "email", authenticationState.EmailAddress! },
             { "redirect_uri", callbackUrl },
             { "client_title", clientDisplayName ?? string.Empty },
-            { "journey_id", authenticationState.JourneyId.ToString() }
+            { "journey_id", authenticationState.JourneyId.ToString() },
+            { "client_url", clientServiceUrl ?? string.Empty }
         };
 
         var sig = CalculateSignature(formValues);
