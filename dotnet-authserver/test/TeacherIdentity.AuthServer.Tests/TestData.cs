@@ -32,8 +32,7 @@ public partial class TestData
 
     public async Task<T> WithDbContext<T>(Func<TeacherIdentityServerDbContext, Task<T>> action)
     {
-        var serviceScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
-        using var scope = serviceScopeFactory.CreateScope();
+        await using var scope = _serviceProvider.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
         return await action(dbContext);
     }

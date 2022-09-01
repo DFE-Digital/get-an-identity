@@ -34,13 +34,11 @@ public class SetJourneyFindALostTrnUserTests : ApiTestBase
     }
 
     [Fact]
-    public async Task Put_AlreadyGotStateForJourneyId_ReturnsBadRequest()
+    public async Task Put_AlreadyGotLockedStateForJourneyId_ReturnsBadRequest()
     {
         // Arrange
         var journeyId = Guid.NewGuid();
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var user = await TestData.CreateUser();
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -48,13 +46,19 @@ public class SetJourneyFindALostTrnUserTests : ApiTestBase
             {
                 JourneyId = journeyId,
                 Created = Clock.UtcNow,
-                DateOfBirth = dateOfBirth,
-                FirstName = firstName,
-                LastName = lastName
+                DateOfBirth = user.DateOfBirth,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Locked = Clock.UtcNow,
+                UserId = user.UserId
             });
 
             await dbContext.SaveChangesAsync();
         });
+
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/find-trn/user/{journeyId}")
         {
@@ -71,6 +75,63 @@ public class SetJourneyFindALostTrnUserTests : ApiTestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_AlreadyGotStateButUnlockedForJourneyId_WritesUpdatedStateToDbAndReturnsNoContent()
+    {
+        // Arrange
+        var journeyId = Guid.NewGuid();
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            dbContext.JourneyTrnLookupStates.Add(new Models.JourneyTrnLookupState()
+            {
+                JourneyId = journeyId,
+                Created = Clock.UtcNow.AddMinutes(-2),
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                FirstName = Faker.Name.First(),
+                LastName = Faker.Name.Last(),
+                Locked = null,
+                UserId = null,
+                Trn = null
+            });
+
+            await dbContext.SaveChangesAsync();
+        });
+
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = TestData.GenerateTrn();
+
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/find-trn/user/{journeyId}")
+        {
+            Content = JsonContent.Create(new
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                DateOfBirth = dateOfBirth.ToString("yyyy-MM-dd"),
+                Trn = trn
+            })
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var state = await dbContext.JourneyTrnLookupStates.SingleOrDefaultAsync(s => s.JourneyId == journeyId);
+
+            Assert.NotNull(state);
+            Assert.Equal(firstName, state!.FirstName);
+            Assert.Equal(lastName, state.LastName);
+            Assert.Equal(dateOfBirth, state.DateOfBirth);
+            Assert.Equal(trn, state.Trn);
+        });
     }
 
     [Theory]
