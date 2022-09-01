@@ -13,6 +13,8 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.EmailAddress).IsUnique().HasFilter("is_deleted = true");
         builder.Property(u => u.FirstName).HasMaxLength(200).IsRequired();
         builder.Property(u => u.LastName).HasMaxLength(200).IsRequired();
+        builder.Property(u => u.Created).IsRequired();
+        builder.Property(u => u.CompletedTrnLookup);
         builder.Property<bool>("is_deleted").IsRequired().HasDefaultValue(false);
         builder.HasQueryFilter(u => EF.Property<bool>(u, "is_deleted") == false);
     }

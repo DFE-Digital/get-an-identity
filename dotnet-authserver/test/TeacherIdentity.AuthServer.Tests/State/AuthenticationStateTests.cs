@@ -49,13 +49,16 @@ public class AuthenticationStateTests
     public void Populate()
     {
         // Arrange
+        var created = DateTime.UtcNow;
         var user = new User()
         {
             DateOfBirth = new DateOnly(2001, 4, 1),
             EmailAddress = Faker.Internet.Email(),
             FirstName = Faker.Name.First(),
             LastName = Faker.Name.Last(),
-            UserId = Guid.NewGuid()
+            UserId = Guid.NewGuid(),
+            Created = created,
+            CompletedTrnLookup = created
         };
         var trn = "1234567";
         var firstTimeUser = true;
@@ -73,7 +76,7 @@ public class AuthenticationStateTests
         Assert.Equal(user.UserId, authenticationState.UserId);
         Assert.True(authenticationState.EmailAddressVerified);
         Assert.Equal(firstTimeUser, authenticationState.FirstTimeUser);
-        Assert.True(authenticationState.HaveCompletedFindALostTrnJourney);
+        Assert.True(authenticationState.HaveCompletedTrnLookup);
         Assert.Equal(trn, authenticationState.Trn);
     }
 
@@ -111,7 +114,7 @@ public class AuthenticationStateTests
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
                         FirstTimeUser = true,
-                        HaveCompletedFindALostTrnJourney = false
+                        HaveCompletedTrnLookup = false
                     },
                     $"/sign-in/trn?asid={journeyId}"
                 },
@@ -123,7 +126,7 @@ public class AuthenticationStateTests
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
                         FirstTimeUser = true,
-                        HaveCompletedFindALostTrnJourney = true,
+                        HaveCompletedTrnLookup = true,
                         UserId = Guid.NewGuid()
                     },
                     authorizationUrl

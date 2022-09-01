@@ -84,7 +84,7 @@ public class AuthorizeTests : TestBase
                 authState.FirstName = user.FirstName;
                 authState.LastName = user.LastName;
                 authState.FirstTimeUser = firstTimeUser;
-                authState.HaveCompletedFindALostTrnJourney = !userKnown && !firstTimeUser;
+                authState.HaveCompletedTrnLookup = !userKnown && !firstTimeUser;
                 authState.UserId = user.UserId;
 
                 if (hasTrn)

@@ -71,6 +71,8 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(firstName, user!.FirstName);
             Assert.Equal(lastName, user!.LastName);
             Assert.Equal(dateOfBirth, user!.DateOfBirth);
+            Assert.Equal(Clock.UtcNow, user.Created);
+            Assert.Equal(Clock.UtcNow, user.CompletedTrnLookup);
 
             if (hasTrn)
             {

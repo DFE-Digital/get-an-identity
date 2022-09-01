@@ -59,6 +59,7 @@ public class TrnCallbackModel : PageModel
             var userId = Guid.NewGuid();
             user = new User()
             {
+                Created = _clock.UtcNow,
                 DateOfBirth = lookupState.DateOfBirth,
                 EmailAddress = authenticationState.EmailAddress!,
                 FirstName = lookupState.FirstName,
@@ -77,6 +78,18 @@ public class TrnCallbackModel : PageModel
         if (!string.IsNullOrEmpty(trn))
         {
             await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId });
+        }
+
+        // Set the HaveCompletedFindALostTrnJourney flag on the user.
+        // This is done in a separate transaction to the user creation and *after* the TRN/User ID has been associated in DQT.
+        // This is so if the API call above fails and the user ends up bailing out, the next time they sign in they will
+        // have to go through Find again (hopefully successfully this time). If we didn't do this we could return a TRN
+        // for this journey but subsequent journeys would not have a TRN (since the link wasn't persisted in DQT).
+
+        if (user.CompletedTrnLookup is null)
+        {
+            user.CompletedTrnLookup = _clock.UtcNow;
+            await _dbContext.SaveChangesAsync();
         }
 
         await HttpContext.SignInUser(user, firstTimeUser: true, trn);

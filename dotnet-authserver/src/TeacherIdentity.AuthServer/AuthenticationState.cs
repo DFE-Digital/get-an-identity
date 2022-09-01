@@ -37,7 +37,7 @@ public class AuthenticationState
     public string? LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? Trn { get; set; }
-    public bool HaveCompletedFindALostTrnJourney { get; set; }
+    public bool HaveCompletedTrnLookup { get; set; }
 
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
@@ -72,7 +72,7 @@ public class AuthenticationState
         }
 
         // trn scope is specified; launch the journey to collect TRN
-        if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedFindALostTrnJourney)
+        if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
         {
             return urlHelper.Trn();
         }
@@ -85,7 +85,7 @@ public class AuthenticationState
     }
 
     public bool IsComplete() => EmailAddressVerified &&
-        (Trn is not null || HaveCompletedFindALostTrnJourney || !GetAuthorizationRequest().HasScope(CustomScopes.Trn)) &&
+        (Trn is not null || HaveCompletedTrnLookup || !GetAuthorizationRequest().HasScope(CustomScopes.Trn)) &&
         UserId.HasValue;
 
     public void Populate(User user, bool firstTimeUser, string? trn)
@@ -96,7 +96,7 @@ public class AuthenticationState
         FirstName = user.FirstName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
-        HaveCompletedFindALostTrnJourney = true;
+        HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
         FirstTimeUser = firstTimeUser;
         Trn = trn;
     }

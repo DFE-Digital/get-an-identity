@@ -48,6 +48,7 @@ public class DbFixture : IAsyncLifetime
             contextLifetime: ServiceLifetime.Transient);
 
         services.AddSingleton<TestData>();
+        services.AddSingleton<IClock, TestClock>();
 
         return services.BuildServiceProvider();
     }
