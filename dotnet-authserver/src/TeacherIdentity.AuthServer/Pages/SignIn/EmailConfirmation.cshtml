@@ -1,4 +1,4 @@
-﻿@page "/sign-in/email-confirmation"
+@page "/sign-in/email-confirmation"
 @model TeacherIdentity.AuthServer.Pages.SignIn.EmailConfirmationModel
 @{
     ViewBag.Title = "Confirm your email address";
@@ -9,7 +9,7 @@
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <h1 class="govuk-heading-xl">Confirm your email address</h1>
 
-      <p class="govuk-body">We’ve emailed a confirmation code to email <span data-testid="email">@Model.Email</span></p>
+      <p class="govuk-body">We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
 
       <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
         <govuk-input-label class="govuk-label--s" />
