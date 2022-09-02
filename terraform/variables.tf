@@ -17,6 +17,11 @@ variable "azure_sp_credentials_json" {
   default = null
 }
 
+variable "app_service_plan_sku" {
+  type    = string
+  default = "B1"
+}
+
 variable "postgres_flexible_server_sku" {
   type    = string
   default = "B_Standard_B1ms"
@@ -113,15 +118,15 @@ variable "testclient_tag" {
 }
 
 locals {
-  hosting_environment             = var.environment_name
-  auth_server_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths"
-  test_client_app_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-testc"
-  postgres_server_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql"
-  postgres_database_name          = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql-db"
-  redis_database_name             = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-redis"
-  app_insights_name               = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-appi"
-  log_analytics_workspace_name    = "${var.resource_prefix}getanid-${var.environment_name}-log"
-  container_apps_environment_name = "${var.resource_prefix}getanid-${var.environment_name}-acaenv"
+  hosting_environment          = var.environment_name
+  auth_server_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths"
+  test_client_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-testc"
+  postgres_server_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql"
+  postgres_database_name       = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-psql-db"
+  redis_database_name          = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-redis"
+  app_insights_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-appi"
+  log_analytics_workspace_name = "${var.resource_prefix}getanid-${var.environment_name}-log"
+  app_service_plan_name        = "${var.resource_prefix}getanid-${var.environment_name}-plan"
 
   keyvault_logging_enabled            = var.keyvault_logging_enabled
   storage_diagnostics_logging_enabled = length(var.storage_log_categories) > 0

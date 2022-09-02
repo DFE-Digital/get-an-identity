@@ -48,12 +48,6 @@ runs:
         TFVARS: ${{ inputs.terraform_vars }}
       working-directory: terraform
 
-    - name: Install extensions
-      run: |
-        az config set extension.use_dynamic_install=yes_without_prompt
-        pwsh -c "Install-Module powershell-yaml -Force"
-      shell: bash
-
     - uses: Azure/login@v1
       with:
         creds: ${{ inputs.azure_credentials }}
