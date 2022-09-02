@@ -1,3 +1,4 @@
+using Flurl;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -129,7 +130,7 @@ public class AuthenticationStateTests
                         HaveCompletedTrnLookup = true,
                         UserId = Guid.NewGuid()
                     },
-                    authorizationUrl
+                    authorizationUrl.SetQueryParam("ftu", bool.TrueString)
                 },
 
                 // Known user, confirmed

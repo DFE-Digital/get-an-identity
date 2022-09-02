@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Flurl;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OpenIddict.Abstractions;
@@ -19,16 +20,17 @@ public class AuthenticationState
         }
     };
 
+
     public AuthenticationState(
         Guid journeyId,
-        string authorizationUrl)
+        string originalAuthorizationUrl)
     {
         JourneyId = journeyId;
-        AuthorizationUrl = authorizationUrl;
+        OriginalAuthorizationUrl = originalAuthorizationUrl;
     }
 
     public Guid JourneyId { get; }
-    public string AuthorizationUrl { get; }
+    public string OriginalAuthorizationUrl { get; }
     public Guid? UserId { get; set; }
     public bool? FirstTimeUser { get; set; }
     public string? EmailAddress { get; set; }
@@ -45,8 +47,20 @@ public class AuthenticationState
 
     public OpenIddictRequest GetAuthorizationRequest()
     {
-        var parameters = QueryHelpers.ParseQuery(AuthorizationUrl.Split('?')[1]);
+        var parameters = QueryHelpers.ParseQuery(OriginalAuthorizationUrl.Split('?')[1]);
         return new OpenIddictRequest(parameters);
+    }
+
+    public string GetFinalAuthorizationUrl()
+    {
+        var finalAuthorizationUrl = OriginalAuthorizationUrl;
+
+        if (FirstTimeUser!.Value)
+        {
+            finalAuthorizationUrl = finalAuthorizationUrl.SetQueryParam("ftu", bool.TrueString);
+        }
+
+        return finalAuthorizationUrl;
     }
 
     public string GetNextHopUrl(IUrlHelper urlHelper)
@@ -81,7 +95,7 @@ public class AuthenticationState
         Debug.Assert(IsComplete());
 
         // We're done - complete authorization
-        return AuthorizationUrl;
+        return GetFinalAuthorizationUrl();
     }
 
     public bool IsComplete() => EmailAddressVerified &&

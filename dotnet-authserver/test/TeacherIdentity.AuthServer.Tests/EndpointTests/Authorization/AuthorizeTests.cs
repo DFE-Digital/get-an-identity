@@ -14,7 +14,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true, hasTrn: true);
-        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.AuthorizationUrl);
+        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.GetFinalAuthorizationUrl());
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -33,7 +33,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true, firstTimeUser: true, hasTrn: false);
-        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.AuthorizationUrl);
+        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.GetFinalAuthorizationUrl());
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -52,7 +52,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userKnown: true);
-        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.AuthorizationUrl);
+        var request = new HttpRequestMessage(HttpMethod.Get, authStateHelper.AuthenticationState.GetFinalAuthorizationUrl());
 
         // Act
         var response = await HttpClient.SendAsync(request);

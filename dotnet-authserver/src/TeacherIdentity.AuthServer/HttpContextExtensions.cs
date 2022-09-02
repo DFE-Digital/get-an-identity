@@ -56,8 +56,6 @@ public static class HttpContextExtensions
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);
         var principal = new ClaimsPrincipal(identity);
 
-        httpContext.Session.SetString(SessionKeys.FirstTimeSignIn, firstTimeUser.ToString());
-
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
     }
 }

@@ -111,9 +111,6 @@ public class Program
                     var authState = new AuthenticationState(authStateId, ctx.Properties.RedirectUri!);
                     ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authState));
 
-                    // Ensure state from any previous journey in this session doesn't bleed through here
-                    ctx.HttpContext.Session.Remove(SessionKeys.FirstTimeSignIn);
-
                     var urlHelperFactory = ctx.HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.Mvc.Routing.IUrlHelperFactory>();
                     var actionContext = ctx.HttpContext.RequestServices.GetRequiredService<IActionContextAccessor>().ActionContext!;
                     var urlHelper = urlHelperFactory.GetUrlHelper(actionContext);
