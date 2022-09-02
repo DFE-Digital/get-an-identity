@@ -32,6 +32,7 @@ locals {
       ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
       ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
       DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
+      DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
       EncryptionKeys__0                            = local.infrastructure_secrets.ENCRYPTION_KEY0,
       EncryptionKeys__1                            = local.infrastructure_secrets.ENCRYPTION_KEY1,
       SigningKeys__0                               = local.infrastructure_secrets.SIGNING_KEY0,
@@ -49,9 +50,10 @@ locals {
   )
 
   test_client_env_vars = {
-    ClientId        = "testclient",
-    ClientSecret    = local.infrastructure_secrets.TESTCLIENT_SECRET,
-    SignInAuthority = "https://${module.auth_server_container_app.container_app_fqdn}"
+    ClientId                   = "testclient",
+    ClientSecret               = local.infrastructure_secrets.TESTCLIENT_SECRET,
+    DOCKER_REGISTRY_SERVER_URL = "https://ghcr.io",
+    SignInAuthority            = "https://${azurerm_linux_web_app.auth-server-app.default_hostname}"
   }
 }
 
@@ -126,23 +128,12 @@ resource "azurerm_application_insights" "insights" {
   }
 }
 
-resource "azapi_resource" "container-apps-environment" {
-  type      = "Microsoft.App/managedEnvironments@2022-03-01"
-  parent_id = data.azurerm_resource_group.group.id
-  location  = data.azurerm_resource_group.group.location
-  name      = local.container_apps_environment_name
-
-  body = jsonencode({
-    properties = {
-      appLogsConfiguration = {
-        destination = "log-analytics"
-        logAnalyticsConfiguration = {
-          customerId = azurerm_log_analytics_workspace.analytics.workspace_id
-          sharedKey  = azurerm_log_analytics_workspace.analytics.primary_shared_key
-        }
-      }
-    }
-  })
+resource "azurerm_service_plan" "service-plan" {
+  name                = local.app_service_plan_name
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+  os_type             = "Linux"
+  sku_name            = var.app_service_plan_sku
 
   lifecycle {
     ignore_changes = [
@@ -151,100 +142,62 @@ resource "azapi_resource" "container-apps-environment" {
   }
 }
 
-module "auth_server_container_app" {
-  source = "./modules/container-app"
+resource "azurerm_linux_web_app" "auth-server-app" {
+  name                = local.auth_server_app_name
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+  service_plan_id     = azurerm_service_plan.service-plan.id
+  https_only          = true
 
-  app_definition_yaml = <<EOT
-kind: containerapp
-location: ${data.azurerm_resource_group.group.location}
-name: ${local.auth_server_app_name}
-resourcegroup: "${data.azurerm_resource_group.group.name}"
-type: Microsoft.App/containerApps
-properties:
-  managedEnvironmentId: ${azapi_resource.container-apps-environment.id}
-  configuration:
-    activeRevisionsMode: "Multiple"
-    ingress:
-      external: true
-      targetPort: 80
-      allowInsecure: false
-      traffic:
-        - latestRevision: true
-          weight: 100
-    secrets:
-      - name: "ghcr-password"
-        value: ${local.infrastructure_secrets.GHCR_PASSWORD}
-    registries:
-      - server: "ghcr.io"
-        username: local.infrastructure_secrets.GHCR_USERNAME
-        passwordSecretRef: "ghcr-password"
-  template:
-    containers:
-      - name: "main"
-        image: "${var.docker_image}:${var.authserver_tag}"
-        env:
-          ${indent(10, yamlencode([for k, v in local.auth_server_env_vars : {
-  name  = k,
-  value = v
-}]))}
-        resources:
-          cpu: 0.5
-          memory: 1Gi
-        probes:
-          - type: "Startup"
-            tcpSocket:
-              port: 80
-  scale:
-    minReplicas: 1
-    maxReplicas: 1
-EOT
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    http2_enabled       = true
+    minimum_tls_version = "1.2"
+    application_stack {
+      docker_image     = var.docker_image
+      docker_image_tag = var.authserver_tag
+    }
+    health_check_path = "/health"
+  }
+
+  app_settings = local.auth_server_env_vars
+
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
 }
 
-module "test_client_container_app" {
-  source = "./modules/container-app"
+resource "azurerm_linux_web_app" "test-client-app" {
+  count               = var.deploy_test_client_app ? 1 : 0
+  name                = local.test_client_app_name
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+  service_plan_id     = azurerm_service_plan.service-plan.id
+  https_only          = true
 
-  app_definition_yaml = <<EOT
-kind: containerapp
-location: ${data.azurerm_resource_group.group.location}
-name: ${local.test_client_app_name}
-resourcegroup: "${data.azurerm_resource_group.group.name}"
-type: Microsoft.App/containerApps
-properties:
-  managedEnvironmentId: ${azapi_resource.container-apps-environment.id}
-  configuration:
-    activeRevisionsMode: "Multiple"
-    ingress:
-      external: true
-      targetPort: 80
-      allowInsecure: false
-      traffic:
-        - latestRevision: true
-          weight: 100
-    secrets:
-      - name: "ghcr-password"
-        value: ${local.infrastructure_secrets.GHCR_PASSWORD}
-    registries:
-      - server: "ghcr.io"
-        username: local.infrastructure_secrets.GHCR_USERNAME
-        passwordSecretRef: "ghcr-password"
-  template:
-    containers:
-      - name: "main"
-        image: "${var.docker_image}:${var.testclient_tag}"
-        env:
-          ${indent(10, yamlencode([for k, v in local.test_client_env_vars : {
-  name  = k,
-  value = v
-}]))}
-        resources:
-          cpu: 0.5
-          memory: 1Gi
-        probes:
-          - type: "Startup"
-            tcpSocket:
-              port: 80
-  scale:
-    minReplicas: 1
-    maxReplicas: 1
-EOT
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    http2_enabled       = true
+    minimum_tls_version = "1.2"
+    application_stack {
+      docker_image     = var.docker_image
+      docker_image_tag = var.testclient_tag
+    }
+  }
+
+  app_settings = local.test_client_env_vars
+
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
 }
