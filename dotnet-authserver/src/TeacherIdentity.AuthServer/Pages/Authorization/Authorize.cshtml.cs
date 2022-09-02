@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -15,6 +16,7 @@ public class AuthorizeModel : PageModel
 
     public bool GotTrn { get; set; }
 
+    [FromQuery(Name = "ftu")]
     public bool FirstTimeUser { get; set; }
 
     public string? Name { get; set; }
@@ -42,7 +44,6 @@ public class AuthorizeModel : PageModel
         Email = user.FindFirst(Claims.Email)!.Value;
         Trn = user.FindFirst(CustomClaims.Trn)?.Value;
         GotTrn = Trn is not null;
-        FirstTimeUser = HttpContext.Session.GetString(SessionKeys.FirstTimeSignIn) == bool.TrueString;
         Name = $"{user.FindFirst(Claims.GivenName)!.Value} {user.FindFirst(Claims.FamilyName)!.Value}";
         DateOfBirth = DateOnly.ParseExact(user.FindFirst(Claims.Birthdate)!.Value, "yyyy-MM-dd");
     }

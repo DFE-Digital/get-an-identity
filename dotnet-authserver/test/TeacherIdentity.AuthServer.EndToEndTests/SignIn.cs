@@ -1,4 +1,5 @@
 using FakeItEasy;
+using Microsoft.Playwright;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
@@ -59,6 +60,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Should now be on the confirmation page
 
+        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
         await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be back at the client, signed in
@@ -68,7 +70,7 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(clientAppHost, pageUrlHost);
 
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
-        Assert.Equal(trn, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
         Assert.Equal(email, signedInEmail);
     }
 
@@ -86,6 +88,77 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
+        await SignInAsNewUser(page, email, firstName, lastName, trn, dateOfBirth);
+    }
+
+    [Fact]
+    public async Task ExistingUser_SignsInWithinSameSessionTheyRegisteredWith_SkipsEmailAndPinAndShowsCorrectConfirmationPage()
+    {
+        var email = $"joe.bloggs+existing-subsequent-sign-in@example.com";
+        var firstName = "Joe";
+        var lastName = "Bloggs";
+        var trn = (string?)null;
+        var dateOfBirth = new DateOnly(1990, 1, 2);
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await SignInAsNewUser(page, email, firstName, lastName, trn, dateOfBirth);
+
+        await ClearCookiesForTestClient();
+
+        // Start on the client app and try to access a protected area
+
+        await page.GotoAsync("/");
+        await page.ClickAsync("text=Profile");
+
+        // Should have jumped straight to confirmation page as the auth server knows who we are
+
+        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be back at the client, signed in
+
+        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
+        var pageUrlHost = new Uri(page.Url).Host;
+        Assert.Equal(clientAppHost, pageUrlHost);
+
+        var signedInEmail = await page.InnerTextAsync("data-testid=email");
+        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(email, signedInEmail);
+
+        async Task ClearCookiesForTestClient()
+        {
+            var cookies = await context.CookiesAsync();
+
+            await context.ClearCookiesAsync();
+
+            // All the Auth server cookies start with 'tis-'
+            await context.AddCookiesAsync(
+                cookies
+                    .Where(c => c.Name.StartsWith("tis-"))
+                    .Select(c => new Cookie()
+                    {
+                        Domain = c.Domain,
+                        Expires = c.Expires,
+                        HttpOnly = c.HttpOnly,
+                        Name = c.Name,
+                        Path = c.Path,
+                        SameSite = c.SameSite,
+                        Secure = c.Secure,
+                        Value = c.Value
+                    }));
+        }
+    }
+
+    private async Task SignInAsNewUser(
+        IPage page,
+        string email,
+        string firstName,
+        string lastName,
+        string? trn,
+        DateOnly dateOfBirth)
+    {
         // Start on the client app and try to access a protected area
 
         await page.GotoAsync("/");
@@ -124,6 +197,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Should now be on the confirmation page
 
+        Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
         await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be back on the client, signed in
