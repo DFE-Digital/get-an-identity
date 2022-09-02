@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.TestClient.Models;
@@ -23,5 +24,12 @@ public class HomeController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet("sign-out")]
+    public async new Task<IActionResult> SignOut()
+    {
+        await HttpContext.SignOutAsync();
+        return RedirectToAction(nameof(Index));
     }
 }
