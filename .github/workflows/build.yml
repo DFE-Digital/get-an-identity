@@ -168,16 +168,24 @@ jobs:
       id: deploy
       with:
         environment_name: dev
-        docker_image: ghcr.io/dfe-digital/get-an-identity
-        authserver_tag: authserver-${{ github.sha }}
-        testclient_tag: testclient-${{ github.sha }}
+        image_tag: ${{ github.sha }}
         azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
         terraform_vars: workspace_variables/dev.tfvars.json
         terraform_backend_vars: workspace_variables/dev.backend.tfvars
 
+    - name: Check the deployed service URL
+      uses: jtalk/url-health-check-action@v2
+      with:
+        url: ${{ steps.deploy.outputs.environment_url }}
+        follow-redirect: false
+        max-attempts: 30 # Optional, defaults to 1
+        # Delay between retries
+        retry-delay: 10s
+        retry-all: false # Optional, defaults to "false"
+
   deploy_preprod:
     name: Deploy to preprod environment
-    needs: [build, validate_terraform]
+    needs: [build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     environment:
@@ -195,9 +203,56 @@ jobs:
       id: deploy
       with:
         environment_name: preprod
-        docker_image: ghcr.io/dfe-digital/get-an-identity
-        authserver_tag: authserver-${{ github.sha }}
-        testclient_tag: testclient-${{ github.sha }}
+        image_tag: ${{ github.sha }}
         azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
         terraform_vars: workspace_variables/preprod.tfvars.json
         terraform_backend_vars: workspace_variables/preprod.backend.tfvars
+
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: "s165t01-getanid-preprod-auths-app"
+        images: "ghcr.io/dfe-digital/get-an-identity:authserver-${{ github.sha }}"
+        slot-name: "staging"
+
+    - uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az webapp deployment slot swap  -g s165t01-getanid-pp-rg -n s165t01-getanid-preprod-auths-app --slot staging --target-slot production
+
+
+  deploy_production:
+    name: Deploy to production environment
+    needs: [build, deploy_preprod]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.environment_url }}
+    concurrency: deploy_production
+
+    outputs:
+      environment_url: ${{ steps.deploy.outputs.environment_url }}
+      postgres_server_name: ${{ steps.deploy.outputs.postgres_server_name }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/workflows/actions/deploy-environment
+      id: deploy
+      with:
+        environment_name: production
+        image_tag: ${{ github.sha }}
+        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+        terraform_vars: workspace_variables/production.tfvars.json
+        terraform_backend_vars: workspace_variables/production.backend.tfvars
+
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: "s165p01-getanid-production-auths-app"
+        images: "ghcr.io/dfe-digital/get-an-identity:authserver-${{ github.sha }}"
+        slot-name: "staging"
+
+    - uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az webapp deployment slot swap  -g s165p01-getanid-pd-rg -n s165p01-getanid-production-auths-app --slot staging --target-slot production

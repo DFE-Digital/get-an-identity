@@ -21,7 +21,6 @@ locals {
         }
     ]...))
   ]...)
-
   auth_server_env_vars = merge(
     local.auth_server_clients_app_env_vars,
     local.auth_server_api_clients_app_env_vars,
@@ -81,6 +80,13 @@ resource "azurerm_postgresql_flexible_server_database" "postgres-database" {
   server_id = azurerm_postgresql_flexible_server.postgres-server.id
 }
 
+resource "azurerm_postgresql_flexible_server_firewall_rule" "postgres-fw-rule-azure" {
+  name             = "AllowAzure"
+  server_id        = azurerm_postgresql_flexible_server.postgres-server.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
 resource "azurerm_redis_cache" "redis" {
   name                = local.redis_database_name
   location            = data.azurerm_resource_group.group.location
@@ -127,7 +133,6 @@ resource "azurerm_application_insights" "insights" {
     ]
   }
 }
-
 resource "azurerm_service_plan" "service-plan" {
   name                = local.app_service_plan_name
   location            = data.azurerm_resource_group.group.location
@@ -156,11 +161,15 @@ resource "azurerm_linux_web_app" "auth-server-app" {
   site_config {
     http2_enabled       = true
     minimum_tls_version = "1.2"
-    application_stack {
-      docker_image     = var.docker_image
-      docker_image_tag = var.authserver_tag
+    health_check_path   = "/health"
+
+    dynamic "application_stack" {
+      for_each = var.environment_name != "dev" ? [] : [1]
+      content {
+        docker_image     = var.docker_image
+        docker_image_tag = var.authserver_tag
+      }
     }
-    health_check_path = "/health"
   }
 
   app_settings = local.auth_server_env_vars
@@ -171,6 +180,25 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     ]
   }
 }
+
+resource "azurerm_linux_web_app_slot" "auth-server-stage" {
+  count          = var.environment_name != "dev" ? 1 : 0
+  name           = "staging"
+  app_service_id = azurerm_linux_web_app.auth-server-app.id
+  site_config {
+    http2_enabled       = true
+    minimum_tls_version = "1.2"
+    health_check_path   = "/health"
+
+  }
+  app_settings = local.auth_server_env_vars
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+
 
 resource "azurerm_linux_web_app" "test-client-app" {
   count               = var.deploy_test_client_app ? 1 : 0
@@ -201,3 +229,4 @@ resource "azurerm_linux_web_app" "test-client-app" {
     ]
   }
 }
+

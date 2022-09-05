@@ -67,7 +67,9 @@ validate-keyvault-secret: read-keyvault-config install-fetch-config set-azure-ac
 		&& echo Data in ${KEY_VAULT_NAME}/${KEY_VAULT_SECRET_NAME} looks valid
 
 terraform-init:
-	$(if $(or $(DISABLE_PASSCODE),$(PASSCODE)), , $(error Missing environment variable "PASSCODE", retrieve from https://login.london.cloud.service.gov.uk/passcode))
+	$(if $(IMAGE_TAG), , $(eval export IMAGE_TAG=main))
+	$(eval export TF_VAR_authserver_tag=authserver-$(IMAGE_TAG))
+	$(eval export TF_VAR_testclient_tag=testclient-$(IMAGE_TAG))
 	[[ "${SP_AUTH}" != "true" ]] && az account show && az account set -s $(AZURE_SUBSCRIPTION) || true
 	terraform -chdir=terraform init -backend-config workspace_variables/${DEPLOY_ENV}.backend.tfvars $(backend_config) -upgrade -reconfigure
 
