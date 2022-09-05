@@ -80,14 +80,3 @@ runs:
         TF_VAR_azure_sp_credentials_json: ${{ inputs.azure_credentials }}
         IMAGE_TAG: ${{ inputs.image_tag }}
       shell: bash
-
-    - name: Public IP
-      id: ip
-      uses: haythem/public-ip@v1.2
-
-    # - name: Azure CLI script
-    #   uses: azure/CLI@v1
-    #   with:
-    #     azcliversion: 2.30.0
-    #     inlineScript: |
-    #       az postgres flexible-server firewall-rule create --name ${{ steps.terraform.outputs.postgres_server_name }} --resource-group ${{ steps.config.outputs.resource_group_name }} --rule-name Allow-GithubRunner --start-ip-address ${{ steps.ip.outputs.ipv4 }} --end-ip-address ${{ steps.ip.outputs.ipv4 }}
