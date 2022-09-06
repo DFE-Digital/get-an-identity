@@ -10,6 +10,8 @@ public static class UrlHelperExtensions
 
     public static string EmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");
 
+    public static string ResendEmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/ResendEmailConfirmation");
+
     public static string Trn(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/Trn");
 
     public static string TrnCallback(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
