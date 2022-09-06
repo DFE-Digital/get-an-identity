@@ -31,7 +31,6 @@ variable "postgres_flexible_server_storage_mb" {
   type    = number
   default = 32768
 }
-
 variable "key_vault_name" {
   type = string
 }
@@ -117,6 +116,12 @@ variable "testclient_tag" {
   type = string
 }
 
+variable "enable_blue_green" {
+  type    = bool
+  default = false
+}
+
+
 locals {
   hosting_environment          = var.environment_name
   auth_server_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths-app"
@@ -132,4 +137,5 @@ locals {
   storage_diagnostics_logging_enabled = length(var.storage_log_categories) > 0
   storage_log_categories              = var.storage_log_categories
   storage_log_retention_days          = var.environment_name == "prd" ? 365 : 30
+  web_app_slot_name                   = "staging"
 }
