@@ -37,9 +37,17 @@ services.AddOpenIddict()
     });
 
 var serviceProvider = services.BuildServiceProvider();
+await using var scope = serviceProvider.CreateAsyncScope();
 
-var helper = new ClientConfigurationHelper(serviceProvider);
+using (var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>())
+{
+    await dbContext.Database.EnsureCreatedAsync();
+}
+
+var helper = new ClientConfigurationHelper(scope.ServiceProvider);
 await helper.UpsertClients(clients);
+
+Console.WriteLine("Configuration updated successfully.");
 
 string GetRequiredConfigurationValue(string key)
 {
