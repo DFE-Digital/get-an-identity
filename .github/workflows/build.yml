@@ -187,7 +187,7 @@ jobs:
     - name: Check the deployed service URL
       uses: jtalk/url-health-check-action@v2
       with:
-        url: ${{ steps.deploy.outputs.environment_url }}
+        url: ${{ steps.deploy.outputs.environment_url }}/health
         follow-redirect: false
         max-attempts: 30 # Optional, defaults to 1
         # Delay between retries
@@ -229,7 +229,6 @@ jobs:
       with:
         inlineScript: |
           az webapp deployment slot swap  -g s165t01-getanid-pp-rg -n s165t01-getanid-preprod-auths-app --slot staging --target-slot production
-
 
   deploy_production:
     name: Deploy to production environment
