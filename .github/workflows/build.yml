@@ -105,7 +105,7 @@ jobs:
         dotnet publish --configuration Release --no-build src/TeacherIdentity.TestClient/TeacherIdentity.TestClient.csproj
 
     - name: Get Docker image tags
-      id: image-tags
+      id: image_tags
       run: |
         echo ::set-output name=authserver::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA
         echo ::set-output name=testclient::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):testclient-$GITHUB_SHA
@@ -122,7 +122,7 @@ jobs:
       with:
         context: dotnet-authserver/src/TeacherIdentity.AuthServer
         push: true
-        tags: ${{ steps.image-tags.outputs.authserver }}
+        tags: ${{ steps.image_tags.outputs.authserver }}
         build-args: |
           GIT_SHA=${{ github.sha }}
 
@@ -131,7 +131,7 @@ jobs:
       with:
         context: dotnet-authserver/src/TeacherIdentity.TestClient
         push: true
-        tags: ${{ steps.image-tags.outputs.testclient }}
+        tags: ${{ steps.image_tags.outputs.testclient }}
 
   validate_terraform:
     name: Validate Terraform
@@ -187,16 +187,6 @@ jobs:
         terraform_vars: workspace_variables/dev.tfvars.json
         terraform_backend_vars: workspace_variables/dev.backend.tfvars
 
-    - name: Check the deployed service URL
-      uses: jtalk/url-health-check-action@v2
-      with:
-        url: ${{ steps.deploy.outputs.environment_url }}/health
-        follow-redirect: false
-        max-attempts: 30 # Optional, defaults to 1
-        # Delay between retries
-        retry-delay: 10s
-        retry-all: false # Optional, defaults to "false"
-
   deploy_preprod:
     name: Deploy to preprod environment
     needs: [build]
@@ -221,17 +211,6 @@ jobs:
         azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
         terraform_vars: workspace_variables/preprod.tfvars.json
         terraform_backend_vars: workspace_variables/preprod.backend.tfvars
-
-    - uses: azure/webapps-deploy@v2
-      with:
-        app-name: "s165t01-getanid-preprod-auths-app"
-        images: "ghcr.io/dfe-digital/get-an-identity:authserver-${{ github.sha }}"
-        slot-name: "staging"
-
-    - uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az webapp deployment slot swap  -g s165t01-getanid-pp-rg -n s165t01-getanid-preprod-auths-app --slot staging --target-slot production
 
   deploy_production:
     name: Deploy to production environment
@@ -259,13 +238,3 @@ jobs:
         terraform_vars: workspace_variables/production.tfvars.json
         terraform_backend_vars: workspace_variables/production.backend.tfvars
 
-    - uses: azure/webapps-deploy@v2
-      with:
-        app-name: "s165p01-getanid-production-auths-app"
-        images: "ghcr.io/dfe-digital/get-an-identity:authserver-${{ github.sha }}"
-        slot-name: "staging"
-
-    - uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az webapp deployment slot swap  -g s165p01-getanid-pd-rg -n s165p01-getanid-production-auths-app --slot staging --target-slot production
