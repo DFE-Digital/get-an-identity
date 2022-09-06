@@ -9,14 +9,14 @@
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <h1 class="govuk-heading-xl">Confirm your email address</h1>
 
-      <p class="govuk-body">We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
+      <p>We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
 
       <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
         <govuk-input-label class="govuk-label--s" />
       </govuk-input>
 
       <p>
-        <a href="#" class="govuk-body govuk-link">I have not received an email</a>
+        <a href="#">I have not received an email</a>
       </p>
 
       <govuk-button type="submit">Continue</govuk-button>

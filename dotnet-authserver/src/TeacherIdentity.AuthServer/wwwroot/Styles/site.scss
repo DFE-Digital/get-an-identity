@@ -1,4 +1,55 @@
+@use '../lib/govuk-frontend/govuk/all.scss';
 @import '../lib/govuk-frontend/govuk/_base.scss';
+@import '../lib/govuk-frontend/govuk/settings/measurements.scss';
+
+a {
+  @extend %govuk-link;
+}
+
+p {
+  @extend .govuk-body;
+}
+
+.app-panel--interruption {
+  background-color: govuk-colour("blue");
+  color: govuk-colour("white");
+  text-align: left;
+
+  p,
+  .govuk-heading-m,
+  .govuk-list,
+  .govuk-body,
+  .govuk-label,
+  .govuk-fieldset__legend,
+  .govuk-hint {
+    color: govuk-colour("white");
+  }
+
+  p {
+    margin-bottom: 20px;
+  }
+
+  .govuk-heading-m {
+    padding-top: 10px;
+  }
+
+  *:last-child {
+    margin-bottom: 0;
+  }
+
+  .govuk-radios__label::before,
+  & ::after {
+    color: govuk-colour("black");
+    border-color: govuk-colour("black");
+    background-color: govuk-colour("white");
+  }
+
+  @include govuk-media-query(desktop) {
+    > * {
+      width: map_get($govuk-grid-widths, two-thirds);
+    }
+  }
+}
 
 $app-button-shadow-size: $govuk-border-width-form-element;
 $app-button-inverse-background-colour: govuk-colour("white");
@@ -31,3 +82,4 @@ $app-button-inverse-hover-background-colour: govuk-tint($app-button-inverse-fore
   background-color: $app-button-inverse-hover-background-colour;
   box-shadow: inset 0 0 0 2px $govuk-focus-colour;
 }
+

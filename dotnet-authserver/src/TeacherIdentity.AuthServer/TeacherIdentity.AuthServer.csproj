@@ -4,12 +4,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>TeacherIdentityServer</UserSecretsId>
-    <EnableDefaultSassItems>false</EnableDefaultSassItems>
   </PropertyGroup>
 
-  <ItemGroup>
-    <SassFile Include="wwwroot/Styles/**/*.scss" />
-  </ItemGroup>
+  <Target Name="CompileSass" BeforeTargets="Build">
+    <Exec Command="sass -q wwwroot/Styles/site.scss wwwroot/Styles/site.css" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="6.0.2" />
@@ -23,7 +22,6 @@
     <PackageReference Include="Hangfire.PostgreSql" Version="1.9.8" />
     <PackageReference Include="idunno.Authentication.Basic" Version="2.2.3" />
     <PackageReference Include="Joonasw.AspNetCore.SecurityHeaders" Version="4.0.1" />
-    <PackageReference Include="LibSassBuilder" Version="2.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.7" />
