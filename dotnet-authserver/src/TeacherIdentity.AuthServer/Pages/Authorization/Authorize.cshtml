@@ -49,17 +49,17 @@
       <govuk-panel-body>
         @if (Model.GotTrn)
         {
-            <p class="govuk-body" data-testid="known-trn-content">Thank you, we’ve finished checking our records.</p>
+            <p data-testid="known-trn-content">Thank you, we’ve finished checking our records.</p>
         }
         else
         {
             <span data-testid="unknown-trn-content"></span>
             <h2 class="govuk-heading-m">You can continue without a match</h2>
-            <p class="govuk-body">We will attempt to match your record again. If we cannot, someone might be in touch to ask for more information.</p>
+            <p>We will attempt to match your record again. If we cannot, someone might be in touch to ask for more information.</p>
         }
 
         <h2 class="govuk-heading-m">Next time</h2>
-        <p class="govuk-body govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
+        <p class="govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
 
         @{
           await RenderForm("app-button--inverse govuk-!-margin-bottom-0");

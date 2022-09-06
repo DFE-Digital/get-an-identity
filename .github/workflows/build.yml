@@ -62,6 +62,9 @@ jobs:
         dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json
         dotnet-format --verify-no-changes
 
+    - name: Install SASS
+      run: npm install -g sass
+
     - name: Build
       run: dotnet build --configuration Release
 
