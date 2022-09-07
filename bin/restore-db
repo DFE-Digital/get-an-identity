@@ -1,0 +1,43 @@
+#!/bin/bash
+set -eu
+CONFIRM_RESTORE=$1
+POSTGRES_SERVER_NAME=$2
+POSTGRES_USER=$3
+POSTGRES_DATABASE_NAME=$4
+POSTGRES_PASSWORD=$5
+BACKUP_FILENAME=$6
+
+if [[ -z "${CONFIRM_RESTORE}" ]]; then
+  echo "CONFIRM_RESTORE environment variable not set"
+  exit 1
+fi
+
+if [[ -z "${POSTGRES_SERVER_NAME}" ]]; then
+  echo "POSTGRES_SERVER_NAME environment variable not set"
+  exit 1
+fi
+
+if [[ -z "${POSTGRES_DATABASE_NAME}" ]]; then
+  echo "POSTGRES_DATABASE_NAME environment variable not set"
+  exit 1
+fi
+
+if [[ -z "${POSTGRES_USER}" ]]; then
+  echo "POSTGRES_USER environment variable not set"
+  exit 1
+fi
+
+if [[ -z "${POSTGRES_PASSWORD}" ]]; then
+  echo "POSTGRES_PASSWORD environment variable not set"
+  exit 1
+fi
+
+if [[ ! -f "${BACKUP_FILENAME}" ]]; then
+  echo "${BACKUP_FILENAME} does not exist."
+  exit 1
+fi
+
+export PGPASSWORD=${POSTGRES_PASSWORD}
+echo "Restoring ${BACKUP_FILENAME} to ${POSTGRES_DATABASE_NAME} in ${POSTGRES_SERVER_NAME}"
+# if psql is not installed on the machine that's running this command then install it using `sudo apt install postgresql-client postgresql -y`
+psql -h ${POSTGRES_SERVER_NAME} -d ${POSTGRES_DATABASE_NAME} -U ${POSTGRES_USER} < "${BACKUP_FILENAME}"

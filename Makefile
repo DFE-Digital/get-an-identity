@@ -1,4 +1,3 @@
-
 .DEFAULT_GOAL		:=help
 SHELL				:=/bin/bash
 
@@ -31,10 +30,16 @@ production:
 	$(eval RESOURCE_NAME_PREFIX=s165p01)
 	$(eval ENV_SHORT=pd)
 	$(eval ENV_TAG=prod)
+	$(eval AZURE_BACKUP_STORAGE_ACCOUNT_NAME=s165p01getaniddbbackuppd)
+	$(eval AZURE_BACKUP_STORAGE_CONTAINER_NAME=get-an-identity)
 
 read-keyvault-config:
 	$(eval KEY_VAULT_NAME=$(shell jq -r '.key_vault_name' terraform/workspace_variables/$(DEPLOY_ENV).tfvars.json))
 	$(eval KEY_VAULT_SECRET_NAME=INFRASTRUCTURE)
+
+read-deployment-config:
+	$(eval POSTGRES_DATABASE_NAME="$(RESOURCE_NAME_PREFIX)-getanid-$(DEPLOY_ENV)${var.app_suffix}-psql-db")
+	$(eval POSTGRES_SERVER_NAME="$(RESOURCE_NAME_PREFIX)-getanid-$(DEPLOY_ENV)${var.app_suffix}-psql.postgres.database.azure.com")
 
 set-azure-account: ${environment}
 	echo "Logging on to ${AZURE_SUBSCRIPTION}"
@@ -65,6 +70,12 @@ print-keyvault-secret: read-keyvault-config install-fetch-config set-azure-accou
 validate-keyvault-secret: read-keyvault-config install-fetch-config set-azure-account
 	bin/fetch_config.rb -s azure-key-vault-secret:${KEY_VAULT_NAME}/${KEY_VAULT_SECRET_NAME} -d quiet \
 		&& echo Data in ${KEY_VAULT_NAME}/${KEY_VAULT_SECRET_NAME} looks valid
+
+restore-data-from-backup: read-keyvault-config read-deployment-config # make production restore-data-from-backup CONFIRM_RESTORE=YES BACKUP_FILENAME="get-an-identity-production-pg-svc-2022-07-06-01"
+	@if [[ "$(CONFIRM_RESTORE)" != YES ]]; then echo "Please enter "CONFIRM_RESTORE=YES" to run workflow"; exit 1; fi
+	$(eval export AZURE_BACKUP_STORAGE_ACCOUNT_NAME=$(AZURE_BACKUP_STORAGE_ACCOUNT_NAME))
+	$(if $(BACKUP_FILENAME), , $(error can only run with BACKUP_FILENAME, eg BACKUP_FILENAME="get-an-identity-production-pg-svc-2022-04-28-01"))
+	pwsh ./Restore-Postgres-Backup.ps1 -BackupStorageAccountName ${AZURE_BACKUP_STORAGE_ACCOUNT_NAME} -BackupStorageContainerName ${AZURE_BACKUP_STORAGE_CONTAINER_NAME} -VaultName ${KEY_VAULT_NAME} -Subscription $(AZURE_SUBSCRIPTION) -SecretName "INFRASTRUCTURE" -BackupFileName ${BACKUP_FILENAME} -PostgresDatabaseName ${POSTGRES_DATABASE_NAME} -PostgresServerName ${POSTGRES_SERVER_NAME} -ConfirmRestore ${CONFIRM_RESTORE}
 
 terraform-init:
 	$(if $(IMAGE_TAG), , $(eval export IMAGE_TAG=main))
