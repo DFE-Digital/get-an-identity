@@ -19,12 +19,12 @@ jobs:
   setup:
     name: Cancel previous runs for PR
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
 
     steps:
     - uses: styfle/cancel-workflow-action@0.9.1
       with:
         access_token: ${{ github.token }}
+      if: github.event_name == 'pull_request'
 
   build:
     name: Build
