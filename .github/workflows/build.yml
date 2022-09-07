@@ -17,12 +17,12 @@ defaults:
 
 jobs:
   setup:
-    name: Setup
+    name: Cancel previous runs for PR
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.9.1
+    - uses: styfle/cancel-workflow-action@0.9.1
       with:
         access_token: ${{ github.token }}
 
