@@ -35,7 +35,7 @@ This request includes some additional context, specified as form values:
 | Query parameter | Remarks |
 | --- | --- |
 | email | The verified email address as captured by the authorization server. This allows Find a lost TRN to skip asking the user for their email address again. |
-| redirect_uri | This is the callback URL on the authorization server that Find should redirect the user to once it has resolved a TRN. |
+| redirect_url | This is the callback URL on the authorization server that Find should redirect the user to once it has resolved a TRN. |
 | client_title | The name of the client that initiated the authorization journey. This enables 'branding' both the the authorization server and Find a lost TRN such that the user perceives the journey as a single service e.g. 'Register for a National Professional Qualification'. |
 | client_url | The home page of the calling service, used to generate the header link. |
 | previous_url | The URL of the page that POSTed to Find, used to generate a back link. |
@@ -62,7 +62,7 @@ POST /identity HTTP/1.1
 Host: https://find-a-lost-trn.education.gov.uk
 Content-Type: application/x-www-form-urlencoded
 
-redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&client_url=https%3A%2F%2Fcalling.service.gov.uk&previous_url=https%3A%2F%2Fauthserveruri%2Fsign-in%2Ftrn&sig=D3E09A334FAD2201A88C7199250C9670C368102B3581A5DBF9C76F503B8A0575`
+redirect_url=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&email=joe.bloggs@example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&client_url=https%3A%2F%2Fcalling.service.gov.uk&previous_url=https%3A%2F%2Fauthserveruri%2Fsign-in%2Ftrn&sig=f8aafaee18726270ddffa71768c59a954cc66e3b2b86fb41a181fffcfc589259`
 ```
 
 1. Sort parameters and remove 'sig':
@@ -73,11 +73,11 @@ redirect_uri=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&em
    | email | joe.bloggs@example.com |
    | journey_id | 9ddccb62-ec13-4ea7-a163-c058a19b8222 |
    | previous_url | https://authserveruri/sign-in/trn |
-   | redirect_uri | https://authserveruri/ |
+   | redirect_url | https://authserveruri/ |
 2. Encode parameters and combine:\
-    `client_title=The%20Client%20Title&client_url=https%3A%2F%2Fcalling.service.gov.uk&email=joe.bloggs%40example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&previous_url=https%3A%2F%2Fauthserveruri%2Fsign-in%2Ftrn&redirect_uri=https%3A%2F%2Fauthserveruri%2F`
+    `client_title=The%20Client%20Title&client_url=https%3A%2F%2Fcalling.service.gov.uk&email=joe.bloggs%40example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&previous_url=https%3A%2F%2Fauthserveruri%2Fsign-in%2Ftrn&redirect_url=https%3A%2F%2Fauthserveruri%2F`
 3. Sign the string with the PSK\
-    `ac854c42fb58a27c7f9085628864425a3368a3a5a201da9269d66c0c18b10857`
+    `f8aafaee18726270ddffa71768c59a954cc66e3b2b86fb41a181fffcfc589259`
 
 
 ## Handover from Find a lost TRN to the authorization server
@@ -87,7 +87,7 @@ Once Find a lost TRN has completed its journey (whether successfully resolving a
 Find a lost TRN must do a back-end API call to a PUT endpoint on the authorization server's API `/api/find-trn/user/{journeyId}` (where `{journeyId}` is the ID passed in the initial handover request).
 The body is a JSON object containing `firstName`, `lastName`, `dateOfBirth` and `trn` properties.
 
-Finally, Find a lost TRN should redirect the user to the `redirect_uri` specified in the initial handover request.
+Finally, Find a lost TRN should redirect the user to the `redirect_url` specified in the initial handover request.
 
 When the authorization server receives the callback, it will look up the user information that was persisted against the journey ID by the API call. Using that information it will register the user and complete the authorization process.
 

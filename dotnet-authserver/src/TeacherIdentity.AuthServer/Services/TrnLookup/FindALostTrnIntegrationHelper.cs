@@ -44,7 +44,8 @@ public class FindALostTrnIntegrationHelper
         var formValues = new Dictionary<string, string>()
         {
             { "email", authenticationState.EmailAddress! },
-            { "redirect_uri", callbackUrl },
+            { "redirect_url", callbackUrl },
+            { "redirect_uri", callbackUrl },  // TEMP, for back-compat
             { "client_title", clientDisplayName ?? string.Empty },
             { "journey_id", authenticationState.JourneyId.ToString() },
             { "client_url", clientServiceUrl ?? string.Empty },

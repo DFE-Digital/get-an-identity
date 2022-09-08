@@ -55,8 +55,8 @@ public class IndexModel : PageModel
 
         await PersistLookupState();
 
-        var redirectUri = HttpContext.Session.GetString("FindALostTrn:RedirectUri")!;
-        return Redirect(redirectUri);
+        var redirectUrl = HttpContext.Session.GetString("FindALostTrn:RedirectUrl")!;
+        return Redirect(redirectUrl);
 
         async Task PersistLookupState()
         {
