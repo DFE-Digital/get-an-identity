@@ -21,6 +21,9 @@ public class IdentityModel : PageModel
     [FromForm(Name = "journey_id")]
     public Guid JourneyId { get; set; }
 
+    [FromForm(Name = "previous_url")]
+    public string? PreviousUrl { get; set; }
+
     [FromForm(Name = "redirect_uri")]
     public string? RedirectUri { get; set; }
 
@@ -39,6 +42,7 @@ public class IdentityModel : PageModel
 
         HttpContext.Session.SetString("FindALostTrn:Email", Email!);
         HttpContext.Session.SetString("FindALostTrn:JourneyId", JourneyId.ToString());
+        HttpContext.Session.SetString("FindALostTrn:PreviousUrl", PreviousUrl!);
         HttpContext.Session.SetString("FindALostTrn:RedirectUri", RedirectUri!);
 
         return RedirectToPage("Index");

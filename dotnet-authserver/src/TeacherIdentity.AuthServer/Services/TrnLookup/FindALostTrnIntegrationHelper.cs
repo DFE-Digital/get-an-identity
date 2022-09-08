@@ -47,7 +47,8 @@ public class FindALostTrnIntegrationHelper
             { "redirect_uri", callbackUrl },
             { "client_title", clientDisplayName ?? string.Empty },
             { "journey_id", authenticationState.JourneyId.ToString() },
-            { "client_url", clientServiceUrl ?? string.Empty }
+            { "client_url", clientServiceUrl ?? string.Empty },
+            { "previous_url", urlHelper.Trn() }
         };
 
         var sig = CalculateSignature(formValues);
