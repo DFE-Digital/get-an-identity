@@ -19,7 +19,6 @@ public class IndexModel : PageModel
     [Display(Name = "Email address")]
     [Required(ErrorMessage = "Enter your email address")]
     public string? Email { get; set; }
-
     [BindProperty]
     [Display(Name = "First name")]
     [Required(ErrorMessage = "Enter your first name")]
@@ -39,11 +38,12 @@ public class IndexModel : PageModel
     [Display(Name = "TRN")]
     public string? Trn { get; set; }
 
-    public string? RedirectUri { get; set; }
+    public string? PreviousUrl { get; private set; }
 
     public void OnGet()
     {
         Email = HttpContext.Session.GetString("FindALostTrn:Email");
+        PreviousUrl = HttpContext.Session.GetString("FindALostTrn:PreviousUrl");
     }
 
     public async Task<IActionResult> OnPost()
