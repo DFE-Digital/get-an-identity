@@ -16,6 +16,7 @@ Information coming soon...
 | ADR'S          | [technical-decisions](/docs/architecture/decisions/) |
 | Tech Docs      | [tech-docs-site](https://teacher-services-tech-docs.london.cloudapps.digital/) |
 | TRN Design     | [trn-design-history](https://tra-digital-design-history.herokuapp.com/teacher-self-service-portal/trn-holders/) |
+
 ### Details and configuration
 
 | Name           | Description                                   | Status
@@ -44,7 +45,34 @@ We keep track of architecture decisions in [Architecture Decision Records
 
 ## Setup
 
-Information coming soon...
+### Developer setup
+
+#### Software requirements
+
+The API is an ASP.NET Core 6 web application. To develop locally you will need the following installed:
+- Visual Studio 2022 (or the .NET 6 SDK and an alternative IDE/editor);
+- a local Postgres 13+ instance;
+- [SASS]( https://sass-lang.com/install).
+
+#### Database setup
+
+Install Postgres then add a connection string to user secrets for the `TeacherIdentityServer`, `TeacherIdentityAuthServerTests` and `TeacherIdentityServerEndToEndTests` projects.
+
+```shell
+dotnet user-secrets --id TeacherIdentityServer set ConnectionStrings:DefaultConnection "Host=localhost;Username=your_postgres_user;Password=your_postgres_password;Database=teacher_identity"
+dotnet user-secrets --id TeacherIdentityAuthServerTests set ConnectionStrings:DefaultConnection "Host=localhost;Username=your_postgres_user;Password=your_postgres_password;Database=teacher_identity_tests"
+dotnet user-secrets --id TeacherIdentityServerEndToEndTests set AuthorizationServer:ConnectionStrings:DefaultConnection "Host=localhost;Username=your_postgres_user;Password=your_postgres_password;Database=teacher_identity_e2etests"
+```
+Where `your_postgres_user` and `your_postgres_password` are the username and password of your Postgres installation, respectively.
+
+The databases will be created automatically when running the API or tests in development mode.
+
+#### Test client
+
+The solution includes a test client that is used for testing end-to-end OIDC flows. This client's details must be added to the database.
+Run the `TeacherIdentity.AuthServer.Clients` console app to configure the test client for local development. This only needs to be done once.
+Once this has been run, you should be able to launch both the `TeacherIdentity.AuthServer` project and the `TeacherIdentity.TestClient` project and browse to `https://localhost:7261` to start the sign in journey.
+
 
 ### BigQuery
 

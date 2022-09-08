@@ -1,14 +1,14 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:57243",
-      "sslPort": 44386
+      "applicationUrl": "http://localhost:5261",
+      "sslPort": 7261
     }
   },
   "profiles": {
-    "Client": {
+    "TeacherIdentity.TestClient": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
