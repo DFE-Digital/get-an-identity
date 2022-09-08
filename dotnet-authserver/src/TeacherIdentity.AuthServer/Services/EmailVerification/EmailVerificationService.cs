@@ -78,14 +78,19 @@ public class EmailVerificationService : IEmailVerificationService
         var clientDisplayName = client?.DisplayName ?? "Get an identity to access Teacher Services";
 
         var emailSubject = "Confirm your email address";
-        var emailBody = $"{pin} is your {clientDisplayName} security code";
+        var emailBody = $"Use this code to confirm your email address:\n\n" +
+            $"{pin}\n\n" +
+            $"The code will expire after {(int)_pinLifetime.TotalMinutes} minutes.\n\n" +
+            $"This email address has been used for {clientDisplayName}.\n\n" +
+            $"If this was not you, you can ignore this email.\n\n" +
+            $"Department for Education";
         await _emailSender.SendEmail(email, emailSubject, emailBody);
 
         _logger.LogInformation("Generated email confirmation PIN {Pin} for {Email}", pin, email);
 
         return pin;
 
-        static string GeneratePin() => RandomNumberGenerator.GetInt32(fromInclusive: 100_00, toExclusive: 99_999 + 1).ToString();
+        static string GeneratePin() => RandomNumberGenerator.GetInt32(fromInclusive: 10_000, toExclusive: 99_999 + 1).ToString();
     }
 
     public async Task<PinVerificationFailedReasons> VerifyPin(string email, string pin)
