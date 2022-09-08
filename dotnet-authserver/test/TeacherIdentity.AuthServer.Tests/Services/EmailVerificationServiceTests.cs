@@ -11,7 +11,7 @@ namespace TeacherIdentity.AuthServer.Tests.Services;
 
 public class EmailVerificationServiceTests : IClassFixture<DbFixture>
 {
-    private static readonly TimeSpan _pinLifetime = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan _pinLifetime = TimeSpan.FromSeconds(120);
 
     private readonly DbFixture _dbFixture;
 
@@ -72,7 +72,12 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
             });
 
         var expectedEmailSubject = "Confirm your email address";
-        var expectedEmailBody = $"{pin} is your {currentClientDisplayName} security code";
+
+        var expectedEmailBody = $"Use this code to confirm your email address:\n\n" +
+            $"{pin}\n\n" +
+            $"The code will expire after 2 minutes.\n\n" +
+            $"This email address has been used for {currentClientDisplayName}.\n\n" +
+            $"If this was not you, you can ignore this email.\n\nDepartment for Education";
 
         A.CallTo(() => emailSender.SendEmail(email, expectedEmailSubject, expectedEmailBody)).MustHaveHappenedOnceExactly();
     }
