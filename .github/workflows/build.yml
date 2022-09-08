@@ -30,6 +30,8 @@ jobs:
     name: Build
     needs: [setup]
     runs-on: ubuntu-latest
+    environment:
+      name: dev
 
     outputs:
       authserver: ${{ steps.image_tags.outputs.authserver }}
@@ -110,6 +112,26 @@ jobs:
         echo ::set-output name=authserver::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA
         echo ::set-output name=testclient::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):testclient-$GITHUB_SHA
 
+    - name: Set KV environment variables
+      working-directory: terraform
+      if: github.actor != 'dependabot[bot]'
+      run: |
+        tf_vars_file=workspace_variables/dev.tfvars.json
+        echo "KEY_VAULT_NAME=$(jq -r '.key_vault_name' ${tf_vars_file})" >> $GITHUB_ENV
+
+    - uses: azure/login@v1
+      if: github.actor != 'dependabot[bot]'
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - uses: DFE-Digital/keyvault-yaml-secret@v1
+      if: github.actor != 'dependabot[bot]'
+      id: get-secret
+      with:
+        keyvault: ${{ env.KEY_VAULT_NAME }}
+        secret: INFRASTRUCTURE
+        key: SNYK_TOKEN
+
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v1
       with:
@@ -117,21 +139,35 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: AuthServer Docker build & push
-      uses: docker/build-push-action@v2
+    - name: Auth server docker build
+      uses: docker/build-push-action@v3
       with:
         context: dotnet-authserver/src/TeacherIdentity.AuthServer
-        push: true
+        push: false
         tags: ${{ steps.image_tags.outputs.authserver }}
         build-args: |
           GIT_SHA=${{ github.sha }}
 
-    - name: TestClient Docker build & push
-      uses: docker/build-push-action@v2
+    - name: Run Snyk to check auth server Docker image for vulnerabilities
+      if: github.actor != 'dependabot[bot]'
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ steps.get-secret.outputs.snyk_token }}
+      with:
+        image: ${{ steps.image_tags.outputs.authserver }}
+        args: --file=dotnet-authserver/src/TeacherIdentity.AuthServer/Dockerfile --severity-threshold=high
+
+    - name: Push auth server docker image
+      run: docker image push ${{ steps.image_tags.outputs.authserver }}
+
+    - name: Test client docker build
+      uses: docker/build-push-action@v3
       with:
         context: dotnet-authserver/src/TeacherIdentity.TestClient
         push: true
         tags: ${{ steps.image_tags.outputs.testclient }}
+        build-args: |
+          GIT_SHA=${{ github.sha }}
 
   validate_terraform:
     name: Validate Terraform
@@ -237,4 +273,3 @@ jobs:
         azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
         terraform_vars: workspace_variables/production.tfvars.json
         terraform_backend_vars: workspace_variables/production.backend.tfvars
-
