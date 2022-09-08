@@ -162,14 +162,6 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     http2_enabled       = true
     minimum_tls_version = "1.2"
     health_check_path   = "/health"
-
-    dynamic "application_stack" {
-      for_each = var.environment_name != "dev" ? [] : [1]
-      content {
-        docker_image     = var.docker_image
-        docker_image_tag = var.authserver_tag
-      }
-    }
   }
 
   app_settings = local.auth_server_env_vars
@@ -182,14 +174,13 @@ resource "azurerm_linux_web_app" "auth-server-app" {
 }
 
 resource "azurerm_linux_web_app_slot" "auth-server-stage" {
-  count          = var.environment_name != "dev" ? 1 : 0
-  name           = "staging"
+  count          = var.enable_blue_green ? 1 : 0
+  name           = local.web_app_slot_name
   app_service_id = azurerm_linux_web_app.auth-server-app.id
   site_config {
     http2_enabled       = true
     minimum_tls_version = "1.2"
     health_check_path   = "/health"
-
   }
   app_settings = local.auth_server_env_vars
   lifecycle {
@@ -229,4 +220,3 @@ resource "azurerm_linux_web_app" "test-client-app" {
     ]
   }
 }
-
