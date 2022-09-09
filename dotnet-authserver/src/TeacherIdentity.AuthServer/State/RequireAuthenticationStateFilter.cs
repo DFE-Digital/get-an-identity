@@ -34,13 +34,5 @@ public class RequireAuthenticationStateFilter : IAuthorizationFilter
             context.Result = new BadRequestResult();
             return;
         }
-
-        // If this request has already been completed then return an error
-        // (this will typically happen when the user hits the back button)
-        if (authenticationStateFeature.AuthenticationState.IsComplete())
-        {
-            _logger.LogDebug("Authorization journey has already been completed.");
-            context.Result = new BadRequestResult();
-        }
     }
 }

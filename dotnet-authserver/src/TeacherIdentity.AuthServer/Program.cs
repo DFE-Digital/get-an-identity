@@ -104,22 +104,6 @@ public class Program
                 options.Cookie.IsEssential = true;
 
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-
-                options.Events.OnRedirectToLogin = ctx =>
-                {
-                    var authStateId = Guid.NewGuid();
-                    var authState = new AuthenticationState(authStateId, ctx.Properties.RedirectUri!);
-                    ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authState));
-
-                    var urlHelperFactory = ctx.HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.Mvc.Routing.IUrlHelperFactory>();
-                    var actionContext = ctx.HttpContext.RequestServices.GetRequiredService<IActionContextAccessor>().ActionContext!;
-                    var urlHelper = urlHelperFactory.GetUrlHelper(actionContext);
-
-                    var redirectUrl = authState.GetNextHopUrl(urlHelper);
-                    ctx.Response.Redirect(redirectUrl);
-
-                    return Task.CompletedTask;
-                };
             })
             .AddBasic(options =>
             {

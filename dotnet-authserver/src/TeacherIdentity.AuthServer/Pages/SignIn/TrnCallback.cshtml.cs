@@ -80,7 +80,7 @@ public class TrnCallbackModel : PageModel
             await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId });
         }
 
-        // Set the HaveCompletedFindALostTrnJourney flag on the user.
+        // Set the CompletedTrnLookup flag on the user.
         // This is done in a separate transaction to the user creation and *after* the TRN/User ID has been associated in DQT.
         // This is so if the API call above fails and the user ends up bailing out, the next time they sign in they will
         // have to go through Find again (hopefully successfully this time). If we didn't do this we could return a TRN

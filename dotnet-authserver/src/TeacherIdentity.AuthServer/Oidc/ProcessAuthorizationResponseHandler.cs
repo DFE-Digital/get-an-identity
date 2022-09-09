@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using OpenIddict.Server;
 using static OpenIddict.Server.OpenIddictServerEvents;
 
@@ -7,36 +8,42 @@ namespace TeacherIdentity.AuthServer.Oidc;
 
 public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<ApplyAuthorizationResponseContext>
 {
-    private readonly IEnumerable<EndpointDataSource> _endpointDataSources;
+    private readonly IUrlHelperFactory _urlHelperFactory;
+    private readonly IActionContextAccessor _actionContextAccessor;
 
-    public ProcessAuthorizationResponseHandler(IEnumerable<EndpointDataSource> endpointDataSources)
+    public ProcessAuthorizationResponseHandler(IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor)
     {
-        _endpointDataSources = endpointDataSources;
+        _urlHelperFactory = urlHelperFactory;
+        _actionContextAccessor = actionContextAccessor;
     }
 
-    public async ValueTask HandleAsync(ApplyAuthorizationResponseContext context)
+    public ValueTask HandleAsync(ApplyAuthorizationResponseContext context)
     {
         // This handler is to replace the built-in handlers ProcessFormPostResponse, ProcessFragmentResponse and ProcessQueryResponse.
         // We do this so we can own the HTML that's generated when authorization is completed
         // (in particular to avoid the ugly built-in form generated when the FormPost response mode is used).
         //
-        // We want to use the Razor Page at /Authorization/Authorize rather than generating HTML in-line.
-        // We do this by fishing out the RouteEndpoint that corresponds to that Razor Page then invoking it.
-
-        if (string.IsNullOrEmpty(context.RedirectUri))
-        {
-            return;
-        }
-
-        var endpoint = _endpointDataSources.SelectMany(s => s.Endpoints)
-            .Where(ep => ep.Metadata.Any(m => m is PageActionDescriptor actionDescriptor && actionDescriptor.RelativePath == "/Pages/Authorization/Authorize.cshtml"))
-            .Single();
+        // Bundle the response parameters into the journey's AuthenticationState then redirect to the /sign-in/complete endpoint.
 
         var httpContext = context.Transaction.GetHttpRequest()!.HttpContext;
-        httpContext.Features.Set(context);
+        var authenticationState = httpContext.GetAuthenticationState();
 
-        await endpoint.RequestDelegate!(httpContext);
+        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext!);
+
+        authenticationState.AuthorizationResponseParameters = from parameter in context.Response.GetParameters()
+                                                              let values = (string?[]?)parameter.Value
+                                                              where values is not null
+                                                              from value in values
+                                                              where !string.IsNullOrEmpty(value)
+                                                              select new KeyValuePair<string, string>(parameter.Key, value);
+
+        authenticationState.AuthorizationResponseMode = context.ResponseMode;
+        authenticationState.RedirectUri = context.RedirectUri;
+
+        httpContext.Response.Redirect(urlHelper.CompleteAuthorization());
 
         context.HandleRequest();
+
+        return default;
     }
 }
