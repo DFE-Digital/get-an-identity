@@ -474,7 +474,7 @@ public class Program
 
         async Task ConfigureClients()
         {
-            var clients = builder.Configuration.GetSection("Clients").Get<ClientConfiguration[]>();
+            var clients = builder.Configuration.GetSection("Clients").Get<ClientConfiguration[]>() ?? Array.Empty<ClientConfiguration>();
             var helper = new ClientConfigurationHelper(app.Services);
             await helper.UpsertClients(clients);
         }
