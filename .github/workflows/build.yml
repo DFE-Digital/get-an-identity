@@ -124,6 +124,15 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - uses: DfE-Digital/keyvault-yaml-secret@v1
+      id: get_monitoring_secret
+      with:
+        keyvault: ${{ env.KEY_VAULT_NAME }}
+        secret: MONITORING
+        key: SLACK_WEBHOOK
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
     - uses: DFE-Digital/keyvault-yaml-secret@v1
       if: github.actor != 'dependabot[bot]'
       id: get-secret
@@ -166,8 +175,17 @@ jobs:
         context: dotnet-authserver/src/TeacherIdentity.TestClient
         push: true
         tags: ${{ steps.image_tags.outputs.testclient }}
-        build-args: |
-          GIT_SHA=${{ github.sha }}
+
+    - name: Notify Slack channel on build or scan failure
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_USERNAME: CI Deployment
+        SLACK_TITLE: Build failure
+        SLACK_MESSAGE: Get an identity - build or SNYK scan failure.
+        SLACK_WEBHOOK: ${{ steps.get_monitoring_secret.outputs.SLACK_WEBHOOK }}
+        SLACK_COLOR: failure
+        SLACK_FOOTER: Sent from build job of build.yml
 
   validate_terraform:
     name: Validate Terraform
