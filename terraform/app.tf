@@ -134,12 +134,13 @@ resource "azurerm_application_insights" "insights" {
   }
 }
 resource "azurerm_service_plan" "service-plan" {
-  name                = local.app_service_plan_name
-  location            = data.azurerm_resource_group.group.location
-  resource_group_name = data.azurerm_resource_group.group.name
-  os_type             = "Linux"
-  sku_name            = var.app_service_plan_sku
-
+  name                   = local.app_service_plan_name
+  location               = data.azurerm_resource_group.group.location
+  resource_group_name    = data.azurerm_resource_group.group.name
+  os_type                = "Linux"
+  sku_name               = var.app_service_plan_sku
+  zone_balancing_enabled = var.worker_count != null ? true : false
+  worker_count           = var.worker_count
   lifecycle {
     ignore_changes = [
       tags
