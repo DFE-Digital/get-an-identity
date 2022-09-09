@@ -6,6 +6,8 @@ namespace TeacherIdentity.AuthServer;
 
 public static class UrlHelperExtensions
 {
+    public static string CompleteAuthorization(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/Complete");
+
     public static string Email(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/Email");
 
     public static string EmailConfirmation(this IUrlHelper urlHelper) => urlHelper.PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");

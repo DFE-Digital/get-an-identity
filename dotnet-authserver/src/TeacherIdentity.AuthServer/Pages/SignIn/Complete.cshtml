@@ -1,37 +1,30 @@
-@page "/connect/authorize"
+@page "/sign-in/complete"
 @using static OpenIddict.Abstractions.OpenIddictConstants
-@model TeacherIdentity.AuthServer.Pages.Authorization.AuthorizeModel
+@model TeacherIdentity.AuthServer.Pages.SignIn.CompleteModel
 @{
     ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You’re signed in";
 
     async Task RenderForm(string? buttonClasses = null)
     {
-        var parameters = from parameter in Model.ApplyAuthorizationResponseContext!.Response.GetParameters()
-                         let values = (string?[]?)parameter.Value
-                         where values is not null
-                         from value in values
-                         where !string.IsNullOrEmpty(value)
-                         select (parameter.Key, Value: value);
-
-        var responseMode = Model.ApplyAuthorizationResponseContext.ResponseMode;
+        var responseMode = Model.ResponseMode!;
         var method = responseMode == ResponseModes.FormPost ? "post" : "get";
-        var action = Model.ApplyAuthorizationResponseContext!.RedirectUri!;
+        var action = Model.RedirectUri!;
 
-        if (responseMode == ResponseModes.Fragment)
+        if (Model.ResponseMode == ResponseModes.Fragment)
         {
-            foreach (var (key, value) in parameters)
+            foreach (var (key, value) in Model.ResponseParameters!)
             {
                 action += action.Contains("#") ? "&" : "#" +
-                  Uri.EscapeDataString(key) +
-                  "=" +
-                  Uri.EscapeDataString(value);
+                    Uri.EscapeDataString(key) +
+                    "=" +
+                    Uri.EscapeDataString(value);
             }
         }
 
         <form action="@action" method="@method" asp-antiforgery="false">
           @if (responseMode != ResponseModes.Fragment)
           {
-              foreach (var (key, value) in parameters)
+              foreach (var (key, value) in Model.ResponseParameters!)
               {
                   <input type="hidden" name="@key" value="@value">
               }

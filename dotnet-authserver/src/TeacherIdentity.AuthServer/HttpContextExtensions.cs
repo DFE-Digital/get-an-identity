@@ -3,9 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -31,27 +29,7 @@ public static class HttpContextExtensions
         var authenticationState = httpContext.GetAuthenticationState();
         authenticationState.Populate(user, firstTimeUser, trn);
         Debug.Assert(authenticationState.IsComplete());
-
-        var authorizationRequest = authenticationState.GetAuthorizationRequest();
-
-        var claims = new List<Claim>()
-        {
-            new Claim(Claims.Subject, user.UserId.ToString()),
-            new Claim(Claims.Email, user.EmailAddress!),
-            new Claim(Claims.EmailVerified, "true"),
-            new Claim(Claims.Name, user.FirstName + " " + user.LastName),
-            new Claim(Claims.GivenName, user.FirstName!),
-            new Claim(Claims.FamilyName, user.LastName!),
-            new Claim(Claims.Birthdate, user.DateOfBirth.ToString("yyyy-MM-dd"))
-        };
-
-        if (authorizationRequest.HasScope(CustomScopes.Trn) && trn is not null)
-        {
-            claims.Add(new Claim(CustomClaims.Trn, trn));
-        }
-
-        // TODO In future the user might already been signed in with a different set of claims (e.g. for different scopes)
-        // We should copy over any existing claims in such a case.
+        var claims = authenticationState.GetClaims();
 
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);
         var principal = new ClaimsPrincipal(identity);

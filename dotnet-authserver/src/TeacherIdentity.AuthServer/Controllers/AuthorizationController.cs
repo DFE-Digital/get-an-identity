@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
@@ -8,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Controllers;
@@ -42,10 +44,20 @@ public class AuthorizationController : Controller
         //  - If the user principal can't be extracted or the cookie is too old.
         //  - If prompt=login was specified by the client application.
         //  - If a max_age parameter was provided and the authentication cookie is not considered "fresh" enough.
-        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        if (result == null || !result.Succeeded || request.HasPrompt(Prompts.Login) ||
-           (request.MaxAge != null && result.Properties?.IssuedUtc != null &&
-            DateTimeOffset.UtcNow - result.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)))
+        //  - If the user is signed in but we're missing some information (e.g more claims have been specified).
+
+        var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        // Ensure we have a journey to store state for this request.
+        // This also tracks when we have enough information about the user to satisfy the request.
+        var authenticationState = EnsureAuthenticationState(
+            authenticateResult?.Principal?.Claims,
+            firstTimeUser: authenticateResult?.Succeeded != true);
+
+        if (authenticateResult == null || !authenticateResult.Succeeded || request.HasPrompt(Prompts.Login) ||
+           (request.MaxAge != null && authenticateResult.Properties?.IssuedUtc != null &&
+            DateTimeOffset.UtcNow - authenticateResult.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)) ||
+            !authenticationState.IsComplete())
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -60,25 +72,12 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            // To avoid endless login -> authorization redirects, the prompt=login flag
-            // is removed from the authorization request payload before redirecting the user.
-            var prompt = string.Join(" ", request.GetPrompts().Remove(Prompts.Login));
-
-            var parameters = Request.HasFormContentType ?
-                Request.Form.Where(parameter => parameter.Key != Parameters.Prompt).ToList() :
-                Request.Query.Where(parameter => parameter.Key != Parameters.Prompt).ToList();
-
-            parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
-
-            return Challenge(
-                authenticationSchemes: CookieAuthenticationDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties
-                {
-                    RedirectUri = Request.PathBase + Request.Path + QueryString.Create(parameters)
-                });
+            return Redirect(authenticationState.GetNextHopUrl(Url));
         }
 
-        var subject = result.Principal.FindFirst(Claims.Subject)!.Value;
+        Debug.Assert(authenticationState.IsComplete());
+
+        var subject = authenticateResult.Principal.FindFirst(Claims.Subject)!.Value;
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??
@@ -111,15 +110,11 @@ public class AuthorizationController : Controller
             case ConsentTypes.Implicit:
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
+                var claims = authenticationState.GetClaims();
+
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
                 var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-                identity.AddClaims(
-                    ExtractClaims(result.Principal,
-                        Claims.Subject,
-                        Claims.Email,
-                        Claims.GivenName,
-                        Claims.FamilyName,
-                        CustomClaims.Trn));
+                identity.AddClaims(claims);
 
                 var principal = new ClaimsPrincipal(identity);
 
@@ -164,6 +159,37 @@ public class AuthorizationController : Controller
             // In every other case, render the consent form.
             default:
                 throw new NotImplementedException();
+        }
+
+        string GetCallbackUrl()
+        {
+            // Creates a URL back to this action
+            // without the 'login' prompt to avoid going in circles continually prompting a user to sign in
+
+            var prompt = string.Join(" ", request.GetPrompts().Remove(Prompts.Login));
+
+            var parameters = Request.HasFormContentType ?
+                Request.Form.Where(parameter => parameter.Key != Parameters.Prompt).ToList() :
+                Request.Query.Where(parameter => parameter.Key != Parameters.Prompt).ToList();
+
+            parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
+
+            return Request.PathBase + Request.Path + QueryString.Create(parameters);
+        }
+
+        AuthenticationState EnsureAuthenticationState(IEnumerable<Claim>? claims, bool firstTimeUser)
+        {
+            if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
+            {
+                authenticationState = AuthenticationState.FromClaims(
+                    GetCallbackUrl(),
+                    claims ?? Enumerable.Empty<Claim>(),
+                    firstTimeUser);
+
+                HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
+            }
+
+            return authenticationState;
         }
     }
 
@@ -229,17 +255,6 @@ public class AuthorizationController : Controller
         }
 
         throw new InvalidOperationException("The specified grant type is not supported.");
-    }
-
-    private static IEnumerable<Claim> ExtractClaims(ClaimsPrincipal principal, params string[] claimTypes)
-    {
-        foreach (var claim in principal.Claims)
-        {
-            if (claimTypes.Contains(claim.Type))
-            {
-                yield return claim;
-            }
-        }
     }
 
     private static IEnumerable<string> GetDestinations(Claim claim, ClaimsPrincipal principal)
