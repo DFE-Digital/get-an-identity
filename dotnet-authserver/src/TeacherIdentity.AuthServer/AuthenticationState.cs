@@ -48,6 +48,11 @@ public class AuthenticationState
     public string? Trn { get; set; }
     public bool HaveCompletedTrnLookup { get; set; }
 
+    /// <summary>
+    /// Whether the user has gone back to an earlier page after this journey has been completed.
+    /// </summary>
+    public bool HaveResumedCompletedJourney { get; set; }
+
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));

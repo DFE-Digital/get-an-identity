@@ -177,6 +177,7 @@ public class Program
                 {
                     model.Filters.Add(new RequireAuthenticationStateFilterFactory());
                     model.Filters.Add(new NoCachePageFilter());
+                    model.Filters.Add(new RedirectToCompletePageFilter());
                 });
         });
 

@@ -2,7 +2,9 @@
 @using static OpenIddict.Abstractions.OpenIddictConstants
 @model TeacherIdentity.AuthServer.Pages.SignIn.CompleteModel
 @{
-    ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" : "You’re signed in";
+    ViewBag.Title = Model.FirstTimeUser ? "Continue with your NPQ registration" :
+        Model.AlreadyCompleted ? "We’ve finished checking our records" :
+        "You’re signed in";
 
     async Task RenderForm(string? buttonClasses = null)
     {
@@ -34,7 +36,21 @@
     }
 }
 
-@if (Model.FirstTimeUser)
+@if (Model.AlreadyCompleted)
+{
+    <div class="govuk-grid-row" data-testid="already-completed-content">
+      <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">We’ve finished checking our records</h1>
+
+        <p>You can continue with your NPQ registration.</p>
+
+        @{
+          await RenderForm();
+        }
+        </div>
+    </div>
+}
+else if (Model.FirstTimeUser)
 {
     <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
       <govuk-panel-title>Continue with your NPQ registration</govuk-panel-title>

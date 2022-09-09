@@ -64,10 +64,28 @@ public class CompleteTests : TestBase
         Assert.NotNull(doc.GetElementByTestId("known-user-content"));
     }
 
+    [Fact]
+    public async Task Get_AuthorizationIsCompleted_RendersExpectedContent()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, haveResumedCompletedJourney: true);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.NotNull(doc.GetElementByTestId("already-completed-content"));
+    }
+
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
         HttpClient httpClient,
         bool hasTrn = true,
-        bool firstTimeUser = false)
+        bool firstTimeUser = false,
+        bool haveResumedCompletedJourney = false)
     {
         var user = await TestData.CreateUser();
         var trn = hasTrn ? TestData.GenerateTrn() : null;
@@ -91,6 +109,8 @@ public class CompleteTests : TestBase
                 new KeyValuePair<string, string>("code", "abc"),
                 new KeyValuePair<string, string>("state", "syz")
             };
+
+            authState.HaveResumedCompletedJourney = haveResumedCompletedJourney;
 
             if (hasTrn)
             {
