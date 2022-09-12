@@ -1,10 +1,10 @@
-﻿@page "/sign-in/email"
+@page "/sign-in/email"
 @model TeacherIdentity.AuthServer.Pages.SignIn.EmailModel
 @{
     ViewBag.Title = "Your email address";
 }
 
-<form action="@Url.Email()" method="post" asp-antiforgery="true">
+<form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <govuk-input asp-for="Email" type="email" autocomplete="email">

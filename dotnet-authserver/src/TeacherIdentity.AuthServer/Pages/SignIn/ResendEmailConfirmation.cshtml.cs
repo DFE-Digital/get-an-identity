@@ -10,10 +10,14 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class ResendEmailConfirmationModel : PageModel
 {
     private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
-    public ResendEmailConfirmationModel(IEmailVerificationService emailVerificationService)
+    public ResendEmailConfirmationModel(
+        IEmailVerificationService emailVerificationService,
+        IIdentityLinkGenerator linkGenerator)
     {
         _emailVerificationService = emailVerificationService;
+        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Email address")]
@@ -37,7 +41,7 @@ public class ResendEmailConfirmationModel : PageModel
 
         await _emailVerificationService.GeneratePin(Email!);
 
-        return Redirect(Url.EmailConfirmation());
+        return Redirect(_linkGenerator.EmailConfirmation());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -46,11 +50,11 @@ public class ResendEmailConfirmationModel : PageModel
 
         if (authenticationState.EmailAddress is null)
         {
-            context.Result = Redirect(Url.Email());
+            context.Result = Redirect(_linkGenerator.Email());
         }
         else if (authenticationState.EmailAddressVerified)
         {
-            context.Result = Redirect(authenticationState.GetNextHopUrl(Url));
+            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
     }
 }

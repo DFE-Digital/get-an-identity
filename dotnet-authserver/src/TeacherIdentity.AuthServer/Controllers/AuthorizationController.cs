@@ -19,15 +19,18 @@ public class AuthorizationController : Controller
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
     public AuthorizationController(
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
-        IOpenIddictScopeManager scopeManager)
+        IOpenIddictScopeManager scopeManager,
+        IIdentityLinkGenerator linkGenerator)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
+        _linkGenerator = linkGenerator;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -72,7 +75,7 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            return Redirect(authenticationState.GetNextHopUrl(Url));
+            return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
 
         Debug.Assert(authenticationState.IsComplete());

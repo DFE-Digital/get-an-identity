@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using OpenIddict.Server;
 using static OpenIddict.Server.OpenIddictServerEvents;
 
@@ -8,13 +6,11 @@ namespace TeacherIdentity.AuthServer.Oidc;
 
 public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<ApplyAuthorizationResponseContext>
 {
-    private readonly IUrlHelperFactory _urlHelperFactory;
-    private readonly IActionContextAccessor _actionContextAccessor;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
-    public ProcessAuthorizationResponseHandler(IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor)
+    public ProcessAuthorizationResponseHandler(IIdentityLinkGenerator linkGenerator)
     {
-        _urlHelperFactory = urlHelperFactory;
-        _actionContextAccessor = actionContextAccessor;
+        _linkGenerator = linkGenerator;
     }
 
     public ValueTask HandleAsync(ApplyAuthorizationResponseContext context)
@@ -28,8 +24,6 @@ public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<Appl
         var httpContext = context.Transaction.GetHttpRequest()!.HttpContext;
         var authenticationState = httpContext.GetAuthenticationState();
 
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext!);
-
         authenticationState.AuthorizationResponseParameters = from parameter in context.Response.GetParameters()
                                                               let values = (string?[]?)parameter.Value
                                                               where values is not null
@@ -40,7 +34,7 @@ public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<Appl
         authenticationState.AuthorizationResponseMode = context.ResponseMode;
         authenticationState.RedirectUri = context.RedirectUri;
 
-        httpContext.Response.Redirect(urlHelper.CompleteAuthorization());
+        httpContext.Response.Redirect(_linkGenerator.CompleteAuthorization());
 
         context.HandleRequest();
 

@@ -8,7 +8,6 @@ using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
@@ -269,8 +268,6 @@ public class Program
             options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
         });
 
-        builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-
         builder.Services.AddOptions<FindALostTrnIntegrationOptions>()
             .Bind(builder.Configuration.GetSection("FindALostTrnIntegration"))
             .ValidateDataAnnotations()
@@ -350,6 +347,8 @@ public class Program
         builder.Services.AddApplicationInsightsTelemetry();
 
         builder.Services.AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>();
+
+        builder.Services.AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>();
 
         var app = builder.Build();
 

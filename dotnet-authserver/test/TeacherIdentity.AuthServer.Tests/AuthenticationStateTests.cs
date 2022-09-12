@@ -3,12 +3,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Flurl;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Routing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
@@ -108,24 +104,12 @@ public class AuthenticationStateTests
     public void GetNextHopUrl(AuthenticationState authenticationState, string expectedResult)
     {
         // Arrange
-        var urlHelper = A.Fake<IUrlHelper>();
+        var linkGenerator = A.Fake<IIdentityLinkGenerator>();
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
-
-        var actionContext = new ActionContext()
+        void ConfigureMockForPage(string pageName, string returnsPath)
         {
-            ActionDescriptor = new ActionDescriptor(),
-            HttpContext = httpContext,
-            RouteData = new RouteData()
-        };
-
-        A.CallTo(() => urlHelper.ActionContext).Returns(actionContext);
-
-        void ConfigureMockForPage(string pageName, string returns)
-        {
-            A.CallTo(() => urlHelper.RouteUrl(A<UrlRouteContext>.That.Matches(ctx => (string)((RouteValueDictionary)ctx.Values!)["page"]! == pageName)))
-                .Returns(returns);
+            A.CallTo(() => linkGenerator.PageWithAuthenticationJourneyId(pageName))
+                .Returns(returnsPath.SetQueryParam("asid", authenticationState.JourneyId.ToString()));
         }
 
         ConfigureMockForPage("/SignIn/Email", "/sign-in/email");
@@ -134,7 +118,7 @@ public class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/TrnCallback", "/sign-in/trn-callback");
 
         // Act
-        var result = authenticationState.GetNextHopUrl(urlHelper);
+        var result = authenticationState.GetNextHopUrl(linkGenerator);
 
         // Assert
         Assert.Equal(expectedResult, result);
