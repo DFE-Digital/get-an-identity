@@ -22,6 +22,8 @@ public class CompleteModel : PageModel
 
     public IEnumerable<KeyValuePair<string, string>>? ResponseParameters { get; set; }
 
+    public bool AlreadyCompleted { get; set; }
+
     public void OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
@@ -35,5 +37,6 @@ public class CompleteModel : PageModel
         Name = $"{authenticationState.FirstName} {authenticationState.LastName}";
         Trn = authenticationState.Trn;
         DateOfBirth = authenticationState.DateOfBirth!.Value;
+        AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
     }
 }

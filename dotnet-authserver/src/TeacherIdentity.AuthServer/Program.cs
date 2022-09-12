@@ -20,6 +20,7 @@ using Serilog;
 using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
@@ -169,8 +170,15 @@ public class Program
 
         builder.Services.AddRazorPages(options =>
         {
-            // Every page within the SignIn folder must have AuthenticationState passed to it
-            options.Conventions.AddFolderApplicationModelConvention("/SignIn", model => model.Filters.Add(new RequireAuthenticationStateFilterFactory()));
+            // Every page within the SignIn folder must have AuthenticationState passed to it.
+            options.Conventions.AddFolderApplicationModelConvention(
+                "/SignIn",
+                model =>
+                {
+                    model.Filters.Add(new RequireAuthenticationStateFilterFactory());
+                    model.Filters.Add(new NoCachePageFilter());
+                    model.Filters.Add(new RedirectToCompletePageFilter());
+                });
         });
 
         builder.Services.AddSession(options =>

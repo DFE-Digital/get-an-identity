@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using GovUk.Frontend.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
 
 namespace TeacherIdentity.TestClient;
@@ -50,6 +51,23 @@ public class Program
                 {
                     Console.WriteLine(ctx.TokenEndpointResponse.AccessToken);
                     return Task.CompletedTask;
+                };
+
+                options.Events.OnRemoteFailure = async ctx =>
+                {
+                    if (ctx.Failure?.Message == "Correlation failed.")
+                    {
+                        // This will happen when the back button is used to go back to AuthServer and the authorization is completed again.
+                        // In such a case, check if the user is signed in (they should be) and redirect onwards if they are.
+                        // If they're not signed in, let the error bubble up.
+
+                        var cookieAuthResult = await ctx.HttpContext.AuthenticateAsync("Cookies");
+                        if (cookieAuthResult.Succeeded)
+                        {
+                            ctx.HandleResponse();
+                            ctx.Response.Redirect(ctx.Properties?.RedirectUri ?? "/");
+                        }
+                    }
                 };
 
                 if (!builder.Environment.IsProduction())
