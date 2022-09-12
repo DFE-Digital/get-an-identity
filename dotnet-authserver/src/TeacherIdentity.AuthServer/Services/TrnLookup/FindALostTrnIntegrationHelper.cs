@@ -1,7 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
@@ -12,19 +10,19 @@ public class FindALostTrnIntegrationHelper
 {
     private readonly IOptions<FindALostTrnIntegrationOptions> _optionsAccessor;
     private readonly IOpenIddictApplicationManager _applicationManager;
-    private readonly IUrlHelperFactory _urlHelperFactory;
-    private readonly IActionContextAccessor _actionContextAccessor;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
     public FindALostTrnIntegrationHelper(
         IOptions<FindALostTrnIntegrationOptions> optionsAccessor,
         IOpenIddictApplicationManager applicationManager,
-        IUrlHelperFactory urlHelperFactory,
-        IActionContextAccessor actionContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IIdentityLinkGenerator linkGenerator)
     {
         _optionsAccessor = optionsAccessor;
         _applicationManager = applicationManager;
-        _urlHelperFactory = urlHelperFactory;
-        _actionContextAccessor = actionContextAccessor;
+        _httpContextAccessor = httpContextAccessor;
+        _linkGenerator = linkGenerator;
     }
 
     public FindALostTrnIntegrationOptions Options => _optionsAccessor.Value;
@@ -36,10 +34,8 @@ public class FindALostTrnIntegrationHelper
         var clientDisplayName = client.DisplayName;
         var clientServiceUrl = client.ServiceUrl;
 
-        var actionContext = _actionContextAccessor.ActionContext!;
-        var request = actionContext.HttpContext.Request;
-        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
-        var callbackUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{urlHelper.TrnCallback()}";
+        var request = _httpContextAccessor.HttpContext!.Request;
+        var callbackUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{_linkGenerator.TrnCallback()}";
 
         var formValues = new Dictionary<string, string>()
         {
@@ -49,7 +45,7 @@ public class FindALostTrnIntegrationHelper
             { "client_title", clientDisplayName ?? string.Empty },
             { "journey_id", authenticationState.JourneyId.ToString() },
             { "client_url", clientServiceUrl ?? string.Empty },
-            { "previous_url", urlHelper.Trn() }
+            { "previous_url", _linkGenerator.Trn() }
         };
 
         var sig = CalculateSignature(formValues);

@@ -4,7 +4,7 @@
     ViewBag.Title = "Confirm your email address";
 }
 
-<form action="@Url.EmailConfirmation()" method="post" asp-antiforgery="true">
+<form action="@LinkGenerator.EmailConfirmation()" method="post" asp-antiforgery="true">
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <h1 class="govuk-heading-xl">Confirm your email address</h1>
@@ -16,7 +16,7 @@
       </govuk-input>
 
       <p>
-        <a href="@Url.ResendEmailConfirmation()">I have not received an email</a>
+        <a href="@LinkGenerator.ResendEmailConfirmation()">I have not received an email</a>
       </p>
 
       <govuk-button type="submit">Continue</govuk-button>

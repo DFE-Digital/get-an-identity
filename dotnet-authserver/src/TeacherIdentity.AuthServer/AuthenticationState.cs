@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text.Json;
 using Flurl;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
@@ -120,20 +119,20 @@ public class AuthenticationState
         return finalAuthorizationUrl;
     }
 
-    public string GetNextHopUrl(IUrlHelper urlHelper)
+    public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
     {
         var request = GetAuthorizationRequest();
 
         // We need an email address
         if (EmailAddress is null)
         {
-            return urlHelper.Email();
+            return linkGenerator.Email();
         }
 
         // Email needs to be confirmed with a PIN
         if (!EmailAddressVerified)
         {
-            return urlHelper.EmailConfirmation();
+            return linkGenerator.EmailConfirmation();
         }
 
         // For now we only support flows that have the trn scope specified
@@ -145,7 +144,7 @@ public class AuthenticationState
         // trn scope is specified; launch the journey to collect TRN
         if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
         {
-            return urlHelper.Trn();
+            return linkGenerator.Trn();
         }
 
         // We should have a known user at this point

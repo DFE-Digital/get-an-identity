@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace TeacherIdentity.AuthServer.Infrastructure.Filters;
 
@@ -15,10 +14,9 @@ public class RedirectToCompletePageFilter : IPageFilter
     {
         if (context.HttpContext.TryGetAuthenticationState(out var authenticationState) && authenticationState.IsComplete())
         {
-            var urlHelperFactory = context.HttpContext.RequestServices.GetRequiredService<IUrlHelperFactory>();
-            var urlHelper = urlHelperFactory.GetUrlHelper(context);
+            var linkGenerator = context.HttpContext.RequestServices.GetRequiredService<IIdentityLinkGenerator>();
 
-            var completeUrl = urlHelper.CompleteAuthorization();
+            var completeUrl = linkGenerator.CompleteAuthorization();
 
             if (completeUrl != context.HttpContext.Request.GetEncodedPathAndQuery())
             {

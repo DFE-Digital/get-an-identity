@@ -12,16 +12,19 @@ public class EmailConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
+    private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IEmailVerificationService _emailConfirmationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
-        IDqtApiClient dqtApiClient)
+        IDqtApiClient dqtApiClient,
+        IIdentityLinkGenerator linkGenerator)
     {
         _dbContext = dbContext;
         _emailConfirmationService = emailConfirmationService;
         _dqtApiClient = dqtApiClient;
+        _linkGenerator = linkGenerator;
     }
 
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
@@ -79,7 +82,7 @@ public class EmailConfirmationModel : PageModel
             authenticationState.FirstTimeUser = true;
         }
 
-        return Redirect(authenticationState.GetNextHopUrl(Url));
+        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }
 
     private void ValidateCode()

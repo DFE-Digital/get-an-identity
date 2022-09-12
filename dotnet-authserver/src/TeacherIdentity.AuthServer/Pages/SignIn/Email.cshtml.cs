@@ -9,10 +9,14 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class EmailModel : PageModel
 {
     private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
-    public EmailModel(IEmailVerificationService emailVerificationService)
+    public EmailModel(
+        IEmailVerificationService emailVerificationService,
+        IIdentityLinkGenerator linkGenerator)
     {
         _emailVerificationService = emailVerificationService;
+        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Your email address")]
@@ -35,6 +39,6 @@ public class EmailModel : PageModel
 
         await _emailVerificationService.GeneratePin(Email!);
 
-        return Redirect(Url.EmailConfirmation());
+        return Redirect(_linkGenerator.EmailConfirmation());
     }
 }

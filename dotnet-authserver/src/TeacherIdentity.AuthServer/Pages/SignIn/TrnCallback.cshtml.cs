@@ -11,17 +11,20 @@ public class TrnCallbackModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
+    private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
     private readonly ILogger<TrnCallbackModel> _logger;
 
     public TrnCallbackModel(
         TeacherIdentityServerDbContext dbContext,
         IDqtApiClient apiClient,
+        IIdentityLinkGenerator linkGenerator,
         IClock clock,
         ILogger<TrnCallbackModel> logger)
     {
         _dbContext = dbContext;
         _dqtApiClient = apiClient;
+        _linkGenerator = linkGenerator;
         _clock = clock;
         _logger = logger;
     }
@@ -94,6 +97,6 @@ public class TrnCallbackModel : PageModel
 
         await HttpContext.SignInUser(user, firstTimeUser: true, trn);
 
-        return Redirect(authenticationState.GetNextHopUrl(Url));
+        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }
 }
