@@ -127,6 +127,16 @@ variable "worker_count" {
   default     = null
 }
 
+variable "statuscake_alerts" {
+  type    = map(any)
+  default = {}
+}
+
+variable "enable_basic_auth" {
+  type    = bool
+  default = false
+}
+
 locals {
   hosting_environment          = var.environment_name
   auth_server_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths-app"
