@@ -1,4 +1,3 @@
-using Flurl;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
@@ -59,7 +58,7 @@ public class TrnCallbackTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -118,7 +117,7 @@ public class TrnCallbackTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
         if (hasTrn)
         {

@@ -45,6 +45,7 @@ public class ResendEmailConfirmationTests : TestBase
 
         // Act
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class ResendEmailConfirmationTests : TestBase
 
         // Act
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.NotEqual($"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
     }
 
     [Fact]

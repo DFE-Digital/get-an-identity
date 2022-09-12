@@ -1,5 +1,3 @@
-using Flurl;
-
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 public class EmailTests : TestBase
@@ -97,7 +95,7 @@ public class EmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/sign-in/email-confirmation", new Url(response.Headers.Location).Path);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 

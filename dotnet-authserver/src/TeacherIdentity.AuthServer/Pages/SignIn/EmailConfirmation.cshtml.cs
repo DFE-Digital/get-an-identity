@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -83,6 +84,17 @@ public class EmailConfirmationModel : PageModel
         }
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        // If email is already verified then move to the next page
+        if (authenticationState.EmailAddressVerified)
+        {
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+        }
     }
 
     private void ValidateCode()

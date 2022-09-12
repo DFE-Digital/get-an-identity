@@ -1,4 +1,3 @@
-using Flurl;
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -16,6 +15,21 @@ public class EmailConfirmationTests : TestBase
     public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
+    {
+        // Arrange
+        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddressVerified = true);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -210,7 +224,7 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/sign-in/trn", new Url(response.Headers.Location).Path);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.True(authStateHelper.AuthenticationState.FirstTimeUser);
@@ -244,7 +258,7 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/connect/authorize", new Url(response.Headers.Location).Path);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
