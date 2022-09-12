@@ -165,6 +165,7 @@ jobs:
       with:
         image: ${{ steps.image_tags.outputs.authserver }}
         args: --file=dotnet-authserver/src/TeacherIdentity.AuthServer/Dockerfile --severity-threshold=high
+      continue-on-error: true
 
     - name: Push auth server docker image
       run: docker image push ${{ steps.image_tags.outputs.authserver }}
