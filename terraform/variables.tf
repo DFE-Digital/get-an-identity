@@ -121,6 +121,11 @@ variable "enable_blue_green" {
   default = false
 }
 
+variable "worker_count" {
+  description = "It should be set to a multiple of the number of availability zones in the region"
+  type        = number
+  default     = null
+}
 
 locals {
   hosting_environment          = var.environment_name
