@@ -54,6 +54,18 @@ public class AuthorizationController : Controller
                 }));
         }
 
+        if (request.HasPrompt(Prompts.None))
+        {
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        "prompt=none is not currently supported."
+                }));
+        }
+
         // Try to retrieve the user principal stored in the authentication cookie and redirect
         // the user agent to the login page (or to an external provider) in the following cases:
         //
