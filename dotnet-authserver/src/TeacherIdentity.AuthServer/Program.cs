@@ -159,13 +159,13 @@ public class Program
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy(
-                "Hangfire",
+                AuthorizationPolicies.Hangfire,
                 policy => policy
                     .AddAuthenticationSchemes("Basic")
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
-                "TrnLookup",
+                AuthorizationPolicies.TrnLookup,
                 policy => policy
                     .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
                     .RequireAuthenticatedUser());
@@ -468,7 +468,7 @@ public class Program
 
             if (!builder.Environment.IsUnitTests())
             {
-                endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: "Hangfire", "/_hangfire");
+                endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.Hangfire, "/_hangfire");
             }
         });
 
