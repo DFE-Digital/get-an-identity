@@ -33,7 +33,8 @@ public class SignIn : IClassFixture<HostFixture>
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
-                UserType = UserType.Teacher
+                UserType = UserType.Teacher,
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth())
             });
 
             await dbContext.SaveChangesAsync();

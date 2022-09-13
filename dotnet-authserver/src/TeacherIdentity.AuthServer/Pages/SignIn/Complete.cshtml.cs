@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
@@ -14,7 +15,7 @@ public class CompleteModel : PageModel
 
     public string? Trn { get; set; }
 
-    public DateOnly DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
 
     public string? RedirectUri { get; set; }
 
@@ -24,7 +25,7 @@ public class CompleteModel : PageModel
 
     public bool AlreadyCompleted { get; set; }
 
-    public bool ShowTrnRow { get; set; }
+    public UserType UserType { get; set; }
 
     public void OnGet()
     {
@@ -38,8 +39,8 @@ public class CompleteModel : PageModel
         FirstTimeUser = authenticationState.FirstTimeUser!.Value;
         Name = $"{authenticationState.FirstName} {authenticationState.LastName}";
         Trn = authenticationState.Trn;
-        DateOfBirth = authenticationState.DateOfBirth!.Value;
+        DateOfBirth = authenticationState.DateOfBirth;
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
-        ShowTrnRow = authenticationState.GetUserType() == Models.UserType.Teacher;
+        UserType = authenticationState.GetUserType();
     }
 }

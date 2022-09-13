@@ -46,7 +46,7 @@ public class SetJourneyFindALostTrnUserTests : ApiTestBase
             {
                 JourneyId = journeyId,
                 Created = Clock.UtcNow,
-                DateOfBirth = user.DateOfBirth,
+                DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Locked = Clock.UtcNow,

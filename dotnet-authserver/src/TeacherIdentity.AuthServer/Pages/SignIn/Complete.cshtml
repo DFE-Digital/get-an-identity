@@ -87,17 +87,17 @@ else
             <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
             <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
           </govuk-summary-list-row>
-          @if (Model.ShowTrnRow)
+          @if (Model.UserType == UserType.Teacher)
           {
             <govuk-summary-list-row data-testid="trn-row">
               <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
               <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
             </govuk-summary-list-row>
+            <govuk-summary-list-row>
+              <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+              <govuk-summary-list-row-value>@(Model.DateOfBirth!.Value.ToString("d MMMM yyyy"))</govuk-summary-list-row-value>
+            </govuk-summary-list-row>
           }
-          <govuk-summary-list-row>
-            <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
-            <govuk-summary-list-row-value>@(Model.DateOfBirth.ToString("d MMMM yyyy"))</govuk-summary-list-row-value>
-          </govuk-summary-list-row>
         </govuk-summary-list>
 
         @{

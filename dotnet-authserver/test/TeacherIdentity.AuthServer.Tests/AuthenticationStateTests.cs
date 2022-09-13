@@ -96,7 +96,7 @@ public class AuthenticationStateTests
             new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString()),
             new Claim(CustomClaims.Trn, trn)
         };
-        Assert.Equal(expectedClaims, claims, new ClaimTypeAndValueEqualityComparer());
+        Assert.Equal(expectedClaims.OrderBy(c => c.Type), claims.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
     }
 
     [Theory]

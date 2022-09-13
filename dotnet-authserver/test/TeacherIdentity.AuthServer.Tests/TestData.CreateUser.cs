@@ -20,7 +20,8 @@ public partial class TestData
                 LastName = Faker.Name.Last(),
                 Created = _clock.UtcNow,
                 CompletedTrnLookup = userType is UserType.Teacher && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
-                UserType = userType
+                UserType = userType,
+                DateOfBirth = userType is UserType.Teacher ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null
             };
 
             dbContext.Users.Add(user);
