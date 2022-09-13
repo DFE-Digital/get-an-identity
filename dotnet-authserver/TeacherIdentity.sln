@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.TestCommon", "test\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj", "{F101CEA4-DA68-449A-8096-0413C4248B83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherIdentity.AuthServer.Clients", "src\TeacherIdentity.AuthServer.Clients\TeacherIdentity.AuthServer.Clients.csproj", "{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherIdentity.DevBootstrap", "src\TeacherIdentity.DevBootstrap\TeacherIdentity.DevBootstrap.csproj", "{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

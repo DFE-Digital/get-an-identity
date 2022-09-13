@@ -70,7 +70,7 @@ The databases will be created automatically when running the API or tests in dev
 #### Test client
 
 The solution includes a test client that is used for testing end-to-end OIDC flows. This client's details must be added to the database.
-Run the `TeacherIdentity.AuthServer.Clients` console app to configure the test client for local development. This only needs to be done once.
+Run the `TeacherIdentity.DevBootstrap` console app to configure the test client for local development. This only needs to be done once.
 Once this has been run, you should be able to launch both the `TeacherIdentity.AuthServer` project and the `TeacherIdentity.TestClient` project and browse to `https://localhost:7261` to start the sign in journey.
 
 

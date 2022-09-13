@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TeacherIdentity.AuthServer.Clients\TeacherIdentity.AuthServer.Clients.csproj" />
+    <ProjectReference Include="..\..\src\TeacherIdentity.DevBootstrap\TeacherIdentity.DevBootstrap.csproj" />
     <ProjectReference Include="..\..\src\TeacherIdentity.TestClient\TeacherIdentity.TestClient.csproj" />
     <ProjectReference Include="..\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj" />
   </ItemGroup>
