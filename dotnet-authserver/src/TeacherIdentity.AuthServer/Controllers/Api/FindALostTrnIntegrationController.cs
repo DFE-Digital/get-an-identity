@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.ApiModels;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Controllers.Api;
 
 [ApiController]
 [Route("api/find-trn")]
-[Authorize("TrnLookup")]
+[Authorize(AuthorizationPolicies.TrnLookup)]
 public class FindALostTrnIntegrationController : ControllerBase
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
