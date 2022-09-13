@@ -192,16 +192,22 @@ public class AuthenticationState
         var userTypes = new HashSet<UserType>();
         var userTypeConstrainedClaims = new List<string>();
 
-        if (authorizationRequest.HasScope(CustomScopes.GetAnIdentityAdmin))
+        foreach (var scope in CustomScopes.AdminScopes)
         {
-            userTypes.Add(UserType.Admin);
-            userTypeConstrainedClaims.Add(CustomScopes.GetAnIdentityAdmin);
+            if (authorizationRequest.HasScope(scope))
+            {
+                userTypes.Add(UserType.Admin);
+                userTypeConstrainedClaims.Add(scope);
+            }
         }
 
-        if (authorizationRequest.HasScope(CustomScopes.Trn))
+        foreach (var scope in CustomScopes.TeacherScopes)
         {
-            userTypes.Add(UserType.Teacher);
-            userTypeConstrainedClaims.Add(CustomScopes.Trn);
+            if (authorizationRequest.HasScope(scope))
+            {
+                userTypes.Add(UserType.Teacher);
+                userTypeConstrainedClaims.Add(scope);
+            }
         }
 
         if (userTypes.Count == 0 && !authorizationRequest.HasScope(CustomScopes.Trn))

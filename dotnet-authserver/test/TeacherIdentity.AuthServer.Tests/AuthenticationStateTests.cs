@@ -259,7 +259,8 @@ public class AuthenticationStateTests
     public static TheoryData<string, UserType> GetUserTypeData => new TheoryData<string, UserType>
     {
         { CustomScopes.Trn, UserType.Teacher },
-        { CustomScopes.GetAnIdentityAdmin, UserType.Admin }
+        { CustomScopes.GetAnIdentityAdmin, UserType.Admin },
+        { CustomScopes.GetAnIdentitySupport, UserType.Admin }
     };
 
     public static TheoryData<string, bool, string?> ValidateClaimsData => new TheoryData<string, bool, string?>
@@ -268,6 +269,8 @@ public class AuthenticationStateTests
         { CustomScopes.Trn, true, null },
         { CustomScopes.GetAnIdentityAdmin, true, null },
         { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.Trn, false, "The get-an-identity:admin, trn scopes cannot be combined." },
+        { CustomScopes.GetAnIdentitySupport + " " + CustomScopes.Trn, false, "The get-an-identity:support, trn scopes cannot be combined." },
+        { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.GetAnIdentitySupport, true, null },
     };
 
     private static string CreateAuthorizationUrl(string scope = "trn")
