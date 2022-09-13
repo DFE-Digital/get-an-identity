@@ -136,10 +136,7 @@ public class AuthenticationState
         }
 
         // For now we only support flows that have the trn scope specified
-        if (!request.HasScope(CustomScopes.Trn))
-        {
-            throw new NotSupportedException($"The '{CustomScopes.Trn}' scope must be specified.");
-        }
+        Debug.Assert(request.HasScope(CustomScopes.Trn));
 
         // trn scope is specified; launch the journey to collect TRN
         if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
