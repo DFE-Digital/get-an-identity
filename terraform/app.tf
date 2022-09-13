@@ -5,9 +5,12 @@ locals {
       "Clients__${i}__ClientSecret" = v.CLIENT_SECRET,
       "Clients__${i}__DisplayName"  = v.DISPLAY_NAME,
       "Clients__${i}__ServiceUrl"   = v.SERVICE_URL
-      }, merge([
-        for k, x in v.REDIRECT_URIS : {
-          "Clients__${i}__RedirectUris__${k}" = x
+      },
+      merge([for k, x in v.REDIRECT_URIS : {
+        "Clients__${i}__RedirectUris__${k}" = x
+      }]...),
+      merge([for k, x in v.SCOPES : {
+        "Clients__${i}__Scopes__${k}" = x
         }
     ]...))
   ]...)
