@@ -9,4 +9,5 @@ public class User
     public DateOnly DateOfBirth { get; set; }
     public DateTime Created { get; set; }
     public DateTime? CompletedTrnLookup { get; set; }
+    public UserType UserType { get; set; }
 }

@@ -67,7 +67,8 @@ public class TrnCallbackModel : PageModel
                 EmailAddress = authenticationState.EmailAddress!,
                 FirstName = lookupState.FirstName,
                 LastName = lookupState.LastName,
-                UserId = userId
+                UserId = userId,
+                UserType = UserType.Teacher
             };
 
             _dbContext.Users.Add(user);
