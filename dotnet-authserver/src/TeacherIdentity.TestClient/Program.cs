@@ -42,7 +42,6 @@ public class Program
                 options.Scope.Add("email");
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
-                options.Scope.Add("trn");
 
                 options.SaveTokens = true;
 
@@ -50,6 +49,19 @@ public class Program
                 options.Events.OnTokenResponseReceived = ctx =>
                 {
                     Console.WriteLine(ctx.TokenEndpointResponse.AccessToken);
+                    return Task.CompletedTask;
+                };
+
+                options.Events.OnRedirectToIdentityProvider = ctx =>
+                {
+                    var customScope = ctx.HttpContext.Request.Query["scope"].ToString();
+                    if (string.IsNullOrEmpty(customScope))
+                    {
+                        customScope = "trn";
+                    }
+
+                    ctx.ProtocolMessage.Scope += " " + customScope;
+
                     return Task.CompletedTask;
                 };
 

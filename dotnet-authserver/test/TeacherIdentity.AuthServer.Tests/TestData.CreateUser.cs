@@ -4,22 +4,29 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public partial class TestData
 {
-    public Task<User> CreateUser(string? email = null, bool haveCompletedTrnLookup = true) => WithDbContext(async dbContext =>
-    {
-        var user = new User()
+    public Task<User> CreateUser(string? email = null, bool? haveCompletedTrnLookup = null, UserType userType = UserType.Teacher) =>
+        WithDbContext(async dbContext =>
         {
-            UserId = Guid.NewGuid(),
-            EmailAddress = email ?? Faker.Internet.Email(),
-            FirstName = Faker.Name.First(),
-            LastName = Faker.Name.Last(),
-            Created = _clock.UtcNow,
-            CompletedTrnLookup = haveCompletedTrnLookup ? _clock.UtcNow : null
-        };
+            if (haveCompletedTrnLookup == true && userType == UserType.Teacher)
+            {
+                throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
+            }
 
-        dbContext.Users.Add(user);
+            var user = new User()
+            {
+                UserId = Guid.NewGuid(),
+                EmailAddress = email ?? Faker.Internet.Email(),
+                FirstName = Faker.Name.First(),
+                LastName = Faker.Name.Last(),
+                Created = _clock.UtcNow,
+                CompletedTrnLookup = userType is UserType.Teacher && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
+                UserType = userType
+            };
 
-        await dbContext.SaveChangesAsync();
+            dbContext.Users.Add(user);
 
-        return user;
-    });
+            await dbContext.SaveChangesAsync();
+
+            return user;
+        });
 }

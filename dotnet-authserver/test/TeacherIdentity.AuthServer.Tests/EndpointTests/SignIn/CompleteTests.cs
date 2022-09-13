@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -81,45 +82,82 @@ public class CompleteTests : TestBase
         Assert.NotNull(doc.GetElementByTestId("already-completed-content"));
     }
 
+    [Fact]
+    public async Task Get_AuthorizationRequestHasTrnScope_ShowsTrnRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, scope: CustomScopes.Trn);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.NotNull(doc.GetElementByTestId("trn-row"));
+    }
+
+    [Fact]
+    public async Task Get_AuthorizationRequestDoesNotHaveTrnScope_DoesNotShowTrnRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, scope: CustomScopes.GetAnIdentityAdmin);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetElementByTestId("trn-row"));
+    }
+
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
         HttpClient httpClient,
         bool hasTrn = true,
         bool firstTimeUser = false,
-        bool haveResumedCompletedJourney = false)
+        bool haveResumedCompletedJourney = false,
+        string scope = "trn")
     {
         var user = await TestData.CreateUser();
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
-        var authenticationStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressVerified = true;
-
-            authState.DateOfBirth = user!.DateOfBirth;
-            authState.FirstName = user.FirstName;
-            authState.LastName = user.LastName;
-            authState.FirstTimeUser = firstTimeUser;
-            authState.HaveCompletedTrnLookup = !firstTimeUser;
-            authState.UserId = user.UserId;
-
-            authState.RedirectUri = "https://dummy";
-            authState.AuthorizationResponseMode = "form_post";
-            authState.AuthorizationResponseParameters = new[]
+        var authenticationStateHelper = CreateAuthenticationStateHelper(
+            authState =>
             {
-                new KeyValuePair<string, string>("code", "abc"),
-                new KeyValuePair<string, string>("state", "syz")
-            };
+                authState.EmailAddress = Faker.Internet.Email();
+                authState.EmailAddressVerified = true;
 
-            authState.HaveResumedCompletedJourney = haveResumedCompletedJourney;
+                authState.DateOfBirth = user!.DateOfBirth;
+                authState.FirstName = user.FirstName;
+                authState.LastName = user.LastName;
+                authState.FirstTimeUser = firstTimeUser;
+                authState.HaveCompletedTrnLookup = !firstTimeUser;
+                authState.UserId = user.UserId;
 
-            if (hasTrn)
-            {
-                authState.Trn = trn!;
+                authState.RedirectUri = "https://dummy";
+                authState.AuthorizationResponseMode = "form_post";
+                authState.AuthorizationResponseParameters = new[]
+                {
+                    new KeyValuePair<string, string>("code", "abc"),
+                    new KeyValuePair<string, string>("state", "syz")
+                };
 
-                A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId))
-                    .Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, UserId = user!.UserId });
-            }
-        });
+                authState.HaveResumedCompletedJourney = haveResumedCompletedJourney;
+
+                if (hasTrn)
+                {
+                    authState.Trn = trn!;
+
+                    A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId))
+                        .Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, UserId = user!.UserId });
+                }
+            },
+            scope);
 
         await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeUser, trn);
 

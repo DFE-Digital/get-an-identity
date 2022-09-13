@@ -7,4 +7,5 @@ public class ClientConfiguration
     public string[]? RedirectUris { get; set; }
     public string? DisplayName { get; set; }
     public string? ServiceUrl { get; set; }
+    public string[]? Scopes { get; set; }
 }

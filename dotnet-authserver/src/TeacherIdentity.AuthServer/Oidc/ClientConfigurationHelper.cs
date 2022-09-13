@@ -47,13 +47,17 @@ public class ClientConfigurationHelper
                 Permissions.GrantTypes.AuthorizationCode,
                 Permissions.ResponseTypes.Code,
                 Permissions.Scopes.Email,
-                Permissions.Scopes.Profile,
-                $"scp:{CustomScopes.Trn}"
+                Permissions.Scopes.Profile
             };
 
             foreach (var permission in permissions)
             {
                 descriptor.Permissions.Add(permission);
+            }
+
+            foreach (var scp in clientConfig.Scopes ?? Array.Empty<string>())
+            {
+                descriptor.Permissions.Add($"scp:{scp}");
             }
 
             if (application is not null)
