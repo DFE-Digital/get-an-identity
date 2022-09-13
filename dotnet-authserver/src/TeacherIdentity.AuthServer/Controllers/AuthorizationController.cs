@@ -41,6 +41,19 @@ public class AuthorizationController : Controller
         var request = HttpContext.GetOpenIddictServerRequest() ??
             throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
+        // trn scope is required for now
+        if (!request.HasScope(CustomScopes.Trn))
+        {
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        "The trn scope is required."
+                }));
+        }
+
         // Try to retrieve the user principal stored in the authentication cookie and redirect
         // the user agent to the login page (or to an external provider) in the following cases:
         //
