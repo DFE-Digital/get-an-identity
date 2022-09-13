@@ -16,7 +16,7 @@ public class SignIn : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task ExistingUser_CanSignInSuccessfullyWithEmailAndPin()
+    public async Task ExistingTeacherUser_CanSignInSuccessfullyWithEmailAndPin()
     {
         var email = "joe.bloggs+existing-user@example.com";
         var trn = "1234567";
@@ -33,6 +33,7 @@ public class SignIn : IClassFixture<HostFixture>
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
+                UserType = UserType.Teacher
             });
 
             await dbContext.SaveChangesAsync();
@@ -74,10 +75,65 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(email, signedInEmail);
     }
 
+    [Fact]
+    public async Task AdminUser_CanSignInSuccessfullyWithEmailAndPin()
+    {
+        var email = "admin.user@example.com";
+
+        {
+            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+            var userId = Guid.NewGuid();
+
+            dbContext.Users.Add(new User()
+            {
+                EmailAddress = email,
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                UserId = userId,
+                UserType = UserType.Admin
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        // Start on the client app and try to access a protected area with admin scope
+
+        await page.GotoAsync("/profile?scope=get-an-identity:admin");
+
+        // Fill in the sign in form (email + PIN)
+
+        await page.FillAsync("text=Email", email);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the confirmation page
+
+        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be back at the client, signed in
+
+        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
+        var pageUrlHost = new Uri(page.Url).Host;
+        Assert.Equal(clientAppHost, pageUrlHost);
+
+        var signedInEmail = await page.InnerTextAsync("data-testid=email");
+        Assert.Equal(string.Empty, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(email, signedInEmail);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task NewUser_IsRedirectedToFindAndRegistersAnAccountOnCallback(bool hasTrn)
+    public async Task NewTeacherUser_IsRedirectedToFindAndRegistersAnAccountOnCallback(bool hasTrn)
     {
         var email = $"joe.bloggs+new-user-{(hasTrn ? "with-trn" : "without-trn")}@example.com";
         var firstName = "Joe";
@@ -88,11 +144,11 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewUser(page, email, firstName, lastName, trn, dateOfBirth);
+        await SignInAsNewTeacherUser(page, email, firstName, lastName, trn, dateOfBirth);
     }
 
     [Fact]
-    public async Task ExistingUser_SignsInWithinSameSessionTheyRegisteredWith_SkipsEmailAndPinAndShowsCorrectConfirmationPage()
+    public async Task ExistingTeacherUser_SignsInWithinSameSessionTheyRegisteredWith_SkipsEmailAndPinAndShowsCorrectConfirmationPage()
     {
         var email = $"joe.bloggs+existing-subsequent-sign-in@example.com";
         var firstName = "Joe";
@@ -103,7 +159,7 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewUser(page, email, firstName, lastName, trn, dateOfBirth);
+        await SignInAsNewTeacherUser(page, email, firstName, lastName, trn, dateOfBirth);
 
         await ClearCookiesForTestClient();
 
@@ -151,7 +207,7 @@ public class SignIn : IClassFixture<HostFixture>
         }
     }
 
-    private async Task SignInAsNewUser(
+    private async Task SignInAsNewTeacherUser(
         IPage page,
         string email,
         string firstName,

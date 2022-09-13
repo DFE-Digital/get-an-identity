@@ -23,7 +23,8 @@ public sealed class AuthenticationStateHelper
 
     public static AuthenticationStateHelper Create(
         Action<AuthenticationState>? configureAuthenticationState,
-        HostFixture hostFixture)
+        HostFixture hostFixture,
+        string scope)
     {
         var authenticationStateProvider = (TestAuthenticationStateProvider)hostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
 
@@ -35,7 +36,7 @@ public sealed class AuthenticationStateHelper
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
-            $"&scope=email%20profile%20trn" +
+            $"&scope=email%20profile%20" + Uri.EscapeDataString(scope) +
             $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
             $"&code_challenge_method=S256" +

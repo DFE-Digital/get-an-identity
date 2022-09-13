@@ -136,9 +136,6 @@ public class AuthenticationState
             return linkGenerator.EmailConfirmation();
         }
 
-        // For now we only support flows that have the trn scope specified
-        Debug.Assert(request.HasScope(CustomScopes.Trn));
-
         // trn scope is specified; launch the journey to collect TRN
         if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
         {
@@ -152,7 +149,15 @@ public class AuthenticationState
         return GetFinalAuthorizationUrl();
     }
 
-    public UserType GetUserType() => UserType.Teacher;
+    public UserType GetUserType()
+    {
+        if (!TryGetUserTypeFromScopes(out var userType, out _))
+        {
+            throw new InvalidOperationException("Scope is not valid.");
+        }
+
+        return userType.Value;
+    }
 
     public bool IsComplete() => EmailAddressVerified &&
         (Trn is not null || HaveCompletedTrnLookup || !GetAuthorizationRequest().HasScope(CustomScopes.Trn)) &&
@@ -173,17 +178,44 @@ public class AuthenticationState
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
 
-    public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage)
+    public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage) => TryGetUserTypeFromScopes(out _, out errorMessage);
+
+    private bool TryGetUserTypeFromScopes(
+        [NotNullWhen(true)] out UserType? userType,
+        [NotNullWhen(false)] out string? invalidScopeErrorMessage)
     {
+        userType = default;
+        invalidScopeErrorMessage = default;
+
         var authorizationRequest = GetAuthorizationRequest();
 
-        if (!authorizationRequest.HasScope(CustomScopes.Trn))
+        var userTypes = new HashSet<UserType>();
+        var userTypeConstrainedClaims = new List<string>();
+
+        if (authorizationRequest.HasScope(CustomScopes.GetAnIdentityAdmin))
         {
-            errorMessage = "The trn scope is required.";
+            userTypes.Add(UserType.Admin);
+            userTypeConstrainedClaims.Add(CustomScopes.GetAnIdentityAdmin);
+        }
+
+        if (authorizationRequest.HasScope(CustomScopes.Trn))
+        {
+            userTypes.Add(UserType.Teacher);
+            userTypeConstrainedClaims.Add(CustomScopes.Trn);
+        }
+
+        if (userTypes.Count == 0 && !authorizationRequest.HasScope(CustomScopes.Trn))
+        {
+            invalidScopeErrorMessage = "The trn scope is required.";
+            return false;
+        }
+        else if (userTypes.Count > 1)
+        {
+            invalidScopeErrorMessage = $"The {string.Join(", ", userTypeConstrainedClaims.OrderBy(sc => sc))} scopes cannot be combined.";
             return false;
         }
 
-        errorMessage = default;
+        userType = userTypes.Single();
         return true;
     }
 }

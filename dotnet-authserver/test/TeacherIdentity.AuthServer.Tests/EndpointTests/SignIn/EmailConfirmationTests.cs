@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -266,9 +267,112 @@ public class EmailConfirmationTests : TestBase
         Assert.Equal(trn, authStateHelper.AuthenticationState.Trn);
     }
 
-    private AuthenticationStateHelper CreateAuthenticationStateHelper(string? email = null) =>
-        CreateAuthenticationStateHelper(authState =>
+    [Fact]
+    public async Task Post_ValidPinForAdminScopeWithUnknownUser_ReturnsForbidden()
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(email);
+
+        var authStateHelper = CreateAuthenticationStateHelper(email, scope: CustomScopes.GetAnIdentityAdmin);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
-            authState.EmailAddress = email ?? Faker.Internet.Email();
-        });
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Teacher);
+
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+
+        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.GetAnIdentityAdmin);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForAdminScopeForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Admin);
+
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+
+        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.GetAnIdentityAdmin);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+
+        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
+        Assert.NotNull(authStateHelper.AuthenticationState.UserId);
+        Assert.False(authStateHelper.AuthenticationState.FirstTimeUser);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForNonAdminScopeWithAdminUser_ReturnsForbidden()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Admin);
+
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+
+        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.Trn);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+    }
+
+    private AuthenticationStateHelper CreateAuthenticationStateHelper(string? email = null, string scope = "trn") =>
+        CreateAuthenticationStateHelper(
+            authState =>
+            {
+                authState.EmailAddress = email ?? Faker.Internet.Email();
+            },
+            scope);
 }

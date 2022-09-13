@@ -159,6 +159,35 @@ public class AuthenticationStateTests
         Assert.Equal(trn, authenticationState.Trn);
     }
 
+    [Theory]
+    [MemberData(nameof(GetUserTypeData))]
+    public void GetUserType(string scope, UserType expectedUserType)
+    {
+        // Arrange
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), CreateAuthorizationUrl(scope));
+
+        // Act
+        var userType = authenticationState.GetUserType();
+
+        // Assert
+        Assert.Equal(expectedUserType, userType);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidateClaimsData))]
+    public void ValidateClaims(string scope, bool expectedResult, string? expectedErrorMessage)
+    {
+        // Arrange
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), CreateAuthorizationUrl(scope));
+
+        // Act
+        var result = authenticationState.ValidateScopes(out var errorMessage);
+
+        // Assert
+        Assert.Equal(expectedResult, result);
+        Assert.Equal(expectedErrorMessage, errorMessage);
+    }
+
     public static TheoryData<AuthenticationState, string> GetNextHopUrlData
     {
         get
@@ -227,7 +256,21 @@ public class AuthenticationStateTests
         }
     }
 
-    private static string CreateAuthorizationUrl()
+    public static TheoryData<string, UserType> GetUserTypeData => new TheoryData<string, UserType>
+    {
+        { CustomScopes.Trn, UserType.Teacher },
+        { CustomScopes.GetAnIdentityAdmin, UserType.Admin }
+    };
+
+    public static TheoryData<string, bool, string?> ValidateClaimsData => new TheoryData<string, bool, string?>
+    {
+        { "", false, "The trn scope is required." },
+        { CustomScopes.Trn, true, null },
+        { CustomScopes.GetAnIdentityAdmin, true, null },
+        { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.Trn, false, "The get-an-identity:admin, trn scopes cannot be combined." },
+    };
+
+    private static string CreateAuthorizationUrl(string scope = "trn")
     {
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
 
@@ -235,7 +278,7 @@ public class AuthenticationStateTests
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
-            $"&scope=email%20profile%20trn" +
+            $"&scope=email%20profile%20" + Uri.EscapeDataString(scope) +
             $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
             $"&code_challenge_method=S256" +

@@ -24,6 +24,8 @@ public class CompleteModel : PageModel
 
     public bool AlreadyCompleted { get; set; }
 
+    public bool ShowTrnRow { get; set; }
+
     public void OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
@@ -38,5 +40,6 @@ public class CompleteModel : PageModel
         Trn = authenticationState.Trn;
         DateOfBirth = authenticationState.DateOfBirth!.Value;
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
+        ShowTrnRow = authenticationState.GetUserType() == Models.UserType.Teacher;
     }
 }

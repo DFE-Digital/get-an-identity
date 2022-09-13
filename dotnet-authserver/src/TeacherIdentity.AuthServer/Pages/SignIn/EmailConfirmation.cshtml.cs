@@ -1,9 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -68,17 +71,37 @@ public class EmailConfirmationModel : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
+        var requiredUserType = authenticationState.GetUserType();
 
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
+
+        // If we the UserType is not what we expect, return an error
+        if (user is not null && user.UserType != requiredUserType)
+        {
+            return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
         if (user is not null)
         {
-            // N.B. If the user didn't match to a TRN when they registered then we won't get a result back from this API call
-            var dqtIdentityInfo = await _dqtApiClient.GetTeacherIdentityInfo(user.UserId);
+            string? trn = null;
 
-            await HttpContext.SignInUser(user, firstTimeUser: false, dqtIdentityInfo?.Trn);
+            if (authenticationState.GetAuthorizationRequest().HasScope(CustomScopes.Trn))
+            {
+                // N.B. If the user didn't match to a TRN when they registered then we won't get a result back from this API call
+                var dqtIdentityInfo = await _dqtApiClient.GetTeacherIdentityInfo(user.UserId);
+                trn = dqtIdentityInfo?.Trn;
+            }
+
+            await HttpContext.SignInUser(user, firstTimeUser: false, trn);
         }
         else
         {
+            // We don't support registering admins
+            if (requiredUserType == UserType.Admin)
+            {
+                return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+
             authenticationState.EmailAddressVerified = true;
             authenticationState.FirstTimeUser = true;
         }

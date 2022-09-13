@@ -7,7 +7,9 @@ using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
@@ -104,6 +106,16 @@ public class Program
                 options.Cookie.IsEssential = true;
 
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+
+                options.Events.OnRedirectToAccessDenied = async ctx =>
+                {
+                    var viewResult = new ViewResult() { ViewName = "Forbidden", StatusCode = StatusCodes.Status403Forbidden };
+                    var viewResultExecutor = ctx.HttpContext.RequestServices.GetRequiredService<IActionResultExecutor<ViewResult>>();
+
+                    var actionContext = new ActionContext(ctx.HttpContext, ctx.HttpContext.GetRouteData(), new ActionDescriptor());
+
+                    await viewResultExecutor.ExecuteAsync(actionContext, viewResult);
+                };
             })
             .AddBasic(options =>
             {
@@ -220,8 +232,6 @@ public class Program
                     .SetTokenEndpointUris("/connect/token")
                     .SetUserinfoEndpointUris("/connect/userinfo");
 
-                options.RegisterScopes(Scopes.Email, Scopes.Profile);
-
                 options
                     .AllowAuthorizationCodeFlow()
                     .AllowClientCredentialsFlow();
@@ -260,7 +270,7 @@ public class Program
                 options.DisableAccessTokenEncryption();
 
                 options.RegisterClaims(CustomClaims.Trn);
-                options.RegisterScopes(CustomScopes.Trn);
+                options.RegisterScopes(Scopes.Email, Scopes.Profile, CustomScopes.Trn, CustomScopes.GetAnIdentityAdmin);
             });
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
