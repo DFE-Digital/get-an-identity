@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json;
 using Flurl;
@@ -151,6 +152,8 @@ public class AuthenticationState
         return GetFinalAuthorizationUrl();
     }
 
+    public UserType GetUserType() => UserType.Teacher;
+
     public bool IsComplete() => EmailAddressVerified &&
         (Trn is not null || HaveCompletedTrnLookup || !GetAuthorizationRequest().HasScope(CustomScopes.Trn)) &&
         UserId.HasValue;
@@ -169,4 +172,18 @@ public class AuthenticationState
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
+
+    public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage)
+    {
+        var authorizationRequest = GetAuthorizationRequest();
+
+        if (!authorizationRequest.HasScope(CustomScopes.Trn))
+        {
+            errorMessage = "The trn scope is required.";
+            return false;
+        }
+
+        errorMessage = default;
+        return true;
+    }
 }
