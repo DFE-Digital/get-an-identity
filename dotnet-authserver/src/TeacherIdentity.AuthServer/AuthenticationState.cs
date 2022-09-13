@@ -103,8 +103,12 @@ public class AuthenticationState
         yield return new Claim(Claims.Name, FirstName + " " + LastName);
         yield return new Claim(Claims.GivenName, FirstName!);
         yield return new Claim(Claims.FamilyName, LastName!);
-        yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(DateFormat));
         yield return new Claim(CustomClaims.HaveCompletedTrnLookup, HaveCompletedTrnLookup.ToString());
+
+        if (DateOfBirth.HasValue)
+        {
+            yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(DateFormat));
+        }
 
         if (authorizationRequest.HasScope(CustomScopes.Trn) && Trn is not null)
         {

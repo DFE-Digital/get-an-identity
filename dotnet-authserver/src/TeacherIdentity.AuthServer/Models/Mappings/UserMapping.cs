@@ -13,6 +13,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.EmailAddress).IsUnique().HasFilter("is_deleted = true");
         builder.Property(u => u.FirstName).HasMaxLength(200).IsRequired();
         builder.Property(u => u.LastName).HasMaxLength(200).IsRequired();
+        builder.Property(u => u.DateOfBirth);
         builder.Property(u => u.Created).IsRequired();
         builder.Property(u => u.CompletedTrnLookup);
         builder.Property(u => u.UserType).IsRequired();
