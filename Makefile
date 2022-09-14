@@ -33,6 +33,14 @@ production:
 	$(eval AZURE_BACKUP_STORAGE_ACCOUNT_NAME=s165p01getaniddbbackuppd)
 	$(eval AZURE_BACKUP_STORAGE_CONTAINER_NAME=get-an-identity)
 
+.PHONY: domain
+domain:
+	$(eval DEPLOY_ENV=production)
+	$(eval AZURE_SUBSCRIPTION=s165-teachingqualificationsservice-production)
+	$(eval RESOURCE_NAME_PREFIX=s165p01)
+	$(eval ENV_SHORT=pd)
+	$(eval ENV_TAG=prod)
+
 read-keyvault-config:
 	$(eval KEY_VAULT_NAME=$(shell jq -r '.key_vault_name' terraform/workspace_variables/$(DEPLOY_ENV).tfvars.json))
 	$(eval KEY_VAULT_SECRET_NAME=INFRASTRUCTURE)
@@ -99,3 +107,7 @@ deploy-azure-resources: set-azure-account tags # make dev deploy-azure-resources
 
 validate-azure-resources: set-azure-account  tags# make dev validate-azure-resources
 	az deployment sub create -l "West Europe" --template-uri "https://raw.githubusercontent.com/DFE-Digital/tra-shared-services/main/azure/resourcedeploy.json" --parameters "resourceGroupName=${RESOURCE_NAME_PREFIX}-getanid-${ENV_SHORT}-rg" 'tags=${RG_TAGS}' "environment=${DEPLOY_ENV}" "tfStorageAccountName=${RESOURCE_NAME_PREFIX}getanidtfstate${ENV_SHORT}" "tfStorageContainerName=getanid-tfstate" "dbBackupStorageAccountName=${AZURE_BACKUP_STORAGE_ACCOUNT_NAME}" "dbBackupStorageContainerName=${AZURE_BACKUP_STORAGE_CONTAINER_NAME}" "keyVaultName=${RESOURCE_NAME_PREFIX}-getanid-${ENV_SHORT}-kv" --what-if
+
+domain-azure-resources: set-azure-account tags # make domain deploy-custom-domain CONFIRM_DEPLOY=1
+	$(if $(CONFIRM_DEPLOY), , $(error can only run with CONFIRM_DEPLOY))
+	az deployment sub create -l "West Europe" --template-uri "https://raw.githubusercontent.com/DFE-Digital/tra-shared-services/main/azure/resourcedeploy.json" --parameters "resourceGroupName=${RESOURCE_NAME_PREFIX}-getaniddomains-rg" 'tags=${RG_TAGS}' "environment=${DEPLOY_ENV}" "tfStorageAccountName=${RESOURCE_NAME_PREFIX}getaniddomainstf" "tfStorageContainerName=getaniddomains-tf"  "keyVaultName=${RESOURCE_NAME_PREFIX}-getaniddomain-kv"
