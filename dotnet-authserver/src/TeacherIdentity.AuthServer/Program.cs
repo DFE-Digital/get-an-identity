@@ -279,7 +279,7 @@ public class Program
                     .EnableStatusCodePagesIntegration();
 
                 options.DisableAccessTokenEncryption();
-                options.SetAccessTokenLifetime(TimeSpan.FromDays(10));
+                options.SetAccessTokenLifetime(TimeSpan.FromHours(1));
 
                 options.RegisterClaims(CustomClaims.Trn);
                 options.RegisterScopes(Scopes.Email, Scopes.Profile, CustomScopes.Trn, CustomScopes.GetAnIdentityAdmin, CustomScopes.GetAnIdentitySupport);
