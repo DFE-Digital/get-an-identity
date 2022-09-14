@@ -5,6 +5,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
+[Collection(nameof(DisableParallelization))]  // Depends on mocks
 public class EmailConfirmationTests : TestBase
 {
     public EmailConfirmationTests(HostFixture hostFixture)

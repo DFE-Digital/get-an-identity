@@ -5,11 +5,8 @@ namespace TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 public class SignInUserMiddleware
 {
-    private readonly TeacherIdentityServerDbContext _dbContext;
-
-    public SignInUserMiddleware(RequestDelegate next, TeacherIdentityServerDbContext dbContext)
+    public SignInUserMiddleware(RequestDelegate next)
     {
-        _dbContext = dbContext;
     }
 
     public async Task Invoke(HttpContext context)
@@ -18,7 +15,9 @@ public class SignInUserMiddleware
         var firstTimeUser = context.Request.Form["FirstTimeUser"] == bool.TrueString;
         var trn = context.Request.Form["Trn"].FirstOrDefault();
 
-        var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
+        var dbContext = context.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>();
+
+        var user = await dbContext.Users.SingleAsync(u => u.UserId == userId);
         await context.SignInUser(user, firstTimeUser, !string.IsNullOrEmpty(trn) ? trn : null);
     }
 }

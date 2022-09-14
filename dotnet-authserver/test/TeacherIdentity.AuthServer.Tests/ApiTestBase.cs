@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests;
 
-public class ApiTestBase : IClassFixture<HostFixture>
+public class ApiTestBase
 {
     protected ApiTestBase(HostFixture hostFixture)
     {

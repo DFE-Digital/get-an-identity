@@ -8,6 +8,8 @@ public class DbHelper
 {
     private readonly string _connectionString;
     private Checkpoint _checkpoint;
+    private readonly SemaphoreSlim _schemaLock = new(1, 1);
+    private bool _haveResetSchema = false;
 
     public DbHelper(string connectionString)
     {
@@ -20,6 +22,24 @@ public class DbHelper
         using var dbContext = new TeacherIdentityServerDbContext(_connectionString);
         await dbContext.Database.OpenConnectionAsync();
         await _checkpoint.Reset(dbContext.Database.GetDbConnection());
+    }
+
+    public async Task EnsureSchema()
+    {
+        await _schemaLock.WaitAsync();
+
+        try
+        {
+            if (!_haveResetSchema)
+            {
+                await ResetSchema();
+                _haveResetSchema = true;
+            }
+        }
+        finally
+        {
+            _schemaLock.Release();
+        }
     }
 
     public async Task ResetSchema()

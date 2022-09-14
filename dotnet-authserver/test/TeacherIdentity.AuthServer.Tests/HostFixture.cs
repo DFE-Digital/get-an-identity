@@ -10,15 +10,21 @@ using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace TeacherIdentity.AuthServer.Tests;
 
-public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Program>, IAsyncLifetime
+public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Program>
 {
+    private readonly TestConfiguration _testConfiguration;
+
+    public HostFixture(TestConfiguration testConfiguration, DbHelper dbHelper)
+    {
+        _testConfiguration = testConfiguration;
+        DbHelper = dbHelper;
+    }
+
     public IConfiguration Configuration => Services.GetRequiredService<IConfiguration>();
 
-    public DbHelper? DbHelper { get; private set; }
+    public DbHelper DbHelper { get; }
 
     public IDqtApiClient? DqtApiClient { get; private set; }
 
@@ -26,22 +32,19 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public IEmailVerificationService? EmailVerificationService { get; private set; }
 
-    public async Task InitializeAsync()
+    public async Task Initialize()
     {
-        DbHelper = new DbHelper(Configuration.GetConnectionString("DefaultConnection"));
-        await DbHelper.ResetSchema();
+        await DbHelper.EnsureSchema();
 
         await ConfigureTestClients();
     }
-
-    Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
 
     public void ResetMocks()
     {
         ClearRecordedCalls(EmailVerificationService);
         ClearRecordedCalls(EmailSender);
 
-        void ClearRecordedCalls(object? fakedObject)
+        static void ClearRecordedCalls(object? fakedObject)
         {
             if (fakedObject is not null)
             {
@@ -76,7 +79,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
         // N.B. Don't use builder.ConfigureAppConfiguration here since it runs *after* the entry point
         // i.e. Program.cs and that has a dependency on IConfiguration
-        builder.UseConfiguration(GetTestConfiguration());
+        builder.UseConfiguration(_testConfiguration.Configuration);
 
         builder.ConfigureServices(services =>
         {
@@ -121,13 +124,6 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             await manager.CreateAsync(client);
         }
     }
-
-    private static IConfiguration GetTestConfiguration() =>
-        new ConfigurationBuilder()
-            .AddUserSecrets<HostFixture>()
-            .AddJsonFile("appsettings.json")
-            .AddEnvironmentVariables()
-            .Build();
 
     private class AddSignInEndpointStartupFilter : IStartupFilter
     {

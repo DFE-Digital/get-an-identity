@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests;
 
-public abstract partial class TestBase : IClassFixture<HostFixture>
+public abstract partial class TestBase
 {
     protected TestBase(HostFixture hostFixture)
     {
