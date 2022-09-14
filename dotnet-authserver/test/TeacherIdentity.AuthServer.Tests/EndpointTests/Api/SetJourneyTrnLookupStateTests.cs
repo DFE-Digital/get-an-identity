@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api;
 
-public class SetJourneyFindALostTrnUserTests : ApiTestBase
+public class SetJourneyTrnLookupStateTests : ApiTestBase
 {
-    public SetJourneyFindALostTrnUserTests(HostFixture hostFixture)
+    public SetJourneyTrnLookupStateTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }

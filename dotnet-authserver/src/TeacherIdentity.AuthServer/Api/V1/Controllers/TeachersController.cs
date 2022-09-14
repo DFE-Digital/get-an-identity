@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.ApiModels;
+using TeacherIdentity.AuthServer.Api.V1.ApiModels;
+using TeacherIdentity.AuthServer.Api.V1.Responses;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Controllers.Api;
+namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 
 [ApiController]
 [Route("api/v1/teachers")]

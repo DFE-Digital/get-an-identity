@@ -1,4 +1,4 @@
-namespace TeacherIdentity.AuthServer.ApiModels;
+namespace TeacherIdentity.AuthServer.Api.V1.ApiModels;
 
 public class TeacherInfo
 {
