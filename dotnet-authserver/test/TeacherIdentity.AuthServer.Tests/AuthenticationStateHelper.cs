@@ -29,20 +29,24 @@ public sealed class AuthenticationStateHelper
         var authenticationStateProvider = (TestAuthenticationStateProvider)hostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
 
         var journeyId = Guid.NewGuid();
-
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
-
         var client = TestClients.Client1;
+        var fullScope = $"email profile {scope}";
+
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
-            $"&scope=email%20profile%20" + Uri.EscapeDataString(scope) +
+            $"&scope=" + Uri.EscapeDataString(fullScope) +
             $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
             $"&code_challenge_method=S256" +
             $"&response_mode=form_post";
 
-        var authenticationState = new AuthenticationState(journeyId, authorizationUrl);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            authorizationUrl,
+            client.ClientId!,
+            fullScope);
 
         configureAuthenticationState?.Invoke(authenticationState);
 

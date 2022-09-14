@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -37,6 +38,26 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         await DbHelper.EnsureSchema();
 
         await ConfigureTestClients();
+
+        await ConfigureTestUsers();
+    }
+
+    public async Task ConfigureTestClients()
+    {
+        using var scope = Services.CreateAsyncScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+
+        foreach (var client in TestClients.All)
+        {
+            await manager.CreateAsync(client);
+        }
+    }
+
+    public async Task ConfigureTestUsers()
+    {
+        using var scope = Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+        await TestUsers.CreateUsers(dbContext);
     }
 
     public void ResetMocks()
@@ -112,17 +133,6 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
                 });
             }
         });
-    }
-
-    private async Task ConfigureTestClients()
-    {
-        using var scope = Services.CreateAsyncScope();
-        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-
-        foreach (var client in TestClients.All)
-        {
-            await manager.CreateAsync(client);
-        }
     }
 
     private class AddSignInEndpointStartupFilter : IStartupFilter

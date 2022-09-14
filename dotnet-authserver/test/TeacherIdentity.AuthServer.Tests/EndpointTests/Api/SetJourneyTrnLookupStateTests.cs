@@ -27,7 +27,7 @@ public class SetJourneyTrnLookupStateTests : ApiTestBase
         };
 
         // Act
-        var response = await HttpClient.SendAsync(request);
+        var response = await ApiKeyHttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -71,7 +71,7 @@ public class SetJourneyTrnLookupStateTests : ApiTestBase
         };
 
         // Act
-        var response = await HttpClient.SendAsync(request);
+        var response = await ApiKeyHttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -117,7 +117,7 @@ public class SetJourneyTrnLookupStateTests : ApiTestBase
         };
 
         // Act
-        var response = await HttpClient.SendAsync(request);
+        var response = await ApiKeyHttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
@@ -158,7 +158,7 @@ public class SetJourneyTrnLookupStateTests : ApiTestBase
         };
 
         // Act
-        var response = await HttpClient.SendAsync(request);
+        var response = await ApiKeyHttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);

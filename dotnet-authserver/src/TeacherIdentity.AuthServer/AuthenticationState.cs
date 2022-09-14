@@ -3,8 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json;
 using Flurl;
-using Microsoft.AspNetCore.WebUtilities;
-using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -25,16 +23,18 @@ public class AuthenticationState
         }
     };
 
-    public AuthenticationState(
-        Guid journeyId,
-        string authorizationUrl)
+    public AuthenticationState(Guid journeyId, string initiatingRequestUrl, string clientId, string scope)
     {
         JourneyId = journeyId;
-        AuthorizationUrl = authorizationUrl;
+        InitiatingRequestUrl = initiatingRequestUrl;
+        ClientId = clientId;
+        Scope = scope;
     }
 
     public Guid JourneyId { get; }
-    public string AuthorizationUrl { get; }
+    public string InitiatingRequestUrl { get; }
+    public string ClientId { get; }
+    public string Scope { get; }
     public IEnumerable<KeyValuePair<string, string>>? AuthorizationResponseParameters { get; set; }
     public string? AuthorizationResponseMode { get; set; }
     public string? RedirectUri { get; set; }
@@ -58,11 +58,13 @@ public class AuthenticationState
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
 
     public static AuthenticationState FromClaims(
-        string authorizationUrl,
+        string initiatingRequestUrl,
+        string clientId,
+        string scope,
         IEnumerable<Claim> claims,
         bool? firstTimeUser = null)
     {
-        return new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl)
+        return new AuthenticationState(journeyId: Guid.NewGuid(), initiatingRequestUrl, clientId, scope)
         {
             UserId = ParseNullableGuid(claims.FirstOrDefault(c => c.Type == Claims.Subject)?.Value),
             FirstTimeUser = firstTimeUser,
@@ -82,12 +84,6 @@ public class AuthenticationState
         string? GetFirstClaimValue(string claimType) => claims.FirstOrDefault(c => c.Type == claimType)?.Value;
     }
 
-    public OpenIddictRequest GetAuthorizationRequest()
-    {
-        var parameters = QueryHelpers.ParseQuery(AuthorizationUrl.Split('?')[1]);
-        return new OpenIddictRequest(parameters);
-    }
-
     public IEnumerable<Claim> GetClaims()
     {
         if (!IsComplete())
@@ -95,30 +91,33 @@ public class AuthenticationState
             throw new InvalidOperationException("Cannot retrieve claims until authentication is complete.");
         }
 
-        var authorizationRequest = GetAuthorizationRequest();
+        return Core();
 
-        yield return new Claim(Claims.Subject, UserId!.ToString()!);
-        yield return new Claim(Claims.Email, EmailAddress!);
-        yield return new Claim(Claims.EmailVerified, bool.TrueString);
-        yield return new Claim(Claims.Name, FirstName + " " + LastName);
-        yield return new Claim(Claims.GivenName, FirstName!);
-        yield return new Claim(Claims.FamilyName, LastName!);
-        yield return new Claim(CustomClaims.HaveCompletedTrnLookup, HaveCompletedTrnLookup.ToString());
-
-        if (DateOfBirth.HasValue)
+        IEnumerable<Claim> Core()
         {
-            yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(DateFormat));
-        }
+            yield return new Claim(Claims.Subject, UserId!.ToString()!);
+            yield return new Claim(Claims.Email, EmailAddress!);
+            yield return new Claim(Claims.EmailVerified, bool.TrueString);
+            yield return new Claim(Claims.Name, FirstName + " " + LastName);
+            yield return new Claim(Claims.GivenName, FirstName!);
+            yield return new Claim(Claims.FamilyName, LastName!);
+            yield return new Claim(CustomClaims.HaveCompletedTrnLookup, HaveCompletedTrnLookup.ToString());
 
-        if (authorizationRequest.HasScope(CustomScopes.Trn) && Trn is not null)
-        {
-            yield return new Claim(CustomClaims.Trn, Trn);
+            if (DateOfBirth.HasValue)
+            {
+                yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(DateFormat));
+            }
+
+            if (HasScope(CustomScopes.Trn) && Trn is not null)
+            {
+                yield return new Claim(CustomClaims.Trn, Trn);
+            }
         }
     }
 
     public string GetFinalAuthorizationUrl()
     {
-        var finalAuthorizationUrl = AuthorizationUrl
+        var finalAuthorizationUrl = new Url(InitiatingRequestUrl)
             .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, JourneyId.ToString());
 
         return finalAuthorizationUrl;
@@ -126,8 +125,6 @@ public class AuthenticationState
 
     public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
     {
-        var request = GetAuthorizationRequest();
-
         // We need an email address
         if (EmailAddress is null)
         {
@@ -141,7 +138,7 @@ public class AuthenticationState
         }
 
         // trn scope is specified; launch the journey to collect TRN
-        if (request.HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
+        if (HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
         {
             return linkGenerator.Trn();
         }
@@ -163,8 +160,10 @@ public class AuthenticationState
         return userType.Value;
     }
 
+    public bool HasScope(string scope) => Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(scope);
+
     public bool IsComplete() => EmailAddressVerified &&
-        (Trn is not null || HaveCompletedTrnLookup || !GetAuthorizationRequest().HasScope(CustomScopes.Trn)) &&
+        (Trn is not null || HaveCompletedTrnLookup || !HasScope(CustomScopes.Trn)) &&
         UserId.HasValue;
 
     public void Populate(User user, bool firstTimeUser, string? trn)
@@ -191,14 +190,12 @@ public class AuthenticationState
         userType = default;
         invalidScopeErrorMessage = default;
 
-        var authorizationRequest = GetAuthorizationRequest();
-
         var userTypes = new HashSet<UserType>();
         var userTypeConstrainedClaims = new List<string>();
 
         foreach (var scope in CustomScopes.AdminScopes)
         {
-            if (authorizationRequest.HasScope(scope))
+            if (HasScope(scope))
             {
                 userTypes.Add(UserType.Admin);
                 userTypeConstrainedClaims.Add(scope);
@@ -207,14 +204,14 @@ public class AuthenticationState
 
         foreach (var scope in CustomScopes.TeacherScopes)
         {
-            if (authorizationRequest.HasScope(scope))
+            if (HasScope(scope))
             {
                 userTypes.Add(UserType.Teacher);
                 userTypeConstrainedClaims.Add(scope);
             }
         }
 
-        if (userTypes.Count == 0 && !authorizationRequest.HasScope(CustomScopes.Trn))
+        if (userTypes.Count == 0 && !HasScope(CustomScopes.Trn))
         {
             invalidScopeErrorMessage = "The trn scope is required.";
             return false;

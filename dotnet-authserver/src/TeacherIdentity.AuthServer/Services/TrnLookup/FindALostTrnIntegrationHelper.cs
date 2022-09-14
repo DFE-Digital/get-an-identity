@@ -29,7 +29,7 @@ public class FindALostTrnIntegrationHelper
 
     public async Task<(string Url, IDictionary<string, string> FormValues)> GetHandoverRequest(AuthenticationState authenticationState)
     {
-        var clientId = authenticationState.GetAuthorizationRequest().ClientId!;
+        var clientId = authenticationState.ClientId;
         var client = (Application)(await _applicationManager.FindByClientIdAsync(clientId))!;
         var clientDisplayName = client.DisplayName;
         var clientServiceUrl = client.ServiceUrl;
