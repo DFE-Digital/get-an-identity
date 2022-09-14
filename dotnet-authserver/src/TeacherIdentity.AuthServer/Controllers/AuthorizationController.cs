@@ -290,6 +290,7 @@ public class AuthorizationController : Controller
             case Claims.Name:
             case Claims.GivenName:
             case Claims.FamilyName:
+            case Claims.Birthdate:
                 yield return Destinations.AccessToken;
 
                 if (principal.HasScope(Scopes.Profile))
@@ -300,6 +301,7 @@ public class AuthorizationController : Controller
                 yield break;
 
             case Claims.Email:
+            case Claims.EmailVerified:
                 yield return Destinations.AccessToken;
 
                 if (principal.HasScope(Scopes.Email))
@@ -319,7 +321,6 @@ public class AuthorizationController : Controller
                 yield break;
 
             default:
-                yield return Destinations.AccessToken;
                 yield break;
         }
     }
