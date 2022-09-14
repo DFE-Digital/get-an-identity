@@ -14,22 +14,6 @@ resource "statuscake_uptime_check" "alert" {
     request_method   = "HTTP"
     status_codes     = ["204", "205", "206", "303", "400", "401", "403", "404", "405", "406", "408", "410", "413", "444", "429", "494", "495", "496", "499", "500", "501", "502", "503", "504", "505", "506", "507", "508", "509", "510", "511", "521", "522", "523", "524", "520", "598", "599"]
     validate_ssl     = false
-
-    dynamic "content_matchers" {
-      for_each = contains(keys(each.value), "content_matchers") ? each.value.content_matchers : []
-      content {
-        content = content_matchers.value["content"]
-        matcher = content_matchers.value["matcher"]
-      }
-    }
-
-    dynamic "basic_authentication" {
-      for_each = var.enable_basic_auth ? [1] : []
-      content {
-        username = local.infrastructure_secrets.SUPPORT_USERNAME
-        password = local.infrastructure_secrets.SUPPORT_PASSWORD
-      }
-    }
   }
 
   monitored_resource {
