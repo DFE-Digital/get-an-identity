@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Flurl;
+using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -38,8 +39,12 @@ public class AuthenticationStateTests
             new Claim(CustomClaims.Trn, trn)
         };
 
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+
         // Act
-        var authenticationState = AuthenticationState.FromClaims(CreateAuthorizationUrl(), claims, firstTimeUser);
+        var authenticationState = AuthenticationState.FromClaims(authorizationUrl, client.ClientId!, scope, claims, firstTimeUser);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -67,7 +72,11 @@ public class AuthenticationStateTests
         var trn = "2345678";
         var userId = Guid.NewGuid();
 
-        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), CreateAuthorizationUrl())
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+
+        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl, client.ClientId!, scope)
         {
             DateOfBirth = dateOfBirth,
             EmailAddress = email,
@@ -142,7 +151,11 @@ public class AuthenticationStateTests
         var trn = "1234567";
         var firstTimeUser = true;
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), "/");
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope);
 
         // Act
         authenticationState.Populate(user, firstTimeUser, trn);
@@ -164,7 +177,10 @@ public class AuthenticationStateTests
     public void GetUserType(string scope, UserType expectedUserType)
     {
         // Arrange
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), CreateAuthorizationUrl(scope));
+        var client = TestClients.Client1;
+        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}");
 
         // Act
         var userType = authenticationState.GetUserType();
@@ -178,7 +194,10 @@ public class AuthenticationStateTests
     public void ValidateClaims(string scope, bool expectedResult, string? expectedErrorMessage)
     {
         // Arrange
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), CreateAuthorizationUrl(scope));
+        var client = TestClients.Client1;
+        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}");
 
         // Act
         var result = authenticationState.ValidateScopes(out var errorMessage);
@@ -193,13 +212,15 @@ public class AuthenticationStateTests
         get
         {
             var journeyId = Guid.NewGuid();
-            var authorizationUrl = "/connect/authorize?client_id=client&grant_type=code&scope=email%20profile%20trn&redirect_uri=%2F";
+            var client = TestClients.Client1;
+            var scope = "email profile trn";
+            var authorizationUrl = CreateAuthorizationUrl(client, scope);
 
             return new TheoryData<AuthenticationState, string>()
             {
                 // No email address
                 {
-                    new AuthenticationState(journeyId, authorizationUrl)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
                     {
                         EmailAddress = null
                     },
@@ -208,7 +229,7 @@ public class AuthenticationStateTests
 
                 // Not confirmed email address
                 {
-                    new AuthenticationState(journeyId, authorizationUrl)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
                     {
                         EmailAddress = "john.doe@example.com"
                     },
@@ -217,7 +238,7 @@ public class AuthenticationStateTests
 
                 // Unknown user, not redirected to Find yet
                 {
-                    new AuthenticationState(journeyId, authorizationUrl)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
                     {
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
@@ -229,7 +250,7 @@ public class AuthenticationStateTests
 
                 // Unknown user, has completed Find journey
                 {
-                    new AuthenticationState(journeyId, authorizationUrl)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
                     {
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
@@ -242,7 +263,7 @@ public class AuthenticationStateTests
 
                 // Known user, confirmed
                 {
-                    new AuthenticationState(journeyId, authorizationUrl)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
                     {
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
@@ -273,15 +294,14 @@ public class AuthenticationStateTests
         { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.GetAnIdentitySupport, true, null },
     };
 
-    private static string CreateAuthorizationUrl(string scope = "trn")
+    private static string CreateAuthorizationUrl(OpenIddictApplicationDescriptor client, string scope)
     {
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
 
-        var client = TestClients.Client1;
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
-            $"&scope=email%20profile%20" + Uri.EscapeDataString(scope) +
+            $"&scope=" + Uri.EscapeDataString(scope) +
             $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
             $"&code_challenge_method=S256" +

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Respawn;
+using Respawn.Graph;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.TestCommon;
@@ -53,6 +54,10 @@ public class DbHelper
 
     private static Checkpoint CreateCheckpoint() => new Checkpoint()
     {
-        DbAdapter = DbAdapter.Postgres
+        DbAdapter = DbAdapter.Postgres,
+        TablesToIgnore = new Table[]
+        {
+            "applications"
+        }
     };
 }

@@ -28,15 +28,15 @@ public class AuthenticationStateCurrentClientProvider : ICurrentClientProvider
             return null;
         }
 
-        var authorizationRequest = _authenticationStateProvider.GetAuthenticationState(_httpContextAccessor.HttpContext)?.GetAuthorizationRequest() ??
-            _httpContextAccessor.HttpContext.GetOpenIddictServerRequest();
+        var clientId = _authenticationStateProvider.GetAuthenticationState(_httpContextAccessor.HttpContext)?.ClientId ??
+            _httpContextAccessor.HttpContext.GetOpenIddictServerRequest()?.ClientId;
 
-        if (authorizationRequest is null)
+        if (clientId is null)
         {
             return null;
         }
 
-        var application = (Application?)await _applicationManager.FindByClientIdAsync(authorizationRequest.ClientId!);
+        var application = (Application?)await _applicationManager.FindByClientIdAsync(clientId);
         return application;
     }
 }

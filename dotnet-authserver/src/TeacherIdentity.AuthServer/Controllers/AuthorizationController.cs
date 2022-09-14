@@ -3,11 +3,14 @@ using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -20,17 +23,20 @@ public class AuthorizationController : Controller
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
     public AuthorizationController(
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
         _linkGenerator = linkGenerator;
+        _dbContext = dbContext;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -209,6 +215,8 @@ public class AuthorizationController : Controller
             {
                 authenticationState = AuthenticationState.FromClaims(
                     GetCallbackUrl(),
+                    request.ClientId!,
+                    request.Scope!,
                     claims ?? Enumerable.Empty<Claim>(),
                     firstTimeUser);
 
@@ -225,7 +233,43 @@ public class AuthorizationController : Controller
         var request = HttpContext.GetOpenIddictServerRequest() ??
             throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
-        if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
+        // For testing we support the resource owner grant - simply sign in the specified user
+        if (request.IsPasswordGrantType())
+        {
+            var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == request.Username);
+
+            if (user is null)
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The username is invalid."
+                    }));
+            }
+
+            var authenticationState = new AuthenticationState(journeyId: Guid.Empty, Request.GetEncodedPathAndQuery(), request.ClientId!, request.Scope!);
+            authenticationState.Populate(user, firstTimeUser: false, trn: null);
+            var claims = authenticationState.GetClaims();
+
+            var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            identity.AddClaims(claims);
+
+            var principal = new ClaimsPrincipal(identity);
+
+            principal.SetScopes(request.GetScopes());
+            principal.SetResources(await _scopeManager.ListResourcesAsync(principal.GetScopes()).ToListAsync());
+
+            foreach (var claim in principal.Claims)
+            {
+                claim.SetDestinations(GetDestinations(claim, principal));
+            }
+
+            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType() || request.IsPasswordGrantType())
         {
             // Retrieve the claims principal stored in the authorization code/refresh token.
             var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal!;

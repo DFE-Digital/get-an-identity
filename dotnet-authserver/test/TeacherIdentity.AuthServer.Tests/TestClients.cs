@@ -23,10 +23,13 @@ public static class TestClients
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
             Permissions.GrantTypes.AuthorizationCode,
+            Permissions.GrantTypes.Password,
             Permissions.ResponseTypes.Code,
             Permissions.Scopes.Email,
             Permissions.Scopes.Profile,
-            $"scp:{CustomScopes.Trn}"
+            $"scp:{CustomScopes.GetAnIdentityAdmin}",
+            $"scp:{CustomScopes.GetAnIdentitySupport}",
+            $"scp:{CustomScopes.Trn}",
         },
         Requirements =
         {
