@@ -1,5 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
+[Collection(nameof(DisableParallelization))]  // Depends on mocks
 public class EmailTests : TestBase
 {
     public EmailTests(HostFixture hostFixture)

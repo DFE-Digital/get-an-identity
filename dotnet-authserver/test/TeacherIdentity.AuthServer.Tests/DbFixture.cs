@@ -1,15 +1,16 @@
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.TestCommon;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
 public class DbFixture : IAsyncLifetime
 {
-    public DbFixture()
+    public DbFixture(TestConfiguration testConfiguration, DbHelper dbHelper)
     {
-        var configuration = GetConfiguration();
+        var configuration = testConfiguration.Configuration;
         ConnectionString = configuration.GetConnectionString("DefaultConnection");
-        DbHelper = new DbHelper(ConnectionString);
+        DbHelper = dbHelper;
         Services = GetServices();
     }
 
@@ -25,16 +26,10 @@ public class DbFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await DbHelper.ResetSchema();
+        await DbHelper.EnsureSchema();
     }
 
     Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
-
-    private IConfiguration GetConfiguration() =>
-        new ConfigurationBuilder()
-            .AddUserSecrets<DbFixture>()
-            .AddEnvironmentVariables()
-            .Build();
 
     private IServiceProvider GetServices()
     {

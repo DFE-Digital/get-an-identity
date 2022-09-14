@@ -9,6 +9,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.Services;
 
+[Collection(nameof(DisableParallelization))]
 public class EmailVerificationServiceTests : IClassFixture<DbFixture>
 {
     private static readonly TimeSpan _pinLifetime = TimeSpan.FromSeconds(120);
