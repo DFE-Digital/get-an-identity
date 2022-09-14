@@ -1,20 +1,20 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TeacherIdentity.AuthServer.ApiModels;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Controllers.Api;
+namespace TeacherIdentity.AuthServer.Controllers;
 
 [ApiController]
 [Route("api/find-trn")]
 [Authorize(AuthorizationPolicies.TrnLookup)]
-public class FindALostTrnIntegrationController : ControllerBase
+public class TrnLookupController : ControllerBase
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
 
-    public FindALostTrnIntegrationController(
+    public TrnLookupController(
         TeacherIdentityServerDbContext dbContext,
         IClock clock)
     {
@@ -23,9 +23,9 @@ public class FindALostTrnIntegrationController : ControllerBase
     }
 
     [HttpPut("user/{journeyId}")]
-    public async Task<IActionResult> SetJourneyFindALostTrnUser(
+    public async Task<IActionResult> SetJourneyTrnLookupStateUser(
         [FromRoute] Guid journeyId,
-        [FromBody] SetJourneyFindALostTrnUserRequest request)
+        [FromBody] SetJourneyTrnLookupStateRequest request)
     {
         var existingState = await _dbContext.JourneyTrnLookupStates.FindAsync(journeyId);
 
@@ -58,4 +58,16 @@ public class FindALostTrnIntegrationController : ControllerBase
 
         return NoContent();
     }
+}
+
+public class SetJourneyTrnLookupStateRequest
+{
+    [Required]
+    public string FirstName { get; set; } = null!;
+    [Required]
+    public string LastName { get; set; } = null!;
+    [Required]
+    public DateOnly DateOfBirth { get; set; }
+    [StringLength(maximumLength: 7, MinimumLength = 7)]
+    public string? Trn { get; set; }
 }
