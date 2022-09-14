@@ -5,6 +5,7 @@ using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Notify.Client;
+using OpenIddict.Validation.AspNetCore;
 using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
@@ -169,7 +171,16 @@ public class Program
                 policy => policy
                     .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
                     .RequireAuthenticatedUser());
+
+            options.AddPolicy(
+                AuthorizationPolicies.GetAnIdentitySupport,
+                policy => policy
+                    .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.GetAnIdentitySupport)));
         });
+
+        builder.Services.AddSingleton<IAuthorizationHandler, RequireScopeAuthorizationHandler>();
 
         builder.Services.AddControllersWithViews()
             .AddJsonOptions(options =>
@@ -272,6 +283,11 @@ public class Program
 
                 options.RegisterClaims(CustomClaims.Trn);
                 options.RegisterScopes(Scopes.Email, Scopes.Profile, CustomScopes.Trn, CustomScopes.GetAnIdentityAdmin, CustomScopes.GetAnIdentitySupport);
+            })
+            .AddValidation(options =>
+            {
+                options.UseLocalServer();
+                options.UseAspNetCore();
             });
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
