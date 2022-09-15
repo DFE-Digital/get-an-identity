@@ -66,14 +66,22 @@ resource "azurerm_postgresql_flexible_server" "postgres-server" {
   version                = 12
   administrator_login    = local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME
   administrator_password = local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD
-  zone                   = 1
   create_mode            = "Default"
   storage_mb             = var.postgres_flexible_server_storage_mb
   sku_name               = var.postgres_flexible_server_sku
-
+  dynamic "high_availability" {
+    for_each = var.enable_postgres_high_availability ? [1] : []
+    content {
+      mode = "ZoneRedundant"
+    }
+  }
   lifecycle {
     ignore_changes = [
-      tags
+      tags,
+      # Allow Azure to manage deployment zone. Ignore changes.
+      zone,
+      # Allow Azure to manage primary and standby server on fail-over. Ignore changes.
+      high_availability[0].standby_availability_zone
     ]
   }
 }
