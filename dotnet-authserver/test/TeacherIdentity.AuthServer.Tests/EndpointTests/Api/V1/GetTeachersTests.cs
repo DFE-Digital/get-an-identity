@@ -40,9 +40,9 @@ public class GetTeachersTests : ApiTestBase, IAsyncLifetime
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
 
-        var user1 = await TestData.CreateUser();
-        var user2 = await TestData.CreateUser();
-        var user3 = await TestData.CreateUser();
+        var user1 = await TestData.CreateUser(hasTrn: true);
+        var user2 = await TestData.CreateUser(hasTrn: true);
+        var user3 = await TestData.CreateUser(hasTrn: false);
         var sortedUsers = new[] { user1, user2, user3 }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         // Act
@@ -59,6 +59,7 @@ public class GetTeachersTests : ApiTestBase, IAsyncLifetime
                 Assert.Equal(sortedUsers[0].EmailAddress, user.Email);
                 Assert.Equal(sortedUsers[0].FirstName, user.FirstName);
                 Assert.Equal(sortedUsers[0].LastName, user.LastName);
+                Assert.Equal(sortedUsers[0].Trn, user.Trn);
             },
             user =>
             {
@@ -66,6 +67,7 @@ public class GetTeachersTests : ApiTestBase, IAsyncLifetime
                 Assert.Equal(sortedUsers[1].EmailAddress, user.Email);
                 Assert.Equal(sortedUsers[1].FirstName, user.FirstName);
                 Assert.Equal(sortedUsers[1].LastName, user.LastName);
+                Assert.Equal(sortedUsers[1].Trn, user.Trn);
             },
             user =>
             {
@@ -73,6 +75,7 @@ public class GetTeachersTests : ApiTestBase, IAsyncLifetime
                 Assert.Equal(sortedUsers[2].EmailAddress, user.Email);
                 Assert.Equal(sortedUsers[2].FirstName, user.FirstName);
                 Assert.Equal(sortedUsers[2].LastName, user.LastName);
+                Assert.Equal(sortedUsers[2].Trn, user.Trn);
             });
     }
 

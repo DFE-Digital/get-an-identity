@@ -33,7 +33,8 @@ public class TeachersController : ControllerBase
                 Email = u.EmailAddress,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
-                DateOfBirth = u.DateOfBirth
+                DateOfBirth = u.DateOfBirth,
+                Trn = u.Trn
             })
             .ToArrayAsync();
 
