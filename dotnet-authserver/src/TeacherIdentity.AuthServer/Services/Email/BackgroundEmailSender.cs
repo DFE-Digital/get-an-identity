@@ -1,25 +1,21 @@
-using Hangfire;
+using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 
 namespace TeacherIdentity.AuthServer.Services.Email;
 
 public class BackgroundEmailSender : IEmailSender
 {
     private readonly IEmailSender _innerEmailSender;
-    private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
 
-    public BackgroundEmailSender(IBackgroundJobClient backgroundJobClient, IEmailSender innerEmailSender)
+    public BackgroundEmailSender(IBackgroundJobScheduler backgroundJobScheduler, IEmailSender innerEmailSender)
     {
         _innerEmailSender = innerEmailSender;
-        _backgroundJobClient = backgroundJobClient;
+        _backgroundJobScheduler = backgroundJobScheduler;
     }
 
-    public Task SendEmail(string to, string subject, string body)
-    {
-        _backgroundJobClient.Enqueue<BackgroundEmailSender>(
+    public Task SendEmail(string to, string subject, string body) =>
+        _backgroundJobScheduler.Enqueue<BackgroundEmailSender>(
             sender => sender.SendEmailInner(to, subject, body));
-
-        return Task.CompletedTask;
-    }
 
     public Task SendEmailInner(string to, string subject, string body) =>
         _innerEmailSender.SendEmail(to, subject, body);

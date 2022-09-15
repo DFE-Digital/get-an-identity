@@ -30,6 +30,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -381,6 +382,15 @@ public class Program
         builder.Services.AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>();
 
         builder.Services.AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>();
+
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddSingleton<IBackgroundJobScheduler, HangfireBackgroundJobScheduler>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<IBackgroundJobScheduler, ExecuteImmediatelyJobScheduler>();
+        }
 
         var app = builder.Build();
 
