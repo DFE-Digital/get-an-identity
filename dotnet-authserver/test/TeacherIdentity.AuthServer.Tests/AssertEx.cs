@@ -3,7 +3,7 @@ using Xunit.Sdk;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
-public static class AssertEx
+public static partial class AssertEx
 {
     public static void DocumentHasError(IHtmlDocument doc, string fieldName, string expectedMessage)
     {
