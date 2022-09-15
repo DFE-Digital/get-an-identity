@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -82,16 +81,7 @@ public class EmailConfirmationModel : PageModel
 
         if (user is not null)
         {
-            string? trn = null;
-
-            if (authenticationState.HasScope(CustomScopes.Trn))
-            {
-                // N.B. If the user didn't match to a TRN when they registered then we won't get a result back from this API call
-                var dqtIdentityInfo = await _dqtApiClient.GetTeacherIdentityInfo(user.UserId);
-                trn = dqtIdentityInfo?.Trn;
-            }
-
-            await HttpContext.SignInUser(user, firstTimeUser: false, trn);
+            await HttpContext.SignInUser(user, firstTimeUser: false);
         }
         else
         {

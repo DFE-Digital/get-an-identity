@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -10,22 +11,22 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class TrnCallbackModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IDqtApiClient _dqtApiClient;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly ILogger<TrnCallbackModel> _logger;
 
     public TrnCallbackModel(
         TeacherIdentityServerDbContext dbContext,
-        IDqtApiClient apiClient,
         IIdentityLinkGenerator linkGenerator,
         IClock clock,
+        IBackgroundJobScheduler backgroundJobScheduler,
         ILogger<TrnCallbackModel> logger)
     {
         _dbContext = dbContext;
-        _dqtApiClient = apiClient;
         _linkGenerator = linkGenerator;
         _clock = clock;
+        _backgroundJobScheduler = backgroundJobScheduler;
         _logger = logger;
     }
 
@@ -68,7 +69,9 @@ public class TrnCallbackModel : PageModel
                 FirstName = lookupState.FirstName,
                 LastName = lookupState.LastName,
                 UserId = userId,
-                UserType = UserType.Teacher
+                UserType = UserType.Teacher,
+                Trn = lookupState.Trn,
+                CompletedTrnLookup = _clock.UtcNow
             };
 
             _dbContext.Users.Add(user);
@@ -81,22 +84,11 @@ public class TrnCallbackModel : PageModel
         var trn = lookupState.Trn;
         if (!string.IsNullOrEmpty(trn))
         {
-            await _dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId });
+            await _backgroundJobScheduler.Enqueue<IDqtApiClient>(
+                dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId }));
         }
 
-        // Set the CompletedTrnLookup flag on the user.
-        // This is done in a separate transaction to the user creation and *after* the TRN/User ID has been associated in DQT.
-        // This is so if the API call above fails and the user ends up bailing out, the next time they sign in they will
-        // have to go through Find again (hopefully successfully this time). If we didn't do this we could return a TRN
-        // for this journey but subsequent journeys would not have a TRN (since the link wasn't persisted in DQT).
-
-        if (user.CompletedTrnLookup is null)
-        {
-            user.CompletedTrnLookup = _clock.UtcNow;
-            await _dbContext.SaveChangesAsync();
-        }
-
-        await HttpContext.SignInUser(user, firstTimeUser: true, trn);
+        await HttpContext.SignInUser(user, firstTimeUser: true);
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }

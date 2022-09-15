@@ -24,10 +24,10 @@ public static class HttpContextExtensions
         return authenticationState is not null;
     }
 
-    public static async Task SignInUser(this HttpContext httpContext, User user, bool firstTimeUser, string? trn)
+    public static async Task SignInUser(this HttpContext httpContext, User user, bool firstTimeUser)
     {
         var authenticationState = httpContext.GetAuthenticationState();
-        authenticationState.Populate(user, firstTimeUser, trn);
+        authenticationState.Populate(user, firstTimeUser);
         Debug.Assert(authenticationState.IsComplete());
         var claims = authenticationState.GetClaims();
 

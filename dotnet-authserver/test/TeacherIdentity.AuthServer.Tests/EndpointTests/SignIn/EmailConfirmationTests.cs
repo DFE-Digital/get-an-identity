@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -238,11 +237,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects(bool hasTrn)
     {
         // Arrange
-        var user = await TestData.CreateUser();
-        var trn = hasTrn ? TestData.GenerateTrn() : null;
-
-        A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user.UserId))
-            .Returns(hasTrn ? new DqtTeacherIdentityInfo() { Trn = trn! } : null);
+        var user = await TestData.CreateUser(hasTrn: hasTrn);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
@@ -265,7 +260,7 @@ public class EmailConfirmationTests : TestBase
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
         Assert.False(authStateHelper.AuthenticationState.FirstTimeUser);
-        Assert.Equal(trn, authStateHelper.AuthenticationState.Trn);
+        Assert.Equal(user.Trn, authStateHelper.AuthenticationState.Trn);
     }
 
     [Fact]

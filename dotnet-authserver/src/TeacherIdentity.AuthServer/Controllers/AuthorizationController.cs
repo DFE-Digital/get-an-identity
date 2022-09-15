@@ -250,7 +250,7 @@ public class AuthorizationController : Controller
             }
 
             var authenticationState = new AuthenticationState(journeyId: Guid.Empty, Request.GetEncodedPathAndQuery(), request.ClientId!, request.Scope!);
-            authenticationState.Populate(user, firstTimeUser: false, trn: null);
+            authenticationState.Populate(user, firstTimeUser: false);
             var claims = authenticationState.GetClaims();
 
             var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);

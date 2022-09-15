@@ -1,5 +1,4 @@
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -123,8 +122,7 @@ public class CompleteTests : TestBase
         bool haveResumedCompletedJourney = false,
         string scope = "trn")
     {
-        var user = await TestData.CreateUser();
-        var trn = hasTrn ? TestData.GenerateTrn() : null;
+        var user = await TestData.CreateUser(hasTrn: hasTrn);
 
         var authenticationStateHelper = CreateAuthenticationStateHelper(
             authState =>
@@ -138,6 +136,7 @@ public class CompleteTests : TestBase
                 authState.FirstTimeUser = firstTimeUser;
                 authState.HaveCompletedTrnLookup = !firstTimeUser;
                 authState.UserId = user.UserId;
+                authState.Trn = user.Trn;
 
                 authState.RedirectUri = "https://dummy";
                 authState.AuthorizationResponseMode = "form_post";
@@ -148,18 +147,10 @@ public class CompleteTests : TestBase
                 };
 
                 authState.HaveResumedCompletedJourney = haveResumedCompletedJourney;
-
-                if (hasTrn)
-                {
-                    authState.Trn = trn!;
-
-                    A.CallTo(() => HostFixture.DqtApiClient!.GetTeacherIdentityInfo(user!.UserId))
-                        .Returns(new DqtTeacherIdentityInfo() { Trn = authState.Trn, UserId = user!.UserId });
-                }
             },
             scope);
 
-        await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeUser, trn);
+        await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeUser);
 
         return authenticationStateHelper;
     }

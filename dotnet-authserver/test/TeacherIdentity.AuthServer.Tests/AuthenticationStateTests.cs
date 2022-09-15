@@ -146,9 +146,9 @@ public class AuthenticationStateTests
             LastName = Faker.Name.Last(),
             UserId = Guid.NewGuid(),
             Created = created,
-            CompletedTrnLookup = created
+            CompletedTrnLookup = created,
+            Trn = "1234567"
         };
-        var trn = "1234567";
         var firstTimeUser = true;
 
         var client = TestClients.Client1;
@@ -158,7 +158,7 @@ public class AuthenticationStateTests
         var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope);
 
         // Act
-        authenticationState.Populate(user, firstTimeUser, trn);
+        authenticationState.Populate(user, firstTimeUser);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
@@ -169,7 +169,7 @@ public class AuthenticationStateTests
         Assert.True(authenticationState.EmailAddressVerified);
         Assert.Equal(firstTimeUser, authenticationState.FirstTimeUser);
         Assert.True(authenticationState.HaveCompletedTrnLookup);
-        Assert.Equal(trn, authenticationState.Trn);
+        Assert.Equal(user.Trn, authenticationState.Trn);
     }
 
     [Theory]
