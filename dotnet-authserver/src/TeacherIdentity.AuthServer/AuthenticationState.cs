@@ -166,7 +166,7 @@ public class AuthenticationState
         (Trn is not null || HaveCompletedTrnLookup || !HasScope(CustomScopes.Trn)) &&
         UserId.HasValue;
 
-    public void Populate(User user, bool firstTimeUser, string? trn)
+    public void Populate(User user, bool firstTimeUser)
     {
         UserId = user.UserId;
         EmailAddress = user.EmailAddress;
@@ -176,7 +176,7 @@ public class AuthenticationState
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
         FirstTimeUser = firstTimeUser;
-        Trn = trn;
+        Trn = user.Trn;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

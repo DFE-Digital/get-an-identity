@@ -10,4 +10,5 @@ public class User
     public DateTime Created { get; set; }
     public DateTime? CompletedTrnLookup { get; set; }
     public UserType UserType { get; set; }
+    public string? Trn { get; set; }
 }
