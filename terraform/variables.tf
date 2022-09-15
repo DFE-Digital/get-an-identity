@@ -31,6 +31,11 @@ variable "postgres_flexible_server_storage_mb" {
   type    = number
   default = 32768
 }
+
+variable "enable_postgres_high_availability" {
+  type    = bool
+  default = false
+}
 variable "key_vault_name" {
   type = string
 }
