@@ -221,7 +221,10 @@ public class Program
             TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString);
         });
 
-        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+        }
 
         builder.Services.AddOpenIddict()
             .AddCore(options =>
