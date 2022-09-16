@@ -214,10 +214,11 @@ public class AuthorizationController : Controller
             if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
                 authenticationState = AuthenticationState.FromClaims(
+                    claims ?? Enumerable.Empty<Claim>(),
                     GetCallbackUrl(),
                     request.ClientId!,
                     request.Scope!,
-                    claims ?? Enumerable.Empty<Claim>(),
+                    request.RedirectUri,
                     firstTimeUser);
 
                 HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
@@ -249,7 +250,13 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            var authenticationState = new AuthenticationState(journeyId: Guid.Empty, Request.GetEncodedPathAndQuery(), request.ClientId!, request.Scope!);
+            var authenticationState = new AuthenticationState(
+                journeyId: Guid.Empty,
+                Request.GetEncodedPathAndQuery(),
+                request.ClientId!,
+                request.Scope!,
+                request.RedirectUri);
+
             authenticationState.Populate(user, firstTimeUser: false);
             var claims = authenticationState.GetClaims();
 

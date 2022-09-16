@@ -23,12 +23,13 @@ public class AuthenticationState
         }
     };
 
-    public AuthenticationState(Guid journeyId, string initiatingRequestUrl, string clientId, string scope)
+    public AuthenticationState(Guid journeyId, string initiatingRequestUrl, string clientId, string scope, string? redirectUri)
     {
         JourneyId = journeyId;
         InitiatingRequestUrl = initiatingRequestUrl;
         ClientId = clientId;
         Scope = scope;
+        RedirectUri = redirectUri;
     }
 
     public Guid JourneyId { get; }
@@ -37,7 +38,7 @@ public class AuthenticationState
     public string Scope { get; }
     public IEnumerable<KeyValuePair<string, string>>? AuthorizationResponseParameters { get; set; }
     public string? AuthorizationResponseMode { get; set; }
-    public string? RedirectUri { get; set; }
+    public string? RedirectUri { get; }
     public Guid? UserId { get; set; }
     public bool? FirstTimeUser { get; set; }
     public string? EmailAddress { get; set; }
@@ -58,13 +59,14 @@ public class AuthenticationState
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
 
     public static AuthenticationState FromClaims(
+        IEnumerable<Claim> claims,
         string initiatingRequestUrl,
         string clientId,
         string scope,
-        IEnumerable<Claim> claims,
+        string? redirectUri,
         bool? firstTimeUser = null)
     {
-        return new AuthenticationState(journeyId: Guid.NewGuid(), initiatingRequestUrl, clientId, scope)
+        return new AuthenticationState(journeyId: Guid.NewGuid(), initiatingRequestUrl, clientId, scope, redirectUri)
         {
             UserId = ParseNullableGuid(claims.FirstOrDefault(c => c.Type == Claims.Subject)?.Value),
             FirstTimeUser = firstTimeUser,
@@ -177,6 +179,23 @@ public class AuthenticationState
         HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
         FirstTimeUser = firstTimeUser;
         Trn = user.Trn;
+    }
+
+    public string ResolveServiceUrl(Application application)
+    {
+        var serviceUrl = new Url(application.ServiceUrl ?? "/");
+
+        if (!serviceUrl.IsRelative)
+        {
+            return serviceUrl;
+        }
+
+        if (RedirectUri is null)
+        {
+            throw new InvalidOperationException($"Cannot resolve a relative {application.ServiceUrl} without a redirect URI.");
+        }
+
+        return $"{new Uri(RedirectUri).GetLeftPart(UriPartial.Authority)}/{serviceUrl.ToString().TrimStart('/')}";
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

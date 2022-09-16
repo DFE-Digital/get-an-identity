@@ -32,7 +32,7 @@ public class FindALostTrnIntegrationHelper
         var clientId = authenticationState.ClientId;
         var client = (Application)(await _applicationManager.FindByClientIdAsync(clientId))!;
         var clientDisplayName = client.DisplayName;
-        var clientServiceUrl = client.ServiceUrl;
+        var clientServiceUrl = authenticationState.ResolveServiceUrl(client);
 
         var request = _httpContextAccessor.HttpContext!.Request;
         var callbackUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{_linkGenerator.TrnCallback()}";
@@ -44,7 +44,7 @@ public class FindALostTrnIntegrationHelper
             { "redirect_uri", callbackUrl },  // TEMP, for back-compat
             { "client_title", clientDisplayName ?? string.Empty },
             { "journey_id", authenticationState.JourneyId.ToString() },
-            { "client_url", clientServiceUrl ?? string.Empty },
+            { "client_url", clientServiceUrl },
             { "previous_url", _linkGenerator.Trn() }
         };
 

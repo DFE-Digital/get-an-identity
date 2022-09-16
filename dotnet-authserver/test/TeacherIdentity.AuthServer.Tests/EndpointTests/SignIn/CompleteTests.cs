@@ -138,7 +138,6 @@ public class CompleteTests : TestBase
                 authState.UserId = user.UserId;
                 authState.Trn = user.Trn;
 
-                authState.RedirectUri = "https://dummy";
                 authState.AuthorizationResponseMode = "form_post";
                 authState.AuthorizationResponseParameters = new[]
                 {
