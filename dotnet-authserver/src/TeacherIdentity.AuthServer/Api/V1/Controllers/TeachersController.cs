@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 using TeacherIdentity.AuthServer.Api.V1.Responses;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
@@ -21,6 +22,9 @@ public class TeachersController : ControllerBase
     }
 
     [HttpGet("{teacherId}")]
+    [SwaggerOperation(summary: "Get a teacher's details by their user ID")]
+    [ProducesResponseType(typeof(GetTeacherDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTeacherDetail([FromRoute] Guid teacherId)
     {
         var teacher = await _dbContext.Users
@@ -48,6 +52,8 @@ public class TeachersController : ControllerBase
     }
 
     [HttpGet("")]
+    [SwaggerOperation(summary: "Retrieves all teachers")]
+    [ProducesResponseType(typeof(GetAllTeachersResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllTeachers()
     {
         var teachers = await _dbContext.Users
