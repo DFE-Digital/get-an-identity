@@ -4,9 +4,9 @@ using TeacherIdentity.AuthServer.Oidc;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
 [Collection(nameof(DisableParallelization))]
-public class GetTeachersTests : ApiTestBase, IAsyncLifetime
+public class GetAllTeachersTests : ApiTestBase, IAsyncLifetime
 {
-    public GetTeachersTests(HostFixture hostFixture)
+    public GetAllTeachersTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -49,7 +49,7 @@ public class GetTeachersTests : ApiTestBase, IAsyncLifetime
         var response = await httpClient.GetAsync("/api/v1/teachers");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetTeachersResponse>(response);
+        var responseObj = await AssertEx.JsonResponse<GetAllTeachersResponse>(response);
 
         Assert.Collection(
             responseObj.Teachers,
