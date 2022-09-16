@@ -9,7 +9,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 
 [ApiController]
-[Route("api/v1/teachers")]
+[Route("teachers")]
 [Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
 public class TeachersController : ControllerBase
 {
