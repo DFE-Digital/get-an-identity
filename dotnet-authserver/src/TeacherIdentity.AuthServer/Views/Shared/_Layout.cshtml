@@ -9,7 +9,7 @@
     if (client is not null)
     {
         serviceName = client.DisplayName;
-        serviceUrl = client.ServiceUrl ?? "/";
+        serviceUrl = Context.TryGetAuthenticationState(out var authenticationState) ? authenticationState.ResolveServiceUrl(client) : "/";
     }
 }
 <!DOCTYPE html>

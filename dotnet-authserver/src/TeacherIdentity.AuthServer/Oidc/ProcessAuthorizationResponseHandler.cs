@@ -34,7 +34,6 @@ public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<Appl
                                                                   select new KeyValuePair<string, string>(parameter.Key, value);
 
             authenticationState.AuthorizationResponseMode = context.ResponseMode;
-            authenticationState.RedirectUri = context.RedirectUri;
 
             httpContext.Response.Redirect(_linkGenerator.CompleteAuthorization());
 

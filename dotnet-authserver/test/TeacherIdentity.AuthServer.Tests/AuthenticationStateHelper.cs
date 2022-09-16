@@ -32,12 +32,13 @@ public sealed class AuthenticationStateHelper
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
         var client = TestClients.Client1;
         var fullScope = $"email profile {scope}";
+        var redirectUri = client.RedirectUris.First().ToString();
 
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
             $"&scope=" + Uri.EscapeDataString(fullScope) +
-            $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}" +
+            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
             $"&code_challenge_method=S256" +
             $"&response_mode=form_post";
@@ -46,7 +47,8 @@ public sealed class AuthenticationStateHelper
             journeyId,
             authorizationUrl,
             client.ClientId!,
-            fullScope);
+            fullScope,
+            redirectUri);
 
         configureAuthenticationState?.Invoke(authenticationState);
 

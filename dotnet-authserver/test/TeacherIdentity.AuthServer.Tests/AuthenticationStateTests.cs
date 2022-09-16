@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Flurl;
-using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -41,10 +40,11 @@ public class AuthenticationStateTests
 
         var client = TestClients.Client1;
         var scope = "email profile trn";
-        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
         // Act
-        var authenticationState = AuthenticationState.FromClaims(authorizationUrl, client.ClientId!, scope, claims, firstTimeUser);
+        var authenticationState = AuthenticationState.FromClaims(claims, authorizationUrl, client.ClientId!, scope, redirectUri, firstTimeUser);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -74,9 +74,10 @@ public class AuthenticationStateTests
 
         var client = TestClients.Client1;
         var scope = "email profile trn";
-        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
-        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl, client.ClientId!, scope)
+        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri)
         {
             DateOfBirth = dateOfBirth,
             EmailAddress = email,
@@ -153,9 +154,10 @@ public class AuthenticationStateTests
 
         var client = TestClients.Client1;
         var scope = "email profile trn";
-        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope);
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
 
         // Act
         authenticationState.Populate(user, firstTimeUser);
@@ -178,9 +180,10 @@ public class AuthenticationStateTests
     {
         // Arrange
         var client = TestClients.Client1;
-        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}");
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}", redirectUri);
 
         // Act
         var userType = authenticationState.GetUserType();
@@ -195,9 +198,10 @@ public class AuthenticationStateTests
     {
         // Arrange
         var client = TestClients.Client1;
-        var authorizationUrl = CreateAuthorizationUrl(client, scope);
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}");
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}", redirectUri);
 
         // Act
         var result = authenticationState.ValidateScopes(out var errorMessage);
@@ -207,6 +211,52 @@ public class AuthenticationStateTests
         Assert.Equal(expectedErrorMessage, errorMessage);
     }
 
+    [Fact]
+    public void ResolveServiceUrl_ApplicationHasAbsoluteServiceUrl_ReturnsServiceUrl()
+    {
+        // Arrange
+        var redirectUri = "http://client.com/redirect_uri";
+        var client = new Application()
+        {
+            RedirectUris = $"[ \"{redirectUri}\" ]",
+            ServiceUrl = "http://other-domain.com/start"
+        };
+
+        var fullScope = "email profile";
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, fullScope, redirectUri);
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, fullScope, redirectUri);
+
+        // Act
+        var result = authenticationState.ResolveServiceUrl(client);
+
+        // Assert
+        Assert.Equal(client.ServiceUrl, result);
+    }
+
+    [Fact]
+    public void ResolveServiceUrl_ApplicationHasRelativeServiceUrl_ReturnsUrlRelativeToRedirectUri()
+    {
+        // Arrange
+        var redirectUri = "http://client.com/redirect_uri";
+        var client = new Application()
+        {
+            RedirectUris = $"[ \"{redirectUri}\" ]",
+            ServiceUrl = "/start"
+        };
+
+        var fullScope = "email profile";
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, fullScope, redirectUri);
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, fullScope, redirectUri);
+
+        // Act
+        var result = authenticationState.ResolveServiceUrl(client);
+
+        // Assert
+        Assert.Equal("http://client.com/start", result);
+    }
+
     public static TheoryData<AuthenticationState, string> GetNextHopUrlData
     {
         get
@@ -214,13 +264,14 @@ public class AuthenticationStateTests
             var journeyId = Guid.NewGuid();
             var client = TestClients.Client1;
             var scope = "email profile trn";
-            var authorizationUrl = CreateAuthorizationUrl(client, scope);
+            var redirectUri = client.RedirectUris.First().ToString();
+            var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
             return new TheoryData<AuthenticationState, string>()
             {
                 // No email address
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
                     {
                         EmailAddress = null
                     },
@@ -229,7 +280,7 @@ public class AuthenticationStateTests
 
                 // Not confirmed email address
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
                     {
                         EmailAddress = "john.doe@example.com"
                     },
@@ -238,7 +289,7 @@ public class AuthenticationStateTests
 
                 // Unknown user, not redirected to Find yet
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
                     {
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
@@ -250,7 +301,7 @@ public class AuthenticationStateTests
 
                 // Unknown user, has completed Find journey
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
                     {
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
@@ -263,7 +314,7 @@ public class AuthenticationStateTests
 
                 // Known user, confirmed
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope)
+                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
                     {
                         EmailAddress = "john.doe@example.com",
                         EmailAddressVerified = true,
@@ -294,15 +345,15 @@ public class AuthenticationStateTests
         { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.GetAnIdentitySupport, true, null },
     };
 
-    private static string CreateAuthorizationUrl(OpenIddictApplicationDescriptor client, string scope)
+    private static string CreateAuthorizationUrl(string clientId, string scope, string redirectUri)
     {
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
 
         var authorizationUrl = $"/connect/authorize" +
-            $"?client_id={client.ClientId}" +
+            $"?client_id={clientId}" +
             $"&response_type=code" +
             $"&scope=" + Uri.EscapeDataString(scope) +
-            $"&redirect_uri={Uri.EscapeDataString(client.RedirectUris.First().ToString())}" +
+            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
             $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
             $"&code_challenge_method=S256" +
             $"&response_mode=form_post";
