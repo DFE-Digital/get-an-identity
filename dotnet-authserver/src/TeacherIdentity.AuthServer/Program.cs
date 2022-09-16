@@ -20,6 +20,8 @@ using OpenIddict.Validation.AspNetCore;
 using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
@@ -27,6 +29,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
+using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -395,6 +398,28 @@ public class Program
             builder.Services.AddSingleton<IBackgroundJobScheduler, ExecuteImmediatelyJobScheduler>();
         }
 
+        builder.Services.AddMvc(options =>
+        {
+            options.Conventions.Add(new ApiVersionConvention());
+        });
+
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Get an identity to access Teacher Services API", Version = "v1" });
+
+            c.DocInclusionPredicate((docName, api) => docName.Equals(api.GroupName, StringComparison.OrdinalIgnoreCase));
+            c.EnableAnnotations();
+            c.ExampleFilters();
+            c.OperationFilter<ResponseContentTypeOperationFilter>();
+        });
+
+        builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
+        builder.Services.AddTransient<ISerializerDataContractResolver>(sp =>
+        {
+            var serializerOptions = sp.GetRequiredService<IOptions<JsonOptions>>().Value.JsonSerializerOptions;
+            return new Infrastructure.Swagger.JsonSerializerDataContractResolver(serializerOptions);
+        });
+
         var app = builder.Build();
 
         if (builder.Environment.IsProduction() &&
@@ -504,6 +529,14 @@ public class Program
             {
                 endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.Hangfire, "/_hangfire");
             }
+        });
+
+        app.UseSwagger(options =>
+        {
+            options.PreSerializeFilters.Add((_, request) =>
+            {
+                request.HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+            });
         });
 
         app.Run();
