@@ -13,8 +13,6 @@ namespace TeacherIdentity.AuthServer;
 
 public class AuthenticationState
 {
-    private const string DateFormat = "yyyy-MM-dd";
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
     {
         Converters =
@@ -58,7 +56,7 @@ public class AuthenticationState
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
 
-    public static AuthenticationState FromClaims(
+    public static AuthenticationState FromInternalClaims(
         IEnumerable<Claim> claims,
         string initiatingRequestUrl,
         string clientId,
@@ -79,14 +77,14 @@ public class AuthenticationState
             HaveCompletedTrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString
         };
 
-        static DateOnly? ParseNullableDate(string? value) => value is not null ? DateOnly.ParseExact(value, DateFormat) : null;
+        static DateOnly? ParseNullableDate(string? value) => value is not null ? DateOnly.ParseExact(value, CustomClaims.DateFormat) : null;
 
         static Guid? ParseNullableGuid(string? value) => value is not null ? Guid.Parse(value) : null;
 
         string? GetFirstClaimValue(string claimType) => claims.FirstOrDefault(c => c.Type == claimType)?.Value;
     }
 
-    public IEnumerable<Claim> GetClaims()
+    public IEnumerable<Claim> GetInternalClaims()
     {
         if (!IsComplete())
         {
@@ -107,10 +105,10 @@ public class AuthenticationState
 
             if (DateOfBirth.HasValue)
             {
-                yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(DateFormat));
+                yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(CustomClaims.DateFormat));
             }
 
-            if (HasScope(CustomScopes.Trn) && Trn is not null)
+            if (Trn is not null)
             {
                 yield return new Claim(CustomClaims.Trn, Trn);
             }

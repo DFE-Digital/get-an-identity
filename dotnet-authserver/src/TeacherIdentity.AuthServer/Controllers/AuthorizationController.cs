@@ -3,7 +3,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
@@ -24,19 +23,22 @@ public class AuthorizationController : Controller
     private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly UserClaimHelper _userClaimHelper;
 
     public AuthorizationController(
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
         IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext)
+        TeacherIdentityServerDbContext dbContext,
+        UserClaimHelper userClaimHelper)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
         _linkGenerator = linkGenerator;
         _dbContext = dbContext;
+        _userClaimHelper = userClaimHelper;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -142,7 +144,7 @@ public class AuthorizationController : Controller
             case ConsentTypes.Implicit:
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
-                var claims = authenticationState.GetClaims();
+                var claims = _userClaimHelper.GetPublicClaims(authenticationState, request.HasScope);
 
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
                 var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -213,7 +215,7 @@ public class AuthorizationController : Controller
         {
             if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
-                authenticationState = AuthenticationState.FromClaims(
+                authenticationState = AuthenticationState.FromInternalClaims(
                     claims ?? Enumerable.Empty<Claim>(),
                     GetCallbackUrl(),
                     request.ClientId!,
@@ -250,15 +252,7 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            var authenticationState = new AuthenticationState(
-                journeyId: Guid.Empty,
-                Request.GetEncodedPathAndQuery(),
-                request.ClientId!,
-                request.Scope!,
-                request.RedirectUri);
-
-            authenticationState.Populate(user, firstTimeUser: false);
-            var claims = authenticationState.GetClaims();
+            var claims = _userClaimHelper.GetPublicClaims(user, request.HasScope);
 
             var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             identity.AddClaims(claims);
@@ -336,14 +330,14 @@ public class AuthorizationController : Controller
 
     private static IEnumerable<string> GetDestinations(Claim claim, ClaimsPrincipal principal)
     {
+        yield return Destinations.AccessToken;
+
         switch (claim.Type)
         {
             case Claims.Name:
             case Claims.GivenName:
             case Claims.FamilyName:
             case Claims.Birthdate:
-                yield return Destinations.AccessToken;
-
                 if (principal.HasScope(Scopes.Profile))
                 {
                     yield return Destinations.IdentityToken;
@@ -353,8 +347,6 @@ public class AuthorizationController : Controller
 
             case Claims.Email:
             case Claims.EmailVerified:
-                yield return Destinations.AccessToken;
-
                 if (principal.HasScope(Scopes.Email))
                 {
                     yield return Destinations.IdentityToken;
@@ -362,11 +354,7 @@ public class AuthorizationController : Controller
 
                 yield break;
 
-            // Never include the security stamp in the access and identity tokens, as it's a secret value.
-            case "AspNet.Identity.SecurityStamp": yield break;
-
             case CustomClaims.Trn:
-                yield return Destinations.AccessToken;
                 yield return Destinations.IdentityToken;
 
                 yield break;

@@ -420,6 +420,8 @@ public class Program
             return new Infrastructure.Swagger.JsonSerializerDataContractResolver(serializerOptions);
         });
 
+        builder.Services.AddSingleton<UserClaimHelper>();
+
         var app = builder.Build();
 
         if (builder.Environment.IsProduction() &&

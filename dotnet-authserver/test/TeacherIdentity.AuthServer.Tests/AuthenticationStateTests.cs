@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,10 +8,10 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
-public class AuthenticationStateTests
+public partial class AuthenticationStateTests
 {
     [Fact]
-    public void FromClaims()
+    public void FromInternalClaims()
     {
         // Arrange
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
@@ -44,7 +43,7 @@ public class AuthenticationStateTests
         var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
         // Act
-        var authenticationState = AuthenticationState.FromClaims(claims, authorizationUrl, client.ClientId!, scope, redirectUri, firstTimeUser);
+        var authenticationState = AuthenticationState.FromInternalClaims(claims, authorizationUrl, client.ClientId!, scope, redirectUri, firstTimeUser);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -59,7 +58,7 @@ public class AuthenticationStateTests
     }
 
     [Fact]
-    public void GetClaims()
+    public void GetInternalClaims()
     {
         // Arrange
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
@@ -91,7 +90,7 @@ public class AuthenticationStateTests
         };
 
         // Act
-        var claims = authenticationState.GetClaims();
+        var claims = authenticationState.GetInternalClaims();
 
         // Assert
         var expectedClaims = new[]
@@ -359,16 +358,5 @@ public class AuthenticationStateTests
             $"&response_mode=form_post";
 
         return authorizationUrl;
-    }
-
-    private class ClaimTypeAndValueEqualityComparer : IEqualityComparer<Claim>
-    {
-        public bool Equals(Claim? x, Claim? y)
-        {
-            return x is null && y is null ||
-                (x is not null && y is not null && x.Type == y.Type && x.Value == y.Value);
-        }
-
-        public int GetHashCode([DisallowNull] Claim obj) => HashCode.Combine(obj.Type, obj.Value);
     }
 }
