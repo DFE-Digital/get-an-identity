@@ -30,8 +30,6 @@ jobs:
     name: Build
     needs: [setup]
     runs-on: ubuntu-latest
-    environment:
-      name: dev
 
     outputs:
       authserver: ${{ steps.image_tags.outputs.authserver }}
@@ -122,7 +120,7 @@ jobs:
     - uses: azure/login@v1
       if: github.actor != 'dependabot[bot]'
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
 
     - uses: DfE-Digital/keyvault-yaml-secret@v1
       id: get_monitoring_secret
@@ -131,7 +129,7 @@ jobs:
         secret: MONITORING
         key: SLACK_WEBHOOK
       env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - uses: DFE-Digital/keyvault-yaml-secret@v1
       if: github.actor != 'dependabot[bot]'
@@ -177,7 +175,7 @@ jobs:
         tags: ${{ steps.image_tags.outputs.testclient }}
 
     - name: Notify Slack channel on build or scan failure
-      if: failure()
+      if: failure() && steps.get_monitoring_secret.outcome == 'success'
       uses: rtCamp/action-slack-notify@v2
       env:
         SLACK_USERNAME: CI Deployment
