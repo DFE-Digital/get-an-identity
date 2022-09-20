@@ -328,6 +328,22 @@ public class AuthorizationController : Controller
         throw new InvalidOperationException("The specified grant type is not supported.");
     }
 
+    [HttpGet("~/connect/signout")]
+    public new IActionResult SignOut() => View();
+
+    [ActionName(nameof(SignOut)), HttpPost("~/connect/signout")]
+    public async Task<IActionResult> SignOutPost()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        return SignOut(
+            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            properties: new AuthenticationProperties
+            {
+                RedirectUri = "/"
+            });
+    }
+
     private static IEnumerable<string> GetDestinations(Claim claim, ClaimsPrincipal principal)
     {
         yield return Destinations.AccessToken;

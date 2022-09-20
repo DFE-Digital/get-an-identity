@@ -246,7 +246,7 @@ public class Program
 
                 options
                     .SetAuthorizationEndpointUris("/connect/authorize")
-                    //.SetLogoutEndpointUris
+                    .SetLogoutEndpointUris("/connect/signout")
                     .SetTokenEndpointUris("/connect/token")
                     .SetUserinfoEndpointUris("/connect/userinfo");
 
