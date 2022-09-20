@@ -400,7 +400,7 @@ public class Program
 
         builder.Services.AddMvc(options =>
         {
-            options.Conventions.Add(new ApiVersionConvention());
+            options.Conventions.Add(new ApiControllerConvention());
         });
 
         builder.Services.AddSwaggerGen(c =>
