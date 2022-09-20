@@ -1,11 +1,12 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using TeacherIdentity.AuthServer.Api.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 
 namespace TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
 
-public class ApiVersionConvention : IControllerModelConvention
+public class ApiControllerConvention : IControllerModelConvention
 {
     private static readonly Regex _versionedApiControllerNamespacePattern = new Regex(@"\.Api\.V(\d+)\.");
 
@@ -18,7 +19,7 @@ public class ApiVersionConvention : IControllerModelConvention
         {
             ApplyGroupName();
             ApplyRoutePrefix();
-            ApplyProducesFilter();
+            ApplyFilters();
 
             // Group name is used to partition the operations by version into different swagger docs
             void ApplyGroupName() => controller.ApiExplorer.GroupName = $"v{version}";
@@ -36,7 +37,11 @@ public class ApiVersionConvention : IControllerModelConvention
                 }
             }
 
-            void ApplyProducesFilter() => controller.Filters.Add(new ProducesJsonOrProblemAttribute());
+            void ApplyFilters()
+            {
+                controller.Filters.Add(new ProducesJsonOrProblemAttribute());
+                controller.Filters.Add(new DefaultErrorExceptionFilter(statusCode: StatusCodes.Status400BadRequest));
+            }
         }
     }
 }
