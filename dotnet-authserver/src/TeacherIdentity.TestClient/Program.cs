@@ -36,6 +36,7 @@ public class Program
                 options.ClientSecret = builder.Configuration.GetValue<string>("ClientSecret");
                 options.ResponseType = "code";
                 options.CallbackPath = new PathString("/oidc/callback");
+                options.SignedOutCallbackPath = new PathString("/oidc/signout-callback");
                 options.UsePkce = true;
 
                 options.Scope.Clear();

@@ -40,10 +40,16 @@ public class ClientConfigurationHelper
                 descriptor.RedirectUris.Add(new Uri(redirectUri));
             }
 
+            foreach (var redirectUri in clientConfig.PostLogoutRedirectUris ?? Array.Empty<string>())
+            {
+                descriptor.PostLogoutRedirectUris.Add(new Uri(redirectUri));
+            }
+
             var permissions = new[]
             {
                 Permissions.Endpoints.Authorization,
                 Permissions.Endpoints.Token,
+                Permissions.Endpoints.Logout,
                 Permissions.GrantTypes.AuthorizationCode,
                 Permissions.ResponseTypes.Code,
                 Permissions.Scopes.Email,

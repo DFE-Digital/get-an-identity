@@ -9,6 +9,9 @@ locals {
       merge([for k, x in v.REDIRECT_URIS : {
         "Clients__${i}__RedirectUris__${k}" = x
       }]...),
+      merge([for k, x in v.POST_LOGOUT_REDIRECT_URIS : {
+        "Clients__${i}__PostLogoutRedirectUris__${k}" = x
+      }]...),
       merge([for k, x in v.SCOPES : {
         "Clients__${i}__Scopes__${k}" = x
         }
