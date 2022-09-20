@@ -9,7 +9,7 @@ locals {
       merge([for k, x in v.REDIRECT_URIS : {
         "Clients__${i}__RedirectUris__${k}" = x
       }]...),
-      merge([for k, x in v.POST_LOGOUT_REDIRECT_URIS : {
+      merge([for k, x in lookup(v, "POST_LOGOUT_REDIRECT_URIS", []) : {
         "Clients__${i}__PostLogoutRedirectUris__${k}" = x
       }]...),
       merge([for k, x in v.SCOPES : {
