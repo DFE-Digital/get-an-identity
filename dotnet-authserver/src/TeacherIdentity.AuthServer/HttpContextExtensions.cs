@@ -29,7 +29,7 @@ public static class HttpContextExtensions
         var authenticationState = httpContext.GetAuthenticationState();
         authenticationState.Populate(user, firstTimeUser);
         Debug.Assert(authenticationState.IsComplete());
-        var claims = authenticationState.GetClaims();
+        var claims = authenticationState.GetInternalClaims();
 
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);
         var principal = new ClaimsPrincipal(identity);
