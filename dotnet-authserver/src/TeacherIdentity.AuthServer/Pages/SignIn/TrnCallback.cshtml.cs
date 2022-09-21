@@ -69,7 +69,7 @@ public class TrnCallbackModel : PageModel
                 FirstName = lookupState.FirstName,
                 LastName = lookupState.LastName,
                 UserId = userId,
-                UserType = UserType.Teacher,
+                UserType = UserType.Default,
                 Trn = lookupState.Trn,
                 CompletedTrnLookup = _clock.UtcNow
             };

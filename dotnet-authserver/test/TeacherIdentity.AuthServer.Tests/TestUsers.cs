@@ -12,7 +12,7 @@ public static class TestUsers
         EmailAddress = Faker.Internet.Email(),
         FirstName = Faker.Name.First(),
         LastName = Faker.Name.Last(),
-        UserType = UserType.Admin
+        UserType = UserType.Staff
     };
 
     public static async Task CreateUsers(TeacherIdentityServerDbContext dbContext)

@@ -329,9 +329,9 @@ public partial class AuthenticationStateTests
 
     public static TheoryData<string, UserType> GetUserTypeData => new TheoryData<string, UserType>
     {
-        { CustomScopes.Trn, UserType.Teacher },
-        { CustomScopes.GetAnIdentityAdmin, UserType.Admin },
-        { CustomScopes.GetAnIdentitySupport, UserType.Admin }
+        { CustomScopes.Trn, UserType.Default },
+        { CustomScopes.GetAnIdentityAdmin, UserType.Staff },
+        { CustomScopes.GetAnIdentitySupport, UserType.Staff }
     };
 
     public static TheoryData<string, bool, string?> ValidateClaimsData => new TheoryData<string, bool, string?>

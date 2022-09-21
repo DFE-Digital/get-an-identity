@@ -32,7 +32,7 @@ public class SignIn : IClassFixture<HostFixture>
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
-                UserType = UserType.Teacher,
+                UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 Trn = trn
             });
@@ -90,7 +90,7 @@ public class SignIn : IClassFixture<HostFixture>
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
-                UserType = UserType.Admin
+                UserType = UserType.Staff
             });
 
             await dbContext.SaveChangesAsync();
