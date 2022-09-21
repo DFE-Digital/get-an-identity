@@ -3,9 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 using TeacherIdentity.AuthServer.Api.V1.ApiModels;
+using TeacherIdentity.AuthServer.Api.V1.Requests;
 using TeacherIdentity.AuthServer.Api.V1.Responses;
+using TeacherIdentity.AuthServer.Api.Validation;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.BackgroundJobs;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 
@@ -15,10 +19,14 @@ namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 public class TeachersController : ControllerBase
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
 
-    public TeachersController(TeacherIdentityServerDbContext dbContext)
+    public TeachersController(
+        TeacherIdentityServerDbContext dbContext,
+        IBackgroundJobScheduler backgroundJobScheduler)
     {
         _dbContext = dbContext;
+        _backgroundJobScheduler = backgroundJobScheduler;
     }
 
     [HttpGet("{teacherId}")]
@@ -72,5 +80,53 @@ public class TeachersController : ControllerBase
             .ToArrayAsync();
 
         return Ok(new GetAllTeachersResponse() { Teachers = teachers });
+    }
+
+    [HttpPut("{teacherId}/trn")]
+    [SwaggerOperation(summary: "Set the TRN for a teacher")]
+    [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetTeacherTrn(
+        [FromRoute] Guid teacherId,
+        [FromBody] SetTeacherTrnRequest request)
+    {
+        // This will move into a FluentValidation validator shortly
+        if (request.Trn is null || request.Trn.Length != 7 || !request.Trn.All(c => c >= '0' && c <= '9'))
+        {
+            return BadRequest();
+        }
+
+        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == teacherId);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        if (user.UserType != UserType.Teacher)
+        {
+            throw new ErrorException(ErrorRegistry.UserMustBeTeacher());
+        }
+
+        user.Trn = request.Trn;
+
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
+        {
+            throw new ErrorException(ErrorRegistry.TrnIsAssignedToAnotherUser());
+        }
+
+        await _backgroundJobScheduler.Enqueue<IDqtApiClient>(
+            dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo()
+            {
+                Trn = request.Trn!,
+                UserId = teacherId
+            }));
+
+        return NoContent();
     }
 }

@@ -20,12 +20,12 @@ public static partial class AssertEx
         return result!;
     }
 
-    public static async Task ResponseIsError(HttpResponseMessage response, int errorCode, int expectedStatusCode)
+    public static async Task ResponseIsError(HttpResponseMessage response, int expectedErrorCode, int expectedStatusCode)
     {
         var problemDetails = await ResponseIsProblemDetails(response, expectedStatusCode);
 
         Assert.Contains(problemDetails.Extensions, kvp => kvp.Key == "errorCode");
-        Assert.Equal(errorCode, problemDetails.Extensions?["errorCode"].GetInt32());
+        Assert.Equal(expectedErrorCode, problemDetails.Extensions?["errorCode"].GetInt32());
     }
 
     public static async Task ResponseIsValidationErrorForProperty(
