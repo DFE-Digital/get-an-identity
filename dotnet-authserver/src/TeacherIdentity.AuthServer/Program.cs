@@ -33,6 +33,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
@@ -421,6 +422,8 @@ public class Program
         });
 
         builder.Services.AddSingleton<UserClaimHelper>();
+
+        builder.Services.AddSingleton<Redactor>();
 
         var app = builder.Build();
 
