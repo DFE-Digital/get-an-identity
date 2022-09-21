@@ -62,6 +62,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public void ResetMocks()
     {
+        ClearRecordedCalls(DqtApiClient);
         ClearRecordedCalls(EmailVerificationService);
         ClearRecordedCalls(EmailSender);
 

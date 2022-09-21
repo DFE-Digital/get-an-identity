@@ -4,6 +4,8 @@ namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api;
 
 public static class ScopeTheoryData
 {
+    public static string First(this TheoryData<string> data) => (string)Enumerable.First(data)[0];
+
     public static TheoryData<string> GetAdminScopes() =>
         FromScopes(CustomScopes.AdminScopes);
 
