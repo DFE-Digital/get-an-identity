@@ -4,9 +4,9 @@ using TeacherIdentity.AuthServer.Oidc;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
 [Collection(nameof(DisableParallelization))]
-public class GetAllTeachersTests : ApiTestBase, IAsyncLifetime
+public class GetAllUsersTests : ApiTestBase, IAsyncLifetime
 {
-    public GetAllTeachersTests(HostFixture hostFixture)
+    public GetAllUsersTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -27,7 +27,7 @@ public class GetAllTeachersTests : ApiTestBase, IAsyncLifetime
         var httpClient = await CreateHttpClientWithToken(scope);
 
         // Act
-        var response = await httpClient.GetAsync("/api/v1/teachers");
+        var response = await httpClient.GetAsync("/api/v1/users");
 
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
@@ -46,13 +46,13 @@ public class GetAllTeachersTests : ApiTestBase, IAsyncLifetime
         var sortedUsers = new[] { user1, user2, user3 }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         // Act
-        var response = await httpClient.GetAsync("/api/v1/teachers");
+        var response = await httpClient.GetAsync("/api/v1/users");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetAllTeachersResponse>(response);
+        var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
 
         Assert.Collection(
-            responseObj.Teachers,
+            responseObj.Users,
             user =>
             {
                 Assert.Equal(sortedUsers[0].UserId, user.UserId);

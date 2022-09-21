@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Api.V1.ApiModels;
 
-public class TeacherInfo
+public class UserInfo
 {
     public Guid UserId { get; set; }
     public string? Email { get; set; }

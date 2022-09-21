@@ -2,7 +2,7 @@ using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Responses;
 
-public class GetAllTeachersResponse
+public class GetAllUsersResponse
 {
-    public TeacherInfo[]? Teachers { get; set; }
+    public UserInfo[]? Users { get; set; }
 }

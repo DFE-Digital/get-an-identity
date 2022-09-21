@@ -14,14 +14,15 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 
 [ApiController]
+[Route("users")]
 [Route("teachers")]
 [Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
-public class TeachersController : ControllerBase
+public class UsersController : ControllerBase
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IBackgroundJobScheduler _backgroundJobScheduler;
 
-    public TeachersController(
+    public UsersController(
         TeacherIdentityServerDbContext dbContext,
         IBackgroundJobScheduler backgroundJobScheduler)
     {
@@ -29,14 +30,18 @@ public class TeachersController : ControllerBase
         _backgroundJobScheduler = backgroundJobScheduler;
     }
 
-    [HttpGet("{teacherId}")]
-    [SwaggerOperation(summary: "Get a teacher's details by their user ID")]
+    [HttpGet("{userId}")]
+    [SwaggerOperation(summary: "Get a user's details by their user ID")]
     [ProducesResponseType(typeof(GetTeacherDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTeacherDetail([FromRoute] Guid teacherId)
+    public async Task<IActionResult> GetUserDetail([FromRoute] Guid userId)
     {
-        var teacher = await _dbContext.Users
-            .Where(u => u.UserType == UserType.Default && u.UserId == teacherId)
+        // N.B. The UserType predicate is here to prevent GetAnIdentitySupport users being able to 'see' admins.
+        // In future when use of this endpoint is expanded (for admins, say) then this predicate should be dynamic
+        // based on the current scope.
+
+        var user = await _dbContext.Users
+            .Where(u => u.UserType == UserType.Default && u.UserId == userId)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .Select(u => new GetTeacherDetailResponse()
@@ -50,25 +55,28 @@ public class TeachersController : ControllerBase
             })
             .SingleOrDefaultAsync();
 
-        if (teacher is null)
+        if (user is null)
         {
             return NotFound();
         }
 
-
-        return Ok(teacher);
+        return Ok(user);
     }
 
     [HttpGet("")]
-    [SwaggerOperation(summary: "Retrieves all teachers")]
-    [ProducesResponseType(typeof(GetAllTeachersResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTeachers()
+    [SwaggerOperation(summary: "Retrieves all users")]
+    [ProducesResponseType(typeof(GetAllUsersResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsers()
     {
-        var teachers = await _dbContext.Users
+        // N.B. The UserType predicate is here to prevent GetAnIdentitySupport users being able to 'see' admins.
+        // In future when use of this endpoint is expanded (for admins, say) then this predicate should be dynamic
+        // based on the current scope.
+
+        var users = await _dbContext.Users
             .Where(u => u.UserType == UserType.Default)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
-            .Select(u => new TeacherInfo()
+            .Select(u => new UserInfo()
             {
                 UserId = u.UserId,
                 Email = u.EmailAddress,
@@ -79,16 +87,16 @@ public class TeachersController : ControllerBase
             })
             .ToArrayAsync();
 
-        return Ok(new GetAllTeachersResponse() { Teachers = teachers });
+        return Ok(new GetAllUsersResponse() { Users = users });
     }
 
-    [HttpPut("{teacherId}/trn")]
+    [HttpPut("{userId}/trn")]
     [SwaggerOperation(summary: "Set the TRN for a teacher")]
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetTeacherTrn(
-        [FromRoute] Guid teacherId,
+        [FromRoute] Guid userId,
         [FromBody] SetTeacherTrnRequest request)
     {
         // This will move into a FluentValidation validator shortly
@@ -97,7 +105,7 @@ public class TeachersController : ControllerBase
             return BadRequest();
         }
 
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == teacherId);
+        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == userId);
 
         if (user is null)
         {
@@ -124,7 +132,7 @@ public class TeachersController : ControllerBase
             dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo()
             {
                 Trn = request.Trn!,
-                UserId = teacherId
+                UserId = userId
             }));
 
         return NoContent();
