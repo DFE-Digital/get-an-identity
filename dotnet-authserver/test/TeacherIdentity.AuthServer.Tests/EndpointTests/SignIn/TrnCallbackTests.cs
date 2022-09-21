@@ -4,6 +4,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
+[Collection(nameof(DisableParallelization))] // relies on mocks
 public class TrnCallbackTests : TestBase
 {
     public TrnCallbackTests(HostFixture hostFixture)
@@ -46,9 +47,6 @@ public class TrnCallbackTests : TestBase
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
-        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
-            .Returns(Task.CompletedTask);
-
         await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
@@ -74,18 +72,8 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(Clock.UtcNow, user.CompletedTrnLookup);
             Assert.Equal(UserType.Default, user.UserType);
 
-            if (hasTrn)
-            {
-                A.CallTo(() => HostFixture.DqtApiClient
-                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId && x.Trn == trn)))
-                    .MustHaveHappenedOnceExactly();
-            }
-            else
-            {
-                A.CallTo(() => HostFixture.DqtApiClient
-                    !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId)))
-                    .MustNotHaveHappened();
-            }
+            var dqtApiCallExpectedTimes = hasTrn ? Times.Once() : Times.Never();
+            HostFixture.DqtApiClient.Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), dqtApiCallExpectedTimes);
 
             var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);
             Assert.Equal(Clock.UtcNow, lookupState.Locked);
@@ -106,9 +94,6 @@ public class TrnCallbackTests : TestBase
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
-        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
-            .Returns(Task.CompletedTask);
-
         await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn, locked: Clock.UtcNow, userId: user.UserId);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
@@ -120,18 +105,8 @@ public class TrnCallbackTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
-        if (hasTrn)
-        {
-            A.CallTo(() => HostFixture.DqtApiClient
-                !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId && x.Trn == trn)))
-                .MustHaveHappenedOnceExactly();
-        }
-        else
-        {
-            A.CallTo(() => HostFixture.DqtApiClient
-                !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId)))
-                .MustNotHaveHappened();
-        }
+        var dqtApiCallExpectedTimes = hasTrn ? Times.Once() : Times.Never();
+        HostFixture.DqtApiClient.Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), dqtApiCallExpectedTimes);
     }
 
     [Fact]
@@ -147,7 +122,9 @@ public class TrnCallbackTests : TestBase
         var trn = TestData.GenerateTrn();
         authStateHelper.AuthenticationState.Trn = trn;
 
-        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>._)).Throws(new InvalidOperationException());
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.SetTeacherIdentityInfo(It.IsAny<DqtTeacherIdentityInfo>()))
+            .ThrowsAsync(new InvalidOperationException());
 
         await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
 

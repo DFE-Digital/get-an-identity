@@ -144,9 +144,6 @@ public class SetTeacherTrnTests : ApiTestBase
         var user = await TestData.CreateUser(hasTrn: false);
         var trn = "1234567";
 
-        A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
-            .Returns(Task.CompletedTask);
-
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
             Content = JsonContent.Create(new
@@ -167,9 +164,8 @@ public class SetTeacherTrnTests : ApiTestBase
             Assert.Equal(trn, user?.Trn);
         });
 
-        A.CallTo(() => HostFixture.DqtApiClient
-            !.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(x => x.UserId == user!.UserId && x.Trn == trn)))
-            .MustHaveHappenedOnceExactly();
+        HostFixture.DqtApiClient
+            .Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), Times.Once);
     }
 
     public static TheoryData<string> InvalidTrnData { get; } = new TheoryData<string>()

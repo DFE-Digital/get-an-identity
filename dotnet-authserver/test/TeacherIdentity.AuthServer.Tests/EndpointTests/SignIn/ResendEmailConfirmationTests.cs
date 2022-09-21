@@ -185,7 +185,7 @@ public class ResendEmailConfirmationTests : TestBase
 
         Assert.Equal(differentEmail, authStateHelper.AuthenticationState.EmailAddress);
 
-        A.CallTo(() => HostFixture.EmailVerificationService!.GeneratePin(differentEmail)).MustHaveHappenedOnceExactly();
+        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(differentEmail), Times.Once);
     }
 
     private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
