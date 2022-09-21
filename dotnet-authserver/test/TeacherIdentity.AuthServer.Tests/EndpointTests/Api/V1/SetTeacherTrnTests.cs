@@ -22,7 +22,7 @@ public class SetTeacherTrnTests : ApiTestBase
         var user = await TestData.CreateUser(hasTrn: false);
         var trn = "1234567";
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{user.UserId}/trn")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
             Content = JsonContent.Create(new
             {
@@ -46,7 +46,7 @@ public class SetTeacherTrnTests : ApiTestBase
         var userId = Guid.NewGuid();
         var trn = "1234567";
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{userId}/trn")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{userId}/trn")
         {
             Content = JsonContent.Create(new
             {
@@ -70,7 +70,7 @@ public class SetTeacherTrnTests : ApiTestBase
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
         var trn = "1234567";
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{user.UserId}/trn")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
             Content = JsonContent.Create(new
             {
@@ -94,7 +94,7 @@ public class SetTeacherTrnTests : ApiTestBase
 
         var user = await TestData.CreateUser(hasTrn: false);
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{user.UserId}/trn")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
             Content = JsonContent.Create(new
             {
@@ -119,7 +119,7 @@ public class SetTeacherTrnTests : ApiTestBase
         var otherUser = await TestData.CreateUser(hasTrn: true);
         var trn = otherUser.Trn!;
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{user.UserId}/trn")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
             Content = JsonContent.Create(new
             {
@@ -147,7 +147,7 @@ public class SetTeacherTrnTests : ApiTestBase
         A.CallTo(() => HostFixture.DqtApiClient!.SetTeacherIdentityInfo(A<DqtTeacherIdentityInfo>.That.Matches(i => i.Trn == trn)))
             .Returns(Task.CompletedTask);
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{user.UserId}/trn")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
             Content = JsonContent.Create(new
             {

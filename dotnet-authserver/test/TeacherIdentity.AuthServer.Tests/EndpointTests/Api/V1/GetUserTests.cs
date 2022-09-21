@@ -3,9 +3,9 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
-public class GetTeacherTests : ApiTestBase
+public class GetUserTests : ApiTestBase
 {
-    public GetTeacherTests(HostFixture hostFixture)
+    public GetUserTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -18,7 +18,7 @@ public class GetTeacherTests : ApiTestBase
         var httpClient = await CreateHttpClientWithToken(scope);
 
         // Act
-        var response = await httpClient.GetAsync("/api/v1/teachers");
+        var response = await httpClient.GetAsync("/api/v1/users");
 
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
@@ -33,7 +33,7 @@ public class GetTeacherTests : ApiTestBase
         var userId = Guid.NewGuid();
 
         // Act
-        var response = await httpClient.GetAsync($"/api/v1/teachers/{userId}");
+        var response = await httpClient.GetAsync($"/api/v1/users/{userId}");
 
         // Assert
         Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
@@ -41,7 +41,7 @@ public class GetTeacherTests : ApiTestBase
 
     [Theory]
     [MemberData(nameof(PermittedScopes))]
-    public async Task Get_ValidRequest_ReturnsAllTeacher(string scope)
+    public async Task Get_ValidRequest_ReturnsUser(string scope)
     {
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
@@ -49,7 +49,7 @@ public class GetTeacherTests : ApiTestBase
         var user = await TestData.CreateUser(hasTrn: true);
 
         // Act
-        var response = await httpClient.GetAsync($"/api/v1/teachers/{user.UserId}");
+        var response = await httpClient.GetAsync($"/api/v1/users/{user.UserId}");
 
         // Assert
         var responseObj = await AssertEx.JsonResponse<GetTeacherDetailResponse>(response);
