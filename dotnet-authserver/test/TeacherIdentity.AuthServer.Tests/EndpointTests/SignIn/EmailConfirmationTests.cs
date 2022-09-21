@@ -155,7 +155,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Fake.ClearRecordedCalls(emailVerificationService);
+        Spy.Get(emailVerificationService).Reset();
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -171,7 +171,7 @@ public class EmailConfirmationTests : TestBase
         // Assert
         await AssertEx.ResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        A.CallTo(() => HostFixture.EmailVerificationService!.GeneratePin(email)).MustHaveHappenedOnceExactly();
+        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Once);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
         var pin = await emailVerificationService.GeneratePin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
-        Fake.ClearRecordedCalls(emailVerificationService);
+        Spy.Get(emailVerificationService).Reset();
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -200,7 +200,7 @@ public class EmailConfirmationTests : TestBase
         // Assert
         await AssertEx.ResponseHasError(response, "Code", "Enter a correct security code");
 
-        A.CallTo(() => HostFixture.EmailVerificationService!.GeneratePin(email)).MustNotHaveHappened();
+        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Never);
     }
 
     [Fact]

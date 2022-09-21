@@ -27,11 +27,11 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public DbHelper DbHelper { get; }
 
-    public IDqtApiClient? DqtApiClient { get; private set; }
+    public Mock<IDqtApiClient> DqtApiClient { get; } = new Mock<IDqtApiClient>();
 
-    public IEmailSender? EmailSender { get; private set; }
+    public Mock<IEmailSender> EmailSender { get; } = new Mock<IEmailSender>();
 
-    public IEmailVerificationService? EmailVerificationService { get; private set; }
+    public Spy<IEmailVerificationService> EmailVerificationService => Spy.Get(Services.GetRequiredService<IEmailVerificationService>());
 
     public async Task Initialize()
     {
@@ -62,17 +62,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public void ResetMocks()
     {
-        ClearRecordedCalls(DqtApiClient);
-        ClearRecordedCalls(EmailVerificationService);
-        ClearRecordedCalls(EmailSender);
-
-        static void ClearRecordedCalls(object? fakedObject)
-        {
-            if (fakedObject is not null)
-            {
-                Fake.ClearRecordedCalls(fakedObject);
-            }
-        }
+        DqtApiClient.Reset();
+        EmailSender.Reset();
+        EmailVerificationService.Reset();
     }
 
     public async Task SignInUser(
@@ -117,20 +109,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
 
-            AddSpy<IEmailVerificationService>(spy => EmailVerificationService = spy);
-            AddSpy<IEmailSender>(spy => EmailSender = spy);
-            DqtApiClient = A.Fake<IDqtApiClient>();
-            services.AddSingleton<IDqtApiClient>(DqtApiClient);
-
-            void AddSpy<T>(Action<T> assignSpy) where T : class
-            {
-                services.Decorate<T>(inner =>
-                {
-                    var spy = A.Fake<T>(o => o.Wrapping(inner));
-                    assignSpy(spy);
-                    return spy;
-                });
-            }
+            services.AddSingleton(DqtApiClient.Object);
+            services.AddSingleton(EmailSender.Object);
+            services.Decorate<IEmailVerificationService>(inner => Spy.Of(inner));
         });
     }
 

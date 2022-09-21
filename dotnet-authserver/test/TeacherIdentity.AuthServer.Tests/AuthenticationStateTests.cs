@@ -113,11 +113,11 @@ public partial class AuthenticationStateTests
     public void GetNextHopUrl(AuthenticationState authenticationState, string expectedResult)
     {
         // Arrange
-        var linkGenerator = A.Fake<IIdentityLinkGenerator>();
+        var linkGenerator = new Mock<IIdentityLinkGenerator>();
 
         void ConfigureMockForPage(string pageName, string returnsPath)
         {
-            A.CallTo(() => linkGenerator.PageWithAuthenticationJourneyId(pageName))
+            linkGenerator.Setup(mock => mock.PageWithAuthenticationJourneyId(pageName))
                 .Returns(returnsPath.SetQueryParam("asid", authenticationState.JourneyId.ToString()));
         }
 
@@ -127,7 +127,7 @@ public partial class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/TrnCallback", "/sign-in/trn-callback");
 
         // Act
-        var result = authenticationState.GetNextHopUrl(linkGenerator);
+        var result = authenticationState.GetNextHopUrl(linkGenerator.Object);
 
         // Assert
         Assert.Equal(expectedResult, result);
