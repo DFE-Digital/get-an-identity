@@ -214,7 +214,7 @@ public class AuthenticationState
         {
             if (HasScope(scope))
             {
-                userTypes.Add(UserType.Admin);
+                userTypes.Add(UserType.Staff);
                 userTypeConstrainedClaims.Add(scope);
             }
         }
@@ -223,7 +223,7 @@ public class AuthenticationState
         {
             if (HasScope(scope))
             {
-                userTypes.Add(UserType.Teacher);
+                userTypes.Add(UserType.Default);
                 userTypeConstrainedClaims.Add(scope);
             }
         }

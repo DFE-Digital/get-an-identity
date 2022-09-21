@@ -67,7 +67,7 @@ public class SetTeacherTrnTests : ApiTestBase
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
 
-        var user = await TestData.CreateUser(userType: Models.UserType.Admin);
+        var user = await TestData.CreateUser(userType: Models.UserType.Staff);
         var trn = "1234567";
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/teachers/{user.UserId}/trn")

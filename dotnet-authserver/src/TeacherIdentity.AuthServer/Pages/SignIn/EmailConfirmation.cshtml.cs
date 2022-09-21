@@ -86,7 +86,7 @@ public class EmailConfirmationModel : PageModel
         else
         {
             // We don't support registering admins
-            if (requiredUserType == UserType.Admin)
+            if (requiredUserType == UserType.Staff)
             {
                 return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
             }

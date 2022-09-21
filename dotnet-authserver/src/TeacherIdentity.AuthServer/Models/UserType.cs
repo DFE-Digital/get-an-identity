@@ -2,6 +2,7 @@ namespace TeacherIdentity.AuthServer.Models;
 
 public enum UserType
 {
+    Default = 0,
     Teacher = 0,
-    Admin = 1
+    Staff = 1
 }

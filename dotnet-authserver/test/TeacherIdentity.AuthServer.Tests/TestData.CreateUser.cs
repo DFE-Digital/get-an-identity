@@ -4,19 +4,19 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public partial class TestData
 {
-    public Task<User> CreateUser(string? email = null, bool? hasTrn = null, bool? haveCompletedTrnLookup = null, UserType userType = UserType.Teacher) =>
+    public Task<User> CreateUser(string? email = null, bool? hasTrn = null, bool? haveCompletedTrnLookup = null, UserType userType = UserType.Default) =>
         WithDbContext(async dbContext =>
         {
-            if (hasTrn is null && userType == UserType.Teacher)
+            if (hasTrn is null && userType == UserType.Default)
             {
                 hasTrn = true;
             }
-            else if (hasTrn == true && userType != UserType.Teacher)
+            else if (hasTrn == true && userType != UserType.Default)
             {
-                throw new ArgumentException($"Only {UserType.Teacher} users should have a TRN.");
+                throw new ArgumentException($"Only {UserType.Default} users should have a TRN.");
             }
 
-            if (haveCompletedTrnLookup == true && userType == UserType.Teacher)
+            if (haveCompletedTrnLookup == true && userType == UserType.Default)
             {
                 throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
             }
@@ -32,9 +32,9 @@ public partial class TestData
                 FirstName = Faker.Name.First(),
                 LastName = Faker.Name.Last(),
                 Created = _clock.UtcNow,
-                CompletedTrnLookup = userType is UserType.Teacher && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
+                CompletedTrnLookup = userType is UserType.Default && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
                 UserType = userType,
-                DateOfBirth = userType is UserType.Teacher ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
+                DateOfBirth = userType is UserType.Default ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
                 Trn = hasTrn == true ? GenerateTrn() : null
             };
 

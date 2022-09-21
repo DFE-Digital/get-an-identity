@@ -22,7 +22,7 @@ public class UserClaimHelperTests
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             Trn = "1234567",
             Created = DateTime.UtcNow,
-            UserType = UserType.Teacher
+            UserType = UserType.Default
         };
 
         var helper = new UserClaimHelper();

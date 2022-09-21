@@ -36,7 +36,7 @@ public class TeachersController : ControllerBase
     public async Task<IActionResult> GetTeacherDetail([FromRoute] Guid teacherId)
     {
         var teacher = await _dbContext.Users
-            .Where(u => u.UserType == UserType.Teacher && u.UserId == teacherId)
+            .Where(u => u.UserType == UserType.Default && u.UserId == teacherId)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .Select(u => new GetTeacherDetailResponse()
@@ -65,7 +65,7 @@ public class TeachersController : ControllerBase
     public async Task<IActionResult> GetAllTeachers()
     {
         var teachers = await _dbContext.Users
-            .Where(u => u.UserType == UserType.Teacher)
+            .Where(u => u.UserType == UserType.Default)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .Select(u => new TeacherInfo()
@@ -104,7 +104,7 @@ public class TeachersController : ControllerBase
             return NotFound();
         }
 
-        if (user.UserType != UserType.Teacher)
+        if (user.UserType != UserType.Default)
         {
             throw new ErrorException(ErrorRegistry.UserMustBeTeacher());
         }

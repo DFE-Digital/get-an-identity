@@ -291,7 +291,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
     {
         // Arrange
-        var user = await TestData.CreateUser(userType: Models.UserType.Teacher);
+        var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
@@ -315,7 +315,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects()
     {
         // Arrange
-        var user = await TestData.CreateUser(userType: Models.UserType.Admin);
+        var user = await TestData.CreateUser(userType: Models.UserType.Staff);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
@@ -344,7 +344,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForNonAdminScopeWithAdminUser_ReturnsForbidden()
     {
         // Arrange
-        var user = await TestData.CreateUser(userType: Models.UserType.Admin);
+        var user = await TestData.CreateUser(userType: Models.UserType.Staff);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
