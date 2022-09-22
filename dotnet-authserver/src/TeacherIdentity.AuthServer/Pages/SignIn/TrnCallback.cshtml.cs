@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
@@ -14,6 +16,7 @@ public class TrnCallbackModel : PageModel
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
     private readonly IBackgroundJobScheduler _backgroundJobScheduler;
+    private readonly IEmailVerificationService _emailVerificationService;
     private readonly ILogger<TrnCallbackModel> _logger;
 
     public TrnCallbackModel(
@@ -21,12 +24,14 @@ public class TrnCallbackModel : PageModel
         IIdentityLinkGenerator linkGenerator,
         IClock clock,
         IBackgroundJobScheduler backgroundJobScheduler,
+        IEmailVerificationService emailVerificationService,
         ILogger<TrnCallbackModel> logger)
     {
         _dbContext = dbContext;
         _linkGenerator = linkGenerator;
         _clock = clock;
         _backgroundJobScheduler = backgroundJobScheduler;
+        _emailVerificationService = emailVerificationService;
         _logger = logger;
     }
 
@@ -44,41 +49,48 @@ public class TrnCallbackModel : PageModel
             return BadRequest();
         }
 
+        Debug.Assert(lookupState.UserId is null);
+
         // We don't expect to have an existing user at this point
         if (authenticationState.UserId.HasValue)
         {
             throw new NotSupportedException();
         }
 
-        User user;
-
-        if (lookupState.Locked.HasValue)
+        var userId = Guid.NewGuid();
+        var user = new User()
         {
-            // User has already been registered
-            Debug.Assert(lookupState.UserId.HasValue);
-            user = lookupState.User!;
-        }
-        else
+            Created = _clock.UtcNow,
+            DateOfBirth = lookupState.DateOfBirth,
+            EmailAddress = authenticationState.EmailAddress!,
+            FirstName = lookupState.FirstName,
+            LastName = lookupState.LastName,
+            UserId = userId,
+            UserType = UserType.Default,
+            Trn = lookupState.Trn,
+            CompletedTrnLookup = _clock.UtcNow
+        };
+
+        _dbContext.Users.Add(user);
+        lookupState.Locked = _clock.UtcNow;
+        lookupState.UserId = userId;
+
+        try
         {
-            var userId = Guid.NewGuid();
-            user = new User()
-            {
-                Created = _clock.UtcNow,
-                DateOfBirth = lookupState.DateOfBirth,
-                EmailAddress = authenticationState.EmailAddress!,
-                FirstName = lookupState.FirstName,
-                LastName = lookupState.LastName,
-                UserId = userId,
-                UserType = UserType.Default,
-                Trn = lookupState.Trn,
-                CompletedTrnLookup = _clock.UtcNow
-            };
-
-            _dbContext.Users.Add(user);
-            lookupState.Locked = _clock.UtcNow;
-            lookupState.UserId = userId;
-
             await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
+        {
+            // TRN is already linked to an existing account
+
+            var existingUser = await _dbContext.Users.SingleAsync(u => u.Trn == lookupState.Trn);
+            var existingUserEmail = existingUser.EmailAddress;
+
+            authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
+
+            await _emailVerificationService.GeneratePin(existingUserEmail);
+
+            return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
 
         var trn = lookupState.Trn;
@@ -88,9 +100,19 @@ public class TrnCallbackModel : PageModel
                 dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId }));
         }
 
-        authenticationState.OnTrnLookupCompleted(user, firstTimeUser: true);
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeUser: true);
         await HttpContext.SignInUserFromAuthenticationState();
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = HttpContext.GetAuthenticationState();
+
+        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.None)
+        {
+            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+        }
     }
 }

@@ -1,0 +1,39 @@
+@page "/sign-in/trn/different-email"
+@model TeacherIdentity.AuthServer.Pages.SignIn.TrnInUseModel
+@inject TeacherIdentity.AuthServer.Services.Redactor Redactor
+@{
+    ViewBag.Title = "Your email address is different to the one on record";
+}
+
+<form action="@LinkGenerator.TrnInUse()" method="post" asp-antiforgery="true">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <h1 class="govuk-heading-xl">Your email address is different to the one on record</h1>
+
+      <p>This could be because you’ve used this service before, and you are:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>using a different personal or work email address</li>
+        <li>using a new work email address</li>
+      </ul>
+
+      <h2 class="govuk-heading-m">Confirm your email address to continue</h2>
+
+      <p>We’ve sent a confirmation code to:</p>
+      <govuk-inset-text data-testid="Email">@Redactor.RedactEmail(Model.Email)</govuk-inset-text>
+
+      <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
+          <govuk-input-label class="govuk-label--s" />
+      </govuk-input>
+
+      <govuk-button type="submit">Continue</govuk-button>
+
+      <h2 class="govuk-heading-m">Help if you cannot confirm this email address</h2>
+
+      <ul class="govuk-list">
+        <li><a href="@LinkGenerator.TrnInUseCannotAccessEmail()">I do not recognise this email address</a></li>
+        <li><a href="@LinkGenerator.TrnInUseCannotAccessEmail()">I cannot access this email address</a></li>
+        <li><a href="#">I have not received an email</a></li>
+      </ul>
+    </div>
+  </div>
+</form>

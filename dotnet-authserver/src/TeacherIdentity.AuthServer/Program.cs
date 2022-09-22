@@ -220,10 +220,12 @@ public class Program
         var healthCheckBuilder = builder.Services.AddHealthChecks()
             .AddNpgSql(pgConnectionString);
 
-        builder.Services.AddDbContext<TeacherIdentityServerDbContext>(options =>
-        {
-            TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString);
-        });
+        builder.Services.AddDbContext<TeacherIdentityServerDbContext>(
+            options =>
+            {
+                TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString);
+            },
+            ServiceLifetime.Transient);
 
         if (builder.Environment.IsDevelopment())
         {
@@ -424,6 +426,8 @@ public class Program
         builder.Services.AddSingleton<UserClaimHelper>();
 
         builder.Services.AddSingleton<Redactor>();
+
+        builder.Services.AddSingleton<PinValidator>();
 
         var app = builder.Build();
 

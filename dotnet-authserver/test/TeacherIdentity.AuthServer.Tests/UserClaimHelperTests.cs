@@ -66,6 +66,7 @@ public class UserClaimHelperTests
             LastName = Faker.Name.Last(),
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             Trn = "1234567",
+            CompletedTrnLookup = DateTime.UtcNow,
             Created = DateTime.UtcNow,
             UserType = UserType.Default
         };
