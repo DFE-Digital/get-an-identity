@@ -22,7 +22,11 @@ public class EmailConfirmationTests : TestBase
     public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddressVerified = true);
+        var authStateHelper = CreateAuthenticationStateHelper(authState =>
+        {
+            authState.OnEmailSet(Faker.Internet.Email());
+            authState.OnEmailVerified(user: null);
+        });
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -368,7 +372,7 @@ public class EmailConfirmationTests : TestBase
         CreateAuthenticationStateHelper(
             authState =>
             {
-                authState.EmailAddress = email ?? Faker.Internet.Email();
+                authState.OnEmailSet(email ?? Faker.Internet.Email());
             },
             scope);
 }

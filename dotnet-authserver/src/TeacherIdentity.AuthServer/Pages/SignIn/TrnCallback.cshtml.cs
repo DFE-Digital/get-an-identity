@@ -88,7 +88,8 @@ public class TrnCallbackModel : PageModel
                 dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId }));
         }
 
-        await HttpContext.SignInUser(user, firstTimeUser: true);
+        authenticationState.OnTrnLookupCompleted(user, firstTimeUser: true);
+        await HttpContext.SignInUserFromAuthenticationState();
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }

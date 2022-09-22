@@ -26,14 +26,14 @@ public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<Appl
             var httpContext = context.Transaction.GetHttpRequest()!.HttpContext;
             var authenticationState = httpContext.GetAuthenticationState();
 
-            authenticationState.AuthorizationResponseParameters = from parameter in context.Response.GetParameters()
-                                                                  let values = (string?[]?)parameter.Value
-                                                                  where values is not null
-                                                                  from value in values
-                                                                  where !string.IsNullOrEmpty(value)
-                                                                  select new KeyValuePair<string, string>(parameter.Key, value);
+            var parameters = from parameter in context.Response.GetParameters()
+                             let values = (string?[]?)parameter.Value
+                             where values is not null
+                             from value in values
+                             where !string.IsNullOrEmpty(value)
+                             select new KeyValuePair<string, string>(parameter.Key, value);
 
-            authenticationState.AuthorizationResponseMode = context.ResponseMode;
+            authenticationState.SetAuthorizationResponse(parameters, context.ResponseMode!);
 
             httpContext.Response.Redirect(_linkGenerator.CompleteAuthorization());
 

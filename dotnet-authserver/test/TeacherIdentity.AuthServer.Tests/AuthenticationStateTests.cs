@@ -66,28 +66,31 @@ public partial class AuthenticationStateTests
         var emailVerified = true;
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var firstTimeUser = true;
         var haveCompletedTrnLookup = true;
         var trn = "2345678";
         var userId = Guid.NewGuid();
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            CompletedTrnLookup = DateTime.UtcNow,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            Trn = trn,
+            UserId = userId,
+            UserType = UserType.Default
+        };
 
         var client = TestClients.Client1;
         var scope = "email profile trn";
         var redirectUri = client.RedirectUris.First().ToString();
         var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
-        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri)
-        {
-            DateOfBirth = dateOfBirth,
-            EmailAddress = email,
-            EmailAddressVerified = emailVerified,
-            FirstName = firstName,
-            LastName = lastName,
-            FirstTimeUser = firstTimeUser,
-            HaveCompletedTrnLookup = haveCompletedTrnLookup,
-            Trn = trn,
-            UserId = userId
-        };
+        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+        authenticationState.OnEmailVerified(user);
 
         // Act
         var claims = authenticationState.GetInternalClaims();
@@ -134,43 +137,183 @@ public partial class AuthenticationStateTests
     }
 
     [Fact]
-    public void Populate()
+    public void OnEmailSet()
     {
         // Arrange
-        var created = DateTime.UtcNow;
-        var user = new User()
-        {
-            DateOfBirth = new DateOnly(2001, 4, 1),
-            EmailAddress = Faker.Internet.Email(),
-            FirstName = Faker.Name.First(),
-            LastName = Faker.Name.Last(),
-            UserId = Guid.NewGuid(),
-            Created = created,
-            CompletedTrnLookup = created,
-            Trn = "1234567"
-        };
-        var firstTimeUser = true;
-
         var client = TestClients.Client1;
         var scope = "email profile trn";
         var redirectUri = client.RedirectUris.First().ToString();
         var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
+        var email = Faker.Internet.Email();
+
         var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
 
         // Act
-        authenticationState.Populate(user, firstTimeUser);
+        authenticationState.OnEmailSet(email);
 
         // Assert
-        Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
-        Assert.Equal(user.EmailAddress, authenticationState.EmailAddress);
-        Assert.Equal(user.FirstName, authenticationState.FirstName);
-        Assert.Equal(user.LastName, authenticationState.LastName);
-        Assert.Equal(user.UserId, authenticationState.UserId);
+        Assert.Equal(email, authenticationState.EmailAddress);
+        Assert.False(authenticationState.EmailAddressVerified);
+    }
+
+    [Fact]
+    public void OnEmailVerified_WithoutUser()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var email = Faker.Internet.Email();
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+
+        // Act
+        authenticationState.OnEmailVerified(user: null);
+
+        // Assert
+        Assert.True(authenticationState.EmailAddressVerified);
+        Assert.True(authenticationState.FirstTimeUser);
+    }
+
+    [Fact]
+    public void OnEmailVerified_WithStaffUser()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = $"email profile {CustomScopes.GetAnIdentityAdmin}";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var userId = Guid.NewGuid();
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            UserId = userId,
+            UserType = UserType.Staff
+        };
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+
+        // Act
+        authenticationState.OnEmailVerified(user);
+
+        // Assert
+        Assert.True(authenticationState.EmailAddressVerified);
+        Assert.False(authenticationState.FirstTimeUser);
+        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Null(authenticationState.Trn);
+        Assert.Equal(userId, authenticationState.UserId);
+        Assert.False(authenticationState.HaveCompletedTrnLookup);
+    }
+
+    [Fact]
+    public void OnEmailVerified_WithUserWhoHasCompletedTrnLookup()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var trn = "2345678";
+        var userId = Guid.NewGuid();
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            CompletedTrnLookup = DateTime.UtcNow,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            Trn = trn,
+            UserId = userId,
+            UserType = UserType.Default
+        };
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+
+        // Act
+        authenticationState.OnEmailVerified(user);
+
+        // Assert
+        Assert.True(authenticationState.EmailAddressVerified);
+        Assert.False(authenticationState.FirstTimeUser);
+        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(trn, authenticationState.Trn);
+        Assert.Equal(userId, authenticationState.UserId);
+        Assert.True(authenticationState.HaveCompletedTrnLookup);
+    }
+
+    [Fact]
+    public void OnTrnLookupCompleted()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var trn = "2345678";
+        var userId = Guid.NewGuid();
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            CompletedTrnLookup = DateTime.UtcNow,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            Trn = trn,
+            UserId = userId,
+            UserType = UserType.Default
+        };
+        var firstTimeUser = true;
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+        authenticationState.OnEmailVerified(user: null);
+
+        // Act
+        authenticationState.OnTrnLookupCompleted(user, firstTimeUser);
+
+        // Assert
         Assert.True(authenticationState.EmailAddressVerified);
         Assert.Equal(firstTimeUser, authenticationState.FirstTimeUser);
+        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(trn, authenticationState.Trn);
+        Assert.Equal(userId, authenticationState.UserId);
         Assert.True(authenticationState.HaveCompletedTrnLookup);
-        Assert.Equal(user.Trn, authenticationState.Trn);
     }
 
     [Theory]
@@ -266,61 +409,82 @@ public partial class AuthenticationStateTests
             var redirectUri = client.RedirectUris.First().ToString();
             var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
+            // Helper method for creating an AuthenticationState object and modifying it via its On* methods
+            static AuthenticationState S(AuthenticationState state, params Action<AuthenticationState>[] configure)
+            {
+                foreach (var c in configure)
+                {
+                    c(state);
+                }
+
+                return state;
+            }
+
             return new TheoryData<AuthenticationState, string>()
             {
                 // No email address
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
-                    {
-                        EmailAddress = null
-                    },
+                    S(new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)),
                     $"/sign-in/email?asid={journeyId}"
                 },
 
-                // Not confirmed email address
+                // Got an email but not yet verified
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
-                    {
-                        EmailAddress = "john.doe@example.com"
-                    },
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com")
+                    ),
                     $"/sign-in/email-confirmation?asid={journeyId}"
                 },
 
-                // Unknown user, not redirected to Find yet
+                // Verified email, not completed TRN lookup yet
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
-                    {
-                        EmailAddress = "john.doe@example.com",
-                        EmailAddressVerified = true,
-                        FirstTimeUser = true,
-                        HaveCompletedTrnLookup = false
-                    },
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(user: null)
+                    ),
                     $"/sign-in/trn?asid={journeyId}"
                 },
 
-                // Unknown user, has completed Find journey
+                // New user who has completed TRN lookup
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
-                    {
-                        EmailAddress = "john.doe@example.com",
-                        EmailAddressVerified = true,
-                        FirstTimeUser = true,
-                        HaveCompletedTrnLookup = true,
-                        UserId = Guid.NewGuid()
-                    },
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(user: null),
+                        s => s.OnTrnLookupCompleted(new User()
+                        {
+                            CompletedTrnLookup = DateTime.UtcNow,
+                            Created = DateTime.UtcNow,
+                            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                            FirstName = Faker.Name.First(),
+                            LastName = Faker.Name.Last(),
+                            EmailAddress = "john.doe@example.com",
+                            UserId = Guid.NewGuid(),
+                            UserType = UserType.Default
+                        }, firstTimeUser: true)
+                    ),
                     authorizationUrl.SetQueryParam("asid", journeyId)
                 },
 
-                // Known user, confirmed
+                // Existing user
                 {
-                    new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)
-                    {
-                        EmailAddress = "john.doe@example.com",
-                        EmailAddressVerified = true,
-                        UserId = Guid.NewGuid(),
-                        Trn = "1234567",
-                        FirstTimeUser = false
-                    },
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(new User()
+                        {
+                            CompletedTrnLookup = DateTime.UtcNow,
+                            Created = DateTime.UtcNow,
+                            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                            FirstName = Faker.Name.First(),
+                            LastName = Faker.Name.Last(),
+                            EmailAddress = "john.doe@example.com",
+                            UserId = Guid.NewGuid(),
+                            UserType = UserType.Default
+                        })
+                    ),
                     authorizationUrl.SetQueryParam("asid", journeyId)
                 },
             };

@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -24,10 +23,9 @@ public static class HttpContextExtensions
         return authenticationState is not null;
     }
 
-    public static async Task SignInUser(this HttpContext httpContext, User user, bool firstTimeUser)
+    public static async Task SignInUserFromAuthenticationState(this HttpContext httpContext)
     {
         var authenticationState = httpContext.GetAuthenticationState();
-        authenticationState.Populate(user, firstTimeUser);
         Debug.Assert(authenticationState.IsComplete());
         var claims = authenticationState.GetInternalClaims();
 

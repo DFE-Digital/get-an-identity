@@ -127,25 +127,21 @@ public class CompleteTests : TestBase
         var authenticationStateHelper = CreateAuthenticationStateHelper(
             authState =>
             {
-                authState.EmailAddress = Faker.Internet.Email();
-                authState.EmailAddressVerified = true;
+                authState.OnEmailSet(user.EmailAddress);
+                authState.OnEmailVerified(user);
 
-                authState.DateOfBirth = user!.DateOfBirth;
-                authState.FirstName = user.FirstName;
-                authState.LastName = user.LastName;
-                authState.FirstTimeUser = firstTimeUser;
-                authState.HaveCompletedTrnLookup = !firstTimeUser;
-                authState.UserId = user.UserId;
-                authState.Trn = user.Trn;
+                authState.SetAuthorizationResponse(
+                    new[]
+                    {
+                        new KeyValuePair<string, string>("code", "abc"),
+                        new KeyValuePair<string, string>("state", "syz")
+                    },
+                    responseMode: "form_post");
 
-                authState.AuthorizationResponseMode = "form_post";
-                authState.AuthorizationResponseParameters = new[]
+                if (haveResumedCompletedJourney)
                 {
-                    new KeyValuePair<string, string>("code", "abc"),
-                    new KeyValuePair<string, string>("state", "syz")
-                };
-
-                authState.HaveResumedCompletedJourney = haveResumedCompletedJourney;
+                    authState.OnHaveResumedCompletedJourney();
+                }
             },
             scope);
 
