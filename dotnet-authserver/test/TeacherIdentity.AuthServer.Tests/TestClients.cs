@@ -8,7 +8,7 @@ public static class TestClients
 {
     public static OpenIddictApplicationDescriptor[] All => new[] { Client1 };
 
-    public static OpenIddictApplicationDescriptor Client1 { get; } = new OpenIddictApplicationDescriptor()
+    public static TeacherIdentityApplicationDescriptor Client1 { get; } = new TeacherIdentityApplicationDescriptor()
     {
         ClientId = "testclient1",
         ClientSecret = "secret",
@@ -34,6 +34,7 @@ public static class TestClients
         Requirements =
         {
             Requirements.Features.ProofKeyForCodeExchange
-        }
+        },
+        PostSignInMessage = "continue with the Test Client"
     };
 }

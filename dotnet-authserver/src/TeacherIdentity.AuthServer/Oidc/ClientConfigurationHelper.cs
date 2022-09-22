@@ -32,7 +32,8 @@ public class ClientConfigurationHelper
                 Requirements =
                 {
                     Requirements.Features.ProofKeyForCodeExchange
-                }
+                },
+                PostSignInMessage = clientConfig.PostSignInMessage
             };
 
             foreach (var redirectUri in clientConfig.RedirectUris ?? Array.Empty<string>())

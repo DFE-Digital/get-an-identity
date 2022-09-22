@@ -1,10 +1,11 @@
 locals {
   auth_server_clients_app_env_vars = merge([
     for i, v in local.infrastructure_secrets.CLIENTS : merge({
-      "Clients__${i}__ClientId"     = v.CLIENT_ID,
-      "Clients__${i}__ClientSecret" = v.CLIENT_SECRET,
-      "Clients__${i}__DisplayName"  = v.DISPLAY_NAME,
-      "Clients__${i}__ServiceUrl"   = v.SERVICE_URL
+      "Clients__${i}__ClientId"          = v.CLIENT_ID,
+      "Clients__${i}__ClientSecret"      = v.CLIENT_SECRET,
+      "Clients__${i}__DisplayName"       = v.DISPLAY_NAME,
+      "Clients__${i}__ServiceUrl"        = v.SERVICE_URL,
+      "Clients__${i}__PostSignInMessage" = v.POST_SIGN_IN_MESSAGE,
       },
       merge([for k, x in v.REDIRECT_URIS : {
         "Clients__${i}__RedirectUris__${k}" = x
