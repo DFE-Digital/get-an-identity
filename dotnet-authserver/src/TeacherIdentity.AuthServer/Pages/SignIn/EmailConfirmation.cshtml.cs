@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -13,19 +12,16 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class EmailConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IDqtApiClient _dqtApiClient;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IEmailVerificationService _emailConfirmationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
-        IDqtApiClient dqtApiClient,
         IIdentityLinkGenerator linkGenerator)
     {
         _dbContext = dbContext;
         _emailConfirmationService = emailConfirmationService;
-        _dqtApiClient = dqtApiClient;
         _linkGenerator = linkGenerator;
     }
 
@@ -79,20 +75,17 @@ public class EmailConfirmationModel : PageModel
             return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
+        authenticationState.OnEmailVerified(user);
+
         if (user is not null)
         {
-            await HttpContext.SignInUser(user, firstTimeUser: false);
+            await HttpContext.SignInUserFromAuthenticationState();
         }
-        else
-        {
-            // We don't support registering admins
-            if (requiredUserType == UserType.Staff)
-            {
-                return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
-            }
 
-            authenticationState.EmailAddressVerified = true;
-            authenticationState.FirstTimeUser = true;
+        if (requiredUserType == UserType.Staff && user is null)
+        {
+            // We don't support registering staff users
+            return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));

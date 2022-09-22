@@ -17,6 +17,12 @@ public class SignInUserMiddleware
         var dbContext = context.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>();
 
         var user = await dbContext.Users.SingleAsync(u => u.UserId == userId);
-        await context.SignInUser(user, firstTimeUser);
+
+        var authenticationState = context.GetAuthenticationState();
+#pragma warning disable CS0618 // Type or member is obsolete
+        authenticationState.Populate(user, firstTimeUser);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        await context.SignInUserFromAuthenticationState();
     }
 }

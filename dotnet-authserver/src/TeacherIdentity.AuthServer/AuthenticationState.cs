@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Flurl;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
@@ -34,23 +35,35 @@ public class AuthenticationState
     public string InitiatingRequestUrl { get; }
     public string ClientId { get; }
     public string Scope { get; }
-    public IEnumerable<KeyValuePair<string, string>>? AuthorizationResponseParameters { get; set; }
-    public string? AuthorizationResponseMode { get; set; }
+    [JsonInclude]
+    public IEnumerable<KeyValuePair<string, string>>? AuthorizationResponseParameters { get; private set; }
+    [JsonInclude]
+    public string? AuthorizationResponseMode { get; private set; }
     public string? RedirectUri { get; }
-    public Guid? UserId { get; set; }
-    public bool? FirstTimeUser { get; set; }
-    public string? EmailAddress { get; set; }
-    public bool EmailAddressVerified { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
-    public string? Trn { get; set; }
-    public bool HaveCompletedTrnLookup { get; set; }
+    [JsonInclude]
+    public Guid? UserId { get; private set; }
+    [JsonInclude]
+    public bool? FirstTimeUser { get; private set; }
+    [JsonInclude]
+    public string? EmailAddress { get; private set; }
+    [JsonInclude]
+    public bool EmailAddressVerified { get; private set; }
+    [JsonInclude]
+    public string? FirstName { get; private set; }
+    [JsonInclude]
+    public string? LastName { get; private set; }
+    [JsonInclude]
+    public DateOnly? DateOfBirth { get; private set; }
+    [JsonInclude]
+    public string? Trn { get; private set; }
+    [JsonInclude]
+    public bool HaveCompletedTrnLookup { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
     /// </summary>
-    public bool HaveResumedCompletedJourney { get; set; }
+    [JsonInclude]
+    public bool HaveResumedCompletedJourney { get; private set; }
 
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
@@ -166,6 +179,70 @@ public class AuthenticationState
         (Trn is not null || HaveCompletedTrnLookup || !HasScope(CustomScopes.Trn)) &&
         UserId.HasValue;
 
+    public void OnEmailSet(string email)
+    {
+        EmailAddress = email;
+        EmailAddressVerified = false;
+    }
+
+    public void OnEmailVerified(User? user)
+    {
+        if (EmailAddress is null)
+        {
+            throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
+        }
+
+        EmailAddressVerified = true;
+        FirstTimeUser = user is null;
+
+        if (user is not null)
+        {
+            Debug.Assert(user.EmailAddress == EmailAddress);
+
+            UserId = user.UserId;
+            FirstName = user.FirstName;
+            LastName = user.LastName;
+            DateOfBirth = user.DateOfBirth;
+            HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
+            Trn = user.Trn;
+        }
+    }
+
+    public void OnTrnLookupCompleted(User user, bool firstTimeUser)
+    {
+        if (EmailAddress is null)
+        {
+            throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
+        }
+
+        if (!EmailAddressVerified)
+        {
+            throw new InvalidOperationException($"Email has not been verified.");
+        }
+
+        Debug.Assert(user.CompletedTrnLookup is not null);
+        Debug.Assert(user.EmailAddress == EmailAddress);
+
+        UserId = user.UserId;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
+        DateOfBirth = user.DateOfBirth;
+        HaveCompletedTrnLookup = true;
+        FirstTimeUser = firstTimeUser;
+        Trn = user.Trn;
+    }
+
+    public void OnHaveResumedCompletedJourney()
+    {
+        if (!IsComplete())
+        {
+            throw new InvalidOperationException("Journey is not complete.");
+        }
+
+        HaveResumedCompletedJourney = true;
+    }
+
+    [Obsolete("This is for use by tests only.")]
     public void Populate(User user, bool firstTimeUser)
     {
         UserId = user.UserId;
@@ -197,6 +274,19 @@ public class AuthenticationState
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
+
+    public void SetAuthorizationResponse(
+        IEnumerable<KeyValuePair<string, string>> responseParameters,
+        string responseMode)
+    {
+        if (!IsComplete())
+        {
+            throw new InvalidOperationException("Journey is not complete.");
+        }
+
+        AuthorizationResponseParameters = responseParameters;
+        AuthorizationResponseMode = responseMode;
+    }
 
     public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage) => TryGetUserTypeFromScopes(out _, out errorMessage);
 

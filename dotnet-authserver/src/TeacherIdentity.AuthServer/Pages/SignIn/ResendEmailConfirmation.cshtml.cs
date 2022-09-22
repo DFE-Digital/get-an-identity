@@ -37,7 +37,7 @@ public class ResendEmailConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().EmailAddress = Email;
+        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
         await _emailVerificationService.GeneratePin(Email!);
 

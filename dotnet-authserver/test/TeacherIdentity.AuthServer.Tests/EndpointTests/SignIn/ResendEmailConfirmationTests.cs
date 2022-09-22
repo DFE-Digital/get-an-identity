@@ -18,7 +18,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Get_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddress = null);
+        var authStateHelper = CreateAuthenticationStateHelper(authState => { });
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -35,8 +35,8 @@ public class ResendEmailConfirmationTests : TestBase
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper(authState =>
         {
-            authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressVerified = true;
+            authState.OnEmailSet(Faker.Internet.Email());
+            authState.OnEmailVerified(user: null);
         });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
@@ -76,7 +76,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddress = null);
+        var authStateHelper = CreateAuthenticationStateHelper(authState => { });
         var differentEmail = Faker.Internet.Email();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -101,8 +101,8 @@ public class ResendEmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var authStateHelper = CreateAuthenticationStateHelper(authState =>
         {
-            authState.EmailAddress = email;
-            authState.EmailAddressVerified = true;
+            authState.OnEmailSet(email);
+            authState.OnEmailVerified(user: null);
         });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -191,6 +191,6 @@ public class ResendEmailConfirmationTests : TestBase
     private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
         CreateAuthenticationStateHelper(authState =>
         {
-            authState.EmailAddress = Faker.Internet.Email();
+            authState.OnEmailSet(Faker.Internet.Email());
         });
 }

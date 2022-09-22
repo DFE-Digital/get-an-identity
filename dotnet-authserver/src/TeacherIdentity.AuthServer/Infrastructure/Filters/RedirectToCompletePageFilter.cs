@@ -20,7 +20,7 @@ public class RedirectToCompletePageFilter : IPageFilter
 
             if (completeUrl != context.HttpContext.Request.GetEncodedPathAndQuery())
             {
-                authenticationState.HaveResumedCompletedJourney = true;
+                authenticationState.OnHaveResumedCompletedJourney();
                 context.Result = new RedirectResult(completeUrl);
             }
         }

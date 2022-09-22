@@ -17,7 +17,7 @@ public class TrnTests : TestBase
     public async Task Get_NoEmail_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddress = null);
+        var authStateHelper = CreateAuthenticationStateHelper(authState => { });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -35,8 +35,7 @@ public class TrnTests : TestBase
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper(authState =>
         {
-            authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressVerified = false;
+            authState.OnEmailSet(Faker.Internet.Email());
         });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
@@ -67,8 +66,7 @@ public class TrnTests : TestBase
     private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
         CreateAuthenticationStateHelper(authState =>
         {
-            authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressVerified = true;
-            authState.FirstTimeUser = true;
+            authState.OnEmailSet(Faker.Internet.Email());
+            authState.OnEmailVerified(user: null);
         });
 }

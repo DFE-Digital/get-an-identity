@@ -22,7 +22,7 @@ public class TrnCallbackTests : TestBase
     public async Task Get_MissingStateInDb_ReturnsError()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.EmailAddress = Faker.Internet.Email());
+        var authStateHelper = CreateAuthenticationStateHelper(authState => authState.OnEmailSet(Faker.Internet.Email()));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
 
@@ -87,7 +87,11 @@ public class TrnCallbackTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser();
-        var authStateHelper = CreateAuthenticationStateHelper(s => s.EmailAddress = user.EmailAddress);
+        var authStateHelper = CreateAuthenticationStateHelper(s =>
+        {
+            s.OnEmailSet(user.EmailAddress);
+            s.OnEmailVerified(user: null);
+        });
 
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
@@ -109,39 +113,11 @@ public class TrnCallbackTests : TestBase
         HostFixture.DqtApiClient.Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), dqtApiCallExpectedTimes);
     }
 
-    [Fact]
-    public async Task Get_ValidCallbackButApiCallFails_ReturnsError()
-    {
-        // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
-
-        var email = Faker.Internet.Email();
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = TestData.GenerateTrn();
-        authStateHelper.AuthenticationState.Trn = trn;
-
-        HostFixture.DqtApiClient
-            .Setup(mock => mock.SetTeacherIdentityInfo(It.IsAny<DqtTeacherIdentityInfo>()))
-            .ThrowsAsync(new InvalidOperationException());
-
-        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var ex = await Record.ExceptionAsync(() => HttpClient.SendAsync(request));
-
-        // Assert
-        Assert.NotNull(ex);
-    }
-
     private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
         CreateAuthenticationStateHelper(authState =>
         {
-            authState.EmailAddress = Faker.Internet.Email();
-            authState.EmailAddressVerified = true;
+            authState.OnEmailSet(Faker.Internet.Email());
+            authState.OnEmailVerified(user: null);
         });
 
     private const string GenerateRandomTrnSentinel = "0000000";

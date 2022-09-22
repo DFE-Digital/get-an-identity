@@ -58,21 +58,27 @@ public class UserClaimHelperTests
     public void GetPublicClaims_FromAuthenticationState_ReturnsExpectedClaims(bool haveTrnScope)
     {
         // Arrange
+        var user = new User()
+        {
+            UserId = Guid.NewGuid(),
+            EmailAddress = Faker.Internet.Email(),
+            FirstName = Faker.Name.First(),
+            LastName = Faker.Name.Last(),
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            Trn = "1234567",
+            Created = DateTime.UtcNow,
+            UserType = UserType.Default
+        };
+
         var authenticationState = new AuthenticationState(
             journeyId: Guid.NewGuid(),
             initiatingRequestUrl: "",
             clientId: "",
             scope: "email profile" + (haveTrnScope ? " trn" : ""),
-            redirectUri: "")
-        {
-            UserId = Guid.NewGuid(),
-            EmailAddress = Faker.Internet.Email(),
-            EmailAddressVerified = true,
-            FirstName = Faker.Name.First(),
-            LastName = Faker.Name.Last(),
-            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-            Trn = "1234567"
-        };
+            redirectUri: "");
+
+        authenticationState.OnEmailSet(user.EmailAddress);
+        authenticationState.OnEmailVerified(user);
 
         var helper = new UserClaimHelper();
 
@@ -83,17 +89,17 @@ public class UserClaimHelperTests
         var expectedClaims = new List<Claim>()
         {
             new Claim(Claims.Subject, authenticationState.UserId.ToString()!),
-            new Claim(Claims.Email, authenticationState.EmailAddress),
+            new Claim(Claims.Email, authenticationState.EmailAddress!),
             new Claim(Claims.EmailVerified, authenticationState.EmailAddressVerified.ToString()),
             new Claim(Claims.Name, authenticationState.FirstName + " " + authenticationState.LastName),
-            new Claim(Claims.GivenName, authenticationState.FirstName),
-            new Claim(Claims.FamilyName, authenticationState.LastName),
-            new Claim(Claims.Birthdate, authenticationState.DateOfBirth.Value.ToString("yyyy-MM-dd")),
+            new Claim(Claims.GivenName, authenticationState.FirstName!),
+            new Claim(Claims.FamilyName, authenticationState.LastName!),
+            new Claim(Claims.Birthdate, authenticationState.DateOfBirth!.Value.ToString("yyyy-MM-dd")),
         };
 
         if (haveTrnScope)
         {
-            expectedClaims.Add(new Claim(CustomClaims.Trn, authenticationState.Trn));
+            expectedClaims.Add(new Claim(CustomClaims.Trn, authenticationState.Trn!));
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
