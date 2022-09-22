@@ -9,3 +9,9 @@ public enum PinVerificationFailedReasons
     ExpiredLessThanTwoHoursAgo = 4,
     NotActive = 8
 }
+
+public static class PinVerificationFailedReasonsExtensions
+{
+    public static bool ShouldGenerateAnotherCode(this PinVerificationFailedReasons reasons) =>
+        reasons.HasFlag(PinVerificationFailedReasons.ExpiredLessThanTwoHoursAgo);
+}

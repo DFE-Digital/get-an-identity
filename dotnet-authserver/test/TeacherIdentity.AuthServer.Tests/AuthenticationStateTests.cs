@@ -55,6 +55,7 @@ public partial class AuthenticationStateTests
         Assert.Equal(haveCompletedTrnLookup, authenticationState.HaveCompletedTrnLookup);
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
+        Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
     }
 
     [Fact]
@@ -127,7 +128,9 @@ public partial class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/Email", "/sign-in/email");
         ConfigureMockForPage("/SignIn/EmailConfirmation", "/sign-in/email-confirmation");
         ConfigureMockForPage("/SignIn/Trn", "/sign-in/trn");
-        ConfigureMockForPage("/SignIn/TrnCallback", "/sign-in/trn-callback");
+        ConfigureMockForPage("/SignIn/TrnCallback", "/sign-in/trn/callback");
+        ConfigureMockForPage("/SignIn/TrnInUse", "/sign-in/trn/different-email");
+        ConfigureMockForPage("/SignIn/TrnInUseChooseEmail", "/sign-in/trn/choose-email");
 
         // Act
         var result = authenticationState.GetNextHopUrl(linkGenerator.Object);
@@ -266,10 +269,11 @@ public partial class AuthenticationStateTests
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
         Assert.True(authenticationState.HaveCompletedTrnLookup);
+        Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
     }
 
     [Fact]
-    public void OnTrnLookupCompleted()
+    public void OnTrnLookupCompletedAndUserRegistered()
     {
         // Arrange
         var client = TestClients.Client1;
@@ -303,7 +307,7 @@ public partial class AuthenticationStateTests
         authenticationState.OnEmailVerified(user: null);
 
         // Act
-        authenticationState.OnTrnLookupCompleted(user, firstTimeUser);
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeUser);
 
         // Assert
         Assert.True(authenticationState.EmailAddressVerified);
@@ -314,6 +318,105 @@ public partial class AuthenticationStateTests
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
         Assert.True(authenticationState.HaveCompletedTrnLookup);
+        Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
+    }
+
+    [Fact]
+    public void OnTrnLookupCompletedForTrnAlreadyInUse()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var email = Faker.Internet.Email();
+        var existingTrnOwnerEmail = Faker.Internet.Email();
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+        authenticationState.OnEmailVerified(user: null);
+
+        // Act
+        authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
+
+        // Assert
+        Assert.True(authenticationState.HaveCompletedTrnLookup);
+        Assert.Equal(AuthenticationState.TrnLookupState.ExistingTrnFound, authenticationState.TrnLookup);
+        Assert.Equal(existingTrnOwnerEmail, authenticationState.TrnOwnerEmailAddress);
+    }
+
+    [Fact]
+    public void OnEmailVerifiedOfExistingAccountForTrn()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var email = Faker.Internet.Email();
+        var existingTrnOwnerEmail = Faker.Internet.Email();
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+        authenticationState.OnEmailVerified(user: null);
+        authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
+
+        // Act
+        authenticationState.OnEmailVerifiedOfExistingAccountForTrn();
+
+        // Assert
+        Assert.Equal(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, authenticationState.TrnLookup);
+    }
+
+    [Fact]
+    public void OnEmailAddressChosen()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var scope = "email profile trn";
+        var redirectUri = client.RedirectUris.First().ToString();
+        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var trn = "2345678";
+        var userId = Guid.NewGuid();
+        var existingTrnOwnerEmail = Faker.Internet.Email();
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            CompletedTrnLookup = DateTime.UtcNow,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            Trn = trn,
+            UserId = userId,
+            UserType = UserType.Default
+        };
+
+        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        authenticationState.OnEmailSet(email);
+        authenticationState.OnEmailVerified(user: null);
+        authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
+        authenticationState.OnEmailVerifiedOfExistingAccountForTrn();
+
+        // Act
+        authenticationState.OnEmailAddressChosen(user);
+
+        // Assert
+        Assert.False(authenticationState.FirstTimeUser);
+        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(trn, authenticationState.Trn);
+        Assert.Equal(userId, authenticationState.UserId);
+        Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
     }
 
     [Theory]
@@ -453,7 +556,7 @@ public partial class AuthenticationStateTests
                         new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
-                        s => s.OnTrnLookupCompleted(new User()
+                        s => s.OnTrnLookupCompletedAndUserRegistered(new User()
                         {
                             CompletedTrnLookup = DateTime.UtcNow,
                             Created = DateTime.UtcNow,
@@ -464,6 +567,53 @@ public partial class AuthenticationStateTests
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default
                         }, firstTimeUser: true)
+                    ),
+                    authorizationUrl.SetQueryParam("asid", journeyId)
+                },
+
+                // New user who has completed TRN lookup with an already-assigned TRN
+                {
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(user: null),
+                        s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email())
+                    ),
+                    $"/sign-in/trn/different-email?asid={journeyId}"
+                },
+
+                // New user who has completed TRN lookup with an already-assigned TRN and they've verified that account's email
+                {
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(user: null),
+                        s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
+                        s => s.OnEmailVerifiedOfExistingAccountForTrn()
+                    ),
+                    $"/sign-in/trn/choose-email?asid={journeyId}"
+                },
+
+                // New user who has completed TRN lookup with an already-assigned TRN and they've choosen the email to use
+                {
+                    S(
+                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(user: null),
+                        s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
+                        s => s.OnEmailVerifiedOfExistingAccountForTrn(),
+                        s => s.OnEmailAddressChosen(new User()
+                        {
+                            CompletedTrnLookup = DateTime.UtcNow,
+                            Created = DateTime.UtcNow,
+                            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                            FirstName = Faker.Name.First(),
+                            LastName = Faker.Name.Last(),
+                            EmailAddress = Faker.Internet.Email(),
+                            UserId = Guid.NewGuid(),
+                            UserType = UserType.Default,
+                            Trn = "2345678"
+                        })
                     ),
                     authorizationUrl.SetQueryParam("asid", journeyId)
                 },

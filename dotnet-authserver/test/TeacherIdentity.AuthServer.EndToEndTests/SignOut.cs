@@ -25,13 +25,15 @@ public class SignOut : IClassFixture<HostFixture>
 
             dbContext.Users.Add(new User()
             {
+                Created = DateTime.UtcNow,
                 EmailAddress = email,
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                Trn = trn
+                Trn = trn,
+                CompletedTrnLookup = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();

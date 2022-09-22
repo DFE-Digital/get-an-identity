@@ -28,13 +28,15 @@ public class SignIn : IClassFixture<HostFixture>
 
             dbContext.Users.Add(new User()
             {
+                Created = DateTime.UtcNow,
                 EmailAddress = email,
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                Trn = trn
+                Trn = trn,
+                CompletedTrnLookup = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();
@@ -203,6 +205,106 @@ public class SignIn : IClassFixture<HostFixture>
                         Value = c.Value
                     }));
         }
+    }
+
+    [Fact]
+    public async Task NewTeacherUser_WithTrnMatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully()
+    {
+        var email = $"joe.bloggs+new-user-with-existing-trn@example.com";
+        var firstName = "Joe";
+        var lastName = "Bloggs";
+        var trn = "3456789";
+        var dateOfBirth = new DateOnly(1990, 1, 2);
+        var trnOwnerEmailAddress = Faker.Internet.Email();
+
+        {
+            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+            var userId = Guid.NewGuid();
+
+            dbContext.Users.Add(new User()
+            {
+                Created = DateTime.UtcNow,
+                EmailAddress = trnOwnerEmailAddress,
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                UserId = userId,
+                UserType = UserType.Default,
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                Trn = trn,
+                CompletedTrnLookup = DateTime.UtcNow
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        // Start on the client app and try to access a protected area
+
+        await page.GotoAsync("/");
+        await page.ClickAsync("text=Profile");
+
+        // Fill in the sign in form (email + PIN)
+
+        await page.FillAsync("text=Email", email);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be at the first bookend page
+
+        var urlPath = new Uri(page.Url).LocalPath;
+        Assert.EndsWith("/trn", urlPath);
+
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on our stub Find page
+
+        urlPath = new Uri(page.Url).LocalPath;
+        Assert.EndsWith("/FindALostTrn", urlPath);
+
+        await page.FillAsync("#FirstName", firstName);
+        await page.FillAsync("#LastName", lastName);
+        await page.FillAsync("#FirstName", firstName);
+        await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
+        await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
+        await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
+        await page.FillAsync("#Trn", trn ?? string.Empty);
+
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on 'TRN in use' page
+
+        pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on 'Choose email' page
+
+        await page.ClickAsync($"text={trnOwnerEmailAddress}");
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the confirmation page
+
+        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be back on the client, signed in
+
+        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
+        var pageUrlHost = new Uri(page.Url).Host;
+        Assert.Equal(clientAppHost, pageUrlHost);
+
+        Assert.Equal(firstName, await page.InnerTextAsync("data-testid=first-name"));
+        Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
+        Assert.Equal(trnOwnerEmailAddress, await page.InnerTextAsync("data-testid=email"));
+        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
     }
 
     private async Task SignInAsNewTeacherUser(

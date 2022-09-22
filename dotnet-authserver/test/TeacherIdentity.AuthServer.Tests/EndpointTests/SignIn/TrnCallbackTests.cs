@@ -15,7 +15,69 @@ public class TrnCallbackTests : TestBase
     [Fact]
     public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn-callback");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn/callback");
+    }
+
+    [Theory]
+    [InlineData(AuthenticationState.TrnLookupState.Complete)]
+    [InlineData(AuthenticationState.TrnLookupState.ExistingTrnFound)]
+    [InlineData(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)]
+    public async Task Get_TrnLookupStateIsInvalid_RedirectsToNextPage(AuthenticationState.TrnLookupState trnLookupState)
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = TestData.GenerateTrn();
+
+        var authStateHelper = CreateAuthenticationStateHelper(authState =>
+        {
+            authState.OnEmailSet(email);
+            authState.OnEmailVerified(user: null);
+
+            if (trnLookupState == AuthenticationState.TrnLookupState.Complete)
+            {
+                authState.OnTrnLookupCompletedAndUserRegistered(
+                    new User()
+                    {
+                        CompletedTrnLookup = Clock.UtcNow,
+                        Created = Clock.UtcNow,
+                        DateOfBirth = dateOfBirth,
+                        EmailAddress = email,
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Trn = trn,
+                        UserId = Guid.NewGuid(),
+                        UserType = UserType.Default
+                    },
+                    firstTimeUser: true);
+            }
+            else if (trnLookupState == AuthenticationState.TrnLookupState.ExistingTrnFound)
+            {
+                authState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email());
+            }
+            else if (trnLookupState == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
+            {
+                authState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email());
+                authState.OnEmailVerifiedOfExistingAccountForTrn();
+            }
+            else
+            {
+                throw new NotImplementedException($"Unknown {nameof(AuthenticationState.TrnLookupState)}: '{trnLookupState}'.");
+            }
+        });
+
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -24,7 +86,7 @@ public class TrnCallbackTests : TestBase
         // Arrange
         var authStateHelper = CreateAuthenticationStateHelper(authState => authState.OnEmailSet(Faker.Internet.Email()));
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -36,20 +98,20 @@ public class TrnCallbackTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Get_ValidCallback_CreatesUserLocksLookupStateCallsDqtApiAndRedirectsToConfirmation(bool hasTrn)
+    public async Task Get_ValidCallback_CreatesUserLocksLookupStateCallsDqtApiAndRedirectsToNextPage(bool hasTrn)
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
-
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+
         await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -64,10 +126,10 @@ public class TrnCallbackTests : TestBase
 
             Assert.NotNull(user);
             Assert.Equal(authStateHelper.AuthenticationState.UserId, user!.UserId);
-            Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, user!.EmailAddress);
-            Assert.Equal(firstName, user!.FirstName);
-            Assert.Equal(lastName, user!.LastName);
-            Assert.Equal(dateOfBirth, user!.DateOfBirth);
+            Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, user.EmailAddress);
+            Assert.Equal(firstName, user.FirstName);
+            Assert.Equal(lastName, user.LastName);
+            Assert.Equal(dateOfBirth, user.DateOfBirth);
             Assert.Equal(Clock.UtcNow, user.Created);
             Assert.Equal(Clock.UtcNow, user.CompletedTrnLookup);
             Assert.Equal(UserType.Default, user.UserType);
@@ -80,43 +142,10 @@ public class TrnCallbackTests : TestBase
         });
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Get_UserIsAlreadyRegistered_DoesNotCreateNewUserCallsDqtApiAndRedirectsToConfirmation(bool hasTrn)
-    {
-        // Arrange
-        var user = await TestData.CreateUser();
-        var authStateHelper = CreateAuthenticationStateHelper(s =>
-        {
-            s.OnEmailSet(user.EmailAddress);
-            s.OnEmailVerified(user: null);
-        });
-
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = hasTrn ? TestData.GenerateTrn() : null;
-
-        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn, locked: Clock.UtcNow, userId: user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn-callback?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
-
-        var dqtApiCallExpectedTimes = hasTrn ? Times.Once() : Times.Never();
-        HostFixture.DqtApiClient.Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), dqtApiCallExpectedTimes);
-    }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
+    private AuthenticationStateHelper CreateAuthenticationStateHelper(string? email = null) =>
         CreateAuthenticationStateHelper(authState =>
         {
-            authState.OnEmailSet(Faker.Internet.Email());
+            authState.OnEmailSet(email ?? Faker.Internet.Email());
             authState.OnEmailVerified(user: null);
         });
 
@@ -127,15 +156,8 @@ public class TrnCallbackTests : TestBase
         string? firstName = null,
         string? lastName = null,
         DateOnly? dateOfBirth = null,
-        string? trn = GenerateRandomTrnSentinel,
-        DateTime? locked = null,
-        Guid? userId = null)
+        string? trn = GenerateRandomTrnSentinel)
     {
-        if (locked is not null && userId is null)
-        {
-            throw new ArgumentException($"{nameof(userId)} must be provided when {nameof(locked)} is {true}.");
-        }
-
         if (trn == GenerateRandomTrnSentinel)
         {
             trn = TestData.GenerateTrn();
@@ -150,9 +172,7 @@ public class TrnCallbackTests : TestBase
                 DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = firstName ?? Faker.Name.First(),
                 LastName = lastName ?? Faker.Name.Last(),
-                Trn = trn,
-                Locked = locked,
-                UserId = userId
+                Trn = trn
             });
 
             await dbContext.SaveChangesAsync();

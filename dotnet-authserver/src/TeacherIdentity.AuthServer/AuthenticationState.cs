@@ -14,6 +14,14 @@ namespace TeacherIdentity.AuthServer;
 
 public class AuthenticationState
 {
+    public enum TrnLookupState
+    {
+        None = 0,
+        Complete = 1,
+        ExistingTrnFound = 3,
+        EmailOfExistingAccountForTrnVerified = 4
+    }
+
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
     {
         Converters =
@@ -58,6 +66,10 @@ public class AuthenticationState
     public string? Trn { get; private set; }
     [JsonInclude]
     public bool HaveCompletedTrnLookup { get; private set; }
+    [JsonInclude]
+    public TrnLookupState TrnLookup { get; private set; }
+    [JsonInclude]
+    public string? TrnOwnerEmailAddress { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -87,7 +99,8 @@ public class AuthenticationState
             LastName = GetFirstClaimValue(Claims.FamilyName),
             DateOfBirth = ParseNullableDate(GetFirstClaimValue(Claims.Birthdate)),
             Trn = GetFirstClaimValue(CustomClaims.Trn),
-            HaveCompletedTrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString
+            HaveCompletedTrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString,
+            TrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString ? TrnLookupState.Complete : TrnLookupState.None
         };
 
         static DateOnly? ParseNullableDate(string? value) => value is not null ? DateOnly.ParseExact(value, CustomClaims.DateFormat) : null;
@@ -150,10 +163,26 @@ public class AuthenticationState
             return linkGenerator.EmailConfirmation();
         }
 
-        // trn scope is specified; launch the journey to collect TRN
-        if (HasScope(CustomScopes.Trn) && Trn is null && !HaveCompletedTrnLookup)
+        if (HasScope(CustomScopes.Trn))
         {
-            return linkGenerator.Trn();
+            // If it's not been done before, launch the journey to find the TRN
+            if (!HaveCompletedTrnLookup)
+            {
+                return linkGenerator.Trn();
+            }
+
+            // TRN is found but another account owns it
+            if (TrnLookup == TrnLookupState.ExistingTrnFound)
+            {
+                return linkGenerator.TrnInUse();
+            }
+
+            // TRN is found but another account owns it and user has verified they can access that account
+            // Choose which email address to use with the existing account going forward
+            if (TrnLookup == TrnLookupState.EmailOfExistingAccountForTrnVerified)
+            {
+                return linkGenerator.TrnInUseChooseEmail();
+            }
         }
 
         // We should have a known user at this point
@@ -176,7 +205,7 @@ public class AuthenticationState
     public bool HasScope(string scope) => Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(scope);
 
     public bool IsComplete() => EmailAddressVerified &&
-        (Trn is not null || HaveCompletedTrnLookup || !HasScope(CustomScopes.Trn)) &&
+        (TrnLookup == TrnLookupState.Complete || !HasScope(CustomScopes.Trn)) &&
         UserId.HasValue;
 
     public void OnEmailSet(string email)
@@ -205,10 +234,15 @@ public class AuthenticationState
             DateOfBirth = user.DateOfBirth;
             HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
             Trn = user.Trn;
+
+            if (HaveCompletedTrnLookup)
+            {
+                TrnLookup = TrnLookupState.Complete;
+            }
         }
     }
 
-    public void OnTrnLookupCompleted(User user, bool firstTimeUser)
+    public void OnTrnLookupCompletedForTrnAlreadyInUse(string existingTrnOwnerEmail)
     {
         if (EmailAddress is null)
         {
@@ -218,6 +252,33 @@ public class AuthenticationState
         if (!EmailAddressVerified)
         {
             throw new InvalidOperationException($"Email has not been verified.");
+        }
+
+        if (TrnLookup != TrnLookupState.None)
+        {
+            throw new InvalidOperationException($"TRN lookup is invalid: '{TrnLookup}', expected {TrnLookupState.None}.");
+        }
+
+        HaveCompletedTrnLookup = true;
+        TrnLookup = TrnLookupState.ExistingTrnFound;
+        TrnOwnerEmailAddress = existingTrnOwnerEmail;
+    }
+
+    public void OnTrnLookupCompletedAndUserRegistered(User user, bool firstTimeUser)
+    {
+        if (EmailAddress is null)
+        {
+            throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
+        }
+
+        if (!EmailAddressVerified)
+        {
+            throw new InvalidOperationException($"Email has not been verified.");
+        }
+
+        if (TrnLookup != TrnLookupState.None)
+        {
+            throw new InvalidOperationException($"TRN lookup is invalid: '{TrnLookup}', expected {TrnLookupState.None}.");
         }
 
         Debug.Assert(user.CompletedTrnLookup is not null);
@@ -230,6 +291,57 @@ public class AuthenticationState
         HaveCompletedTrnLookup = true;
         FirstTimeUser = firstTimeUser;
         Trn = user.Trn;
+        TrnLookup = TrnLookupState.Complete;
+    }
+
+    public void OnEmailVerifiedOfExistingAccountForTrn()
+    {
+        if (EmailAddress is null)
+        {
+            throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
+        }
+
+        if (!EmailAddressVerified)
+        {
+            throw new InvalidOperationException($"Email has not been verified.");
+        }
+
+        if (TrnLookup != TrnLookupState.ExistingTrnFound)
+        {
+            throw new InvalidOperationException($"TRN lookup is invalid: '{TrnLookup}', expected {TrnLookupState.ExistingTrnFound}.");
+        }
+
+        TrnLookup = TrnLookupState.EmailOfExistingAccountForTrnVerified;
+    }
+
+    public void OnEmailAddressChosen(User user)
+    {
+        if (EmailAddress is null)
+        {
+            throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
+        }
+
+        if (!EmailAddressVerified)
+        {
+            throw new InvalidOperationException($"Email has not been verified.");
+        }
+
+        if (TrnLookup != TrnLookupState.EmailOfExistingAccountForTrnVerified)
+        {
+            throw new InvalidOperationException($"TRN lookup is invalid: '{TrnLookup}', expected {TrnLookupState.EmailOfExistingAccountForTrnVerified}.");
+        }
+
+        Debug.Assert(user.CompletedTrnLookup is not null);
+
+        EmailAddress = user.EmailAddress;
+        UserId = user.UserId;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
+        DateOfBirth = user.DateOfBirth;
+        HaveCompletedTrnLookup = true;
+        FirstTimeUser = false;
+        Trn = user.Trn;
+        TrnLookup = TrnLookupState.Complete;
     }
 
     public void OnHaveResumedCompletedJourney()

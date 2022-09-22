@@ -13,16 +13,19 @@ public class EmailConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IIdentityLinkGenerator _linkGenerator;
-    private readonly IEmailVerificationService _emailConfirmationService;
+    private readonly PinValidator _pinValidator;
+    private readonly IEmailVerificationService _emailVerificationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        PinValidator pinValidator)
     {
         _dbContext = dbContext;
-        _emailConfirmationService = emailConfirmationService;
+        _emailVerificationService = emailConfirmationService;
         _linkGenerator = linkGenerator;
+        _pinValidator = pinValidator;
     }
 
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
@@ -45,15 +48,13 @@ public class EmailConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        var verifyPinFailedReasons = await _emailConfirmationService.VerifyPin(Email!, Code!);
+        var verifyPinFailedReasons = await _emailVerificationService.VerifyPin(Email!, Code!);
 
         if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            var generateAnotherCode = verifyPinFailedReasons.HasFlag(PinVerificationFailedReasons.ExpiredLessThanTwoHoursAgo);
-
-            if (generateAnotherCode)
+            if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
             {
-                await _emailConfirmationService.GeneratePin(Email!);
+                await _emailVerificationService.GeneratePin(Email!);
                 ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
             }
             else
@@ -104,21 +105,11 @@ public class EmailConfirmationModel : PageModel
 
     private void ValidateCode()
     {
-        if (string.IsNullOrEmpty(Code))
+        var validationError = _pinValidator.ValidateCode(Code);
+
+        if (validationError is not null)
         {
-            ModelState.AddModelError(nameof(Code), "Enter a correct security code");
-        }
-        else if (!Code.All(c => c >= '0' && c <= '9'))
-        {
-            ModelState.AddModelError(nameof(Code), "The code must be 5 numbers");
-        }
-        else if (Code.Length < 5)
-        {
-            ModelState.AddModelError(nameof(Code), "You’ve not entered enough numbers, the code must be 5 numbers");
-        }
-        else if (Code.Length > 5)
-        {
-            ModelState.AddModelError(nameof(Code), "You’ve entered too many numbers, the code must be 5 numbers");
+            ModelState.AddModelError(nameof(Code), validationError);
         }
     }
 }
