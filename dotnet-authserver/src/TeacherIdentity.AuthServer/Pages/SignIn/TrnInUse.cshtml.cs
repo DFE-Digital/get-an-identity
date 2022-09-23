@@ -69,7 +69,9 @@ public class TrnInUseModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
+        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
+            !authenticationState.EmailAddressVerified ||
+            authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
         {
             context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
