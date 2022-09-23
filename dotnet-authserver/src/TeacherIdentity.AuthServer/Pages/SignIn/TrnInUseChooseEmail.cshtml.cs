@@ -71,7 +71,9 @@ public class TrnInUseChooseEmailModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
+        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
+            !authenticationState.EmailAddressVerified ||
+            authenticationState.TrnLookup != AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
         {
             context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }

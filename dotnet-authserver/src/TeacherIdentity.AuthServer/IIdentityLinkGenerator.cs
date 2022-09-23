@@ -39,6 +39,8 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string ResendEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/ResendEmailConfirmation");
 
+    public static string ResendTrnOwnerEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/ResendTrnOwnerEmailConfirmation");
+
     public static string Trn(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn");
 
     public static string TrnInUse(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnInUse");
