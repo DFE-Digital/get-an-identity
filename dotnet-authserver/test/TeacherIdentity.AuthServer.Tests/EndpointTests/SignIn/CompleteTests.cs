@@ -10,10 +10,10 @@ public class CompleteTests : TestBase
     }
 
     [Fact]
-    public async Task Get_FirstTimeUserWithTrn_RendersExpectedContent()
+    public async Task Get_FirstTimeSignInForEmailWithTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, firstTimeUser: true, hasTrn: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, firstTimeSignInForEmail: true, hasTrn: true);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -29,10 +29,10 @@ public class CompleteTests : TestBase
     }
 
     [Fact]
-    public async Task Get_FirstTimeUserWithoutTrn_RendersExpectedContent()
+    public async Task Get_FirstTimeSignInForEmailWithoutTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, firstTimeUser: true, hasTrn: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, firstTimeSignInForEmail: true, hasTrn: false);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -118,7 +118,7 @@ public class CompleteTests : TestBase
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
         HttpClient httpClient,
         bool hasTrn = true,
-        bool firstTimeUser = false,
+        bool firstTimeSignInForEmail = false,
         bool haveResumedCompletedJourney = false,
         string scope = "trn")
     {
@@ -145,7 +145,7 @@ public class CompleteTests : TestBase
             },
             scope);
 
-        await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeUser);
+        await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeSignInForEmail);
 
         return authenticationStateHelper;
     }

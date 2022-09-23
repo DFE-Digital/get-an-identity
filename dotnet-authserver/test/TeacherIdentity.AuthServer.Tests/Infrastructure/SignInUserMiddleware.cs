@@ -12,7 +12,7 @@ public class SignInUserMiddleware
     public async Task Invoke(HttpContext context)
     {
         var userId = Guid.Parse(context.Request.Form["UserId"]);
-        var firstTimeUser = context.Request.Form["FirstTimeUser"] == bool.TrueString;
+        var firstTimeSignInForEmail = context.Request.Form["FirstTimeSignInForEmail"] == bool.TrueString;
 
         var dbContext = context.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>();
 
@@ -20,7 +20,7 @@ public class SignInUserMiddleware
 
         var authenticationState = context.GetAuthenticationState();
 #pragma warning disable CS0618 // Type or member is obsolete
-        authenticationState.Populate(user, firstTimeUser);
+        authenticationState.Populate(user, firstTimeSignInForEmail);
 #pragma warning restore CS0618 // Type or member is obsolete
 
         await context.SignInUserFromAuthenticationState();

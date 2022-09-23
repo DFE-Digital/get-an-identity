@@ -232,7 +232,7 @@ public class EmailConfirmationTests : TestBase
         Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
-        Assert.True(authStateHelper.AuthenticationState.FirstTimeUser);
+        Assert.True(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
     }
 
     [Theory]
@@ -263,7 +263,7 @@ public class EmailConfirmationTests : TestBase
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
-        Assert.False(authStateHelper.AuthenticationState.FirstTimeUser);
+        Assert.False(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
         Assert.Equal(user.Trn, authStateHelper.AuthenticationState.Trn);
     }
 
@@ -341,7 +341,7 @@ public class EmailConfirmationTests : TestBase
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
-        Assert.False(authStateHelper.AuthenticationState.FirstTimeUser);
+        Assert.False(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
     }
 
     [Fact]

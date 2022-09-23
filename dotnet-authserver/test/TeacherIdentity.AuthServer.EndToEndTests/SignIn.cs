@@ -292,7 +292,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Should now be on the confirmation page
 
-        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
+        Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
         await page.ClickAsync("button:has-text('Continue')");
 
         // Should now be back on the client, signed in

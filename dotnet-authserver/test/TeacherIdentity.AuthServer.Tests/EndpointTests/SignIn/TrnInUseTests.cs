@@ -59,7 +59,7 @@ public class TrnInUseTests : TestBase
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },
-                    firstTimeUser: true);
+                    firstTimeSignInForEmail: true);
             }
             else if (trnLookupState == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
             {
@@ -149,7 +149,7 @@ public class TrnInUseTests : TestBase
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },
-                    firstTimeUser: true);
+                    firstTimeSignInForEmail: true);
             }
             else if (trnLookupState == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
             {

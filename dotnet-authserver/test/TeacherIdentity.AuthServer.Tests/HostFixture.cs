@@ -71,13 +71,13 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         AuthenticationStateHelper authenticationStateHelper,
         HttpClient httpClient,
         Guid userId,
-        bool firstTimeUser)
+        bool firstTimeSignInForEmail)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{authenticationStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
                 .Add("UserId", userId.ToString())
-                .Add("FirstTimeUser", firstTimeUser.ToString())
+                .Add("FirstTimeSignInForEmail", firstTimeSignInForEmail.ToString())
                 .ToContent()
         };
 

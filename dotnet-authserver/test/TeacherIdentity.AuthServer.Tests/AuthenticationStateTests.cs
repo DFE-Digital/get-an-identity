@@ -19,7 +19,7 @@ public partial class AuthenticationStateTests
         var emailVerified = true;
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var firstTimeUser = true;
+        var firstTimeSignInForEmail = true;
         var haveCompletedTrnLookup = true;
         var trn = "2345678";
         var userId = Guid.NewGuid();
@@ -43,7 +43,7 @@ public partial class AuthenticationStateTests
         var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
 
         // Act
-        var authenticationState = AuthenticationState.FromInternalClaims(claims, authorizationUrl, client.ClientId!, scope, redirectUri, firstTimeUser);
+        var authenticationState = AuthenticationState.FromInternalClaims(claims, authorizationUrl, client.ClientId!, scope, redirectUri, firstTimeSignInForEmail);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -51,7 +51,7 @@ public partial class AuthenticationStateTests
         Assert.Equal(emailVerified, authenticationState.EmailAddressVerified);
         Assert.Equal(firstName, authenticationState.FirstName);
         Assert.Equal(lastName, authenticationState.LastName);
-        Assert.Equal(firstTimeUser, authenticationState.FirstTimeUser);
+        Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(haveCompletedTrnLookup, authenticationState.HaveCompletedTrnLookup);
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
@@ -179,7 +179,7 @@ public partial class AuthenticationStateTests
 
         // Assert
         Assert.True(authenticationState.EmailAddressVerified);
-        Assert.True(authenticationState.FirstTimeUser);
+        Assert.True(authenticationState.FirstTimeSignInForEmail);
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public partial class AuthenticationStateTests
 
         // Assert
         Assert.True(authenticationState.EmailAddressVerified);
-        Assert.False(authenticationState.FirstTimeUser);
+        Assert.False(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
         Assert.Equal(lastName, authenticationState.LastName);
@@ -262,7 +262,7 @@ public partial class AuthenticationStateTests
 
         // Assert
         Assert.True(authenticationState.EmailAddressVerified);
-        Assert.False(authenticationState.FirstTimeUser);
+        Assert.False(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
         Assert.Equal(lastName, authenticationState.LastName);
@@ -300,18 +300,18 @@ public partial class AuthenticationStateTests
             UserId = userId,
             UserType = UserType.Default
         };
-        var firstTimeUser = true;
+        var firstTimeSignInForEmail = true;
 
         var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
 
         // Act
-        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeUser);
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail);
 
         // Assert
         Assert.True(authenticationState.EmailAddressVerified);
-        Assert.Equal(firstTimeUser, authenticationState.FirstTimeUser);
+        Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
         Assert.Equal(lastName, authenticationState.LastName);
@@ -410,7 +410,7 @@ public partial class AuthenticationStateTests
         authenticationState.OnEmailAddressChosen(user);
 
         // Assert
-        Assert.False(authenticationState.FirstTimeUser);
+        Assert.True(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
         Assert.Equal(lastName, authenticationState.LastName);
@@ -566,7 +566,7 @@ public partial class AuthenticationStateTests
                             EmailAddress = "john.doe@example.com",
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default
-                        }, firstTimeUser: true)
+                        }, firstTimeSignInForEmail: true)
                     ),
                     authorizationUrl.SetQueryParam("asid", journeyId)
                 },

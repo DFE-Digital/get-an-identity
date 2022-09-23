@@ -9,7 +9,7 @@ public class CompleteModel : PageModel
 
     public bool GotTrn { get; set; }
 
-    public bool FirstTimeUser { get; set; }
+    public bool FirstTimeSignInForEmail { get; set; }
 
     public string? Name { get; set; }
 
@@ -36,7 +36,7 @@ public class CompleteModel : PageModel
         ResponseParameters = authenticationState.AuthorizationResponseParameters!;
         Email = authenticationState.EmailAddress;
         GotTrn = authenticationState.Trn is not null;
-        FirstTimeUser = authenticationState.FirstTimeUser!.Value;
+        FirstTimeSignInForEmail = authenticationState.FirstTimeSignInForEmail!.Value;
         Name = $"{authenticationState.FirstName} {authenticationState.LastName}";
         Trn = authenticationState.Trn;
         DateOfBirth = authenticationState.DateOfBirth;
