@@ -23,6 +23,7 @@ public class TeacherIdentityApplicationManager : OpenIddictApplicationManager<Ap
         await base.PopulateAsync(application, descriptor, cancellationToken);
 
         await Store.SetServiceUrlAsync(application, (descriptor as TeacherIdentityApplicationDescriptor)?.ServiceUrl);
+        await Store.SetPostSignInMessageAsync(application, (descriptor as TeacherIdentityApplicationDescriptor)?.PostSignInMessage);
     }
 
     public override async ValueTask PopulateAsync(OpenIddictApplicationDescriptor descriptor, Application application, CancellationToken cancellationToken = default)
@@ -32,6 +33,7 @@ public class TeacherIdentityApplicationManager : OpenIddictApplicationManager<Ap
         if (descriptor is TeacherIdentityApplicationDescriptor teacherIdentityApplicationDescriptor)
         {
             teacherIdentityApplicationDescriptor.ServiceUrl = await Store.GetServiceUrlAsync(application);
+            teacherIdentityApplicationDescriptor.PostSignInMessage = await Store.GetServiceUrlAsync(application);
         }
     }
 }

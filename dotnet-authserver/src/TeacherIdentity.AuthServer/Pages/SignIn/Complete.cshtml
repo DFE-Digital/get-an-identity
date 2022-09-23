@@ -1,7 +1,11 @@
 @page "/sign-in/complete"
 @using static OpenIddict.Abstractions.OpenIddictConstants
+@inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @model TeacherIdentity.AuthServer.Pages.SignIn.CompleteModel
 @{
+    var client = await CurrentClientProvider.GetCurrentClient();
+    var postSignInMessage = client?.PostSignInMessage;
+    var titleCasePostSigninMessage = client?.GetPostSignInMessageAsTitleCase();
     ViewBag.Title = Model.FirstTimeSignInForEmail ? "Continue with your NPQ registration" :
         Model.AlreadyCompleted ? "We’ve finished checking our records" :
         "You’re signed in";
@@ -42,7 +46,7 @@
       <div class="govuk-grid-column-two-thirds-from-desktop">
         <h1 class="govuk-heading-xl">We’ve finished checking our records</h1>
 
-        <p>You can continue with your NPQ registration.</p>
+        <p>You can <span data-testid="already-completed-postsigninmessage">@postSignInMessage</span> </p>
 
         @{
           await RenderForm();
@@ -53,7 +57,7 @@
 else if (Model.FirstTimeSignInForEmail)
 {
     <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
-      <govuk-panel-title>Continue with your NPQ registration</govuk-panel-title>
+      <govuk-panel-title><span data-testid="first-time-user-postsigninmessage">@titleCasePostSigninMessage</span></govuk-panel-title>
 
       <govuk-panel-body>
         @if (Model.GotTrn)

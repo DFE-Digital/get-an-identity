@@ -36,4 +36,26 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
 
         return default;
     }
+
+    public ValueTask SetPostSignInMessageAsync(Application application, string? postSignInMessage)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        application.PostSignInMessage = postSignInMessage;
+
+        return default;
+    }
+
+    public ValueTask<string?> GetPostSignInMessageAsync(Application application)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        return new ValueTask<string?>(application.PostSignInMessage);
+    }
 }
