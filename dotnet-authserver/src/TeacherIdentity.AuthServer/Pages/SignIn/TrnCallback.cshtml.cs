@@ -100,7 +100,7 @@ public class TrnCallbackModel : PageModel
                 dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId }));
         }
 
-        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeUser: true);
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail: true);
         await HttpContext.SignInUserFromAuthenticationState();
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));

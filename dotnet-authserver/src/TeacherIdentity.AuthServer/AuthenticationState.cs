@@ -51,7 +51,7 @@ public class AuthenticationState
     [JsonInclude]
     public Guid? UserId { get; private set; }
     [JsonInclude]
-    public bool? FirstTimeUser { get; private set; }
+    public bool? FirstTimeSignInForEmail { get; private set; }
     [JsonInclude]
     public string? EmailAddress { get; private set; }
     [JsonInclude]
@@ -87,12 +87,12 @@ public class AuthenticationState
         string clientId,
         string scope,
         string? redirectUri,
-        bool? firstTimeUser = null)
+        bool? firstTimeSignInForEmail = null)
     {
         return new AuthenticationState(journeyId: Guid.NewGuid(), initiatingRequestUrl, clientId, scope, redirectUri)
         {
             UserId = ParseNullableGuid(claims.FirstOrDefault(c => c.Type == Claims.Subject)?.Value),
-            FirstTimeUser = firstTimeUser,
+            FirstTimeSignInForEmail = firstTimeSignInForEmail,
             EmailAddress = GetFirstClaimValue(Claims.Email),
             EmailAddressVerified = GetFirstClaimValue(Claims.EmailVerified) == bool.TrueString,
             FirstName = GetFirstClaimValue(Claims.GivenName),
@@ -222,7 +222,7 @@ public class AuthenticationState
         }
 
         EmailAddressVerified = true;
-        FirstTimeUser = user is null;
+        FirstTimeSignInForEmail = user is null;
 
         if (user is not null)
         {
@@ -264,7 +264,7 @@ public class AuthenticationState
         TrnOwnerEmailAddress = existingTrnOwnerEmail;
     }
 
-    public void OnTrnLookupCompletedAndUserRegistered(User user, bool firstTimeUser)
+    public void OnTrnLookupCompletedAndUserRegistered(User user, bool firstTimeSignInForEmail)
     {
         if (EmailAddress is null)
         {
@@ -289,7 +289,7 @@ public class AuthenticationState
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = true;
-        FirstTimeUser = firstTimeUser;
+        FirstTimeSignInForEmail = firstTimeSignInForEmail;
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
     }
@@ -339,7 +339,7 @@ public class AuthenticationState
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = true;
-        FirstTimeUser = false;
+        FirstTimeSignInForEmail = true;  // We want to show the 'first time user' confirmation page, even though this user has signed in before
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
     }
@@ -355,7 +355,7 @@ public class AuthenticationState
     }
 
     [Obsolete("This is for use by tests only.")]
-    public void Populate(User user, bool firstTimeUser)
+    public void Populate(User user, bool firstTimeSignInForEmail)
     {
         UserId = user.UserId;
         EmailAddress = user.EmailAddress;
@@ -364,7 +364,7 @@ public class AuthenticationState
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
-        FirstTimeUser = firstTimeUser;
+        FirstTimeSignInForEmail = firstTimeSignInForEmail;
         Trn = user.Trn;
     }
 

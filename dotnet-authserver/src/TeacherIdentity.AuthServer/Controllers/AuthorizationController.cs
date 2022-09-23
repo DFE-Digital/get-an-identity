@@ -63,7 +63,7 @@ public class AuthorizationController : Controller
         // This also tracks when we have enough information about the user to satisfy the request.
         var authenticationState = EnsureAuthenticationState(
             authenticateResult?.Principal?.Claims,
-            firstTimeUser: authenticateResult?.Succeeded != true);
+            firstTimeSignInForEmail: authenticateResult?.Succeeded != true);
 
         if (!authenticationState.ValidateScopes(out var invalidScopeMessage))
         {
@@ -211,7 +211,7 @@ public class AuthorizationController : Controller
             return Request.PathBase + Request.Path + QueryString.Create(parameters);
         }
 
-        AuthenticationState EnsureAuthenticationState(IEnumerable<Claim>? claims, bool firstTimeUser)
+        AuthenticationState EnsureAuthenticationState(IEnumerable<Claim>? claims, bool firstTimeSignInForEmail)
         {
             if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
@@ -221,7 +221,7 @@ public class AuthorizationController : Controller
                     request.ClientId!,
                     request.Scope!,
                     request.RedirectUri,
-                    firstTimeUser);
+                    firstTimeSignInForEmail);
 
                 HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
             }

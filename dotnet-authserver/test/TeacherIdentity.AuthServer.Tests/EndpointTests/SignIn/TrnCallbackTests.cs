@@ -51,7 +51,7 @@ public class TrnCallbackTests : TestBase
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },
-                    firstTimeUser: true);
+                    firstTimeSignInForEmail: true);
             }
             else if (trnLookupState == AuthenticationState.TrnLookupState.ExistingTrnFound)
             {
