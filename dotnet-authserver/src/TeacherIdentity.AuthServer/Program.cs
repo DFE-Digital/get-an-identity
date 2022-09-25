@@ -429,6 +429,13 @@ public class Program
 
         builder.Services.AddSingleton<PinValidator>();
 
+        builder.Services.AddHsts(options =>
+        {
+            options.Preload = true;
+            options.IncludeSubDomains = true;
+            options.MaxAge = TimeSpan.FromYears(1);
+        });
+
         var app = builder.Build();
 
         if (builder.Environment.IsProduction() &&
