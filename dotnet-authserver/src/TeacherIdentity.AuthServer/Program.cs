@@ -433,7 +433,7 @@ public class Program
         {
             options.Preload = true;
             options.IncludeSubDomains = true;
-            options.MaxAge = TimeSpan.FromYears(1);
+            options.MaxAge = TimeSpan.FromDays(365);
         });
 
         var app = builder.Build();
