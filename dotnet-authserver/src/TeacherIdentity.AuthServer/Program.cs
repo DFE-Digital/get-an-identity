@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using AspNetCoreRateLimit;
+using AspNetCoreRateLimit.Redis;
 using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -20,6 +22,7 @@ using OpenIddict.Validation.AspNetCore;
 using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using TeacherIdentity.AuthServer.Configuration;
@@ -68,10 +71,16 @@ public class Program
                     containerName: builder.Configuration["DataProtectionKeysContainerName"],
                     blobName: "keys");
 
+            var redisConfiguration = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis"));
+
             builder.Services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+                options.ConfigurationOptions = redisConfiguration;
             });
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConfiguration));
+
+            ConfigureRateLimitServices();
         }
 
         MetricLabels.ConfigureLabels(builder.Configuration);
@@ -416,6 +425,7 @@ public class Program
             c.EnableAnnotations();
             c.ExampleFilters();
             c.OperationFilter<ResponseContentTypeOperationFilter>();
+            c.OperationFilter<RateLimitOperationFilter>();
         });
 
         builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
@@ -523,6 +533,13 @@ public class Program
 
         app.UseAuthorization();
 
+        if (builder.Environment.IsProduction())
+        {
+            app.UseWhen(
+                ctx => ctx.Request.Path.StartsWithSegments("/api") && !ctx.Request.Path.StartsWithSegments("/api/find-trn"),
+                a => a.UseMiddleware<RateLimitMiddleware>());
+        }
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
@@ -564,6 +581,13 @@ public class Program
             var clients = builder.Configuration.GetSection("Clients").Get<ClientConfiguration[]>() ?? Array.Empty<ClientConfiguration>();
             var helper = new ClientConfigurationHelper(app.Services);
             await helper.UpsertClients(clients);
+        }
+
+        void ConfigureRateLimitServices()
+        {
+            builder.Services.Configure<ClientRateLimitOptions>(builder.Configuration.GetSection("ClientRateLimiting"));
+            builder.Services.AddRedisRateLimiting();
+            builder.Services.AddSingleton<IRateLimitConfiguration, ApiRateLimitConfiguration>();
         }
 
         SecurityKey LoadKey(string configurationValue)
