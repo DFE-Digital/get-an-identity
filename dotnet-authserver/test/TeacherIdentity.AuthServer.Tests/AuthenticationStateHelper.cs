@@ -34,6 +34,8 @@ public sealed class AuthenticationStateHelper
         var fullScope = $"email profile {scope}";
         var redirectUri = client.RedirectUris.First().ToString();
 
+        var userRequirements = UserRequirementsExtensions.GetUserRequirementsForScopes(hasScope: s => s.Equals(scope.Trim(), StringComparison.Ordinal));
+
         var authorizationUrl = $"/connect/authorize" +
             $"?client_id={client.ClientId}" +
             $"&response_type=code" +
@@ -45,10 +47,9 @@ public sealed class AuthenticationStateHelper
 
         var authenticationState = new AuthenticationState(
             journeyId,
+            userRequirements,
             authorizationUrl,
-            client.ClientId!,
-            fullScope,
-            redirectUri);
+            new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         configureAuthenticationState?.Invoke(authenticationState);
 

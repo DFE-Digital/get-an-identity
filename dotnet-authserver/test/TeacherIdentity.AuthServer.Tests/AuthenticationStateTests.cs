@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using Flurl;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -37,13 +35,17 @@ public partial class AuthenticationStateTests
             new Claim(CustomClaims.Trn, trn)
         };
 
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         // Act
-        var authenticationState = AuthenticationState.FromInternalClaims(claims, authorizationUrl, client.ClientId!, scope, redirectUri, firstTimeSignInForEmail);
+        var authenticationState = AuthenticationState.FromInternalClaims(
+            journeyId,
+            userRequirements,
+            claims,
+            postSignInUrl: "/",
+            oAuthState: null,
+            firstTimeSignInForEmail);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -84,12 +86,14 @@ public partial class AuthenticationStateTests
             UserType = UserType.Default
         };
 
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
-        var authenticationState = new AuthenticationState(journeyId: Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId: Guid.NewGuid(),
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user);
 
@@ -143,14 +147,15 @@ public partial class AuthenticationStateTests
     public void OnEmailSet()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType;
 
         var email = Faker.Internet.Email();
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
 
         // Act
         authenticationState.OnEmailSet(email);
@@ -164,14 +169,16 @@ public partial class AuthenticationStateTests
     public void OnEmailVerified_WithoutUser()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType;
 
         var email = Faker.Internet.Email();
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
 
         // Act
@@ -186,10 +193,8 @@ public partial class AuthenticationStateTests
     public void OnEmailVerified_WithStaffUser()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = $"email profile {CustomScopes.GetAnIdentityAdmin}";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.StaffUserType;
 
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
@@ -208,7 +213,11 @@ public partial class AuthenticationStateTests
             UserType = UserType.Staff
         };
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
 
         // Act
@@ -229,10 +238,8 @@ public partial class AuthenticationStateTests
     public void OnEmailVerified_WithUserWhoHasCompletedTrnLookup()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
@@ -254,7 +261,11 @@ public partial class AuthenticationStateTests
             UserType = UserType.Default
         };
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
 
         // Act
@@ -276,10 +287,8 @@ public partial class AuthenticationStateTests
     public void OnTrnLookupCompletedAndUserRegistered()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
@@ -302,7 +311,11 @@ public partial class AuthenticationStateTests
         };
         var firstTimeSignInForEmail = true;
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
 
@@ -325,15 +338,17 @@ public partial class AuthenticationStateTests
     public void OnTrnLookupCompletedForTrnAlreadyInUse()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         var email = Faker.Internet.Email();
         var existingTrnOwnerEmail = Faker.Internet.Email();
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
 
@@ -350,15 +365,17 @@ public partial class AuthenticationStateTests
     public void OnEmailVerifiedOfExistingAccountForTrn()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         var email = Faker.Internet.Email();
         var existingTrnOwnerEmail = Faker.Internet.Email();
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
         authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
@@ -374,10 +391,8 @@ public partial class AuthenticationStateTests
     public void OnEmailAddressChosen()
     {
         // Arrange
-        var client = TestClients.Client1;
-        var scope = "email profile trn";
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
@@ -400,7 +415,11 @@ public partial class AuthenticationStateTests
             UserType = UserType.Default
         };
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, scope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/");
+
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
         authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
@@ -419,47 +438,12 @@ public partial class AuthenticationStateTests
         Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
     }
 
-    [Theory]
-    [MemberData(nameof(GetUserTypeData))]
-    public void GetUserType(string scope, UserType expectedUserType)
-    {
-        // Arrange
-        var client = TestClients.Client1;
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
-
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}", redirectUri);
-
-        // Act
-        var userType = authenticationState.GetUserType();
-
-        // Assert
-        Assert.Equal(expectedUserType, userType);
-    }
-
-    [Theory]
-    [MemberData(nameof(ValidateClaimsData))]
-    public void ValidateClaims(string scope, bool expectedResult, string? expectedErrorMessage)
-    {
-        // Arrange
-        var client = TestClients.Client1;
-        var redirectUri = client.RedirectUris.First().ToString();
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
-
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, $"email profile {scope}", redirectUri);
-
-        // Act
-        var result = authenticationState.ValidateScopes(out var errorMessage);
-
-        // Assert
-        Assert.Equal(expectedResult, result);
-        Assert.Equal(expectedErrorMessage, errorMessage);
-    }
-
     [Fact]
     public void ResolveServiceUrl_ApplicationHasAbsoluteServiceUrl_ReturnsServiceUrl()
     {
         // Arrange
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType;
         var redirectUri = "http://client.com/redirect_uri";
         var client = new Application()
         {
@@ -468,12 +452,15 @@ public partial class AuthenticationStateTests
         };
 
         var fullScope = "email profile";
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, fullScope, redirectUri);
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, fullScope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/",
+            new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         // Act
-        var result = authenticationState.ResolveServiceUrl(client);
+        var result = authenticationState.OAuthState!.ResolveServiceUrl(client);
 
         // Assert
         Assert.Equal(client.ServiceUrl, result);
@@ -483,6 +470,8 @@ public partial class AuthenticationStateTests
     public void ResolveServiceUrl_ApplicationHasRelativeServiceUrl_ReturnsUrlRelativeToRedirectUri()
     {
         // Arrange
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType;
         var redirectUri = "http://client.com/redirect_uri";
         var client = new Application()
         {
@@ -491,12 +480,15 @@ public partial class AuthenticationStateTests
         };
 
         var fullScope = "email profile";
-        var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, fullScope, redirectUri);
 
-        var authenticationState = new AuthenticationState(Guid.NewGuid(), authorizationUrl, client.ClientId!, fullScope, redirectUri);
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/",
+            new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         // Act
-        var result = authenticationState.ResolveServiceUrl(client);
+        var result = authenticationState.OAuthState!.ResolveServiceUrl(client);
 
         // Assert
         Assert.Equal("http://client.com/start", result);
@@ -507,10 +499,7 @@ public partial class AuthenticationStateTests
         get
         {
             var journeyId = Guid.NewGuid();
-            var client = TestClients.Client1;
-            var scope = "email profile trn";
-            var redirectUri = client.RedirectUris.First().ToString();
-            var authorizationUrl = CreateAuthorizationUrl(client.ClientId!, scope, redirectUri);
+            var postSignInUrl = "/callback";
 
             // Helper method for creating an AuthenticationState object and modifying it via its On* methods
             static AuthenticationState S(AuthenticationState state, params Action<AuthenticationState>[] configure)
@@ -527,14 +516,14 @@ public partial class AuthenticationStateTests
             {
                 // No email address
                 {
-                    S(new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri)),
+                    S(new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl)),
                     $"/sign-in/email?asid={journeyId}"
                 },
 
                 // Got an email but not yet verified
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com")
                     ),
                     $"/sign-in/email-confirmation?asid={journeyId}"
@@ -543,7 +532,7 @@ public partial class AuthenticationStateTests
                 // Verified email, not completed TRN lookup yet
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null)
                     ),
@@ -553,7 +542,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedAndUserRegistered(new User()
@@ -568,13 +557,13 @@ public partial class AuthenticationStateTests
                             UserType = UserType.Default
                         }, firstTimeSignInForEmail: true)
                     ),
-                    authorizationUrl.SetQueryParam("asid", journeyId)
+                    postSignInUrl
                 },
 
                 // New user who has completed TRN lookup with an already-assigned TRN
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email())
@@ -585,7 +574,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup with an already-assigned TRN and they've verified that account's email
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
@@ -597,7 +586,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup with an already-assigned TRN and they've choosen the email to use
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
@@ -615,13 +604,13 @@ public partial class AuthenticationStateTests
                             Trn = "2345678"
                         })
                     ),
-                    authorizationUrl.SetQueryParam("asid", journeyId)
+                    postSignInUrl
                 },
 
                 // Existing user
                 {
                     S(
-                        new AuthenticationState(journeyId, authorizationUrl, client.ClientId!, scope, redirectUri),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(new User()
                         {
@@ -635,42 +624,9 @@ public partial class AuthenticationStateTests
                             UserType = UserType.Default
                         })
                     ),
-                    authorizationUrl.SetQueryParam("asid", journeyId)
+                    postSignInUrl
                 },
             };
         }
-    }
-
-    public static TheoryData<string, UserType> GetUserTypeData => new TheoryData<string, UserType>
-    {
-        { CustomScopes.Trn, UserType.Default },
-        { CustomScopes.GetAnIdentityAdmin, UserType.Staff },
-        { CustomScopes.GetAnIdentitySupport, UserType.Staff }
-    };
-
-    public static TheoryData<string, bool, string?> ValidateClaimsData => new TheoryData<string, bool, string?>
-    {
-        { "", false, "The trn scope is required." },
-        { CustomScopes.Trn, true, null },
-        { CustomScopes.GetAnIdentityAdmin, true, null },
-        { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.Trn, false, "The get-an-identity:admin, trn scopes cannot be combined." },
-        { CustomScopes.GetAnIdentitySupport + " " + CustomScopes.Trn, false, "The get-an-identity:support, trn scopes cannot be combined." },
-        { CustomScopes.GetAnIdentityAdmin + " " + CustomScopes.GetAnIdentitySupport, true, null },
-    };
-
-    private static string CreateAuthorizationUrl(string clientId, string scope, string redirectUri)
-    {
-        var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
-
-        var authorizationUrl = $"/connect/authorize" +
-            $"?client_id={clientId}" +
-            $"&response_type=code" +
-            $"&scope=" + Uri.EscapeDataString(scope) +
-            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-            $"&code_challenge={Uri.EscapeDataString(codeChallenge)}" +
-            $"&code_challenge_method=S256" +
-            $"&response_mode=form_post";
-
-        return authorizationUrl;
     }
 }
