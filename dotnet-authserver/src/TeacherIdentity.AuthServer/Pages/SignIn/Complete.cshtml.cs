@@ -30,10 +30,11 @@ public class CompleteModel : PageModel
     public void OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
+        authenticationState.EnsureOAuthState();
 
-        RedirectUri = authenticationState.RedirectUri;
-        ResponseMode = authenticationState.AuthorizationResponseMode!;
-        ResponseParameters = authenticationState.AuthorizationResponseParameters!;
+        RedirectUri = authenticationState.OAuthState.RedirectUri;
+        ResponseMode = authenticationState.OAuthState.AuthorizationResponseMode!;
+        ResponseParameters = authenticationState.OAuthState.AuthorizationResponseParameters!;
         Email = authenticationState.EmailAddress;
         GotTrn = authenticationState.Trn is not null;
         FirstTimeSignInForEmail = authenticationState.FirstTimeSignInForEmail!.Value;

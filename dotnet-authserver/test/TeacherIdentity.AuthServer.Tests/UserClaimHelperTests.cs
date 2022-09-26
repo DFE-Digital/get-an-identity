@@ -71,12 +71,18 @@ public class UserClaimHelperTests
             UserType = UserType.Default
         };
 
+        Func<string, bool> hasScope = s => s == CustomScopes.Trn && haveTrnScope;
+
+        var userRequirements = UserRequirementsExtensions.GetUserRequirementsForScopes(hasScope);
+
         var authenticationState = new AuthenticationState(
             journeyId: Guid.NewGuid(),
-            initiatingRequestUrl: "",
-            clientId: "",
-            scope: "email profile" + (haveTrnScope ? " trn" : ""),
-            redirectUri: "");
+            userRequirements,
+            postSignInUrl: "",
+            new OAuthAuthorizationState(
+                clientId: "",
+                scope: "email profile" + (haveTrnScope ? " trn" : ""),
+                redirectUri: ""));
 
         authenticationState.OnEmailSet(user.EmailAddress);
         authenticationState.OnEmailVerified(user);
@@ -84,7 +90,7 @@ public class UserClaimHelperTests
         var helper = new UserClaimHelper();
 
         // Act
-        var result = helper.GetPublicClaims(authenticationState, hasScope: authenticationState.HasScope);
+        var result = helper.GetPublicClaims(authenticationState, hasScope);
 
         // Assert
         var expectedClaims = new List<Claim>()

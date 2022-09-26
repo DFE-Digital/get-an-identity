@@ -29,10 +29,12 @@ public class FindALostTrnIntegrationHelper
 
     public async Task<(string Url, IDictionary<string, string> FormValues)> GetHandoverRequest(AuthenticationState authenticationState)
     {
-        var clientId = authenticationState.ClientId;
+        authenticationState.EnsureOAuthState();
+
+        var clientId = authenticationState.OAuthState.ClientId;
         var client = (Application)(await _applicationManager.FindByClientIdAsync(clientId))!;
         var clientDisplayName = client.DisplayName;
-        var clientServiceUrl = authenticationState.ResolveServiceUrl(client);
+        var clientServiceUrl = authenticationState.OAuthState.ResolveServiceUrl(client);
 
         var request = _httpContextAccessor.HttpContext!.Request;
         var callbackUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{_linkGenerator.TrnCallback()}";

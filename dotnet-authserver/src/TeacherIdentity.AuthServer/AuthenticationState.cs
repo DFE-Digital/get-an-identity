@@ -7,7 +7,6 @@ using Flurl;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -30,24 +29,22 @@ public class AuthenticationState
         }
     };
 
-    public AuthenticationState(Guid journeyId, string initiatingRequestUrl, string clientId, string scope, string? redirectUri)
+    public AuthenticationState(
+        Guid journeyId,
+        UserRequirements userRequirements,
+        string postSignInUrl,
+        OAuthAuthorizationState? oAuthState = null)
     {
         JourneyId = journeyId;
-        InitiatingRequestUrl = initiatingRequestUrl;
-        ClientId = clientId;
-        Scope = scope;
-        RedirectUri = redirectUri;
+        UserRequirements = userRequirements;
+        PostSignInUrl = postSignInUrl;
+        OAuthState = oAuthState;
     }
 
     public Guid JourneyId { get; }
-    public string InitiatingRequestUrl { get; }
-    public string ClientId { get; }
-    public string Scope { get; }
-    [JsonInclude]
-    public IEnumerable<KeyValuePair<string, string>>? AuthorizationResponseParameters { get; private set; }
-    [JsonInclude]
-    public string? AuthorizationResponseMode { get; private set; }
-    public string? RedirectUri { get; }
+    public UserRequirements UserRequirements { get; }
+    public string PostSignInUrl { get; }
+    public OAuthAuthorizationState? OAuthState { get; set; }
     [JsonInclude]
     public Guid? UserId { get; private set; }
     [JsonInclude]
@@ -82,14 +79,14 @@ public class AuthenticationState
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
 
     public static AuthenticationState FromInternalClaims(
+        Guid journeyId,
+        UserRequirements userRequirements,
         IEnumerable<Claim> claims,
-        string initiatingRequestUrl,
-        string clientId,
-        string scope,
-        string? redirectUri,
+        string postSignInUrl,
+        OAuthAuthorizationState? oAuthState = null,
         bool? firstTimeSignInForEmail = null)
     {
-        return new AuthenticationState(journeyId: Guid.NewGuid(), initiatingRequestUrl, clientId, scope, redirectUri)
+        return new AuthenticationState(journeyId, userRequirements, postSignInUrl, oAuthState)
         {
             UserId = ParseNullableGuid(claims.FirstOrDefault(c => c.Type == Claims.Subject)?.Value),
             FirstTimeSignInForEmail = firstTimeSignInForEmail,
@@ -108,6 +105,15 @@ public class AuthenticationState
         static Guid? ParseNullableGuid(string? value) => value is not null ? Guid.Parse(value) : null;
 
         string? GetFirstClaimValue(string claimType) => claims.FirstOrDefault(c => c.Type == claimType)?.Value;
+    }
+
+    [MemberNotNull(nameof(OAuthState))]
+    public void EnsureOAuthState()
+    {
+        if (OAuthState is null)
+        {
+            throw new InvalidOperationException($"{nameof(OAuthState)} is null.");
+        }
     }
 
     public IEnumerable<Claim> GetInternalClaims()
@@ -141,14 +147,6 @@ public class AuthenticationState
         }
     }
 
-    public string GetFinalAuthorizationUrl()
-    {
-        var finalAuthorizationUrl = new Url(InitiatingRequestUrl)
-            .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, JourneyId.ToString());
-
-        return finalAuthorizationUrl;
-    }
-
     public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
     {
         // We need an email address
@@ -163,7 +161,7 @@ public class AuthenticationState
             return linkGenerator.EmailConfirmation();
         }
 
-        if (HasScope(CustomScopes.Trn))
+        if (UserRequirements.HasFlag(UserRequirements.TrnHolder))
         {
             // If it's not been done before, launch the journey to find the TRN
             if (!HaveCompletedTrnLookup)
@@ -188,24 +186,13 @@ public class AuthenticationState
         // We should have a known user at this point
         Debug.Assert(IsComplete());
 
-        // We're done - complete authorization
-        return GetFinalAuthorizationUrl();
+        return PostSignInUrl;
     }
 
-    public UserType GetUserType()
-    {
-        if (!TryGetUserTypeFromScopes(out var userType, out _))
-        {
-            throw new InvalidOperationException("Scope is not valid.");
-        }
-
-        return userType.Value;
-    }
-
-    public bool HasScope(string scope) => Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(scope);
+    public UserType GetUserType() => UserRequirements.GetUserType();
 
     public bool IsComplete() => EmailAddressVerified &&
-        (TrnLookup == TrnLookupState.Complete || !HasScope(CustomScopes.Trn)) &&
+        (TrnLookup == TrnLookupState.Complete || !UserRequirements.HasFlag(UserRequirements.TrnHolder)) &&
         UserId.HasValue;
 
     public void OnEmailSet(string email)
@@ -368,6 +355,28 @@ public class AuthenticationState
         Trn = user.Trn;
     }
 
+    public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
+}
+
+public class OAuthAuthorizationState
+{
+    public OAuthAuthorizationState(string clientId, string scope, string? redirectUri)
+    {
+        ClientId = clientId;
+        Scope = scope;
+        RedirectUri = redirectUri;
+    }
+
+    public string ClientId { get; }
+    public string Scope { get; }
+    [JsonInclude]
+    public IEnumerable<KeyValuePair<string, string>>? AuthorizationResponseParameters { get; private set; }
+    [JsonInclude]
+    public string? AuthorizationResponseMode { get; private set; }
+    public string? RedirectUri { get; }
+
+    public bool HasScope(string scope) => SplitScope().Contains(scope);
+
     public string ResolveServiceUrl(Application application)
     {
         var serviceUrl = new Url(application.ServiceUrl ?? "/");
@@ -385,63 +394,17 @@ public class AuthenticationState
         return $"{new Uri(RedirectUri).GetLeftPart(UriPartial.Authority)}/{serviceUrl.ToString().TrimStart('/')}";
     }
 
-    public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
-
     public void SetAuthorizationResponse(
         IEnumerable<KeyValuePair<string, string>> responseParameters,
         string responseMode)
     {
-        if (!IsComplete())
-        {
-            throw new InvalidOperationException("Journey is not complete.");
-        }
-
         AuthorizationResponseParameters = responseParameters;
         AuthorizationResponseMode = responseMode;
     }
 
-    public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage) => TryGetUserTypeFromScopes(out _, out errorMessage);
+    public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage) =>
+        UserRequirementsExtensions.TryGetUserRequirementsForScopes(HasScope, out _, out errorMessage);
 
-    private bool TryGetUserTypeFromScopes(
-        [NotNullWhen(true)] out UserType? userType,
-        [NotNullWhen(false)] out string? invalidScopeErrorMessage)
-    {
-        userType = default;
-        invalidScopeErrorMessage = default;
-
-        var userTypes = new HashSet<UserType>();
-        var userTypeConstrainedClaims = new List<string>();
-
-        foreach (var scope in CustomScopes.AdminScopes)
-        {
-            if (HasScope(scope))
-            {
-                userTypes.Add(UserType.Staff);
-                userTypeConstrainedClaims.Add(scope);
-            }
-        }
-
-        foreach (var scope in CustomScopes.TeacherScopes)
-        {
-            if (HasScope(scope))
-            {
-                userTypes.Add(UserType.Default);
-                userTypeConstrainedClaims.Add(scope);
-            }
-        }
-
-        if (userTypes.Count == 0 && !HasScope(CustomScopes.Trn))
-        {
-            invalidScopeErrorMessage = "The trn scope is required.";
-            return false;
-        }
-        else if (userTypes.Count > 1)
-        {
-            invalidScopeErrorMessage = $"The {string.Join(", ", userTypeConstrainedClaims.OrderBy(sc => sc))} scopes cannot be combined.";
-            return false;
-        }
-
-        userType = userTypes.Single();
-        return true;
-    }
+    private IEnumerable<string> SplitScope() =>
+        Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }

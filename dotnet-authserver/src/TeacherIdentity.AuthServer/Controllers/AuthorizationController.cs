@@ -61,19 +61,33 @@ public class AuthorizationController : Controller
 
         // Ensure we have a journey to store state for this request.
         // This also tracks when we have enough information about the user to satisfy the request.
-        var authenticationState = EnsureAuthenticationState(
-            authenticateResult?.Principal?.Claims,
-            firstTimeSignInForEmail: authenticateResult?.Succeeded != true);
-
-        if (!authenticationState.ValidateScopes(out var invalidScopeMessage))
+        if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
         {
-            return Forbid(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties(new Dictionary<string, string?>()
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = invalidScopeMessage
-                }));
+            var journeyId = Guid.NewGuid();
+
+            if (!UserRequirementsExtensions.TryGetUserRequirementsForScopes(
+                request.HasScope,
+                out var userRequirements,
+                out var invalidScopeErrorMessage))
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = invalidScopeErrorMessage
+                    }));
+            }
+
+            authenticationState = AuthenticationState.FromInternalClaims(
+                journeyId,
+                userRequirements,
+                authenticateResult?.Principal?.Claims ?? Enumerable.Empty<Claim>(),
+                GetCallbackUrl(journeyId),
+                new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
+                firstTimeSignInForEmail: authenticateResult?.Succeeded != true);
+
+            HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
 
         if (request.HasPrompt(Prompts.None))
@@ -195,7 +209,7 @@ public class AuthorizationController : Controller
                 throw new NotImplementedException();
         }
 
-        string GetCallbackUrl()
+        string GetCallbackUrl(Guid journeyId)
         {
             // Creates a URL back to this action
             // without the 'login' prompt to avoid going in circles continually prompting a user to sign in
@@ -208,25 +222,9 @@ public class AuthorizationController : Controller
 
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
+            parameters.Add(KeyValuePair.Create(AuthenticationStateMiddleware.IdQueryParameterName, new StringValues(journeyId.ToString())));
+
             return Request.PathBase + Request.Path + QueryString.Create(parameters);
-        }
-
-        AuthenticationState EnsureAuthenticationState(IEnumerable<Claim>? claims, bool firstTimeSignInForEmail)
-        {
-            if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
-            {
-                authenticationState = AuthenticationState.FromInternalClaims(
-                    claims ?? Enumerable.Empty<Claim>(),
-                    GetCallbackUrl(),
-                    request.ClientId!,
-                    request.Scope!,
-                    request.RedirectUri,
-                    firstTimeSignInForEmail);
-
-                HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
-            }
-
-            return authenticationState;
         }
     }
 

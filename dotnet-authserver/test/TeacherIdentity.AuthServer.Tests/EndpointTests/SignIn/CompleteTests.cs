@@ -137,7 +137,8 @@ public class CompleteTests : TestBase
                 authState.OnEmailSet(user.EmailAddress);
                 authState.OnEmailVerified(user);
 
-                authState.SetAuthorizationResponse(
+                authState.EnsureOAuthState();
+                authState.OAuthState.SetAuthorizationResponse(
                     new[]
                     {
                         new KeyValuePair<string, string>("code", "abc"),
