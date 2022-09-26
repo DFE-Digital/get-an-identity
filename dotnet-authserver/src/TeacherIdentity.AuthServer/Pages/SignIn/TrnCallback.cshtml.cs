@@ -101,7 +101,7 @@ public class TrnCallbackModel : PageModel
         }
 
         authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail: true);
-        await HttpContext.SignInUserFromAuthenticationState();
+        await authenticationState.SignIn(HttpContext);
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }
