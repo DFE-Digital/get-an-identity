@@ -23,6 +23,6 @@ public class SignInUserMiddleware
         authenticationState.Populate(user, firstTimeSignInForEmail);
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        await context.SignInUserFromAuthenticationState();
+        await authenticationState.SignIn(context);
     }
 }

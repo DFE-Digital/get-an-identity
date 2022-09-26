@@ -4,6 +4,8 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -356,6 +358,21 @@ public class AuthenticationState
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
+
+    public async Task SignIn(HttpContext httpContext)
+    {
+        if (!IsComplete())
+        {
+            throw new InvalidOperationException("Journey is not complete.");
+        }
+
+        var claims = GetInternalClaims();
+
+        var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);
+        var principal = new ClaimsPrincipal(identity);
+
+        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+    }
 }
 
 public class OAuthAuthorizationState

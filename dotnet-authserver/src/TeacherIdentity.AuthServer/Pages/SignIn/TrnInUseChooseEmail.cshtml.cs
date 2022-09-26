@@ -62,7 +62,7 @@ public class TrnInUseChooseEmailModel : PageModel
         await _dbContext.SaveChangesAsync();
 
         authenticationState.OnEmailAddressChosen(user);
-        await HttpContext.SignInUserFromAuthenticationState();
+        await authenticationState.SignIn(HttpContext);
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }

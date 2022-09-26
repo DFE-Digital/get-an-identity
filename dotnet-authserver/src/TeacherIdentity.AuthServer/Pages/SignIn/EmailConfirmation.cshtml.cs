@@ -80,7 +80,7 @@ public class EmailConfirmationModel : PageModel
 
         if (user is not null)
         {
-            await HttpContext.SignInUserFromAuthenticationState();
+            await authenticationState.SignIn(HttpContext);
         }
 
         if (requiredUserType == UserType.Staff && user is null)
