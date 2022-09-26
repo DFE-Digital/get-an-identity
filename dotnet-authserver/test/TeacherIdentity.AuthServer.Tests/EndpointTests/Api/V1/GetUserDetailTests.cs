@@ -3,9 +3,9 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
-public class GetUserTests : ApiTestBase
+public class GetUserDetailTests : ApiTestBase
 {
-    public GetUserTests(HostFixture hostFixture)
+    public GetUserDetailTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -52,7 +52,7 @@ public class GetUserTests : ApiTestBase
         var response = await httpClient.GetAsync($"/api/v1/users/{user.UserId}");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetTeacherDetailResponse>(response);
+        var responseObj = await AssertEx.JsonResponse<GetUserDetailResponse>(response);
 
         Assert.Equal(user.UserId, responseObj.UserId);
         Assert.Equal(user.EmailAddress, responseObj.Email);

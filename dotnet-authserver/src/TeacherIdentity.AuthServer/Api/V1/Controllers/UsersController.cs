@@ -32,7 +32,7 @@ public class UsersController : ControllerBase
 
     [HttpGet("{userId}")]
     [SwaggerOperation(summary: "Get a user's details by their user ID")]
-    [ProducesResponseType(typeof(GetTeacherDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(GetUserDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserDetail([FromRoute] Guid userId)
     {
@@ -44,7 +44,7 @@ public class UsersController : ControllerBase
             .Where(u => u.UserType == UserType.Default && u.UserId == userId)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
-            .Select(u => new GetTeacherDetailResponse()
+            .Select(u => new GetUserDetailResponse()
             {
                 UserId = u.UserId,
                 Email = u.EmailAddress,
