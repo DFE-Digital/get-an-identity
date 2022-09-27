@@ -82,7 +82,7 @@ public class AuthorizationController : Controller
             authenticationState = AuthenticationState.FromInternalClaims(
                 journeyId,
                 userRequirements,
-                authenticateResult?.Principal?.Claims ?? Enumerable.Empty<Claim>(),
+                authenticateResult?.Principal ?? new ClaimsPrincipal(),
                 GetCallbackUrl(journeyId),
                 new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
                 firstTimeSignInForEmail: authenticateResult?.Succeeded != true);

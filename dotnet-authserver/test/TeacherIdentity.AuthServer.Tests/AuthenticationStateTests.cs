@@ -36,6 +36,7 @@ public partial class AuthenticationStateTests
             new Claim(CustomClaims.Trn, trn),
             new Claim(CustomClaims.UserType, userType.ToString())
         };
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
         var journeyId = Guid.NewGuid();
         var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
@@ -44,7 +45,7 @@ public partial class AuthenticationStateTests
         var authenticationState = AuthenticationState.FromInternalClaims(
             journeyId,
             userRequirements,
-            claims,
+            principal,
             postSignInUrl: "/",
             oAuthState: null,
             firstTimeSignInForEmail);
