@@ -66,7 +66,7 @@ public class EmailConfirmationModel : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
-        var requiredUserType = authenticationState.GetUserType();
+        var requiredUserType = authenticationState.GetRequiredUserType();
 
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
 
