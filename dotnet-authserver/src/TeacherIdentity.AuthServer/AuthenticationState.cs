@@ -85,33 +85,25 @@ public class AuthenticationState
     public static AuthenticationState FromInternalClaims(
         Guid journeyId,
         UserRequirements userRequirements,
-        IEnumerable<Claim> claims,
+        ClaimsPrincipal principal,
         string postSignInUrl,
         OAuthAuthorizationState? oAuthState = null,
         bool? firstTimeSignInForEmail = null)
     {
         return new AuthenticationState(journeyId, userRequirements, postSignInUrl, oAuthState)
         {
-            UserId = ParseNullableGuid(claims.FirstOrDefault(c => c.Type == Claims.Subject)?.Value),
+            UserId = principal.GetUserId(),
             FirstTimeSignInForEmail = firstTimeSignInForEmail,
-            EmailAddress = GetFirstClaimValue(Claims.Email),
-            EmailAddressVerified = GetFirstClaimValue(Claims.EmailVerified) == bool.TrueString,
-            FirstName = GetFirstClaimValue(Claims.GivenName),
-            LastName = GetFirstClaimValue(Claims.FamilyName),
-            DateOfBirth = ParseNullableDate(GetFirstClaimValue(Claims.Birthdate)),
-            Trn = GetFirstClaimValue(CustomClaims.Trn),
-            HaveCompletedTrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString,
-            TrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString ? TrnLookupState.Complete : TrnLookupState.None,
-            UserType = ParseNullableUserType(GetFirstClaimValue(CustomClaims.UserType))
+            EmailAddress = principal.GetEmailAddress(),
+            EmailAddressVerified = principal.GetEmailAddressVerified() ?? false,
+            FirstName = principal.GetFirstName(),
+            LastName = principal.GetLastName(),
+            DateOfBirth = principal.GetDateOfBirth(),
+            Trn = principal.GetTrn(),
+            HaveCompletedTrnLookup = principal.GetHaveCompletedTrnLookup() ?? false,
+            TrnLookup = principal.GetHaveCompletedTrnLookup() == true ? TrnLookupState.Complete : TrnLookupState.None,
+            UserType = principal.GetUserType()
         };
-
-        static DateOnly? ParseNullableDate(string? value) => value is not null ? DateOnly.ParseExact(value, CustomClaims.DateFormat) : null;
-
-        static Guid? ParseNullableGuid(string? value) => value is not null ? Guid.Parse(value) : null;
-
-        static UserType? ParseNullableUserType(string? value) => value is not null ? Enum.Parse<UserType>(value) : null;
-
-        string? GetFirstClaimValue(string claimType) => claims.FirstOrDefault(c => c.Type == claimType)?.Value;
     }
 
     [MemberNotNull(nameof(OAuthState))]
