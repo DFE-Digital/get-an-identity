@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -161,7 +162,7 @@ public class Program
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy(
-                AuthorizationPolicies.Hangfire,
+                AuthorizationPolicies.GetAnIdentityAdmin,
                 policy => policy
                     .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
@@ -201,6 +202,13 @@ public class Program
                     model.Filters.Add(new RequireAuthenticationStateFilterFactory());
                     model.Filters.Add(new NoCachePageFilter());
                     model.Filters.Add(new RedirectToCompletePageFilter());
+                });
+
+            options.Conventions.AddFolderApplicationModelConvention(
+                "/Admin",
+                model =>
+                {
+                    model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.GetAnIdentityAdmin));
                 });
         });
 
@@ -549,7 +557,7 @@ public class Program
 
             if (!builder.Environment.IsUnitTests())
             {
-                endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.Hangfire, "/_hangfire");
+                endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
             }
         });
 
