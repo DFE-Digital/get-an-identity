@@ -403,7 +403,17 @@ public class AuthenticationState
         var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: Claims.Role);
         var principal = new ClaimsPrincipal(identity);
 
-        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        // If we're signing in within an OAuth flow then keep the lifetime short
+        var expiresUtc = DateTimeOffset.UtcNow.Add(
+            OAuthState is not null ? TimeSpan.FromMinutes(10) : TimeSpan.FromDays(1));
+
+        await httpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            principal,
+            new AuthenticationProperties()
+            {
+                ExpiresUtc = expiresUtc
+            });
     }
 }
 

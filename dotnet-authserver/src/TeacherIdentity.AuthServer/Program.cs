@@ -122,8 +122,6 @@ public class Program
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
 
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-
                 options.Events.OnRedirectToAccessDenied = async ctx =>
                 {
                     var viewResult = new ViewResult() { ViewName = "Forbidden", StatusCode = StatusCodes.Status403Forbidden };
