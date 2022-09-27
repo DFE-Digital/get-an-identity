@@ -8,7 +8,7 @@ namespace TeacherIdentity.AuthServer.Controllers;
 
 [ApiController]
 [Route("api/find-trn")]
-[Authorize(AuthorizationPolicies.TrnLookup)]
+[Authorize(AuthorizationPolicies.TrnLookupApi)]
 public class TrnLookupController : ControllerBase
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
