@@ -5,24 +5,25 @@ namespace TeacherIdentity.AuthServer.Tests;
 public class UserRequirementsExtensionsTests
 {
     [Theory]
-    [MemberData(nameof(GetUserTypeData))]
-    public void GetUserType(UserRequirements userRequirements, UserType expectedUserType)
+    [MemberData(nameof(GetPermittedUserTypesData))]
+    public void GetPermittedUserTypes(UserRequirements userRequirements, UserType[] expectedUserTypes)
     {
         // Arrange
 
         // Act
-        var userType = UserRequirementsExtensions.GetUserType(userRequirements);
+        var userTypes = UserRequirementsExtensions.GetPermittedUserTypes(userRequirements);
 
         // Assert
-        Assert.Equal(expectedUserType, userType);
+        Assert.Equal(expectedUserTypes, userTypes);
     }
 
-    public static TheoryData<UserRequirements, UserType> GetUserTypeData => new TheoryData<UserRequirements, UserType>
+    public static TheoryData<UserRequirements, UserType[]> GetPermittedUserTypesData => new TheoryData<UserRequirements, UserType[]>
     {
-        { UserRequirements.DefaultUserType, UserType.Default },
-        { UserRequirements.DefaultUserType | UserRequirements.TrnHolder, UserType.Default },
-        { UserRequirements.StaffUserType, UserType.Staff },
-        { UserRequirements.StaffUserType | UserRequirements.GetAnIdentityAdmin, UserType.Staff },
-        { UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport, UserType.Staff },
+        { UserRequirements.None, new[] { UserType.Default, UserType.Staff } },
+        { UserRequirements.DefaultUserType, new[] { UserType.Default } },
+        { UserRequirements.DefaultUserType | UserRequirements.TrnHolder, new[] { UserType.Default } },
+        { UserRequirements.StaffUserType, new[] { UserType.Staff } },
+        { UserRequirements.StaffUserType | UserRequirements.GetAnIdentityAdmin, new[] { UserType.Staff } },
+        { UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport, new[] { UserType.Staff } },
     };
 }

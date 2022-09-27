@@ -197,7 +197,7 @@ public class AuthenticationState
         return PostSignInUrl;
     }
 
-    public UserType GetRequiredUserType() => UserRequirements.GetUserType();
+    public UserType[] GetPermittedUserTypes() => UserRequirements.GetPermittedUserTypes();
 
     public bool IsComplete() => EmailAddressVerified &&
         (TrnLookup == TrnLookupState.Complete || !UserRequirements.HasFlag(UserRequirements.TrnHolder)) &&
@@ -223,10 +223,10 @@ public class AuthenticationState
         {
             Debug.Assert(user.EmailAddress == EmailAddress);
 
-            var requiredUserType = GetRequiredUserType();
-            if (user.UserType != requiredUserType)
+            var permittedUserTypes = GetPermittedUserTypes();
+            if (!permittedUserTypes.Contains(user.UserType))
             {
-                throw new InvalidOperationException($"Journey requires a {requiredUserType} user but got a {user.UserType} user.");
+                throw new InvalidOperationException($"Journey does not allow {user.UserType} users.");
             }
 
             UserId = user.UserId;
@@ -287,10 +287,10 @@ public class AuthenticationState
         Debug.Assert(user.CompletedTrnLookup is not null);
         Debug.Assert(user.EmailAddress == EmailAddress);
 
-        var requiredUserType = GetRequiredUserType();
-        if (user.UserType != requiredUserType)
+        var permittedUserTypes = GetPermittedUserTypes();
+        if (!permittedUserTypes.Contains(user.UserType))
         {
-            throw new InvalidOperationException($"Journey requires a {requiredUserType} user but got a {user.UserType} user.");
+            throw new InvalidOperationException($"Journey does not allow {user.UserType} users.");
         }
 
         UserId = user.UserId;
@@ -344,10 +344,10 @@ public class AuthenticationState
 
         Debug.Assert(user.CompletedTrnLookup is not null);
 
-        var requiredUserType = GetRequiredUserType();
-        if (user.UserType != requiredUserType)
+        var permittedUserTypes = GetPermittedUserTypes();
+        if (!permittedUserTypes.Contains(user.UserType))
         {
-            throw new InvalidOperationException($"Journey requires a {requiredUserType} user but got a {user.UserType} user.");
+            throw new InvalidOperationException($"Journey does not allow {user.UserType} users.");
         }
 
         EmailAddress = user.EmailAddress;
