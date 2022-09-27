@@ -419,8 +419,6 @@ public class OAuthAuthorizationState
     public string? AuthorizationResponseMode { get; private set; }
     public string? RedirectUri { get; }
 
-    public bool HasScope(string scope) => SplitScope().Contains(scope);
-
     public string ResolveServiceUrl(Application application)
     {
         var serviceUrl = new Url(application.ServiceUrl ?? "/");
@@ -445,10 +443,4 @@ public class OAuthAuthorizationState
         AuthorizationResponseParameters = responseParameters;
         AuthorizationResponseMode = responseMode;
     }
-
-    public bool ValidateScopes([NotNullWhen(false)] out string? errorMessage) =>
-        UserRequirementsExtensions.TryGetUserRequirementsForScopes(HasScope, out _, out errorMessage);
-
-    private IEnumerable<string> SplitScope() =>
-        Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
