@@ -125,7 +125,16 @@ public class AuthorizationController : Controller
 
         Debug.Assert(authenticationState.IsComplete());
 
-        var subject = authenticateResult.Principal.FindFirst(Claims.Subject)!.Value;
+        var cookiesPrincipal = authenticateResult.Principal!;
+
+        // If it's a Staff user verify their permissions
+        if (cookiesPrincipal.GetUserType(throwIfMissing: true) == UserType.Staff &&
+            !authenticationState.UserRequirements.VerifyStaffUserRequirements(cookiesPrincipal))
+        {
+            return Forbid(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
+        var subject = cookiesPrincipal.FindFirst(Claims.Subject)!.Value;
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??

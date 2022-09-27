@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
@@ -74,6 +75,36 @@ public static class UserRequirementsExtensions
         }
 
         invalidScopeErrorMessage = default;
+        return true;
+    }
+
+    public static bool VerifyStaffUserRequirements(this UserRequirements userRequirements, ClaimsPrincipal principal)
+    {
+        if (!ValidateUserRequirements(userRequirements, out var errorMessage))
+        {
+            throw new InvalidOperationException($"{nameof(UserRequirements)} are not valid.\n{errorMessage}");
+        }
+
+        if (!userRequirements.HasFlag(UserRequirements.StaffUserType))
+        {
+            throw new InvalidOperationException($"{nameof(UserRequirements)} does not contain {UserRequirements.StaffUserType}.");
+        }
+
+        if (principal.GetUserType(throwIfMissing: true) != UserType.Staff)
+        {
+            return false;
+        }
+
+        if (userRequirements.HasFlag(UserRequirements.GetAnIdentityAdmin) && !principal.IsInRole(StaffRoles.GetAnIdentityAdmin))
+        {
+            return false;
+        }
+
+        if (userRequirements.HasFlag(UserRequirements.GetAnIdentitySupport) && !principal.IsInRole(StaffRoles.GetAnIdentitySupport))
+        {
+            return false;
+        }
+
         return true;
     }
 

@@ -66,6 +66,8 @@ public class AuthenticationState
     [JsonInclude]
     public UserType? UserType { get; private set; }
     [JsonInclude]
+    public string[]? StaffRoles { get; private set; }
+    [JsonInclude]
     public bool HaveCompletedTrnLookup { get; private set; }
     [JsonInclude]
     public TrnLookupState TrnLookup { get; private set; }
@@ -102,7 +104,8 @@ public class AuthenticationState
             Trn = principal.GetTrn(),
             HaveCompletedTrnLookup = principal.GetHaveCompletedTrnLookup() ?? false,
             TrnLookup = principal.GetHaveCompletedTrnLookup() == true ? TrnLookupState.Complete : TrnLookupState.None,
-            UserType = principal.GetUserType()
+            UserType = principal.GetUserType(),
+            StaffRoles = principal.GetStaffRoles()
         };
     }
 
@@ -134,6 +137,11 @@ public class AuthenticationState
             yield return new Claim(Claims.FamilyName, LastName!);
             yield return new Claim(CustomClaims.HaveCompletedTrnLookup, HaveCompletedTrnLookup.ToString());
             yield return new Claim(CustomClaims.UserType, UserType!.Value.ToString());
+
+            foreach (var role in StaffRoles ?? Array.Empty<string>())
+            {
+                yield return new Claim(Claims.Role, role);
+            }
 
             if (DateOfBirth.HasValue)
             {
@@ -228,6 +236,7 @@ public class AuthenticationState
             HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
             Trn = user.Trn;
             UserType = user.UserType;
+            StaffRoles = user.StaffRoles;
 
             if (HaveCompletedTrnLookup)
             {
@@ -293,6 +302,7 @@ public class AuthenticationState
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
         UserType = user.UserType;
+        StaffRoles = user.StaffRoles;
     }
 
     public void OnEmailVerifiedOfExistingAccountForTrn()
@@ -350,6 +360,7 @@ public class AuthenticationState
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
         UserType = user.UserType;
+        StaffRoles = user.StaffRoles;
     }
 
     public void OnHaveResumedCompletedJourney()
@@ -374,6 +385,8 @@ public class AuthenticationState
         HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
         FirstTimeSignInForEmail = firstTimeSignInForEmail;
         Trn = user.Trn;
+        UserType = user.UserType;
+        StaffRoles = user.StaffRoles;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
@@ -387,7 +400,7 @@ public class AuthenticationState
 
         var claims = GetInternalClaims();
 
-        var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: null);
+        var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: Claims.Role);
         var principal = new ClaimsPrincipal(identity);
 
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
