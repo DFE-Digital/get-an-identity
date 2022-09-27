@@ -76,7 +76,7 @@ public class SignIn : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task AdminUser_CanSignInSuccessfullyWithEmailAndPin()
+    public async Task StaffUser_CanSignInSuccessfullyWithEmailAndPin()
     {
         var email = "admin.user@example.com";
 
@@ -92,7 +92,8 @@ public class SignIn : IClassFixture<HostFixture>
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
-                UserType = UserType.Staff
+                UserType = UserType.Staff,
+                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin }
             });
 
             await dbContext.SaveChangesAsync();
@@ -305,6 +306,51 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
         Assert.Equal(trnOwnerEmailAddress, await page.InnerTextAsync("data-testid=email"));
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+    }
+
+    [Fact]
+    public async Task StaffUser_MissingPermission_GetsForbiddenError()
+    {
+        var email = "admin.user2@example.com";
+
+        {
+            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+            var userId = Guid.NewGuid();
+
+            dbContext.Users.Add(new User()
+            {
+                EmailAddress = email,
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                UserId = userId,
+                UserType = UserType.Staff,
+                StaffRoles = Array.Empty<string>()
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        // Start on the client app and try to access a protected area with admin scope
+
+        await page.GotoAsync("/profile?scope=get-an-identity:admin");
+
+        // Fill in the sign in form (email + PIN)
+
+        await page.FillAsync("text=Email", email);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should get a Forbidden error
+
+        await page.WaitForSelectorAsync("h1:has-text('Forbidden')");
     }
 
     private async Task SignInAsNewTeacherUser(

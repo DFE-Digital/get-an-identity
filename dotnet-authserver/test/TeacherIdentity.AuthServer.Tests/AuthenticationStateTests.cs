@@ -9,7 +9,7 @@ namespace TeacherIdentity.AuthServer.Tests;
 public partial class AuthenticationStateTests
 {
     [Fact]
-    public void FromInternalClaims()
+    public void FromInternalClaims_DefaultUser()
     {
         // Arrange
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
@@ -65,7 +65,60 @@ public partial class AuthenticationStateTests
     }
 
     [Fact]
-    public void GetInternalClaims()
+    public void FromInternalClaims_StaffUser()
+    {
+        // Arrange
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var emailVerified = true;
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var firstTimeSignInForEmail = true;
+        var userId = Guid.NewGuid();
+        var userType = UserType.Staff;
+        var staffRoles = new[] { StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport };
+
+        var claims = new[]
+        {
+            new Claim(Claims.Subject, userId.ToString()!),
+            new Claim(Claims.Email, email),
+            new Claim(Claims.EmailVerified, emailVerified.ToString()),
+            new Claim(Claims.Name, firstName + " " + lastName),
+            new Claim(Claims.GivenName, firstName),
+            new Claim(Claims.FamilyName, lastName),
+            new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
+            new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
+            new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
+            new Claim(CustomClaims.UserType, userType.ToString())
+        };
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
+
+        // Act
+        var authenticationState = AuthenticationState.FromInternalClaims(
+            journeyId,
+            userRequirements,
+            principal,
+            postSignInUrl: "/",
+            oAuthState: null,
+            firstTimeSignInForEmail);
+
+        // Assert
+        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(email, authenticationState.EmailAddress);
+        Assert.Equal(emailVerified, authenticationState.EmailAddressVerified);
+        Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
+        Assert.Equal(staffRoles, authenticationState.StaffRoles);
+        Assert.Equal(userId, authenticationState.UserId);
+        Assert.Equal(userType, authenticationState.UserType);
+    }
+
+    [Fact]
+    public void GetInternalClaims_DefaultUser()
     {
         // Arrange
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
@@ -117,6 +170,63 @@ public partial class AuthenticationStateTests
             new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
             new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString()),
             new Claim(CustomClaims.Trn, trn),
+            new Claim(CustomClaims.UserType, userType.ToString())
+        };
+        Assert.Equal(expectedClaims.OrderBy(c => c.Type), claims.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
+    }
+
+    [Fact]
+    public void GetInternalClaims_StaffUser()
+    {
+        // Arrange
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var emailVerified = true;
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var userId = Guid.NewGuid();
+        var userType = UserType.Staff;
+        var staffRoles = new[] { StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport };
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            StaffRoles = staffRoles,
+            UserId = userId,
+            UserType = userType
+        };
+
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.StaffUserType;
+
+        var authenticationState = new AuthenticationState(
+            journeyId: Guid.NewGuid(),
+            userRequirements,
+            postSignInUrl: "/");
+
+        authenticationState.OnEmailSet(email);
+        authenticationState.OnEmailVerified(user);
+
+        // Act
+        var claims = authenticationState.GetInternalClaims();
+
+        // Assert
+        var expectedClaims = new[]
+        {
+            new Claim(Claims.Subject, userId.ToString()!),
+            new Claim(Claims.Email, email),
+            new Claim(Claims.EmailVerified, emailVerified.ToString()),
+            new Claim(Claims.Name, firstName + " " + lastName),
+            new Claim(Claims.GivenName, firstName),
+            new Claim(Claims.FamilyName, lastName),
+            new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
+            new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
+            new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
+            new Claim(CustomClaims.HaveCompletedTrnLookup, bool.FalseString),
             new Claim(CustomClaims.UserType, userType.ToString())
         };
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), claims.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
