@@ -66,12 +66,12 @@ public class EmailConfirmationModel : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
-        var requiredUserType = authenticationState.GetRequiredUserType();
+        var permittedUserTypes = authenticationState.GetPermittedUserTypes();
 
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
 
-        // If we the UserType is not what we expect, return an error
-        if (user is not null && user.UserType != requiredUserType)
+        // If the UserType is not allowed then return an error
+        if (user is not null && !permittedUserTypes.Contains(user.UserType))
         {
             return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
@@ -83,9 +83,9 @@ public class EmailConfirmationModel : PageModel
             await authenticationState.SignIn(HttpContext);
         }
 
-        if (requiredUserType == UserType.Staff && user is null)
+        if (permittedUserTypes.Length == 1 && permittedUserTypes.Single() == UserType.Staff && user is null)
         {
-            // We don't support registering staff users
+            // We don't support registering Staff users
             return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
 

@@ -20,14 +20,25 @@ public enum UserRequirements
 
 public static class UserRequirementsExtensions
 {
-    public static UserType GetUserType(this UserRequirements requirements)
+    public static UserType[] GetPermittedUserTypes(this UserRequirements requirements)
     {
         if (!ValidateUserRequirements(requirements, out var errorMessage))
         {
             throw new InvalidOperationException($"{nameof(UserRequirements)} are not valid.\n{errorMessage}");
         }
 
-        return requirements.HasFlag(UserRequirements.StaffUserType) ? UserType.Staff : UserType.Default;
+        var userTypes = new HashSet<UserType>();
+
+        if (requirements.HasFlag(UserRequirements.StaffUserType))
+        {
+            return new[] { UserType.Staff };
+        }
+        else if (requirements.HasFlag(UserRequirements.DefaultUserType))
+        {
+            return new[] { UserType.Default };
+        }
+
+        return new[] { UserType.Default, UserType.Staff };
     }
 
     public static UserRequirements GetUserRequirementsForScopes(Func<string, bool> hasScope)
