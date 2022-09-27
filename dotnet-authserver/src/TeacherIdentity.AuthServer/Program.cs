@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
@@ -7,12 +6,14 @@ using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
@@ -132,42 +133,29 @@ public class Program
 
                     await viewResultExecutor.ExecuteAsync(actionContext, viewResult);
                 };
-            })
-            .AddBasic(options =>
-            {
-                options.Realm = "TeacherIdentity.AuthServer";
 
-                options.Events = new idunno.Authentication.Basic.BasicAuthenticationEvents()
+                options.Events.OnRedirectToLogin = ctx =>
                 {
-                    OnValidateCredentials = context =>
+                    // If we get here then sign in is happening *outside* of an OAuth authorization flow.
+                    // Sign in any user; authorization is applied separately.
+                    var userRequirements = UserRequirements.None;
+
+                    if (!ctx.HttpContext.TryGetAuthenticationState(out var authenticationState))
                     {
-                        var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
-                        var username = config["AdminCredentials:Username"];
-                        var password = config["AdminCredentials:Password"];
+                        string returnUrl = QueryHelpers.ParseQuery(new Uri(ctx.RedirectUri).Query)["returnUrl"];
 
-                        if (context.Username == username && context.Password == password)
-                        {
-                            var claims = new[]
-                            {
-                                new Claim(
-                                    ClaimTypes.NameIdentifier,
-                                    context.Username,
-                                    ClaimValueTypes.String,
-                                    context.Options.ClaimsIssuer),
-                                new Claim(
-                                    ClaimTypes.Name,
-                                    context.Username,
-                                    ClaimValueTypes.String,
-                                    context.Options.ClaimsIssuer)
-                            };
+                        authenticationState = new AuthenticationState(
+                            journeyId: Guid.NewGuid(),
+                            userRequirements,
+                            postSignInUrl: returnUrl);
 
-                            context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, context.Scheme.Name));
-
-                            context.Success();
-                        }
-
-                        return Task.CompletedTask;
+                        ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
                     }
+
+                    var linkGenerator = ctx.HttpContext.RequestServices.GetRequiredService<IIdentityLinkGenerator>();
+                    ctx.Response.Redirect(authenticationState.GetNextHopUrl(linkGenerator));
+
+                    return Task.CompletedTask;
                 };
             })
             .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
@@ -177,8 +165,9 @@ public class Program
             options.AddPolicy(
                 AuthorizationPolicies.Hangfire,
                 policy => policy
-                    .AddAuthenticationSchemes("Basic")
-                    .RequireAuthenticatedUser());
+                    .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .RequireRole(StaffRoles.GetAnIdentityAdmin));
 
             options.AddPolicy(
                 AuthorizationPolicies.TrnLookupApi,
