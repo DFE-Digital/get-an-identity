@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -109,7 +110,7 @@ public class CompleteTests : TestBase
     public async Task Get_AuthorizationRequestDoesNotHaveTrnScope_DoesNotShowTrnRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, scope: CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userType: UserType.Staff, hasTrn: false, scope: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -125,11 +126,12 @@ public class CompleteTests : TestBase
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
         HttpClient httpClient,
         bool hasTrn = true,
+        UserType userType = UserType.Default,
         bool firstTimeSignInForEmail = false,
         bool haveResumedCompletedJourney = false,
         string scope = "trn")
     {
-        var user = await TestData.CreateUser(hasTrn: hasTrn);
+        var user = await TestData.CreateUser(userType: userType, hasTrn: hasTrn);
 
         var authenticationStateHelper = CreateAuthenticationStateHelper(
             authState =>

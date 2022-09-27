@@ -64,6 +64,8 @@ public class AuthenticationState
     [JsonInclude]
     public string? Trn { get; private set; }
     [JsonInclude]
+    public UserType? UserType { get; private set; }
+    [JsonInclude]
     public bool HaveCompletedTrnLookup { get; private set; }
     [JsonInclude]
     public TrnLookupState TrnLookup { get; private set; }
@@ -99,12 +101,15 @@ public class AuthenticationState
             DateOfBirth = ParseNullableDate(GetFirstClaimValue(Claims.Birthdate)),
             Trn = GetFirstClaimValue(CustomClaims.Trn),
             HaveCompletedTrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString,
-            TrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString ? TrnLookupState.Complete : TrnLookupState.None
+            TrnLookup = GetFirstClaimValue(CustomClaims.HaveCompletedTrnLookup) == bool.TrueString ? TrnLookupState.Complete : TrnLookupState.None,
+            UserType = ParseNullableUserType(GetFirstClaimValue(CustomClaims.UserType))
         };
 
         static DateOnly? ParseNullableDate(string? value) => value is not null ? DateOnly.ParseExact(value, CustomClaims.DateFormat) : null;
 
         static Guid? ParseNullableGuid(string? value) => value is not null ? Guid.Parse(value) : null;
+
+        static UserType? ParseNullableUserType(string? value) => value is not null ? Enum.Parse<UserType>(value) : null;
 
         string? GetFirstClaimValue(string claimType) => claims.FirstOrDefault(c => c.Type == claimType)?.Value;
     }
@@ -136,6 +141,7 @@ public class AuthenticationState
             yield return new Claim(Claims.GivenName, FirstName!);
             yield return new Claim(Claims.FamilyName, LastName!);
             yield return new Claim(CustomClaims.HaveCompletedTrnLookup, HaveCompletedTrnLookup.ToString());
+            yield return new Claim(CustomClaims.UserType, UserType!.Value.ToString());
 
             if (DateOfBirth.HasValue)
             {
@@ -191,7 +197,7 @@ public class AuthenticationState
         return PostSignInUrl;
     }
 
-    public UserType GetUserType() => UserRequirements.GetUserType();
+    public UserType GetRequiredUserType() => UserRequirements.GetUserType();
 
     public bool IsComplete() => EmailAddressVerified &&
         (TrnLookup == TrnLookupState.Complete || !UserRequirements.HasFlag(UserRequirements.TrnHolder)) &&
@@ -217,12 +223,19 @@ public class AuthenticationState
         {
             Debug.Assert(user.EmailAddress == EmailAddress);
 
+            var requiredUserType = GetRequiredUserType();
+            if (user.UserType != requiredUserType)
+            {
+                throw new InvalidOperationException($"Journey requires a {requiredUserType} user but got a {user.UserType} user.");
+            }
+
             UserId = user.UserId;
             FirstName = user.FirstName;
             LastName = user.LastName;
             DateOfBirth = user.DateOfBirth;
             HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
             Trn = user.Trn;
+            UserType = user.UserType;
 
             if (HaveCompletedTrnLookup)
             {
@@ -273,6 +286,12 @@ public class AuthenticationState
         Debug.Assert(user.CompletedTrnLookup is not null);
         Debug.Assert(user.EmailAddress == EmailAddress);
 
+        var requiredUserType = GetRequiredUserType();
+        if (user.UserType != requiredUserType)
+        {
+            throw new InvalidOperationException($"Journey requires a {requiredUserType} user but got a {user.UserType} user.");
+        }
+
         UserId = user.UserId;
         FirstName = user.FirstName;
         LastName = user.LastName;
@@ -281,6 +300,7 @@ public class AuthenticationState
         FirstTimeSignInForEmail = firstTimeSignInForEmail;
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
+        UserType = user.UserType;
     }
 
     public void OnEmailVerifiedOfExistingAccountForTrn()
@@ -322,6 +342,12 @@ public class AuthenticationState
 
         Debug.Assert(user.CompletedTrnLookup is not null);
 
+        var requiredUserType = GetRequiredUserType();
+        if (user.UserType != requiredUserType)
+        {
+            throw new InvalidOperationException($"Journey requires a {requiredUserType} user but got a {user.UserType} user.");
+        }
+
         EmailAddress = user.EmailAddress;
         UserId = user.UserId;
         FirstName = user.FirstName;
@@ -331,6 +357,7 @@ public class AuthenticationState
         FirstTimeSignInForEmail = true;  // We want to show the 'first time user' confirmation page, even though this user has signed in before
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
+        UserType = user.UserType;
     }
 
     public void OnHaveResumedCompletedJourney()

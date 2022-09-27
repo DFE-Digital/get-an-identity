@@ -42,6 +42,6 @@ public class CompleteModel : PageModel
         Trn = authenticationState.Trn;
         DateOfBirth = authenticationState.DateOfBirth;
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
-        UserType = authenticationState.GetUserType();
+        UserType = authenticationState.GetRequiredUserType();
     }
 }
