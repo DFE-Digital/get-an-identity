@@ -16,7 +16,7 @@ namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 [ApiController]
 [Route("users")]
 [Route("teachers")]
-[Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
+[Authorize(AuthorizationPolicies.GetAnIdentitySupportApi)]
 public class UsersController : ControllerBase
 {
     private readonly TeacherIdentityServerDbContext _dbContext;

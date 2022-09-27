@@ -181,13 +181,13 @@ public class Program
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
-                AuthorizationPolicies.TrnLookup,
+                AuthorizationPolicies.TrnLookupApi,
                 policy => policy
                     .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
-                AuthorizationPolicies.GetAnIdentitySupport,
+                AuthorizationPolicies.GetAnIdentitySupportApi,
                 policy => policy
                     .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
