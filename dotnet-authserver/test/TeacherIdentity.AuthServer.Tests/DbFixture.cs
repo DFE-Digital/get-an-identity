@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -44,6 +45,7 @@ public class DbFixture : IAsyncLifetime
 
         services.AddSingleton<TestData>();
         services.AddSingleton<IClock, TestClock>();
+        services.AddSingleton<IEventObserver, NoopEventObserver>();
 
         return services.BuildServiceProvider();
     }

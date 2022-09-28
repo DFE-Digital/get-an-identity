@@ -28,6 +28,7 @@ using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using TeacherIdentity.AuthServer.Configuration;
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
@@ -442,6 +443,8 @@ public class Program
             options.IncludeSubDomains = true;
             options.MaxAge = TimeSpan.FromDays(365);
         });
+
+        builder.Services.AddSingleton<IEventObserver, NoopEventObserver>();
 
         var app = builder.Build();
 

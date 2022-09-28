@@ -1,18 +1,22 @@
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
-public class TestBase : IAsyncLifetime
+public partial class TestBase : IAsyncLifetime
 {
     protected TestBase(HostFixture hostFixture)
     {
         HostFixture = hostFixture;
 
         HostFixture.ResetMocks();
+        EventObserver.Init();
     }
 
     public IClock Clock => HostFixture.Services.GetRequiredService<IClock>();
+
+    public CaptureEventObserver EventObserver => (CaptureEventObserver)HostFixture.Services.GetRequiredService<IEventObserver>();
 
     public HostFixture HostFixture { get; }
 
