@@ -4,6 +4,10 @@
     ViewBag.Title = "Add staff user";
 }
 
+@section BeforeContent {
+  <govuk-back-link asp-page="Staff" />
+}
+
 <form asp-page="AddStaffUser" method="post">
   <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 

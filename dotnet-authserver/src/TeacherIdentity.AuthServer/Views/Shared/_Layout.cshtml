@@ -7,8 +7,8 @@
 
     Layout = "_GovUkPageTemplate";
 
-    var serviceName = "Get an identity to access Teacher Services";
-    var serviceUrl = "/";
+    var serviceName = ViewBag.ServiceName ?? "Get an identity to access Teacher Services";
+    var serviceUrl = ViewBag.ServiceUrl ?? "/";
 
     var client = await CurrentClientProvider.GetCurrentClient();
 
@@ -47,6 +47,7 @@
         <a href="@serviceUrl" class="govuk-header__link govuk-header__link--service-name">
           @serviceName
         </a>
+        @RenderSection("HeaderNav", required: false)
       </div>
     </div>
   </header>
