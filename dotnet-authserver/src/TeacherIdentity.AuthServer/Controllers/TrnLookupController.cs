@@ -34,6 +34,10 @@ public class TrnLookupController : ControllerBase
             return BadRequest();
         }
 
+        var normalizedNino = (request.NationalInsuranceNumber ?? string.Empty)
+            .ToUpper()
+            .Replace(" ", "");
+
         if (existingState is null)
         {
             _dbContext.JourneyTrnLookupStates.Add(new JourneyTrnLookupState()
@@ -43,7 +47,8 @@ public class TrnLookupController : ControllerBase
                 DateOfBirth = request.DateOfBirth,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Trn = request.Trn
+                Trn = request.Trn,
+                NationalInsuranceNumber = normalizedNino
             });
         }
         else
@@ -52,6 +57,7 @@ public class TrnLookupController : ControllerBase
             existingState.FirstName = request.FirstName;
             existingState.LastName = request.LastName;
             existingState.Trn = request.Trn;
+            existingState.NationalInsuranceNumber = normalizedNino;
         }
 
         await _dbContext.SaveChangesAsync();
@@ -70,4 +76,5 @@ public class SetJourneyTrnLookupStateRequest
     public DateOnly DateOfBirth { get; set; }
     [StringLength(maximumLength: 7, MinimumLength = 7)]
     public string? Trn { get; set; }
+    public string? NationalInsuranceNumber { get; set; }
 }

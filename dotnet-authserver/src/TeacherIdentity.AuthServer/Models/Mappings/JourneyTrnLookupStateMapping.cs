@@ -13,6 +13,7 @@ public class JourneyTrnLookupStateMapping : IEntityTypeConfiguration<JourneyTrnL
         builder.Property(s => s.LastName).IsRequired();
         builder.Property(s => s.DateOfBirth).IsRequired();
         builder.Property(s => s.Trn).HasMaxLength(7).IsFixedLength();
+        builder.Property(s => s.NationalInsuranceNumber).HasMaxLength(9).IsFixedLength();
         builder.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId);
     }
 }
