@@ -1,0 +1,26 @@
+@page "/admin/staff"
+@model TeacherIdentity.AuthServer.Pages.Admin.StaffModel
+@{
+    ViewBag.Title = "Staff users";
+}
+
+<table class="govuk-table">
+  <caption class="govuk-table__caption govuk-table__caption--xl">@ViewBag.Title</caption>
+  <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+      <th scope="col" class="govuk-table__header">Name</th>
+      <th scope="col" class="govuk-table__header">Email</th>
+    </tr>
+  </thead>
+  <tbody class="govuk-table__body">
+    @foreach (var user in Model.Users!)
+    {
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">@user.FirstName @user.LastName</td>
+          <td class="govuk-table__cell">@user.Email</td>
+        </tr>
+    }
+  </tbody>
+</table>
+
+<p><a asp-page="AddStaffUser">Add staff user</a></p>
