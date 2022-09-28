@@ -145,6 +145,7 @@ public class SetJourneyTrnLookupStateTests : TestBase
         var lastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = hasTrn ? TestData.GenerateTrn() : null;
+        var nino = Faker.Identification.UkNationalInsuranceNumber(formatted: true);
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/find-trn/user/{journeyId}")
         {
@@ -153,7 +154,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 FirstName = firstName,
                 LastName = lastName,
                 DateOfBirth = dateOfBirth.ToString("yyyy-MM-dd"),
-                Trn = trn
+                Trn = trn,
+                NationalInsuranceNumber = nino
             })
         };
 
@@ -172,6 +174,7 @@ public class SetJourneyTrnLookupStateTests : TestBase
             Assert.Equal(lastName, state.LastName);
             Assert.Equal(dateOfBirth, state.DateOfBirth);
             Assert.Equal(trn, state.Trn);
+            Assert.Equal(nino.ToUpper().Replace(" ", ""), state.NationalInsuranceNumber);
         });
     }
 
