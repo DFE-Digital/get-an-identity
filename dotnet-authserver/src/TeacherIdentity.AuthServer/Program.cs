@@ -498,12 +498,14 @@ public class Program
 
                 a.UseCsp(options =>
                 {
+                    var pageTemplateHelper = app.Services.GetRequiredService<PageTemplateHelper>();
+
                     options.ByDefaultAllow
                         .FromSelf();
 
                     options.AllowScripts
                         .FromSelf()
-                        .From("'sha256-j7OoGArf6XW6YY4cAyS3riSSvrJRqpSi1fOF9vQ5SrI='")  // Hash of 'document.form.submit();' from the authorization POST back page in OpenIddict
+                        .From(pageTemplateHelper.GetCspScriptHashes())
                         .AddNonce();
 
                     // Ensure ASP.NET Core's auto refresh works
