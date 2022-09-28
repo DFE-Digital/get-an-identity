@@ -8,34 +8,34 @@ namespace TeacherIdentity.AuthServer;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static DateOnly? GetDateOfBirth(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static DateOnly? GetDateOfBirth(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, Claims.Birthdate, throwIfMissing, value => DateOnly.ParseExact(value, CustomClaims.DateFormat));
 
-    public static string? GetEmailAddress(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static string? GetEmailAddress(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, Claims.Email, throwIfMissing);
 
-    public static bool? GetEmailAddressVerified(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static bool? GetEmailAddressVerified(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, Claims.EmailVerified, throwIfMissing, value => bool.Parse(value));
 
-    public static string? GetFirstName(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static string? GetFirstName(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, Claims.GivenName, throwIfMissing);
 
-    public static bool? GetHaveCompletedTrnLookup(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static bool? GetHaveCompletedTrnLookup(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, CustomClaims.HaveCompletedTrnLookup, throwIfMissing, value => bool.Parse(value));
 
-    public static string? GetLastName(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static string? GetLastName(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, Claims.FamilyName, throwIfMissing);
 
     public static string[] GetStaffRoles(this ClaimsPrincipal principal) =>
         principal.Claims.Where(c => c.Type == Claims.Role).Select(c => c.Value).ToArray();
 
-    public static string? GetTrn(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static string? GetTrn(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, CustomClaims.Trn, throwIfMissing);
 
-    public static Guid? GetUserId(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static Guid? GetUserId(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, Claims.Subject, throwIfMissing, value => Guid.Parse(value));
 
-    public static UserType? GetUserType(this ClaimsPrincipal principal, bool throwIfMissing = false) =>
+    public static UserType? GetUserType(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, CustomClaims.UserType, throwIfMissing, value => Enum.Parse<UserType>(value));
 
     private static string? GetClaim(ClaimsPrincipal principal, string claimType, bool throwIfMissing)
