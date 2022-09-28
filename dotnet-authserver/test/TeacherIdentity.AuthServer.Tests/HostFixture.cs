@@ -68,12 +68,12 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     }
 
     public async Task SignInUser(
-        AuthenticationStateHelper authenticationStateHelper,
+        Guid journeyId,
         HttpClient httpClient,
         Guid userId,
         bool firstTimeSignInForEmail)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{authenticationStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{AuthenticationStateMiddleware.IdQueryParameterName}={Uri.EscapeDataString(journeyId.ToString())}")
         {
             Content = new FormUrlEncodedContentBuilder()
                 .Add("UserId", userId.ToString())
@@ -83,6 +83,15 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
+    }
+
+    public Task SignInUser(
+        AuthenticationStateHelper authenticationStateHelper,
+        HttpClient httpClient,
+        Guid userId,
+        bool firstTimeSignInForEmail)
+    {
+        return SignInUser(authenticationStateHelper.AuthenticationState.JourneyId, httpClient, userId, firstTimeSignInForEmail);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
