@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using TeacherIdentity.AuthServer.Events;
 
 namespace TeacherIdentity.AuthServer.Models;
 
@@ -33,9 +34,13 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<EmailConfirmationPin> EmailConfirmationPins => Set<EmailConfirmationPin>();
 
+    public DbSet<Event> Events => Set<Event>();
+
     public DbSet<JourneyTrnLookupState> JourneyTrnLookupStates => Set<JourneyTrnLookupState>();
 
     public DbSet<User> Users => Set<User>();
+
+    public void AddEvent(EventBase @event) => Events.Add(Event.FromEventBase(@event));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
