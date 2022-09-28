@@ -1,18 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Events;
 
 namespace TeacherIdentity.AuthServer.Models;
 
 public class TeacherIdentityServerDbContext : DbContext
 {
-    public TeacherIdentityServerDbContext(DbContextOptions<TeacherIdentityServerDbContext> options)
+    private readonly IEventObserver? _eventObserver;
+    private readonly List<EventBase> _events = new();
+
+    public TeacherIdentityServerDbContext(DbContextOptions<TeacherIdentityServerDbContext> options, IEventObserver? eventObserver)
             : base(options)
     {
+        _eventObserver = eventObserver;
     }
 
-    public TeacherIdentityServerDbContext(string connectionString)
-        : this(CreateOptions(connectionString))
+    public TeacherIdentityServerDbContext(string connectionString, IEventObserver? eventObserver = null)
+        : this(CreateOptions(connectionString), eventObserver)
     {
     }
 
@@ -40,7 +45,11 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
 
-    public void AddEvent(EventBase @event) => Events.Add(Event.FromEventBase(@event));
+    public void AddEvent(EventBase @event)
+    {
+        Events.Add(Event.FromEventBase(@event));
+        _events.Add(@event);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,14 +65,22 @@ public class TeacherIdentityServerDbContext : DbContext
     {
         UpdateSoftDeleteFlag();
 
-        return base.SaveChanges(acceptAllChangesOnSuccess);
+        var result = base.SaveChanges(acceptAllChangesOnSuccess);
+
+        PublishEvents();
+
+        return result;
     }
 
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         UpdateSoftDeleteFlag();
 
-        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+
+        PublishEvents();
+
+        return result;
     }
 
     private static DbContextOptions<TeacherIdentityServerDbContext> CreateOptions(string connectionString)
@@ -71,6 +88,21 @@ public class TeacherIdentityServerDbContext : DbContext
         var optionsBuilder = new DbContextOptionsBuilder<TeacherIdentityServerDbContext>();
         ConfigureOptions(optionsBuilder, connectionString);
         return optionsBuilder.Options;
+    }
+
+    private void PublishEvents()
+    {
+        try
+        {
+            foreach (var e in _events)
+            {
+                _eventObserver?.OnEventSaved(e);
+            }
+        }
+        finally
+        {
+            _events.Clear();
+        }
     }
 
     private void UpdateSoftDeleteFlag()
