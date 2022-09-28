@@ -1,10 +1,10 @@
 using IdentityModel.Client;
 
-namespace TeacherIdentity.AuthServer.Tests;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api;
 
-public class ApiTestBase
+public class TestBase
 {
-    protected ApiTestBase(HostFixture hostFixture)
+    protected TestBase(HostFixture hostFixture)
     {
         HostFixture = hostFixture;
 
@@ -28,7 +28,7 @@ public class ApiTestBase
 
     public async Task<HttpClient> CreateHttpClientWithToken(params string[] scopes)
     {
-        var user = TestUsers.AdminUser1;
+        var user = TestUsers.AdminUserWithAllRoles;
         var client = TestClients.Client1;
 
         var allScopes = new[] { "email", "profile", "openid" }.Concat(scopes).Distinct();
