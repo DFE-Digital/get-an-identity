@@ -83,6 +83,7 @@ public class AddStaffUserModel : PageModel
             return this.PageWithErrors();
         }
 
+        TempData.SetFlashSuccess("Staff user added");
         return RedirectToPage("Staff");
     }
 }

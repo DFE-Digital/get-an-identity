@@ -18,4 +18,13 @@
   @RenderSection("BeforeContent", required: false)
 }
 
+@if (TempData.ContainsKey(TempDataKeys.FlashSuccess))
+{
+    <govuk-notification-banner type="Success">
+        <p class="govuk-notification-banner__heading">
+            @TempData[TempDataKeys.FlashSuccess]
+        </p>
+    </govuk-notification-banner>
+}
+
 @RenderBody()
