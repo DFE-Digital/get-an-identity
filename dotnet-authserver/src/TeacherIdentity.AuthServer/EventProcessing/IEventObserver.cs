@@ -4,5 +4,5 @@ namespace TeacherIdentity.AuthServer.EventProcessing;
 
 public interface IEventObserver
 {
-    void OnEventSaved(EventBase @event);
+    Task OnEventSaved(EventBase @event);
 }
