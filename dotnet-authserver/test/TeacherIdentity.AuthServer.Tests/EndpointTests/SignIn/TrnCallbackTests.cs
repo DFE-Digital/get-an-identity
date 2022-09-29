@@ -155,6 +155,43 @@ public class TrnCallbackTests : TestBase
             });
     }
 
+    [Fact]
+    public async Task ValidCallback_TrnIsAllocatedToAnExistingUser_UpdatesStateGeneratesPinForExistingAccountAndRedirects()
+    {
+        // Arrange
+        var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
+
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = existingUserWithTrn.Trn;
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+
+        Assert.Equal(AuthenticationState.TrnLookupState.ExistingTrnFound, authStateHelper.AuthenticationState.TrnLookup);
+
+        // Should not have created a new account
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var user = await dbContext.Users.Where(u => u.EmailAddress == email).SingleOrDefaultAsync();
+            Assert.Null(user);
+        });
+
+        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingUserWithTrn.EmailAddress));
+    }
+
     private AuthenticationStateHelper CreateAuthenticationStateHelper(string? email = null) =>
         CreateAuthenticationStateHelper(authState =>
         {
