@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
+using Azure.Messaging.ServiceBus;
 using FluentValidation;
 using GovUk.Frontend.AspNetCore;
 using Hangfire;
@@ -463,8 +464,26 @@ public class Program
 
         if (!builder.Environment.IsUnitTests())
         {
-            builder.Services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
-            builder.Services.AddOptions<WebHookNotificationOptions>();
+            if (builder.Environment.IsProduction() ||
+                builder.Configuration.GetValue<bool?>("ServiceBusWebHookNotificationPublisher") == true)
+            {
+                var sbClient = new ServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
+
+                builder.Services.AddSingleton(sbClient);
+                builder.Services.AddSingleton<ServiceBusWebHookNotificationPublisher>();
+                builder.Services.AddSingleton<INotificationPublisher>(sp => sp.GetRequiredService<ServiceBusWebHookNotificationPublisher>());
+                builder.Services.AddHostedService(sp => sp.GetRequiredService<ServiceBusWebHookNotificationPublisher>());
+
+                builder.Services.AddOptions<ServiceBusWebHookOptions>()
+                    .Bind(builder.Configuration.GetSection("ServiceBusWebHook"))
+                    .ValidateDataAnnotations()
+                    .ValidateOnStart();
+            }
+            else
+            {
+                builder.Services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
+            }
+
             builder.Services.AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>();
         }
 
