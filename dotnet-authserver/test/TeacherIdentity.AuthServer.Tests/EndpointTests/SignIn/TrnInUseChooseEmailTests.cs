@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -258,7 +259,7 @@ public class TrnInUseChooseEmailTests : TestBase
         Assert.Equal(authStateHelper.AuthenticationState.UserId, existingTrnOwner.UserId);
         Assert.Equal(AuthenticationState.TrnLookupState.Complete, authStateHelper.AuthenticationState.TrnLookup);
 
-        await TestData.WithDbContext(async dbContext =>
+        var userId = await TestData.WithDbContext(async dbContext =>
         {
             var user = await dbContext.Users.Where(u => u.UserId == existingTrnOwner.UserId).SingleAsync();
 
@@ -267,7 +268,19 @@ public class TrnInUseChooseEmailTests : TestBase
 
             var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);
             Assert.Equal(Clock.UtcNow, lookupState.Locked);
+
+            return user.UserId;
         });
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userSignedInEvent = Assert.IsType<UserSignedIn>(e);
+                Assert.Equal(Clock.UtcNow, userSignedInEvent.CreatedUtc);
+                Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, userSignedInEvent.ClientId);
+                Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.Scope, userSignedInEvent.Scope);
+                Assert.Equal(userId, userSignedInEvent.UserId);
+            });
     }
 
     private AuthenticationStateHelper CreateAuthenticationStateHelper(string email, string existingTrnOwnerEmail) =>

@@ -1,4 +1,5 @@
 using IdentityModel.Client;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api;
 
@@ -12,9 +13,12 @@ public class TestBase
         ApiKeyHttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test");
 
         HostFixture.ResetMocks();
+        HostFixture.InitEventObserver();
     }
 
     public IClock Clock => HostFixture.Services.GetRequiredService<IClock>();
+
+    public CaptureEventObserver EventObserver => HostFixture.EventObserver;
 
     public HostFixture HostFixture { get; }
 
