@@ -15,8 +15,8 @@ public class WebHookNotificationPublisherTests
 
         var notification = new NotificationEnvelope()
         {
-            Message = new EmptyMessage(),
-            MessageType = "Empty",
+            Message = new DummyMessage(),
+            MessageType = nameof(DummyMessage),
             TimeUtc = DateTime.UtcNow
         };
 
@@ -26,4 +26,6 @@ public class WebHookNotificationPublisherTests
         // Assert
         senderMock.Verify(mock => mock.SendNotification(notification, It.IsAny<WebHook>()));
     }
+
+    private class DummyMessage : INotificationMessage { }
 }
