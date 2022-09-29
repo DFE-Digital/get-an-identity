@@ -41,6 +41,8 @@ using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Notifications;
+using TeacherIdentity.AuthServer.Notifications.WebHooks;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
@@ -457,7 +459,14 @@ public class Program
             options.MaxAge = TimeSpan.FromDays(365);
         });
 
-        builder.Services.AddSingleton<IEventObserver, NoopEventObserver>();
+        builder.Services.AddSingleton<IEventObserver, PublishNotificationsEventObserver>();
+
+        if (!builder.Environment.IsUnitTests())
+        {
+            builder.Services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
+            builder.Services.AddOptions<WebHookNotificationOptions>();
+            builder.Services.AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>();
+        }
 
         builder.Services.AddMediatR(typeof(Program));
 
