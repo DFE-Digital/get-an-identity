@@ -71,11 +71,18 @@ public class TeacherIdentityServerDbContext : DbContext
     {
         UpdateSoftDeleteFlag();
 
-        var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        try
+        {
+            var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
 
-        await PublishEvents();
+            await PublishEvents();
 
-        return result;
+            return result;
+        }
+        finally
+        {
+            _events.Clear();
+        }
     }
 
     private static DbContextOptions<TeacherIdentityServerDbContext> CreateOptions(string connectionString)
@@ -92,16 +99,9 @@ public class TeacherIdentityServerDbContext : DbContext
             return;
         }
 
-        try
+        foreach (var e in _events)
         {
-            foreach (var e in _events)
-            {
-                await _eventObserver.OnEventSaved(e);
-            }
-        }
-        finally
-        {
-            _events.Clear();
+            await _eventObserver.OnEventSaved(e);
         }
     }
 
