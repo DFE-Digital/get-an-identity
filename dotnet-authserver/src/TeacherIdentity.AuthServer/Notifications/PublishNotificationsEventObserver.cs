@@ -36,12 +36,17 @@ public class PublishNotificationsEventObserver : IEventObserver
 
     private IEnumerable<NotificationEnvelope> GetNotificationsForEvent(EventBase @event)
     {
-        // TODO Translate events into notifications
-        yield return new NotificationEnvelope()
+        if (@event is UserSignedInEvent userSignedIn)
         {
-            Message = new EmptyMessage(),
-            MessageType = "Empty",
-            TimeUtc = @event.CreatedUtc
-        };
+            yield return new NotificationEnvelope()
+            {
+                Message = new UserSignedInMessage()
+                {
+                    User = Messages.User.FromEvent(userSignedIn.User)
+                },
+                MessageType = nameof(UserSignedInMessage),
+                TimeUtc = userSignedIn.CreatedUtc
+            };
+        }
     }
 }
