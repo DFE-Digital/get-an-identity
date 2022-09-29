@@ -35,6 +35,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public Spy<IEmailVerificationService> EmailVerificationService => Spy.Get(Services.GetRequiredService<IEmailVerificationService>());
 
+    public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
+
     public async Task Initialize()
     {
         await DbHelper.EnsureSchema();
@@ -61,6 +63,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
         await TestUsers.CreateUsers(dbContext);
     }
+
+    public void InitEventObserver() => EventObserver.Init();
 
     public void ResetMocks()
     {

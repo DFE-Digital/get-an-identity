@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -63,6 +64,15 @@ public class TrnInUseChooseEmailModel : PageModel
 
         authenticationState.OnEmailAddressChosen(user);
         await authenticationState.SignIn(HttpContext);
+
+        _dbContext.AddEvent(new UserSignedIn()
+        {
+            ClientId = authenticationState.OAuthState?.ClientId,
+            CreatedUtc = _clock.UtcNow,
+            Scope = authenticationState.OAuthState?.Scope,
+            UserId = user.UserId
+        });
+        await _dbContext.SaveChangesAsync();
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }

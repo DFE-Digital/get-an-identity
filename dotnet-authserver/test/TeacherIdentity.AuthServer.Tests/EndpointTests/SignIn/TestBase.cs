@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
+
 namespace TeacherIdentity.AuthServer.Tests;
 
 public abstract partial class TestBase
@@ -12,9 +14,12 @@ public abstract partial class TestBase
         });
 
         HostFixture.ResetMocks();
+        HostFixture.InitEventObserver();
     }
 
     public TestClock Clock => (TestClock)HostFixture.Services.GetRequiredService<IClock>();
+
+    public CaptureEventObserver EventObserver => HostFixture.EventObserver;
 
     public HostFixture HostFixture { get; }
 

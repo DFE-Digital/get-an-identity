@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -14,18 +15,21 @@ public class EmailConfirmationModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly PinValidator _pinValidator;
+    private readonly IClock _clock;
     private readonly IEmailVerificationService _emailVerificationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
         IIdentityLinkGenerator linkGenerator,
-        PinValidator pinValidator)
+        PinValidator pinValidator,
+        IClock clock)
     {
         _dbContext = dbContext;
         _emailVerificationService = emailConfirmationService;
         _linkGenerator = linkGenerator;
         _pinValidator = pinValidator;
+        _clock = clock;
     }
 
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
@@ -76,17 +80,26 @@ public class EmailConfirmationModel : PageModel
             return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
+        // We don't support registering Staff users
+        if (permittedUserTypes.Length == 1 && permittedUserTypes.Single() == UserType.Staff && user is null)
+        {
+            return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
         authenticationState.OnEmailVerified(user);
 
         if (user is not null)
         {
             await authenticationState.SignIn(HttpContext);
-        }
 
-        if (permittedUserTypes.Length == 1 && permittedUserTypes.Single() == UserType.Staff && user is null)
-        {
-            // We don't support registering Staff users
-            return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
+            _dbContext.AddEvent(new UserSignedIn()
+            {
+                ClientId = authenticationState.OAuthState?.ClientId,
+                CreatedUtc = _clock.UtcNow,
+                Scope = authenticationState.OAuthState?.Scope,
+                UserId = user.UserId
+            });
+            await _dbContext.SaveChangesAsync();
         }
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
