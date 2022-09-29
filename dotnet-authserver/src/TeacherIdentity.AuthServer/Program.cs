@@ -484,7 +484,18 @@ public class Program
                 builder.Services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
             }
 
-            builder.Services.AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>();
+            builder.Services
+                .AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>()
+                .AddHttpClient<IWebHookNotificationSender, WebHookNotificationSender>(httpClient =>
+                {
+                    httpClient.Timeout = TimeSpan.FromSeconds(30);
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false,
+                    PreAuthenticate = true
+                });
         }
 
         builder.Services.AddMediatR(typeof(Program));

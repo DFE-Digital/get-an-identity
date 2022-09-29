@@ -2,16 +2,26 @@ namespace TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 public class WebHookNotificationSender : IWebHookNotificationSender
 {
+    private readonly HttpClient _httpClient;
+
+    public WebHookNotificationSender(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
     public async Task SendNotification(string endpoint, string payload)
     {
-        // TODO Add logging, metrics
+        var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = new StringContent(payload)
+        };
 
-        // TODO Use a singleton HttpClient that doesn't follow redirects, doesn't store cookies, reasonable timeout etc.
-        using var httpClient = new HttpClient();
+        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-        var response = await httpClient.PostAsync(endpoint, new StringContent(payload));
-
-        // TODO Log response body, especially if it's a failure
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Failed to deliver web hook; received status code: {response.StatusCode}.\nBody:\n{body}");
+        }
     }
 }
