@@ -10,7 +10,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.ToTable("users");
         builder.HasKey(u => u.UserId);
         builder.Property(u => u.EmailAddress).HasMaxLength(200).IsRequired();
-        builder.HasIndex(u => u.EmailAddress).IsUnique().HasFilter("is_deleted = true");
+        builder.HasIndex(u => u.EmailAddress).IsUnique().HasFilter("is_deleted = false");
         builder.HasIndex(u => u.Trn).IsUnique().HasFilter("is_deleted = false and trn is not null");
         builder.Property(u => u.FirstName).HasMaxLength(200).IsRequired();
         builder.Property(u => u.LastName).HasMaxLength(200).IsRequired();

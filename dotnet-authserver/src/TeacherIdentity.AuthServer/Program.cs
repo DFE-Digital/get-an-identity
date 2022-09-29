@@ -28,6 +28,7 @@ using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using TeacherIdentity.AuthServer.Configuration;
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
@@ -443,6 +444,8 @@ public class Program
             options.MaxAge = TimeSpan.FromDays(365);
         });
 
+        builder.Services.AddSingleton<IEventObserver, NoopEventObserver>();
+
         var app = builder.Build();
 
         if (builder.Environment.IsProduction() &&
@@ -495,12 +498,14 @@ public class Program
 
                 a.UseCsp(options =>
                 {
+                    var pageTemplateHelper = app.Services.GetRequiredService<PageTemplateHelper>();
+
                     options.ByDefaultAllow
                         .FromSelf();
 
                     options.AllowScripts
                         .FromSelf()
-                        .From("'sha256-j7OoGArf6XW6YY4cAyS3riSSvrJRqpSi1fOF9vQ5SrI='")  // Hash of 'document.form.submit();' from the authorization POST back page in OpenIddict
+                        .From(pageTemplateHelper.GetCspScriptHashes())
                         .AddNonce();
 
                     // Ensure ASP.NET Core's auto refresh works

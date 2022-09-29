@@ -94,17 +94,17 @@ public class AuthenticationState
     {
         return new AuthenticationState(journeyId, userRequirements, postSignInUrl, oAuthState)
         {
-            UserId = principal.GetUserId(),
+            UserId = principal.GetUserId(throwIfMissing: false),
             FirstTimeSignInForEmail = firstTimeSignInForEmail,
-            EmailAddress = principal.GetEmailAddress(),
-            EmailAddressVerified = principal.GetEmailAddressVerified() ?? false,
-            FirstName = principal.GetFirstName(),
-            LastName = principal.GetLastName(),
-            DateOfBirth = principal.GetDateOfBirth(),
-            Trn = principal.GetTrn(),
-            HaveCompletedTrnLookup = principal.GetHaveCompletedTrnLookup() ?? false,
-            TrnLookup = principal.GetHaveCompletedTrnLookup() == true ? TrnLookupState.Complete : TrnLookupState.None,
-            UserType = principal.GetUserType(),
+            EmailAddress = principal.GetEmailAddress(throwIfMissing: false),
+            EmailAddressVerified = principal.GetEmailAddressVerified(throwIfMissing: false) ?? false,
+            FirstName = principal.GetFirstName(throwIfMissing: false),
+            LastName = principal.GetLastName(throwIfMissing: false),
+            DateOfBirth = principal.GetDateOfBirth(throwIfMissing: false),
+            Trn = principal.GetTrn(throwIfMissing: false),
+            HaveCompletedTrnLookup = principal.GetHaveCompletedTrnLookup(throwIfMissing: false) ?? false,
+            TrnLookup = principal.GetHaveCompletedTrnLookup(throwIfMissing: false) == true ? TrnLookupState.Complete : TrnLookupState.None,
+            UserType = principal.GetUserType(throwIfMissing: false),
             StaffRoles = principal.GetStaffRoles()
         };
     }

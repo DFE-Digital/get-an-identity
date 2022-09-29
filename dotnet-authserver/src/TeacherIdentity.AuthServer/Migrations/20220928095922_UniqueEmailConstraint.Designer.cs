@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -11,9 +12,10 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220928095922_UniqueEmailConstraint")]
+    partial class UniqueEmailConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -197,36 +199,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                     b.ToTable("email_confirmation_pins", (string)null);
                 });
 
-            modelBuilder.Entity("TeacherIdentity.AuthServer.Models.Event", b =>
-                {
-                    b.Property<long>("event_id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("event_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("event_id"));
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("created");
-
-                    b.Property<string>("EventName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("event_name");
-
-                    b.Property<string>("Payload")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("payload");
-
-                    b.HasKey("event_id")
-                        .HasName("pk_events");
-
-                    b.ToTable("events", (string)null);
-                });
-
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.JourneyTrnLookupState", b =>
                 {
                     b.Property<Guid>("JourneyId")
@@ -255,12 +227,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                     b.Property<DateTime?>("Locked")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("locked");
-
-                    b.Property<string>("NationalInsuranceNumber")
-                        .HasMaxLength(9)
-                        .HasColumnType("character(9)")
-                        .HasColumnName("national_insurance_number")
-                        .IsFixedLength();
 
                     b.Property<string>("Trn")
                         .HasMaxLength(7)

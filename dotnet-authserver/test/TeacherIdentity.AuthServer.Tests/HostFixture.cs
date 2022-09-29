@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
@@ -68,12 +70,12 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     }
 
     public async Task SignInUser(
-        AuthenticationStateHelper authenticationStateHelper,
+        Guid journeyId,
         HttpClient httpClient,
         Guid userId,
         bool firstTimeSignInForEmail)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{authenticationStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{AuthenticationStateMiddleware.IdQueryParameterName}={Uri.EscapeDataString(journeyId.ToString())}")
         {
             Content = new FormUrlEncodedContentBuilder()
                 .Add("UserId", userId.ToString())
@@ -83,6 +85,15 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
+    }
+
+    public Task SignInUser(
+        AuthenticationStateHelper authenticationStateHelper,
+        HttpClient httpClient,
+        Guid userId,
+        bool firstTimeSignInForEmail)
+    {
+        return SignInUser(authenticationStateHelper.AuthenticationState.JourneyId, httpClient, userId, firstTimeSignInForEmail);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -108,11 +119,20 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
+            services.AddSingleton<IEventObserver, CaptureEventObserver>();
 
             services.AddSingleton(DqtApiClient.Object);
             services.AddSingleton(EmailSender.Object);
             services.Decorate<IEmailVerificationService>(inner => Spy.Of(inner));
         });
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Ensure we can flow AsyncLocals from tests to the server
+        builder.ConfigureServices(services => services.Configure<TestServerOptions>(o => o.PreserveExecutionContext = true));
+
+        return base.CreateHost(builder);
     }
 
     private class AddSignInEndpointStartupFilter : IStartupFilter

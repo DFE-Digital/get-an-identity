@@ -5,7 +5,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
-public class SetTeacherTrnTests : ApiTestBase
+public class SetTeacherTrnTests : TestBase
 {
     public SetTeacherTrnTests(HostFixture hostFixture)
         : base(hostFixture)

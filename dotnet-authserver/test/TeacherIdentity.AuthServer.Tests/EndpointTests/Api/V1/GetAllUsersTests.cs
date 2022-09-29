@@ -4,7 +4,7 @@ using TeacherIdentity.AuthServer.Oidc;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
 [Collection(nameof(DisableParallelization))]
-public class GetAllUsersTests : ApiTestBase, IAsyncLifetime
+public class GetAllUsersTests : TestBase, IAsyncLifetime
 {
     public GetAllUsersTests(HostFixture hostFixture)
         : base(hostFixture)
