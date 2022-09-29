@@ -17,18 +17,21 @@ public class EmailConfirmationModel : PageModel
     private readonly PinValidator _pinValidator;
     private readonly IClock _clock;
     private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IRateLimitStore _rateLimiter;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
         IIdentityLinkGenerator linkGenerator,
         PinValidator pinValidator,
-        IClock clock)
+        IClock clock,
+        IRateLimitStore rateLimiter)
     {
         _dbContext = dbContext;
         _emailVerificationService = emailConfirmationService;
         _linkGenerator = linkGenerator;
         _pinValidator = pinValidator;
+        _rateLimiter = rateLimiter;
         _clock = clock;
     }
 
@@ -54,8 +57,19 @@ public class EmailConfirmationModel : PageModel
 
         var verifyPinFailedReasons = await _emailVerificationService.VerifyPin(Email!, Code!);
 
+
         if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
         {
+            if (verifyPinFailedReasons == PinVerificationFailedReasons.RateLimitExceeded)
+            {
+                return new ViewResult()
+                {
+                    StatusCode = 429,
+                    ViewName = "TooManyRequests"
+                };
+            }
+
+
             if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
             {
                 await _emailVerificationService.GeneratePin(Email!);

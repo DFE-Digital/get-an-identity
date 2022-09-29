@@ -11,15 +11,18 @@ public class TrnInUseModel : PageModel
     private readonly IEmailVerificationService _emailVerificationService;
     private readonly PinValidator _pinValidator;
     private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IRateLimitStore _rateLimiter;
 
     public TrnInUseModel(
         IEmailVerificationService emailVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        IRateLimitStore ratelimiter)
     {
         _emailVerificationService = emailVerificationService;
         _pinValidator = pinValidator;
         _linkGenerator = linkGenerator;
+        _rateLimiter = ratelimiter;
     }
 
     public string Email => HttpContext.GetAuthenticationState().TrnOwnerEmailAddress!;

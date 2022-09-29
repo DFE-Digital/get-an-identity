@@ -29,7 +29,12 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var emailSenderMock = new Mock<IEmailSender>();
         var clock = new TestClock();
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
-        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object);
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
 
         var currentClientDisplayName = "Test app";
         currentClientProviderMock.Setup(mock => mock.GetCurrentClient()).ReturnsAsync(new Application() { DisplayName = currentClientDisplayName });
@@ -91,7 +96,12 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var emailSenderMock = new Mock<IEmailSender>();
         var clock = new TestClock();
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
-        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object);
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
 
         var email = Faker.Internet.Email();
 
@@ -106,6 +116,34 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
     }
 
     [Fact]
+    public async Task VerifyPin_ExceededMaxFailureAttempts_ReturnsRateLimitExceeded()
+    {
+        // Arrange
+        var dbContext = _dbFixture.GetDbContext();
+        var emailSenderMock = new Mock<IEmailSender>();
+        var clock = new TestClock();
+        var currentClientProviderMock = new Mock<ICurrentClientProvider>();
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        rateLimiter.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(true));
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
+
+        var email = Faker.Internet.Email();
+
+        // The real PIN generation method never generates pins that start with a '0'
+        var pin = "012345";
+
+        // Act
+        var result = await service.VerifyPin(email, pin);
+
+        // Assert
+        Assert.Equal(PinVerificationFailedReasons.RateLimitExceeded, result);
+    }
+
+    [Fact]
     public async Task VerifyPin_ExpiredPin_ReturnsFalse()
     {
         // Arrange
@@ -113,7 +151,12 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var emailSenderMock = new Mock<IEmailSender>();
         var clock = new TestClock();
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
-        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object);
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
 
         var email = Faker.Internet.Email();
         var pin = await service.GeneratePin(email);
@@ -135,7 +178,12 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var emailSenderMock = new Mock<IEmailSender>();
         var clock = new TestClock();
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
-        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object);
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
 
         var email = Faker.Internet.Email();
         var anotherEmail = Faker.Internet.Email();
@@ -156,7 +204,12 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var emailSenderMock = new Mock<IEmailSender>();
         var clock = new TestClock();
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
-        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object);
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
 
         var email = Faker.Internet.Email();
         var pin = await service.GeneratePin(email);
@@ -180,7 +233,13 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         var emailSenderMock = new Mock<IEmailSender>();
         var clock = new TestClock();
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
-        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object);
+        var rateLimiter = new Mock<IRateLimitStore>();
+        var httpAccesor = new Mock<IHttpContextAccessor>();
+        var httpContext = new Mock<HttpContext>();
+        httpContext.Setup(x => x.Connection.RemoteIpAddress).Returns(new System.Net.IPAddress(123456));
+        httpAccesor.Setup(x => x.HttpContext).Returns(httpContext.Object);
+        var rateLimiterOptions = Options.Create(new RateLimitStoreOptions() { MaxFailures = 5, FailureTimeoutSeconds = 120 });
+        var service = CreateEmailConfirmationService(dbContext, emailSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, httpAccesor.Object);
 
         var email = Faker.Internet.Email();
         var pin = await service.GeneratePin(email);
@@ -200,7 +259,9 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
         TeacherIdentityServerDbContext dbContext,
         IEmailSender emailSender,
         IClock clock,
-        ICurrentClientProvider currentClientProvider)
+        ICurrentClientProvider currentClientProvider,
+        IRateLimitStore rateLimitStore,
+        IHttpContextAccessor httpAccessor)
     {
         var options = Options.Create(new EmailVerificationOptions()
         {
@@ -209,6 +270,6 @@ public class EmailVerificationServiceTests : IClassFixture<DbFixture>
 
         var logger = NullLogger<EmailVerificationService>.Instance;
 
-        return new EmailVerificationService(dbContext, emailSender, clock, currentClientProvider, options, logger);
+        return new EmailVerificationService(dbContext, emailSender, clock, currentClientProvider, options, logger, rateLimitStore, httpAccessor);
     }
 }

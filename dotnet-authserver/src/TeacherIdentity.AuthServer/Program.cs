@@ -369,6 +369,7 @@ public class Program
         {
             builder.Services.AddSingleton(new NotificationClient(builder.Configuration["NotifyApiKey"]));
             builder.Services.AddSingleton<IEmailSender, NotifyEmailSender>();
+            builder.Services.AddSingleton<IRateLimitStore, RateLimitStore>();
 
             // Use Hangfire for scheduling emails in the background (so we get retries etc.).
             // As the implementation needs to be able to resolve itself we need two service registrations here;
@@ -379,6 +380,7 @@ public class Program
         else
         {
             builder.Services.AddSingleton<IEmailSender, NoopEmailSender>();
+            builder.Services.AddSingleton<IRateLimitStore, NoopRateLimitStore>();
         }
 
         builder.Services.AddSingleton<IClock, SystemClock>();
@@ -391,6 +393,11 @@ public class Program
 
         builder.Services.AddOptions<EmailVerificationOptions>()
             .Bind(builder.Configuration.GetSection("EmailVerification"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<RateLimitStoreOptions>()
+            .Bind(builder.Configuration.GetSection("EmailVerificationRateLimit"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

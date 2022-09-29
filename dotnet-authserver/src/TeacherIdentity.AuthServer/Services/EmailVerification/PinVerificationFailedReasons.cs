@@ -7,7 +7,8 @@ public enum PinVerificationFailedReasons
     Unknown = 1,
     Expired = 2,
     ExpiredLessThanTwoHoursAgo = 4,
-    NotActive = 8
+    NotActive = 8,
+    RateLimitExceeded = 16
 }
 
 public static class PinVerificationFailedReasonsExtensions

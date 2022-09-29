@@ -281,7 +281,6 @@ public class TrnInUseTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
@@ -342,7 +341,6 @@ public class TrnInUseTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
 
