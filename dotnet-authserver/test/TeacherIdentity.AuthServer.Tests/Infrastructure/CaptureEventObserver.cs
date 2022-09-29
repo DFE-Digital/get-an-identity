@@ -9,10 +9,16 @@ public class CaptureEventObserver : IEventObserver
 
     public void Init() => _events.Value ??= new List<EventBase>();
 
-    public void OnEventSaved(EventBase @event)
+    public Task OnEventSaved(EventBase @event)
     {
-        _events.Value ??= new List<EventBase>();
+        if (_events.Value is null)
+        {
+            throw new InvalidOperationException("Not initialized.");
+        }
+
         _events.Value.Add(@event);
+
+        return Task.CompletedTask;
     }
 
     public void AssertEventsSaved(params Action<EventBase>[] eventInspectors)

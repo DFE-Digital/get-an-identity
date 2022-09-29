@@ -4,5 +4,5 @@ namespace TeacherIdentity.AuthServer.EventProcessing;
 
 public class NoopEventObserver : IEventObserver
 {
-    public void OnEventSaved(EventBase @event) { }
+    public Task OnEventSaved(EventBase @event) => Task.CompletedTask;
 }

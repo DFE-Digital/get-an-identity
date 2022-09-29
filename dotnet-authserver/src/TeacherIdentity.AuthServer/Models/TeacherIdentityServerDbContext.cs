@@ -61,15 +61,10 @@ public class TeacherIdentityServerDbContext : DbContext
         modelBuilder.Entity<Token>().ToTable("tokens");
     }
 
+    [Obsolete($"Use {nameof(SaveChangesAsync)} instead.")]
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
-        UpdateSoftDeleteFlag();
-
-        var result = base.SaveChanges(acceptAllChangesOnSuccess);
-
-        PublishEvents();
-
-        return result;
+        throw new NotSupportedException($"Use {nameof(SaveChangesAsync)} instead.");
     }
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
@@ -78,7 +73,7 @@ public class TeacherIdentityServerDbContext : DbContext
 
         var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
 
-        PublishEvents();
+        await PublishEvents();
 
         return result;
     }
@@ -90,13 +85,18 @@ public class TeacherIdentityServerDbContext : DbContext
         return optionsBuilder.Options;
     }
 
-    private void PublishEvents()
+    private async Task PublishEvents()
     {
+        if (_eventObserver is null)
+        {
+            return;
+        }
+
         try
         {
             foreach (var e in _events)
             {
-                _eventObserver?.OnEventSaved(e);
+                await _eventObserver.OnEventSaved(e);
             }
         }
         finally
