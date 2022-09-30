@@ -43,6 +43,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<WebHook> WebHooks => Set<WebHook>();
+
     public void AddEvent(EventBase @event)
     {
         Events.Add(Event.FromEventBase(@event));

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -11,9 +12,10 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220930084547_WebHooks")]
+    partial class WebHooks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -447,10 +449,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("last_name");
 
-                    b.Property<DateTime?>("LastSignedIn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_signed_in");
-
                     b.Property<string[]>("StaffRoles")
                         .IsRequired()
                         .HasColumnType("varchar[]")
@@ -461,10 +459,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnType("character(7)")
                         .HasColumnName("trn")
                         .IsFixedLength();
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated");
 
                     b.Property<int>("UserType")
                         .HasColumnType("integer")

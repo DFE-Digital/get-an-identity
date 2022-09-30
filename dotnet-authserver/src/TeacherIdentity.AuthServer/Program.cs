@@ -475,7 +475,7 @@ public class Program
                 builder.Services.AddHostedService(sp => sp.GetRequiredService<ServiceBusWebHookNotificationPublisher>());
 
                 builder.Services.AddOptions<ServiceBusWebHookOptions>()
-                    .Bind(builder.Configuration.GetSection("ServiceBusWebHook"))
+                    .Bind(builder.Configuration.GetSection("WebHooks"))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
             }
@@ -483,6 +483,11 @@ public class Program
             {
                 builder.Services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
             }
+
+            builder.Services.AddOptions<WebHookOptions>()
+                .Bind(builder.Configuration.GetSection("WebHooks"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             builder.Services
                 .AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>()
@@ -497,6 +502,8 @@ public class Program
                     PreAuthenticate = true
                 });
         }
+
+        builder.Services.AddMemoryCache();
 
         builder.Services.AddMediatR(typeof(Program));
 
