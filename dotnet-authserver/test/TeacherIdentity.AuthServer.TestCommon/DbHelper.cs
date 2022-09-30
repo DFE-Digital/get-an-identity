@@ -20,7 +20,7 @@ public class DbHelper
 
     public async Task ClearData()
     {
-        using var dbContext = new TeacherIdentityServerDbContext(_connectionString);
+        using var dbContext = TeacherIdentityServerDbContext.Create(_connectionString);
         await dbContext.Database.OpenConnectionAsync();
         await _checkpoint.Reset(dbContext.Database.GetDbConnection());
     }
@@ -45,7 +45,7 @@ public class DbHelper
 
     public async Task ResetSchema()
     {
-        using var dbContext = new TeacherIdentityServerDbContext(_connectionString);
+        using var dbContext = TeacherIdentityServerDbContext.Create(_connectionString);
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.MigrateAsync();
 
