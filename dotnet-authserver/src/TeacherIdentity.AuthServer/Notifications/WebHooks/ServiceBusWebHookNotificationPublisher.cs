@@ -1,5 +1,8 @@
 using Azure.Messaging.ServiceBus;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications.Messages;
 using TeacherIdentity.AuthServer.Notifications.WebHooks.ServiceBusMessages;
 
@@ -25,9 +28,12 @@ public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotification
     public ServiceBusWebHookNotificationPublisher(
         ServiceBusClient serviceBusClient,
         IOptions<ServiceBusWebHookOptions> optionsAccessor,
+        ILogger<ServiceBusWebHookNotificationPublisher> logger,
         IWebHookNotificationSender sender,
-        ILogger<ServiceBusWebHookNotificationPublisher> logger)
-        : base(sender)
+        IDbContextFactory<TeacherIdentityServerDbContext> dbContextFactory,
+        IMemoryCache memoryCache,
+        IOptions<WebHookOptions> webHookOptionsAccessor)
+        : base(sender, dbContextFactory, memoryCache, webHookOptionsAccessor)
     {
         _serviceBusSender = serviceBusClient.CreateSender(optionsAccessor.Value.QueueName);
 

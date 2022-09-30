@@ -1,5 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications.Messages;
 
@@ -7,10 +10,20 @@ namespace TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 public class WebHookNotificationPublisher : INotificationPublisher
 {
+    private readonly IDbContextFactory<TeacherIdentityServerDbContext> _dbContextFactory;
+    private readonly IMemoryCache _memoryCache;
+    private readonly TimeSpan _webHooksCacheLifetime;
+
     public WebHookNotificationPublisher(
-        IWebHookNotificationSender sender)
+        IWebHookNotificationSender sender,
+        IDbContextFactory<TeacherIdentityServerDbContext> dbContextFactory,
+        IMemoryCache memoryCache,
+        IOptions<WebHookOptions> optionsAccessor)
     {
         Sender = sender;
+        _dbContextFactory = dbContextFactory;
+        _memoryCache = memoryCache;
+        _webHooksCacheLifetime = TimeSpan.FromSeconds(optionsAccessor.Value.WebHooksCacheDurationSeconds);
     }
 
     protected static JsonSerializerOptions SerializerOptions { get; } = new JsonSerializerOptions()
@@ -25,11 +38,16 @@ public class WebHookNotificationPublisher : INotificationPublisher
 
     protected IWebHookNotificationSender Sender { get; }
 
-    public Task<WebHook[]> GetWebHooksForNotification(NotificationEnvelope notification)
-    {
-        // TODO Get this from DB
-        return Task.FromResult(Array.Empty<WebHook>());
-    }
+    public Task<WebHook[]> GetWebHooksForNotification(NotificationEnvelope notification) =>
+        _memoryCache.GetOrCreateAsync(
+            MemoryCacheKeys.WebHooks,
+            async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = _webHooksCacheLifetime;
+
+                await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+                return await dbContext.WebHooks.Where(wh => wh.Enabled).ToArrayAsync();
+            });
 
     public virtual async Task PublishNotification(NotificationEnvelope notification)
     {
