@@ -226,11 +226,12 @@ public class Program
             .AddNpgSql(pgConnectionString);
 
         builder.Services.AddDbContext<TeacherIdentityServerDbContext>(
-            options =>
-            {
-                TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString);
-            },
-            ServiceLifetime.Transient);
+            options => TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString),
+            contextLifetime: ServiceLifetime.Transient,
+            optionsLifetime: ServiceLifetime.Singleton);
+
+        builder.Services.AddDbContextFactory<TeacherIdentityServerDbContext>(
+            options => TeacherIdentityServerDbContext.ConfigureOptions(options, pgConnectionString));
 
         if (builder.Environment.IsDevelopment())
         {

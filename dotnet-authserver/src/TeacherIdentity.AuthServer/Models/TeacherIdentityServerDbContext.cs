@@ -16,11 +16,6 @@ public class TeacherIdentityServerDbContext : DbContext
         _eventObserver = eventObserver;
     }
 
-    public TeacherIdentityServerDbContext(string connectionString, IEventObserver? eventObserver = null)
-        : this(CreateOptions(connectionString), eventObserver)
-    {
-    }
-
     public static void ConfigureOptions(DbContextOptionsBuilder optionsBuilder, string connectionString)
     {
         if (connectionString != null)
@@ -36,6 +31,9 @@ public class TeacherIdentityServerDbContext : DbContext
             .UseSnakeCaseNamingConvention()
             .UseOpenIddict<Application, Authorization, Scope, Token, string>();
     }
+
+    public static TeacherIdentityServerDbContext Create(string connectionString, IEventObserver? eventObserver = null) =>
+        new TeacherIdentityServerDbContext(CreateOptions(connectionString), eventObserver);
 
     public DbSet<EmailConfirmationPin> EmailConfirmationPins => Set<EmailConfirmationPin>();
 
