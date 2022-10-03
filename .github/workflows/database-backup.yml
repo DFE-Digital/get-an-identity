@@ -90,13 +90,13 @@ jobs:
           --connection-string '${{ steps.get_storage_secret.outputs.BACKUP-STORAGE-CONNECTION-STRING }}' \
           --overwrite true
 
-      - name: Notify Slack channel on job failure
-        if: failure()
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_USERNAME: CI Deployment
-          SLACK_TITLE: Database backup failure
-          SLACK_MESSAGE: Production database backup job failed. Also check the azure postgres server firewall rules.
-          SLACK_WEBHOOK: ${{ steps.get_monitoring_secret.outputs.SLACK_WEBHOOK }}
-          SLACK_COLOR: failure
-          SLACK_FOOTER: Sent from backup job in database-backup workflow
+      # - name: Notify Slack channel on job failure
+      #   if: failure()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_USERNAME: CI Deployment
+      #     SLACK_TITLE: Database backup failure
+      #     SLACK_MESSAGE: Production database backup job failed. Also check the azure postgres server firewall rules.
+      #     SLACK_WEBHOOK: ${{ steps.get_monitoring_secret.outputs.SLACK_WEBHOOK }}
+      #     SLACK_COLOR: failure
+      #     SLACK_FOOTER: Sent from backup job in database-backup workflow
