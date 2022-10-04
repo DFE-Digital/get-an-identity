@@ -5,5 +5,5 @@ namespace TeacherIdentity.AuthServer.Api.V1.Requests;
 
 public class GetUserDetailRequest : IRequest<GetUserDetailResponse>
 {
-    public Guid UserId { get; set; }
+    public required Guid UserId { get; init; }
 }

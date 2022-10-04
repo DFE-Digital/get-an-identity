@@ -5,9 +5,9 @@ namespace TeacherIdentity.AuthServer.Models;
 
 public class Event
 {
-    public string EventName { get; set; } = null!;
-    public DateTime Created { get; set; }
-    public string Payload { get; set; } = null!;
+    public required string EventName { get; init; }
+    public required DateTime Created { get; init; }
+    public required string Payload { get; init; }
 
     public static Event FromEventBase(EventBase @event)
     {

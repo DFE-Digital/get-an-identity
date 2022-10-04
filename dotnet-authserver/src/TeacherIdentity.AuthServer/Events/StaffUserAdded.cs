@@ -2,10 +2,10 @@ namespace TeacherIdentity.AuthServer.Events;
 
 public class StaffUserAdded : EventBase
 {
-    public Guid UserId { get; set; }
-    public string? EmailAddress { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string[]? StaffRoles { get; set; }
-    public Guid AddedByUserId { get; set; }
+    public required Guid UserId { get; init; }
+    public required string EmailAddress { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required string[] StaffRoles { get; init; }
+    public required Guid AddedByUserId { get; init; }
 }

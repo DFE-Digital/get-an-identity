@@ -5,11 +5,11 @@ namespace TeacherIdentity.AuthServer.Services.TrnLookup;
 public class FindALostTrnIntegrationOptions
 {
     [Required]
-    public string HandoverEndpoint { get; set; } = null!;
+    public required string HandoverEndpoint { get; set; }
 
     [Required]
-    public string SharedKey { get; set; } = null!;
+    public required string SharedKey { get; set; }
 
     [Required]
-    public bool EnableStubEndpoints { get; set; }
+    public required bool EnableStubEndpoints { get; set; }
 }

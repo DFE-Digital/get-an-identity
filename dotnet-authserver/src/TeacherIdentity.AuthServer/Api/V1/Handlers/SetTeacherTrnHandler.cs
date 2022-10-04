@@ -35,7 +35,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             throw new ErrorException(ErrorRegistry.UserMustBeTeacher());
         }
 
-        user.Trn = request.Body!.Trn!;
+        user.Trn = request.Body.Trn;
 
         try
         {

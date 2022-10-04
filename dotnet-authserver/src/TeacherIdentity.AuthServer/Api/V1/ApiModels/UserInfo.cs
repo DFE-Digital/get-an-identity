@@ -2,10 +2,10 @@ namespace TeacherIdentity.AuthServer.Api.V1.ApiModels;
 
 public class UserInfo
 {
-    public Guid UserId { get; set; }
-    public string? Email { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
-    public string? Trn { get; set; }
+    public required Guid UserId { get; init; }
+    public required string Email { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required DateOnly? DateOfBirth { get; init; }
+    public required string? Trn { get; init; }
 }

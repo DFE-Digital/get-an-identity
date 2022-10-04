@@ -3,9 +3,9 @@ namespace TeacherIdentity.AuthServer.Models;
 public class User
 {
     public Guid UserId { get; set; }
-    public string EmailAddress { get; set; } = null!;
-    public string FirstName { get; set; } = null!;
-    public string LastName { get; set; } = null!;
+    public required string EmailAddress { get; set; }
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public DateTime Created { get; set; }
     public DateTime? CompletedTrnLookup { get; set; }

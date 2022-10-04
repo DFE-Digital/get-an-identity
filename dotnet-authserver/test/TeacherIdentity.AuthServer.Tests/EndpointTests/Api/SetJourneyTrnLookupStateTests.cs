@@ -50,7 +50,9 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Locked = Clock.UtcNow,
-                UserId = user.UserId
+                UserId = user.UserId,
+                Trn = null,
+                NationalInsuranceNumber = null
             });
 
             await dbContext.SaveChangesAsync();
@@ -94,7 +96,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 LastName = Faker.Name.Last(),
                 Locked = null,
                 UserId = null,
-                Trn = null
+                Trn = null,
+                NationalInsuranceNumber = null
             });
 
             await dbContext.SaveChangesAsync();

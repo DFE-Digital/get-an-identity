@@ -222,7 +222,8 @@ public class TrnCallbackTests : TestBase
                 DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = firstName ?? Faker.Name.First(),
                 LastName = lastName ?? Faker.Name.Last(),
-                Trn = trn
+                Trn = trn,
+                NationalInsuranceNumber = null
             });
 
             await dbContext.SaveChangesAsync();
