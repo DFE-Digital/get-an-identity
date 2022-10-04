@@ -16,7 +16,7 @@ public class DefaultErrorExceptionFilter : IExceptionFilter
     {
         if (context.Exception is ErrorException ex)
         {
-            context.Result = ex.ToResult(StatusCode);
+            context.Result = context.GetResultFromErrorException(ex, StatusCodes.Status400BadRequest);
             context.ExceptionHandled = true;
         }
     }

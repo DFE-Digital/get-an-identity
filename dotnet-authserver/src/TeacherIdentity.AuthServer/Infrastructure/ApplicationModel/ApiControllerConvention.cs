@@ -41,6 +41,7 @@ public class ApiControllerConvention : IControllerModelConvention
             {
                 controller.Filters.Add(new ProducesJsonOrProblemAttribute());
                 controller.Filters.Add(new DefaultErrorExceptionFilter(statusCode: StatusCodes.Status400BadRequest));
+                controller.Filters.Add(new HandleValidationExceptionFilter());
             }
         }
     }

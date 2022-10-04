@@ -13,5 +13,5 @@ public sealed class Error
 
     public string Title => _descriptor.Title;
 
-    public string? Detail => _descriptor.Detail;
+    public string? Detail { get; init; }
 }

@@ -28,6 +28,7 @@ using Serilog;
 using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using TeacherIdentity.AuthServer.Api.Validation;
 using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
@@ -456,6 +457,8 @@ public class Program
         builder.Services.AddSingleton<IEventObserver, NoopEventObserver>();
 
         builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
+
+        builder.Services.Decorate<Microsoft.AspNetCore.Mvc.Infrastructure.ProblemDetailsFactory, CamelCaseErrorKeysProblemDetailsFactory>();
 
         var app = builder.Build();
 
