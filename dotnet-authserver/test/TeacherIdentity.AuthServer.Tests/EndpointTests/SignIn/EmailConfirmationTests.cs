@@ -296,6 +296,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
     {
         // Arrange
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(false));
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
@@ -320,8 +321,8 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects()
     {
         // Arrange
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(false));
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
-
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
 
@@ -353,6 +354,30 @@ public class EmailConfirmationTests : TestBase
                 Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.Scope, userSignedInEvent.Scope);
                 Assert.Equal(user.UserId, userSignedInEvent.UserId);
             });
+    }
+
+    [Fact]
+    public async Task Post_BlockedClient_ReturnsTooManyRequestsStatusCode()
+    {
+        // Arrange
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(true));
+        var email = Faker.Internet.Email();
+        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
+        var pin = await emailVerificationService.GeneratePin(email);
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Code", pin)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
     }
 
     [Fact]

@@ -33,6 +33,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public Mock<IEmailSender> EmailSender { get; } = new Mock<IEmailSender>();
 
+    public Mock<IRateLimitStore> RateLimitStore { get; } = new Mock<IRateLimitStore>();
+
     public Spy<IEmailVerificationService> EmailVerificationService => Spy.Get(Services.GetRequiredService<IEmailVerificationService>());
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
@@ -114,8 +116,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // (we want to be able to POST directly from a test without having to set antiforgery cookies etc.)
             services.AddSingleton<IPageApplicationModelProvider, RemoveAutoValidateAntiforgeryPageApplicationModelProvider>();
 
-            // Add the /_sign-in endpoint
-            services.AddSingleton<IStartupFilter>(new AddSignInEndpointStartupFilter());
+            // Add the /_sign-in endpoint & assign fixed ip address
+            services.AddSingleton<IStartupFilter>(new AssignTestMiddlewareStartupFilter());
 
             // Disable the HTTPS requirement for OpenIddict
             services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
@@ -127,6 +129,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
             services.AddSingleton(DqtApiClient.Object);
             services.AddSingleton(EmailSender.Object);
+            services.AddSingleton(RateLimitStore.Object);
             services.Decorate<IEmailVerificationService>(inner => Spy.Of(inner));
         });
     }
@@ -139,12 +142,12 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         return base.CreateHost(builder);
     }
 
-    private class AddSignInEndpointStartupFilter : IStartupFilter
+    private class AssignTestMiddlewareStartupFilter : IStartupFilter
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
         {
+            app.UseMiddleware<SetRemoteIPAddressMiddleware>();
             next(app);
-
             app.MapWhen(
                 ctx => ctx.Request.Path == new PathString("/_sign-in") && ctx.Request.Method == HttpMethods.Post,
                 app => app.UseMiddleware<SignInUserMiddleware>());

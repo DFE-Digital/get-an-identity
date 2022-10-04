@@ -16,6 +16,8 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly ICurrentClientProvider _currentClientProvider;
     private readonly ILogger<EmailVerificationService> _logger;
     private readonly TimeSpan _pinLifetime;
+    private readonly IRateLimitStore _rateLimiter;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public EmailVerificationService(
         TeacherIdentityServerDbContext dbContext,
@@ -23,7 +25,9 @@ public class EmailVerificationService : IEmailVerificationService
         IClock clock,
         ICurrentClientProvider currentClientProvider,
         IOptions<EmailVerificationOptions> optionsAccessor,
-        ILogger<EmailVerificationService> logger)
+        ILogger<EmailVerificationService> logger,
+        IRateLimitStore rateLimiter,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _emailSender = emailSender;
@@ -31,6 +35,8 @@ public class EmailVerificationService : IEmailVerificationService
         _currentClientProvider = currentClientProvider;
         _logger = logger;
         _pinLifetime = TimeSpan.FromSeconds(optionsAccessor.Value.PinLifetimeSeconds);
+        _rateLimiter = rateLimiter;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<string> GeneratePin(string email)
@@ -95,22 +101,36 @@ public class EmailVerificationService : IEmailVerificationService
 
     public async Task<PinVerificationFailedReasons> VerifyPin(string email, string pin)
     {
+        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+        if (string.IsNullOrEmpty(ip))
+        {
+            throw new Exception("RemoteIpAddress is missing from HttpContext.");
+        }
+
+        if (await _rateLimiter.IsClientIpBlocked(ip!))
+        {
+            return PinVerificationFailedReasons.RateLimitExceeded;
+        }
+
         var emailConfirmationPin = await _dbContext.EmailConfirmationPins
             .Where(e => e.Email == email && e.Pin == pin)
             .SingleOrDefaultAsync();
 
         if (emailConfirmationPin is null)
         {
+            await _rateLimiter.AddFailedPinVerification(ip!);
             return PinVerificationFailedReasons.Unknown;
         }
 
         if (!emailConfirmationPin.IsActive)
         {
+            await _rateLimiter.AddFailedPinVerification(ip!);
             return PinVerificationFailedReasons.NotActive;
         }
 
         if (emailConfirmationPin.Expires <= _clock.UtcNow)
         {
+            await _rateLimiter.AddFailedPinVerification(ip!);
             var reasons = PinVerificationFailedReasons.Expired;
 
             var expiredLessThanTwoHoursAgo = (_clock.UtcNow - emailConfirmationPin.Expires) < TimeSpan.FromHours(2);
