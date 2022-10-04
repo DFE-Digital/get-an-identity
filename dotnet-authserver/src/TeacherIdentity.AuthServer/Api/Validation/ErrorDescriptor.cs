@@ -10,5 +10,4 @@ public class ErrorDescriptor
 
     public int ErrorCode { get; }
     public string Title { get; }
-    public string? Detail { get; init; }
 }

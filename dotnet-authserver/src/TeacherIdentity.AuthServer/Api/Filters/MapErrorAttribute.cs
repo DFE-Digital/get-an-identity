@@ -19,7 +19,7 @@ public class MapErrorAttribute : ExceptionFilterAttribute
     {
         if (context.Exception is ErrorException ex && ErrorCode == ex.Error.ErrorCode)
         {
-            context.Result = ex.ToResult(StatusCode);
+            context.Result = context.GetResultFromErrorException(ex, StatusCode);
             context.ExceptionHandled = true;
         }
     }
