@@ -2,5 +2,5 @@ namespace TeacherIdentity.AuthServer.Events;
 
 public abstract class EventBase
 {
-    public DateTime CreatedUtc { get; set; }
+    public required DateTime CreatedUtc { get; init; }
 }

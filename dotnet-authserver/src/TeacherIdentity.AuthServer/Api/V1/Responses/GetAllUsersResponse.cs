@@ -4,5 +4,5 @@ namespace TeacherIdentity.AuthServer.Api.V1.Responses;
 
 public class GetAllUsersResponse
 {
-    public UserInfo[]? Users { get; set; }
+    public required UserInfo[]? Users { get; init; }
 }

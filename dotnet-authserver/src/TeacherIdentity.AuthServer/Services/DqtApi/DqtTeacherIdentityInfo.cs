@@ -7,5 +7,5 @@ public class DqtTeacherIdentityInfo
     [JsonPropertyName("TsPersonId")]
     public Guid UserId { get; set; }
 
-    public string Trn { get; set; } = null!;
+    public required string Trn { get; set; }
 }

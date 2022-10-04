@@ -33,9 +33,9 @@ public class StaffModel : PageModel
 
     public class StaffUserInfo
     {
-        public Guid UserId { get; set; }
-        public string Email { get; set; } = null!;
-        public string FirstName { get; set; } = null!;
-        public string LastName { get; set; } = null!;
+        public required Guid UserId { get; init; }
+        public required string Email { get; init; }
+        public required string FirstName { get; init; }
+        public required string LastName { get; init; }
     }
 }

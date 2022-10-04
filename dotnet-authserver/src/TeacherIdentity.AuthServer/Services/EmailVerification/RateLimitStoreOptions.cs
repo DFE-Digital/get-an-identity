@@ -5,7 +5,8 @@ namespace TeacherIdentity.AuthServer.Services.EmailVerification;
 public class RateLimitStoreOptions
 {
     [Required]
-    public int MaxFailures { get; set; }
+    public required int MaxFailures { get; set; }
+
     [Required]
-    public int FailureTimeoutSeconds { get; set; }
+    public required int FailureTimeoutSeconds { get; set; }
 }

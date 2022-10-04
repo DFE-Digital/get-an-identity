@@ -14,7 +14,7 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
             return string.Empty;
         }
 
-        var titlecase = string.Concat(char.ToUpper(PostSignInMessage![0]), PostSignInMessage!.Substring(1));
+        var titlecase = string.Concat(char.ToUpper(PostSignInMessage[0]), PostSignInMessage[1..]);
         return titlecase;
     }
 }

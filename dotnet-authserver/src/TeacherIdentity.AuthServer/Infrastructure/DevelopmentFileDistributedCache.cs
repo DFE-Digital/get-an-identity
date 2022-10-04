@@ -114,12 +114,12 @@ public class DevelopmentFileDistributedCache : IDistributedCache
 
     private class CacheFile
     {
-        public Dictionary<string, CacheEntry> Entries { get; set; } = null!;
+        public required Dictionary<string, CacheEntry> Entries { get; set; }
     }
 
     private class CacheEntry
     {
-        public byte[] Data { get; set; } = null!;
+        public required byte[] Data { get; set; }
         public DateTimeOffset LastAccess { get; set; }
         public TimeSpan? SlidingExpiration { get; set; }
         public DateTimeOffset? AbsoluteExpiration { get; set; }

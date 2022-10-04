@@ -4,11 +4,11 @@ namespace TeacherIdentity.AuthServer.Api.V1.Requests;
 
 public class SetTeacherTrnRequest : IRequest
 {
-    public Guid UserId { get; set; }
-    public SetTeacherTrnRequestBody? Body { get; set; }
+    public required Guid UserId { get; init; }
+    public required SetTeacherTrnRequestBody Body { get; init; }
 }
 
 public class SetTeacherTrnRequestBody
 {
-    public string? Trn { get; set; }
+    public required string Trn { get; init; }
 }

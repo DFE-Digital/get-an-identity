@@ -69,9 +69,9 @@ public class TrnLookupController : ControllerBase
 public class SetJourneyTrnLookupStateRequest
 {
     [Required]
-    public string FirstName { get; set; } = null!;
+    public required string FirstName { get; set; }
     [Required]
-    public string LastName { get; set; } = null!;
+    public required string LastName { get; set; }
     [Required]
     public DateOnly DateOfBirth { get; set; }
     [StringLength(maximumLength: 7, MinimumLength = 7)]

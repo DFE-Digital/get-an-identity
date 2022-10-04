@@ -5,8 +5,8 @@ namespace TeacherIdentity.AuthServer.Services.DqtApi;
 public class DqtApiOptions
 {
     [Required]
-    public string ApiKey { get; set; } = null!;
+    public required string ApiKey { get; init; }
 
     [Required]
-    public string BaseAddress { get; set; } = null!;
+    public required string BaseAddress { get; init; }
 }
