@@ -61,15 +61,17 @@ public class TrnCallbackModel : PageModel
         var userId = Guid.NewGuid();
         var user = new User()
         {
+            CompletedTrnLookup = _clock.UtcNow,
             Created = _clock.UtcNow,
             DateOfBirth = lookupState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
             FirstName = lookupState.FirstName,
             LastName = lookupState.LastName,
+            Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Default,
             Trn = lookupState.Trn,
-            CompletedTrnLookup = _clock.UtcNow
+            LastSignedIn = _clock.UtcNow
         };
 
         _dbContext.Users.Add(user);

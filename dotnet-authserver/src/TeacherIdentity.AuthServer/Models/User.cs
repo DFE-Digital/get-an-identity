@@ -7,7 +7,9 @@ public class User
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
-    public DateTime Created { get; set; }
+    public required DateTime Created { get; set; }
+    public required DateTime Updated { get; set; }
+    public DateTime? LastSignedIn { get; set; }
     public DateTime? CompletedTrnLookup { get; set; }
     public UserType UserType { get; set; }
     public string? Trn { get; set; }

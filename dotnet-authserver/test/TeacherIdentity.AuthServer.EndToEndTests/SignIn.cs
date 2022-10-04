@@ -36,7 +36,8 @@ public class SignIn : IClassFixture<HostFixture>
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 Trn = trn,
-                CompletedTrnLookup = DateTime.UtcNow
+                CompletedTrnLookup = DateTime.UtcNow,
+                Updated = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();
@@ -88,12 +89,14 @@ public class SignIn : IClassFixture<HostFixture>
 
             dbContext.Users.Add(new User()
             {
+                Created = DateTime.UtcNow,
                 EmailAddress = email,
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
                 UserType = UserType.Staff,
-                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin }
+                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
+                Updated = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();
@@ -234,7 +237,8 @@ public class SignIn : IClassFixture<HostFixture>
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 Trn = trn,
-                CompletedTrnLookup = DateTime.UtcNow
+                CompletedTrnLookup = DateTime.UtcNow,
+                Updated = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();
@@ -321,12 +325,14 @@ public class SignIn : IClassFixture<HostFixture>
 
             dbContext.Users.Add(new User()
             {
+                Created = DateTime.UtcNow,
                 EmailAddress = email,
                 FirstName = "Joe",
                 LastName = "Bloggs",
                 UserId = userId,
                 UserType = UserType.Staff,
-                StaffRoles = Array.Empty<string>()
+                StaffRoles = Array.Empty<string>(),
+                Updated = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();

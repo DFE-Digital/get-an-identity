@@ -33,7 +33,8 @@ public class SignOut : IClassFixture<HostFixture>
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 Trn = trn,
-                CompletedTrnLookup = DateTime.UtcNow
+                CompletedTrnLookup = DateTime.UtcNow,
+                Updated = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();

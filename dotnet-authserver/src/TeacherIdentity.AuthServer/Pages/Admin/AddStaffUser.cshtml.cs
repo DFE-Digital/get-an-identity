@@ -58,6 +58,7 @@ public class AddStaffUserModel : PageModel
             FirstName = FirstName!,
             LastName = LastName!,
             StaffRoles = cleansedRoles,
+            Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Staff
         });

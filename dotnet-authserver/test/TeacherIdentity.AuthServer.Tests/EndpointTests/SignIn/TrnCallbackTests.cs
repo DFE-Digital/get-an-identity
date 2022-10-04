@@ -49,6 +49,7 @@ public class TrnCallbackTests : TestBase
                         FirstName = firstName,
                         LastName = lastName,
                         Trn = trn,
+                        Updated = Clock.UtcNow,
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },
@@ -133,6 +134,8 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(dateOfBirth, user.DateOfBirth);
             Assert.Equal(Clock.UtcNow, user.Created);
             Assert.Equal(Clock.UtcNow, user.CompletedTrnLookup);
+            Assert.Equal(Clock.UtcNow, user.Updated);
+            Assert.Equal(Clock.UtcNow, user.LastSignedIn);
             Assert.Equal(UserType.Default, user.UserType);
 
             var dqtApiCallExpectedTimes = hasTrn ? Times.Once() : Times.Never();

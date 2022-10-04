@@ -106,6 +106,8 @@ public class EmailConfirmationModel : PageModel
         {
             await authenticationState.SignIn(HttpContext);
 
+            user.LastSignedIn = _clock.UtcNow;
+
             _dbContext.AddEvent(new UserSignedIn()
             {
                 ClientId = authenticationState.OAuthState?.ClientId,

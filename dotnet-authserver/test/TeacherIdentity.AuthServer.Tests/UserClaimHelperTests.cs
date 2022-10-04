@@ -22,7 +22,8 @@ public class UserClaimHelperTests
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             Trn = "1234567",
             Created = DateTime.UtcNow,
-            UserType = UserType.Default
+            UserType = UserType.Default,
+            Updated = DateTime.UtcNow
         };
 
         var helper = new UserClaimHelper();
@@ -68,7 +69,8 @@ public class UserClaimHelperTests
             Trn = "1234567",
             CompletedTrnLookup = DateTime.UtcNow,
             Created = DateTime.UtcNow,
-            UserType = UserType.Default
+            UserType = UserType.Default,
+            Updated = DateTime.UtcNow
         };
 
         Func<string, bool> hasScope = s => s == CustomScopes.Trn && haveTrnScope;

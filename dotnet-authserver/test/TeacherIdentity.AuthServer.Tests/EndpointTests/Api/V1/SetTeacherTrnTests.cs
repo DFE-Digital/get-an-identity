@@ -160,8 +160,9 @@ public class SetTeacherTrnTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            user = await dbContext.Users.SingleOrDefaultAsync(u => u.UserId == user.UserId);
-            Assert.Equal(trn, user?.Trn);
+            user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
+            Assert.Equal(trn, user.Trn);
+            Assert.Equal(Clock.UtcNow, user.Updated);
         });
 
         HostFixture.DqtApiClient
