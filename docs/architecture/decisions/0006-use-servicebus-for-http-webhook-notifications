@@ -1,0 +1,26 @@
+# Use Azure Service Bus and Get an identity app to deliver web hook notifications when data changes
+
+04 September 2022
+
+## Status
+
+Accepted
+
+## Context
+
+We have completed a technical spike to look into options for notifying other services of data changes in Get an identity.
+
+We wanted something that used standard protocols and would not place too much load onto the main Get an identity database.
+
+
+## Decision
+
+We will send HTTP web hooks to notify services of data changes for Get an identity users.
+We will use Azure Service Bus to store the notification messages and some code in the Get an identity app to forward those messages to the configured endpoints over HTTP.
+
+For the full details of the spike see [the write up](../../tech-spike-write-ups/webhooks.md).
+
+
+## Consequences
+
+* We will use a mechanism to broadcast data changes to services that is independent of both the platform Get an identity is hosted on and the language and platform that receiving services are built on.
