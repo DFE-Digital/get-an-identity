@@ -12,6 +12,7 @@ public static class TestUsers
         EmailAddress = Faker.Internet.Email(),
         FirstName = Faker.Name.First(),
         LastName = Faker.Name.Last(),
+        Updated = DateTime.UtcNow,
         UserType = UserType.Staff,
         StaffRoles = StaffRoles.All
     };
@@ -24,6 +25,7 @@ public static class TestUsers
         EmailAddress = Faker.Internet.Email(),
         FirstName = Faker.Name.First(),
         LastName = Faker.Name.Last(),
+        Updated = DateTime.UtcNow,
         UserType = UserType.Staff,
         StaffRoles = StaffRoles.None
     };

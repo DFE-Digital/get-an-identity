@@ -56,6 +56,7 @@ public class TrnInUseTests : TestBase
                         FirstName = firstName,
                         LastName = lastName,
                         Trn = trn,
+                        Updated = Clock.UtcNow,
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },
@@ -146,6 +147,7 @@ public class TrnInUseTests : TestBase
                         FirstName = firstName,
                         LastName = lastName,
                         Trn = trn,
+                        Updated = Clock.UtcNow,
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },

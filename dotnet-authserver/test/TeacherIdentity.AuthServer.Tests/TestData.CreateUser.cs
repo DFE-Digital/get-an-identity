@@ -35,7 +35,8 @@ public partial class TestData
                 CompletedTrnLookup = userType is UserType.Default && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
                 UserType = userType,
                 DateOfBirth = userType is UserType.Default ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
-                Trn = hasTrn == true ? GenerateTrn() : null
+                Trn = hasTrn == true ? GenerateTrn() : null,
+                Updated = _clock.UtcNow
             };
 
             dbContext.Users.Add(user);

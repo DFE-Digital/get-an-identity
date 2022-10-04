@@ -51,6 +51,7 @@ public class TrnInUseChooseEmailTests : TestBase
                         FirstName = firstName,
                         LastName = lastName,
                         Trn = trn,
+                        Updated = Clock.UtcNow,
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },
@@ -142,6 +143,7 @@ public class TrnInUseChooseEmailTests : TestBase
                         FirstName = firstName,
                         LastName = lastName,
                         Trn = trn,
+                        Updated = Clock.UtcNow,
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
                     },

@@ -12,13 +12,16 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IBackgroundJobScheduler _backgroundJobScheduler;
+    private readonly IClock _clock;
 
     public SetTeacherTrnHandler(
         TeacherIdentityServerDbContext dbContext,
-        IBackgroundJobScheduler backgroundJobScheduler)
+        IBackgroundJobScheduler backgroundJobScheduler,
+        IClock clock)
     {
         _dbContext = dbContext;
         _backgroundJobScheduler = backgroundJobScheduler;
+        _clock = clock;
     }
 
     public async Task<Unit> Handle(SetTeacherTrnRequest request, CancellationToken cancellationToken)
@@ -36,6 +39,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
         }
 
         user.Trn = request.Body.Trn;
+        user.Updated = _clock.UtcNow;
 
         try
         {

@@ -140,6 +140,7 @@ public partial class AuthenticationStateTests
             FirstName = firstName,
             LastName = lastName,
             Trn = trn,
+            Updated = DateTime.UtcNow,
             UserId = userId,
             UserType = userType
         };
@@ -196,6 +197,7 @@ public partial class AuthenticationStateTests
             FirstName = firstName,
             LastName = lastName,
             StaffRoles = staffRoles,
+            Updated = DateTime.UtcNow,
             UserId = userId,
             UserType = userType
         };
@@ -325,6 +327,7 @@ public partial class AuthenticationStateTests
             EmailAddress = email,
             FirstName = firstName,
             LastName = lastName,
+            Updated = DateTime.UtcNow,
             UserId = userId,
             UserType = UserType.Staff
         };
@@ -374,6 +377,7 @@ public partial class AuthenticationStateTests
             FirstName = firstName,
             LastName = lastName,
             Trn = trn,
+            Updated = DateTime.UtcNow,
             UserId = userId,
             UserType = UserType.Default
         };
@@ -424,6 +428,7 @@ public partial class AuthenticationStateTests
             FirstName = firstName,
             LastName = lastName,
             Trn = trn,
+            Updated = DateTime.UtcNow,
             UserId = userId,
             UserType = UserType.Default
         };
@@ -530,6 +535,7 @@ public partial class AuthenticationStateTests
             FirstName = firstName,
             LastName = lastName,
             Trn = trn,
+            Updated = DateTime.UtcNow,
             UserId = userId,
             UserType = UserType.Default
         };
@@ -673,6 +679,7 @@ public partial class AuthenticationStateTests
                             FirstName = Faker.Name.First(),
                             LastName = Faker.Name.Last(),
                             EmailAddress = "john.doe@example.com",
+                            Updated = DateTime.UtcNow,
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default
                         }, firstTimeSignInForEmail: true)
@@ -719,6 +726,7 @@ public partial class AuthenticationStateTests
                             FirstName = Faker.Name.First(),
                             LastName = Faker.Name.Last(),
                             EmailAddress = Faker.Internet.Email(),
+                            Updated = DateTime.UtcNow,
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default,
                             Trn = "2345678"
@@ -740,6 +748,7 @@ public partial class AuthenticationStateTests
                             FirstName = Faker.Name.First(),
                             LastName = Faker.Name.Last(),
                             EmailAddress = "john.doe@example.com",
+                            Updated = DateTime.UtcNow,
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default
                         })
