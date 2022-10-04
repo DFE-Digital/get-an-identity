@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
+using FluentValidation;
 using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -453,6 +454,8 @@ public class Program
         });
 
         builder.Services.AddSingleton<IEventObserver, NoopEventObserver>();
+
+        builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 
         var app = builder.Build();
 
