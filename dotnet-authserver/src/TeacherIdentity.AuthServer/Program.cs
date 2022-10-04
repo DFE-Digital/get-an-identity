@@ -7,6 +7,7 @@ using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -455,6 +456,8 @@ public class Program
         });
 
         builder.Services.AddSingleton<IEventObserver, NoopEventObserver>();
+
+        builder.Services.AddMediatR(typeof(Program));
 
         builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 

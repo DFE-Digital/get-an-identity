@@ -6,12 +6,15 @@ public static class ErrorRegistry
     {
         new ErrorDescriptor(10001, "UserType must be Teacher"),
         new ErrorDescriptor(10002, "TRN is assigned to another user"),
+        new ErrorDescriptor(10003, "User not found"),
         new ErrorDescriptor(10004, "Request is not valid"),
     }.ToDictionary(d => d.ErrorCode, d => d);
 
     public static Error UserMustBeTeacher() => CreateError(10001);
 
     public static Error TrnIsAssignedToAnotherUser() => CreateError(10002);
+
+    public static Error UserNotFound() => CreateError(10003);
 
     public static Error RequestIsNotValid() => CreateError(10004);
 

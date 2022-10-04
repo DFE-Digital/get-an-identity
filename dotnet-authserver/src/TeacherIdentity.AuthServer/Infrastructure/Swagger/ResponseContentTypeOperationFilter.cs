@@ -22,7 +22,7 @@ public class ResponseContentTypeOperationFilter : IOperationFilter
 
                 bool IsSuccessResponse() => int.TryParse(key, out var statusCode) && statusCode >= 200 && statusCode < 300;
 
-                bool IsClientErrorResponse() => key == "400";
+                bool IsClientErrorResponse() => int.TryParse(key, out var statusCode) && statusCode >= 400 && statusCode < 500;
             }
         }
     }
