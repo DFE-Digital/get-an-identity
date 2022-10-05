@@ -61,6 +61,22 @@ runs:
         TFVARS: ${{ inputs.terraform_vars }}
       working-directory: terraform
 
+    - name: Set environment variables
+      id: set-environment-vars
+      run: |
+        DEPLOY_ENV=${{ inputs.environment_name }}
+        if [[ $DEPLOY_ENV == "dev" ]]; then
+          URL_PREFIX="dev."
+        elif [[ $DEPLOY_ENV == "preprod" ]]; then
+          URL_PREFIX="preprod."
+        else
+          URL_PREFIX=""
+        fi
+        HOSTNAME="https://${URL_PREFIX}teaching-identity.education.gov.uk/"
+
+        echo ::set-output name=hostname::$HOSTNAME
+      shell: bash
+
     - uses: Azure/login@v1
       with:
         creds: ${{ inputs.azure_credentials }}
@@ -80,7 +96,7 @@ runs:
       id: terraform
       run: |
         make ci ${{ inputs.environment_name }} terraform-apply
-        cd terraform && echo ::set-output name=url::https://$(terraform output -raw auth_server_fqdn)/
+        cd terraform && echo ::set-output name=url::${{ steps.set-environment-vars.outputs.hostname }}
         echo ::set-output name=postgres_server_name::$(terraform output -raw postgres_server_name)
         blue_green=$(terraform output -raw blue_green)
         echo ::set-output name=blue_green::$blue_green
@@ -113,7 +129,8 @@ runs:
         echo "Checking new site is up"
         attempt_counter=0
         max_attempts=60
-        SHA_URL=https://${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name }}-auths-app.azurewebsites.net/_sha
+
+        SHA_URL="${{ steps.set-environment-vars.outputs.hostname }}_sha"
         APP_SHA=$(curl $SHA_URL --silent)
         until [[ "$EXPECTED_SHA" == "$APP_SHA" ]]; do
             if [ ${attempt_counter} -eq ${max_attempts} ];then
