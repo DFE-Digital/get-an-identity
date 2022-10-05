@@ -202,7 +202,7 @@ public class TrnInUseTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "Enter a correct security code");
+        await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class TrnInUseTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "You’ve not entered enough numbers, the code must be 5 numbers");
+        await AssertEx.HtmlResponseHasError(response, "Code", "You’ve not entered enough numbers, the code must be 5 numbers");
     }
 
     [Fact]
@@ -250,7 +250,7 @@ public class TrnInUseTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "You’ve entered too many numbers, the code must be 5 numbers");
+        await AssertEx.HtmlResponseHasError(response, "Code", "You’ve entered too many numbers, the code must be 5 numbers");
     }
 
     [Fact]
@@ -274,7 +274,7 @@ public class TrnInUseTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "The code must be 5 numbers");
+        await AssertEx.HtmlResponseHasError(response, "Code", "The code must be 5 numbers");
     }
 
     [Fact]
@@ -301,7 +301,7 @@ public class TrnInUseTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "The security code has expired. New code sent.");
+        await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingTrnOwner.EmailAddress), Times.Once);
     }
@@ -332,7 +332,7 @@ public class TrnInUseTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Code", "Enter a correct security code");
+        await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingTrnOwner.EmailAddress), Times.Never);
     }

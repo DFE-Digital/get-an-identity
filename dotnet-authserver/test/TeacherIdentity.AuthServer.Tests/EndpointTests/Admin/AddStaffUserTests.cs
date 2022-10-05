@@ -87,7 +87,7 @@ public class AddStaffUserTests : TestBase
         var response = await AuthenticatedHttpClient!.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Email", "A user already exists with the specified email address");
+        await AssertEx.HtmlResponseHasError(response, "Email", "A user already exists with the specified email address");
     }
 
     [Fact]

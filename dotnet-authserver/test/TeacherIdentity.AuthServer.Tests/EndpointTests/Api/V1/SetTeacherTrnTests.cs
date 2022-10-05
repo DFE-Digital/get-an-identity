@@ -82,7 +82,7 @@ public class SetTeacherTrnTests : TestBase
         var response = await httpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseIsError(response, expectedErrorCode: 10001, expectedStatusCode: StatusCodes.Status400BadRequest);
+        await AssertEx.JsonResponseIsError(response, expectedErrorCode: 10001, expectedStatusCode: StatusCodes.Status400BadRequest);
     }
 
     [Theory]
@@ -131,7 +131,7 @@ public class SetTeacherTrnTests : TestBase
         var response = await httpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseIsError(response, expectedErrorCode: 10002, expectedStatusCode: StatusCodes.Status400BadRequest);
+        await AssertEx.JsonResponseIsError(response, expectedErrorCode: 10002, expectedStatusCode: StatusCodes.Status400BadRequest);
     }
 
     [Theory]
