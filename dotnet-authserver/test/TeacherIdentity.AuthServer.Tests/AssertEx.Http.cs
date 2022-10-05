@@ -20,7 +20,7 @@ public static partial class AssertEx
         return result!;
     }
 
-    public static async Task ResponseIsError(HttpResponseMessage response, int expectedErrorCode, int expectedStatusCode)
+    public static async Task JsonResponseIsError(HttpResponseMessage response, int expectedErrorCode, int expectedStatusCode)
     {
         var problemDetails = await ResponseIsProblemDetails(response, expectedStatusCode);
 
@@ -28,7 +28,7 @@ public static partial class AssertEx
         Assert.Equal(expectedErrorCode, problemDetails.Extensions?["errorCode"].GetInt32());
     }
 
-    public static async Task ResponseIsValidationErrorForProperty(
+    public static async Task JsonResponseHasValidationErrorForProperty(
         HttpResponseMessage response,
         string propertyName,
         string expectedError,

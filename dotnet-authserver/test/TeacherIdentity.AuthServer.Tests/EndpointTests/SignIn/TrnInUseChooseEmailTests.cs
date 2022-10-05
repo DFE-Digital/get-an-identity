@@ -198,7 +198,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Email", "Enter the email address you want to use");
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter the email address you want to use");
     }
 
     [Fact]

@@ -138,7 +138,7 @@ public class ResendEmailConfirmationTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Email", "Enter your email address");
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter your email address");
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class ResendEmailConfirmationTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.ResponseHasError(response, "Email", "Enter a valid email address");
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
     }
 
     [Fact]
