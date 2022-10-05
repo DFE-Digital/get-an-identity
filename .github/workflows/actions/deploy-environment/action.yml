@@ -112,7 +112,16 @@ runs:
       run: |
         attempt_counter=0
         max_attempts=60
-        SHA_URL=https://${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name }}-auths-app.azurewebsites.net/_sha
+        DEPLOY_ENV=${{ inputs.environment_name }}
+
+        if [[ $DEPLOY_ENV == "dev" ]]; then
+          URL_PREFIX="dev."
+        elif [[ $DEPLOY_ENV == "preprod" ]]; then
+          URL_PREFIX="preprod."
+        else
+          URL_PREFIX=""
+        fi
+        SHA_URL="https://${URL_PREFIX}teaching-identity.education.gov.uk/_sha"
         APP_SHA=$(curl $SHA_URL)
         until [[ "$EXPECTED_SHA" == "$APP_SHA" ]]; do
             if [ ${attempt_counter} -eq ${max_attempts} ];then
