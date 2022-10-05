@@ -110,19 +110,20 @@ runs:
 
     - name: Check new site is up
       run: |
+        echo "Checking new site is up"
         attempt_counter=0
         max_attempts=60
         SHA_URL=https://${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name }}-auths-app.azurewebsites.net/_sha
-        APP_SHA=$(curl $SHA_URL)
+        APP_SHA=$(curl $SHA_URL --silent)
         until [[ "$EXPECTED_SHA" == "$APP_SHA" ]]; do
             if [ ${attempt_counter} -eq ${max_attempts} ];then
               echo "Max attempts reached"
               exit 1
             fi
-            APP_SHA=$(curl $SHA_URL)
-            printf '.'
-            attempt_counter=$(($attempt_counter+1))
+            echo "Attempt $attempt_counter: new site not up, retrying in 5 seconds ..."
             sleep 5
+            attempt_counter=$(($attempt_counter+1))
+            APP_SHA=$(curl $SHA_URL --silent)
         done
       shell: bash
       env:
