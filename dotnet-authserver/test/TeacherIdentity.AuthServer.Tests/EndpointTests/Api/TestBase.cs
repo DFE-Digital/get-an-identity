@@ -16,7 +16,7 @@ public class TestBase
         HostFixture.InitEventObserver();
     }
 
-    public IClock Clock => HostFixture.Services.GetRequiredService<IClock>();
+    public TestClock Clock => (TestClock)HostFixture.Services.GetRequiredService<IClock>();
 
     public CaptureEventObserver EventObserver => HostFixture.EventObserver;
 
