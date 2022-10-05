@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using TeacherIdentity.AuthServer.Api.Filters;
+using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
 using TeacherIdentity.AuthServer.Api.V1.Responses;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
@@ -59,5 +60,25 @@ public class UsersController : ControllerBase
         };
         await _mediator.Send(request);
         return NoContent();
+    }
+
+    [HttpPatch("{userId}")]
+    [SwaggerOperation(summary: "Updates a user")]
+    [ProducesResponseType(typeof(UserInfo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [MapError(10003, statusCode: StatusCodes.Status404NotFound)]
+    [MapError(10005, statusCode: StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UpdateUser(
+        [FromRoute(Name = "userId")] Guid userId,
+        [FromBody] UpdateUserRequestBody? body)
+    {
+        var request = new UpdateUserRequest()
+        {
+            UserId = userId,
+            Body = body ?? new()
+        };
+        var response = await _mediator.Send(request);
+        return Ok(response);
     }
 }
