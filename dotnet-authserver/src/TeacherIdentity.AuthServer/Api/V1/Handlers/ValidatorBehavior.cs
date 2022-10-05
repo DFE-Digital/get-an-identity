@@ -1,11 +1,10 @@
 using FluentValidation;
-using MediatR;
 using MediatR.Pipeline;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Handlers;
 
 public class ValidatorBehavior<TRequest> : IRequestPreProcessor<TRequest>
-    where TRequest : IRequest
+    where TRequest : notnull
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
