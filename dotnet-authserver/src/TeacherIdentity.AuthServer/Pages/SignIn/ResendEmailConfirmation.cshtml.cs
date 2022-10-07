@@ -39,7 +39,15 @@ public class ResendEmailConfirmationModel : PageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
-        await _emailVerificationService.GeneratePin(Email!);
+        var result = await _emailVerificationService.GeneratePin(Email!);
+        if (result.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+        {
+            return new ViewResult()
+            {
+                StatusCode = 429,
+                ViewName = "TooManyRequests"
+            };
+        }
 
         return Redirect(_linkGenerator.EmailConfirmation());
     }

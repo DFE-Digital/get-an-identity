@@ -284,7 +284,7 @@ public class TrnInUseTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         Spy.Get(emailVerificationService).Reset();
 
@@ -293,7 +293,7 @@ public class TrnInUseTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -315,7 +315,7 @@ public class TrnInUseTests : TestBase
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
-        var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
         Spy.Get(emailVerificationService).Reset();
 
@@ -324,7 +324,7 @@ public class TrnInUseTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -344,14 +344,14 @@ public class TrnInUseTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 

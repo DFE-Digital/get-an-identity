@@ -5,8 +5,14 @@ namespace TeacherIdentity.AuthServer.Services.EmailVerification;
 public class RateLimitStoreOptions
 {
     [Required]
-    public required int MaxFailures { get; set; }
+    public required int PinVerificationMaxFailures { get; set; }
 
     [Required]
-    public required int FailureTimeoutSeconds { get; set; }
+    public required int PinVerificationFailureTimeoutSeconds { get; set; }
+
+    [Required]
+    public required int PinGenerationMaxFailures { get; set; }
+
+    [Required]
+    public required int PinGenerationTimeoutSeconds { get; set; }
 }

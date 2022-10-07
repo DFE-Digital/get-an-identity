@@ -243,11 +243,11 @@ public class HostFixture : IAsyncLifetime
             _capturePin = capturePin;
         }
 
-        public async Task<string> GeneratePin(string email)
+        public async Task<PinGenerationResult> GeneratePin(string email)
         {
-            var pin = await _inner.GeneratePin(email);
-            _capturePin(email, pin);
-            return pin;
+            var pinGenerationResult = await _inner.GeneratePin(email);
+            _capturePin(email, pinGenerationResult.Pin!);
+            return pinGenerationResult;
         }
 
         public Task<PinVerificationFailedReasons> VerifyPin(string email, string pin) => _inner.VerifyPin(email, pin);
