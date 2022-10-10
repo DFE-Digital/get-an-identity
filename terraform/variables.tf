@@ -137,6 +137,10 @@ variable "statuscake_alerts" {
   default = {}
 }
 
+variable "domain" {
+  type = string
+}
+
 locals {
   hosting_environment          = var.environment_name
   auth_server_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths-app"
