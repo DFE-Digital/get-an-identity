@@ -151,6 +151,7 @@ locals {
   app_insights_name            = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-appi"
   log_analytics_workspace_name = "${var.resource_prefix}getanid-${var.environment_name}-log"
   app_service_plan_name        = "${var.resource_prefix}getanid-${var.environment_name}-plan"
+  servicebus_namespace_name    = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-sbns"
 
   keyvault_logging_enabled            = var.keyvault_logging_enabled
   storage_diagnostics_logging_enabled = length(var.storage_log_categories) > 0

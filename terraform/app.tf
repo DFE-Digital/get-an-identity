@@ -38,6 +38,7 @@ locals {
       ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
       ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
       ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
+      ConnectionStrings__ServiceBus                = azurerm_servicebus_namespace.sb_namespace.default_primary_connection_string
       DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
       DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
       EncryptionKeys__0                            = local.infrastructure_secrets.ENCRYPTION_KEY0,
@@ -251,4 +252,22 @@ resource "azurerm_linux_web_app" "test-client-app" {
       tags
     ]
   }
+}
+
+resource "azurerm_servicebus_namespace" "sb_namespace" {
+  name                = local.servicebus_namespace_name
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+  sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+
+resource "azurerm_servicebus_queue" "webhooks" {
+  name         = "webhooks"
+  namespace_id = azurerm_servicebus_namespace.sb_namespace.id
 }
