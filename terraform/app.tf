@@ -28,6 +28,7 @@ locals {
         }
     ]...))
   ]...)
+
   auth_server_env_vars = merge(
     local.auth_server_clients_app_env_vars,
     local.auth_server_api_clients_app_env_vars,
@@ -59,7 +60,7 @@ locals {
     ClientId                   = "testclient",
     ClientSecret               = local.infrastructure_secrets.TESTCLIENT_SECRET,
     DOCKER_REGISTRY_SERVER_URL = "https://ghcr.io",
-    SignInAuthority            = "https://${azurerm_linux_web_app.auth-server-app.default_hostname}"
+    SignInAuthority            = "https://${var.domain}"
   }
 }
 
