@@ -5,7 +5,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks
+[Collection(nameof(DisableParallelization))]  // Depends on mocks and changes the clock
 public class EmailConfirmationTests : TestBase
 {
     public EmailConfirmationTests(HostFixture hostFixture)
