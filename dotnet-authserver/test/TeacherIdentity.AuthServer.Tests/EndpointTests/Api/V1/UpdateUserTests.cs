@@ -4,6 +4,7 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
+[Collection(nameof(DisableParallelization))]  // Changes the clock
 public class UpdateUserTests : TestBase
 {
     public UpdateUserTests(HostFixture hostFixture)

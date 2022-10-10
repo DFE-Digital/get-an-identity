@@ -5,7 +5,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
+[Collection(nameof(DisableParallelization))]  // Relies on mocks and changes the clock
 public class TrnInUseTests : TestBase
 {
     public TrnInUseTests(HostFixture hostFixture)
