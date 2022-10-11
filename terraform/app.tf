@@ -54,6 +54,7 @@ locals {
       FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY,
       DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
       DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
+      WebHooks__QueueName                          = azurerm_servicebus_queue.webhooks.name
     }
   )
 
