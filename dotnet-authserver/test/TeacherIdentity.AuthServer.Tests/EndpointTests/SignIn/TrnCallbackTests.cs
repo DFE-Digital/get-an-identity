@@ -40,7 +40,7 @@ public class TrnCallbackTests : TestBase
             if (trnLookupState == AuthenticationState.TrnLookupState.Complete)
             {
                 authState.OnTrnLookupCompletedAndUserRegistered(
-                    new User()
+                    new Models.User()
                     {
                         CompletedTrnLookup = Clock.UtcNow,
                         Created = Clock.UtcNow,
@@ -150,11 +150,11 @@ public class TrnCallbackTests : TestBase
         EventObserver.AssertEventsSaved(
             e =>
             {
-                var userSignedInEvent = Assert.IsType<UserSignedIn>(e);
+                var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
                 Assert.Equal(Clock.UtcNow, userSignedInEvent.CreatedUtc);
                 Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, userSignedInEvent.ClientId);
                 Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.Scope, userSignedInEvent.Scope);
-                Assert.Equal(userId, userSignedInEvent.UserId);
+                Assert.Equal(userId, userSignedInEvent.User.UserId);
             });
     }
 

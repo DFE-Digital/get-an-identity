@@ -51,7 +51,7 @@ public class AddStaffUserModel : PageModel
         var cleansedRoles = StaffRoles?.Where(role => Models.StaffRoles.All.Contains(role))?.ToArray() ?? Array.Empty<string>();
         var userId = Guid.NewGuid();
 
-        _dbContext.Users.Add(new User()
+        var user = new Models.User()
         {
             Created = _clock.UtcNow,
             EmailAddress = Email!,
@@ -61,17 +61,15 @@ public class AddStaffUserModel : PageModel
             Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Staff
-        });
+        };
 
-        _dbContext.AddEvent(new StaffUserAdded()
+        _dbContext.Users.Add(user);
+
+        _dbContext.AddEvent(new StaffUserAddedEvent()
         {
             AddedByUserId = User.GetUserId()!.Value,
             CreatedUtc = _clock.UtcNow,
-            EmailAddress = Email!,
-            FirstName = FirstName!,
-            LastName = LastName!,
-            StaffRoles = cleansedRoles,
-            UserId = userId
+            User = Events.User.FromModel(user)
         });
 
         try

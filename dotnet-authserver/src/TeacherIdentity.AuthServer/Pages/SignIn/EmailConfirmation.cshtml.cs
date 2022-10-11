@@ -108,12 +108,12 @@ public class EmailConfirmationModel : PageModel
 
             user.LastSignedIn = _clock.UtcNow;
 
-            _dbContext.AddEvent(new UserSignedIn()
+            _dbContext.AddEvent(new UserSignedInEvent()
             {
                 ClientId = authenticationState.OAuthState?.ClientId,
                 CreatedUtc = _clock.UtcNow,
                 Scope = authenticationState.OAuthState?.Scope,
-                UserId = user.UserId
+                User = Events.User.FromModel(user)
             });
             await _dbContext.SaveChangesAsync();
         }
