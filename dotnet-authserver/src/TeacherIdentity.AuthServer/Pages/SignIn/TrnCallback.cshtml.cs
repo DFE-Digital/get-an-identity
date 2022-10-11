@@ -59,7 +59,7 @@ public class TrnCallbackModel : PageModel
         }
 
         var userId = Guid.NewGuid();
-        var user = new User()
+        var user = new Models.User()
         {
             CompletedTrnLookup = _clock.UtcNow,
             Created = _clock.UtcNow,
@@ -106,12 +106,12 @@ public class TrnCallbackModel : PageModel
         authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail: true);
         await authenticationState.SignIn(HttpContext);
 
-        _dbContext.AddEvent(new UserSignedIn()
+        _dbContext.AddEvent(new UserSignedInEvent()
         {
             ClientId = authenticationState.OAuthState?.ClientId,
             CreatedUtc = _clock.UtcNow,
             Scope = authenticationState.OAuthState?.Scope,
-            UserId = user.UserId
+            User = Events.User.FromModel(user)
         });
         await _dbContext.SaveChangesAsync();
 

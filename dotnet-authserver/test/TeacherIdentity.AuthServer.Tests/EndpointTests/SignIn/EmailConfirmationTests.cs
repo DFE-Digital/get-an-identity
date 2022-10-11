@@ -348,11 +348,11 @@ public class EmailConfirmationTests : TestBase
         EventObserver.AssertEventsSaved(
             e =>
             {
-                var userSignedInEvent = Assert.IsType<UserSignedIn>(e);
+                var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
                 Assert.Equal(Clock.UtcNow, userSignedInEvent.CreatedUtc);
                 Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, userSignedInEvent.ClientId);
                 Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.Scope, userSignedInEvent.Scope);
-                Assert.Equal(user.UserId, userSignedInEvent.UserId);
+                Assert.Equal(user.UserId, userSignedInEvent.User.UserId);
             });
     }
 

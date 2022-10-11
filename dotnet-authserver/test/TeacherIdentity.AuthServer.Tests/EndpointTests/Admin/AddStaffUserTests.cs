@@ -137,14 +137,10 @@ public class AddStaffUserTests : TestBase
         EventObserver.AssertEventsSaved(
             e =>
             {
-                var staffUserAdded = Assert.IsType<StaffUserAdded>(e);
+                var staffUserAdded = Assert.IsType<StaffUserAddedEvent>(e);
                 Assert.Equal(TestUsers.AdminUserWithAllRoles.UserId, staffUserAdded.AddedByUserId);
                 Assert.Equal(Clock.UtcNow, staffUserAdded.CreatedUtc);
-                Assert.Equal(userId, staffUserAdded.UserId);
-                Assert.Equal(email, staffUserAdded.EmailAddress);
-                Assert.Equal(firstName, staffUserAdded.FirstName);
-                Assert.Equal(lastName, staffUserAdded.LastName);
-                Assert.Equal(expectedRoles, staffUserAdded.StaffRoles);
+                Assert.Equal(userId, staffUserAdded.User.UserId);
             });
     }
 }
