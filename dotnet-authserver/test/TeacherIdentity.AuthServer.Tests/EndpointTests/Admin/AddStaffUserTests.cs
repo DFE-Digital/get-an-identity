@@ -20,14 +20,7 @@ public class AddStaffUserTests : TestBase
     [Fact]
     public async Task Get_AuthenticatedUserDoesNotHavePermission_ReturnsForbidden()
     {
-        // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/admin/staff/new");
-
-        // Act
-        var response = await AuthenticatedHttpClientWithNoRoles!.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, "/admin/staff/new");
     }
 
     [Fact]
@@ -52,14 +45,7 @@ public class AddStaffUserTests : TestBase
     [Fact]
     public async Task Post_AuthenticatedUserDoesNotHavePermission_ReturnsForbidden()
     {
-        // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/staff/new");
-
-        // Act
-        var response = await AuthenticatedHttpClientWithNoRoles!.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post, "/admin/staff/new");
     }
 
     [Fact]

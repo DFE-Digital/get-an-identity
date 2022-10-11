@@ -1,0 +1,17 @@
+@page "/admin/webhooks/{webHookId}"
+@model TeacherIdentity.AuthServer.Pages.Admin.EditWebHookModel
+@{
+    ViewBag.Title = "Edit web hook";
+}
+
+<form asp-page="EditWebHook" asp-route-webHookId="@Model.WebHookId" method="post">
+  <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+  <govuk-input asp-for="Endpoint" type="url" />
+
+  <govuk-checkboxes asp-for="Enabled">
+    <govuk-checkboxes-item value="@true">Enabled</govuk-checkboxes-item>
+  </govuk-checkboxes>
+
+  <govuk-button type="submit" prevent-double-click="true">Save</govuk-button>
+</form>
