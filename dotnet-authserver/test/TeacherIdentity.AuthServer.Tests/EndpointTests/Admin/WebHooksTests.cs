@@ -1,8 +1,8 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
-public class StaffTests : TestBase
+public class WebHooksTests : TestBase
 {
-    public StaffTests(HostFixture hostFixture)
+    public WebHooksTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -10,20 +10,20 @@ public class StaffTests : TestBase
     [Fact]
     public async Task Get_UnauthenticatedUser_RedirectsToSignIn()
     {
-        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Get, "/admin/staff");
+        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Get, "/admin/webhooks");
     }
 
     [Fact]
     public async Task Get_AuthenticatedUserDoesNotHavePermission_ReturnsForbidden()
     {
-        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, "/admin/staff");
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, "/admin/webhooks");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/admin/staff");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/admin/webhooks");
 
         // Act
         var response = await AuthenticatedHttpClient!.SendAsync(request);
