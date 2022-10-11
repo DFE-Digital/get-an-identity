@@ -386,6 +386,8 @@ public class Program
             builder.Services.AddSingleton<IRateLimitStore, NoopRateLimitStore>();
         }
 
+        builder.Services.AddTransient<IRequestClientIpProvider, RequestClientIpProvider>();
+
         builder.Services.AddSingleton<IClock, SystemClock>();
 
         builder.Services.AddTransient<IEmailVerificationService, EmailVerificationService>();

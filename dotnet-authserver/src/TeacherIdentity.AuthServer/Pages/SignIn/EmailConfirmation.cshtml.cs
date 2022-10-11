@@ -65,14 +65,14 @@ public class EmailConfirmationModel : PageModel
                 return new ViewResult()
                 {
                     StatusCode = 429,
-                    ViewName = "TooManyRequests"
+                    ViewName = "TooManyPinVerificationRequests"
                 };
             }
 
 
             if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
             {
-                await _emailVerificationService.GeneratePin(Email!);
+                var result = await _emailVerificationService.GeneratePin(Email!);
                 ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
             }
             else

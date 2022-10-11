@@ -35,6 +35,28 @@ public class EmailTests : TestBase
     }
 
     [Fact]
+    public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
+    {
+        // Arrange
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(It.IsAny<string>())).Returns(Task.FromResult(true));
+        var authStateHelper = CreateAuthenticationStateHelper();
+        var email = Faker.Internet.Email();
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+                .Add("Email", email)
+                .ToContent()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
+    }
+
+
+    [Fact]
     public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange

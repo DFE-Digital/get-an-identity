@@ -158,7 +158,7 @@ public class EmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(email);
+        var pinResult = await emailVerificationService.GeneratePin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         Spy.Get(emailVerificationService).Reset();
 
@@ -166,7 +166,7 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -187,7 +187,7 @@ public class EmailConfirmationTests : TestBase
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
-        var pin = await emailVerificationService.GeneratePin(email);
+        var pinResult = await emailVerificationService.GeneratePin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
         Spy.Get(emailVerificationService).Reset();
 
@@ -195,7 +195,7 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -215,13 +215,13 @@ public class EmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(email);
+        var pinResult = await emailVerificationService.GeneratePin(email);
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -245,13 +245,13 @@ public class EmailConfirmationTests : TestBase
         var user = await TestData.CreateUser(hasTrn: hasTrn);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -275,13 +275,13 @@ public class EmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(email);
+        var pinResult = await emailVerificationService.GeneratePin(email);
 
         var authStateHelper = CreateAuthenticationStateHelper(email, scope: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -296,17 +296,17 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(false));
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(false));
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -321,16 +321,16 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(false));
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(false));
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -360,16 +360,16 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_BlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlocked(It.IsAny<string>())).Returns(Task.FromResult(true));
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(true));
         var email = Faker.Internet.Email();
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(email);
+        var pinResult = await emailVerificationService.GeneratePin(email);
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 
@@ -387,13 +387,13 @@ public class EmailConfirmationTests : TestBase
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(user.EmailAddress);
+        var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
         var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
+                .Add("Code", pinResult.Pin!)
                 .ToContent()
         };
 

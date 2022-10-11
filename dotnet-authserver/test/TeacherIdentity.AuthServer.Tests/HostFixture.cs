@@ -35,6 +35,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public Mock<IRateLimitStore> RateLimitStore { get; } = new Mock<IRateLimitStore>();
 
+    public IRequestClientIpProvider RequestClientIpProvider => Services.GetRequiredService<IRequestClientIpProvider>();
+
     public Spy<IEmailVerificationService> EmailVerificationService => Spy.Get(Services.GetRequiredService<IEmailVerificationService>());
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
@@ -73,6 +75,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         DqtApiClient.Reset();
         EmailSender.Reset();
         EmailVerificationService.Reset();
+        RateLimitStore.Reset();
     }
 
     public async Task SignInUser(
@@ -126,10 +129,10 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();
             services.AddSingleton<IEventObserver, CaptureEventObserver>();
-
             services.AddSingleton(DqtApiClient.Object);
             services.AddSingleton(EmailSender.Object);
             services.AddSingleton(RateLimitStore.Object);
+            services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
             services.Decorate<IEmailVerificationService>(inner => Spy.Of(inner));
         });
     }
@@ -146,7 +149,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
         {
-            app.UseMiddleware<SetRemoteIPAddressMiddleware>();
+            var httpContextAccessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
             next(app);
             app.MapWhen(
                 ctx => ctx.Request.Path == new PathString("/_sign-in") && ctx.Request.Method == HttpMethods.Post,

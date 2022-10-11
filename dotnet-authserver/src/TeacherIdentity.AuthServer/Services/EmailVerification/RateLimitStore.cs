@@ -18,12 +18,22 @@ public class RateLimitStore : IRateLimitStore
 
     public async Task AddFailedPinVerification(string clientIp)
     {
-        await _connectionMultiplexer.GetDatabase().ScriptEvaluateAsync(_atomicIncrement, new { key = new RedisKey($"pin-failed-{clientIp}"), timeout = _rateLimitOptions.Value.FailureTimeoutSeconds });
+        await _connectionMultiplexer.GetDatabase().ScriptEvaluateAsync(_atomicIncrement, new { key = new RedisKey($"pin-failed-{clientIp}"), timeout = _rateLimitOptions.Value.PinVerificationFailureTimeoutSeconds });
     }
 
-    public async Task<bool> IsClientIpBlocked(string clientIp)
+    public async Task<bool> IsClientIpBlockedForPinVerification(string clientIp)
     {
         var failureCountForClientIp = await _connectionMultiplexer.GetDatabase().StringGetAsync(new RedisKey($"pin-failed-{clientIp}"));
-        return !(failureCountForClientIp.IsNullOrEmpty || (int)failureCountForClientIp <= _rateLimitOptions.Value.MaxFailures);
+        return !(failureCountForClientIp.IsNullOrEmpty || (int)failureCountForClientIp <= _rateLimitOptions.Value.PinVerificationMaxFailures);
+    }
+
+    public async Task<bool> IsClientIpBlockedForPinGeneration(string clientIp)
+    {
+        var failureCountForClientIp = await _connectionMultiplexer.GetDatabase().StringGetAsync(new RedisKey($"pin-generation-{clientIp}"));
+        return !(failureCountForClientIp.IsNullOrEmpty || (int)failureCountForClientIp <= _rateLimitOptions.Value.PinGenerationMaxFailures);
+    }
+    public async Task AddPinGeneration(string clientIp)
+    {
+        await _connectionMultiplexer.GetDatabase().ScriptEvaluateAsync(_atomicIncrement, new { key = new RedisKey($"pin-generation-{clientIp}"), timeout = _rateLimitOptions.Value.PinGenerationTimeoutSeconds });
     }
 }

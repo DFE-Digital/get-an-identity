@@ -17,7 +17,7 @@ public class EmailVerificationService : IEmailVerificationService
     private readonly ILogger<EmailVerificationService> _logger;
     private readonly TimeSpan _pinLifetime;
     private readonly IRateLimitStore _rateLimiter;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IRequestClientIpProvider _clientIpProvider;
 
     public EmailVerificationService(
         TeacherIdentityServerDbContext dbContext,
@@ -27,7 +27,7 @@ public class EmailVerificationService : IEmailVerificationService
         IOptions<EmailVerificationOptions> optionsAccessor,
         ILogger<EmailVerificationService> logger,
         IRateLimitStore rateLimiter,
-        IHttpContextAccessor httpContextAccessor)
+        IRequestClientIpProvider clientIpProvider)
     {
         _dbContext = dbContext;
         _emailSender = emailSender;
@@ -36,11 +36,17 @@ public class EmailVerificationService : IEmailVerificationService
         _logger = logger;
         _pinLifetime = TimeSpan.FromSeconds(optionsAccessor.Value.PinLifetimeSeconds);
         _rateLimiter = rateLimiter;
-        _httpContextAccessor = httpContextAccessor;
+        _clientIpProvider = clientIpProvider; ;
     }
 
-    public async Task<string> GeneratePin(string email)
+    public async Task<PinGenerationResult> GeneratePin(string email)
     {
+        var ip = _clientIpProvider.GetClientIpAddress();
+        if (await _rateLimiter.IsClientIpBlockedForPinGeneration(ip))
+        {
+            return PinGenerationResult.Failed(PinGenerationFailedReasons.RateLimitExceeded);
+        }
+
         // Generate a random PIN then try to insert it into the DB for the specified email address.
         // If it's a duplicate, repeat...
 
@@ -51,6 +57,9 @@ public class EmailVerificationService : IEmailVerificationService
         while (true)
         {
             pin = GeneratePin();
+
+            //always track pin generation counts for ip address
+            await _rateLimiter.AddPinGeneration(ip);
 
             try
             {
@@ -94,20 +103,15 @@ public class EmailVerificationService : IEmailVerificationService
 
         _logger.LogInformation("Generated email confirmation PIN {Pin} for {Email}", pin, email);
 
-        return pin;
+        return PinGenerationResult.Success(pin);
 
         static string GeneratePin() => RandomNumberGenerator.GetInt32(fromInclusive: 10_000, toExclusive: 99_999 + 1).ToString();
     }
 
     public async Task<PinVerificationFailedReasons> VerifyPin(string email, string pin)
     {
-        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
-        if (string.IsNullOrEmpty(ip))
-        {
-            throw new Exception("RemoteIpAddress is missing from HttpContext.");
-        }
-
-        if (await _rateLimiter.IsClientIpBlocked(ip!))
+        var ip = _clientIpProvider.GetClientIpAddress();
+        if (await _rateLimiter.IsClientIpBlockedForPinVerification(ip!))
         {
             return PinVerificationFailedReasons.RateLimitExceeded;
         }
