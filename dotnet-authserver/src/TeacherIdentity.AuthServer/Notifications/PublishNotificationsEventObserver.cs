@@ -44,7 +44,7 @@ public class PublishNotificationsEventObserver : IEventObserver
                 {
                     User = Messages.User.FromEvent(userSignedIn.User)
                 },
-                MessageType = nameof(UserSignedInMessage),
+                MessageType = UserSignedInMessage.MessageTypeName,
                 TimeUtc = userSignedIn.CreatedUtc
             };
         }
