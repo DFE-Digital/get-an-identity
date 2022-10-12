@@ -6,7 +6,7 @@ using Serilog.Context;
 
 namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 
-public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
+public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public const string AuthenticationScheme = "ApiKey";
     private const string AuthenticationHeaderScheme = "Bearer";
@@ -15,7 +15,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
     public ApiKeyAuthenticationHandler(
         IApiClientRepository clientRepository,
-        IOptionsMonitor<ApiKeyAuthenticationOptions> options,
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
         ISystemClock clock)

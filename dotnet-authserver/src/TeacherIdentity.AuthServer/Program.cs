@@ -9,6 +9,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -175,7 +176,7 @@ public class Program
                     }
                 };
             })
-            .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
 
         builder.Services.AddAuthorization(options =>
         {
