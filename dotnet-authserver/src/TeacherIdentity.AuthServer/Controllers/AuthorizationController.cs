@@ -79,10 +79,18 @@ public class AuthorizationController : Controller
                     }));
             }
 
+            // If the user is signed in with an incompatible UserType then force the user to sign in again
+            var principal = authenticateResult?.Principal ?? new ClaimsPrincipal();
+            var permittedUserTypes = userRequirements.GetPermittedUserTypes();
+            if (principal.GetUserType(throwIfMissing: false) is UserType userType && !permittedUserTypes.Contains(userType))
+            {
+                principal = new ClaimsPrincipal();
+            }
+
             authenticationState = AuthenticationState.FromInternalClaims(
                 journeyId,
                 userRequirements,
-                authenticateResult?.Principal ?? new ClaimsPrincipal(),
+                principal,
                 GetCallbackUrl(journeyId),
                 new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
                 firstTimeSignInForEmail: authenticateResult?.Succeeded != true);
