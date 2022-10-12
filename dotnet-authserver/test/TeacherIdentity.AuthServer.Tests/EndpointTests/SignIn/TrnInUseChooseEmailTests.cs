@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -273,16 +272,6 @@ public class TrnInUseChooseEmailTests : TestBase
 
             return user.UserId;
         });
-
-        EventObserver.AssertEventsSaved(
-            e =>
-            {
-                var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
-                Assert.Equal(Clock.UtcNow, userSignedInEvent.CreatedUtc);
-                Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, userSignedInEvent.ClientId);
-                Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.Scope, userSignedInEvent.Scope);
-                Assert.Equal(userId, userSignedInEvent.User.UserId);
-            });
     }
 
     private AuthenticationStateHelper CreateAuthenticationStateHelper(string email, string existingTrnOwnerEmail) =>

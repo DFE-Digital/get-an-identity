@@ -163,6 +163,17 @@ public class Program
 
                     return Task.CompletedTask;
                 };
+
+                options.Events.OnSignedIn = async ctx =>
+                {
+                    var authenticationState = ctx.HttpContext.GetAuthenticationState();
+
+                    // AuthorizationController handles events for OAuth journeys
+                    if (authenticationState.OAuthState is null)
+                    {
+                        await ctx.HttpContext.SaveUserSignedInEvent(ctx.Principal!);
+                    }
+                };
             })
             .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
 

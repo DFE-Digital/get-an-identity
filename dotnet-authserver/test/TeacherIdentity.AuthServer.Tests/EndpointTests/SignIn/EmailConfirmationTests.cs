@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -344,16 +343,6 @@ public class EmailConfirmationTests : TestBase
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
         Assert.False(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
-
-        EventObserver.AssertEventsSaved(
-            e =>
-            {
-                var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
-                Assert.Equal(Clock.UtcNow, userSignedInEvent.CreatedUtc);
-                Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, userSignedInEvent.ClientId);
-                Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.Scope, userSignedInEvent.Scope);
-                Assert.Equal(user.UserId, userSignedInEvent.User.UserId);
-            });
     }
 
     [Fact]

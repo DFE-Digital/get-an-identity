@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
@@ -105,15 +104,6 @@ public class TrnCallbackModel : PageModel
 
         authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail: true);
         await authenticationState.SignIn(HttpContext);
-
-        _dbContext.AddEvent(new UserSignedInEvent()
-        {
-            ClientId = authenticationState.OAuthState?.ClientId,
-            CreatedUtc = _clock.UtcNow,
-            Scope = authenticationState.OAuthState?.Scope,
-            User = Events.User.FromModel(user)
-        });
-        await _dbContext.SaveChangesAsync();
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }
