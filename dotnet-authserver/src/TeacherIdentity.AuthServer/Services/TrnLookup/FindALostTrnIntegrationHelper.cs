@@ -38,6 +38,7 @@ public class FindALostTrnIntegrationHelper
 
         var request = _httpContextAccessor.HttpContext!.Request;
         var callbackUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{_linkGenerator.TrnCallback()}";
+        var previousUrl = $"{request.Scheme}://{request.Host}{request.PathBase}{_linkGenerator.Trn()}";
 
         var formValues = new Dictionary<string, string>()
         {
@@ -47,7 +48,7 @@ public class FindALostTrnIntegrationHelper
             { "client_title", clientDisplayName ?? string.Empty },
             { "journey_id", authenticationState.JourneyId.ToString() },
             { "client_url", clientServiceUrl },
-            { "previous_url", _linkGenerator.Trn() }
+            { "previous_url", previousUrl }
         };
 
         var sig = CalculateSignature(formValues);
