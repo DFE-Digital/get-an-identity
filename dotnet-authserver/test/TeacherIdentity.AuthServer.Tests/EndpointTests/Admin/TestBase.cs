@@ -42,6 +42,8 @@ public partial class TestBase : IAsyncLifetime
 
         await HostFixture.SignInUser(authenticationState.JourneyId, httpClient, userId, firstTimeSignInForEmail: false);
 
+        EventObserver.Clear();
+
         return httpClient;
     }
 

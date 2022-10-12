@@ -206,6 +206,8 @@ public class AuthorizationController : Controller
                     claim.SetDestinations(GetDestinations(claim, principal));
                 }
 
+                await HttpContext.SaveUserSignedInEvent(principal);
+
                 return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
             // At this point, no authorization was found in the database and an error must be returned
