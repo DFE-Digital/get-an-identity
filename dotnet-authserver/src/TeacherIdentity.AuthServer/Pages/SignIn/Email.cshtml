@@ -4,14 +4,14 @@
     ViewBag.Title = "Your email address";
 }
 
-<form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+    <form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
       <govuk-input asp-for="Email" type="email" autocomplete="email">
         <govuk-input-label class="govuk-label--xl" is-page-heading="true" />
       </govuk-input>
 
       <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
-    </div>
+    </form>
   </div>
-</form>
+</div>

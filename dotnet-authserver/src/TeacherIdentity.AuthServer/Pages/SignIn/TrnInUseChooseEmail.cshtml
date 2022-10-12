@@ -4,9 +4,9 @@
     ViewBag.Title = "Which email address do you want to use?";
 }
 
-<form action="@LinkGenerator.TrnInUseChooseEmail()" method="post" asp-antiforgery="true">
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+    <form action="@LinkGenerator.TrnInUseChooseEmail()" method="post" asp-antiforgery="true">
       <govuk-radios asp-for="Email">
         <govuk-radios-fieldset>
           <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl">
@@ -19,6 +19,6 @@
       </govuk-radios>
 
       <govuk-button type="submit" prevent-double-click="true">Continue</govuk-button>
-    </div>
+    </form>
   </div>
-</form>
+</div>

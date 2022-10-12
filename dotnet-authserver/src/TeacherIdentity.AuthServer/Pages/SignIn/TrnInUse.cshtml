@@ -5,9 +5,9 @@
     ViewBag.Title = "Your email address is different to the one on record";
 }
 
-<form action="@LinkGenerator.TrnInUse()" method="post" asp-antiforgery="true">
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+    <form action="@LinkGenerator.TrnInUse()" method="post" asp-antiforgery="true">
       <h1 class="govuk-heading-xl">Your email address is different to the one on record</h1>
 
       <p>This could be because you’ve used this service before, and you are:</p>
@@ -34,6 +34,6 @@
         <li><a href="@LinkGenerator.TrnInUseCannotAccessEmail()">I cannot access this email address</a></li>
         <li><a href="@LinkGenerator.ResendTrnOwnerEmailConfirmation()">I have not received an email</a></li>
       </ul>
-    </div>
+    </form>
   </div>
-</form>
+</div>
