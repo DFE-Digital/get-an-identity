@@ -11,7 +11,7 @@ public class SignIn : IClassFixture<HostFixture>
     public SignIn(HostFixture hostFixture)
     {
         _hostFixture = hostFixture;
-        _hostFixture.ResetMocks();
+        _hostFixture.OnTestStarting();
     }
 
     [Fact]
@@ -20,11 +20,11 @@ public class SignIn : IClassFixture<HostFixture>
         var email = "joe.bloggs+existing-user@example.com";
         var trn = "1234567";
 
+        var userId = Guid.NewGuid();
+
         {
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
 
             dbContext.Users.Add(new User()
             {
@@ -74,6 +74,10 @@ public class SignIn : IClassFixture<HostFixture>
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
         Assert.Equal(email, signedInEmail);
+
+        // Check events have been emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
     }
 
     [Fact]
@@ -81,11 +85,11 @@ public class SignIn : IClassFixture<HostFixture>
     {
         var email = "admin.user@example.com";
 
+        var userId = Guid.NewGuid();
+
         {
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
 
             dbContext.Users.Add(new User()
             {
@@ -132,6 +136,10 @@ public class SignIn : IClassFixture<HostFixture>
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
         Assert.Equal(string.Empty, await page.InnerTextAsync("data-testid=trn"));
         Assert.Equal(email, signedInEmail);
+
+        // Check events have been emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
     }
 
     [Theory]
@@ -221,11 +229,11 @@ public class SignIn : IClassFixture<HostFixture>
         var dateOfBirth = new DateOnly(1990, 1, 2);
         var trnOwnerEmailAddress = Faker.Internet.Email();
 
+        var userId = Guid.NewGuid();
+
         {
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
 
             dbContext.Users.Add(new User()
             {
@@ -310,6 +318,10 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
         Assert.Equal(trnOwnerEmailAddress, await page.InnerTextAsync("data-testid=email"));
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+
+        // Check events have been emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
     }
 
     [Fact]
@@ -357,6 +369,15 @@ public class SignIn : IClassFixture<HostFixture>
         // Should get a Forbidden error
 
         await page.WaitForSelectorAsync("h1:has-text('Forbidden')");
+    }
+
+    private void AssertEventIsUserSignedIn(Events.EventBase @event, Guid userId)
+    {
+        var userSignedIn = Assert.IsType<Events.UserSignedInEvent>(@event);
+        Assert.Equal(_hostFixture.TestClientId, userSignedIn.ClientId);
+        Assert.Equal(DateTime.UtcNow, userSignedIn.CreatedUtc, TimeSpan.FromSeconds(10));
+        Assert.Equal(userId, userSignedIn.User.UserId);
+        Assert.NotEmpty(userSignedIn.Scope);
     }
 
     private async Task SignInAsNewTeacherUser(

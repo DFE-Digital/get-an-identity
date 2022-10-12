@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.EndToEndTests.Infrastructure;
+using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -39,8 +41,12 @@ public class HostFixture : IAsyncLifetime
 
     public IReadOnlyCollection<(string Email, string Pin)> CapturedEmailConfirmationPins => _capturedEmailConfirmationPins.AsReadOnly();
 
+    public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
+
     public Task<IBrowserContext> CreateBrowserContext() =>
         Browser!.NewContextAsync(new BrowserNewContextOptions() { BaseURL = ClientBaseUrl });
+
+    public string TestClientId => GetTestConfiguration()["Client:ClientId"];
 
     public async Task DisposeAsync()
     {
@@ -100,9 +106,10 @@ public class HostFixture : IAsyncLifetime
         Browser = await _playright.Chromium.LaunchAsync(browserOptions);
     }
 
-    public void ResetMocks()
+    public void OnTestStarting()
     {
         Fake.ClearRecordedCalls(DqtApiClient);
+        EventObserver.Clear();
     }
 
     private Host<TeacherIdentity.AuthServer.Program> CreateAuthServerHost(IConfiguration testConfiguration) =>
@@ -118,6 +125,7 @@ public class HostFixture : IAsyncLifetime
                     services.AddSingleton<IDqtApiClient>(DqtApiClient);
                     services.Decorate<IEmailVerificationService>(inner =>
                         new CapturePinsEmailVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
+                    services.AddSingleton<IEventObserver, CaptureEventObserver>();
                 });
             });
 
