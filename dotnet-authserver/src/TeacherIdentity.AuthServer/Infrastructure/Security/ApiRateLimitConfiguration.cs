@@ -7,6 +7,8 @@ namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 
 public class ApiRateLimitConfiguration : RateLimitConfiguration
 {
+    private const string UnknownClientId = "__UNKNOWN__";
+
     public ApiRateLimitConfiguration(IOptions<IpRateLimitOptions> ipOptions, IOptions<ClientRateLimitOptions> clientOptions)
         : base(ipOptions, clientOptions)
     {
@@ -23,12 +25,7 @@ public class ApiRateLimitConfiguration : RateLimitConfiguration
     {
         public Task<string> ResolveClientAsync(HttpContext httpContext)
         {
-            var clientId = httpContext.User.FindFirstValue(Claims.ClientId);
-
-            if (clientId is null)
-            {
-                throw new Exception("Failed to identify current client");
-            }
+            var clientId = httpContext.User.FindFirstValue(Claims.ClientId) ?? UnknownClientId;
 
             return Task.FromResult(clientId);
         }
