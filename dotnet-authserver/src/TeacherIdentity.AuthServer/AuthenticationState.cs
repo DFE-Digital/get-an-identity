@@ -80,6 +80,13 @@ public class AuthenticationState
     [JsonInclude]
     public bool HaveResumedCompletedJourney { get; private set; }
 
+    public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
+    {
+        var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: Claims.Role);
+        var principal = new ClaimsPrincipal(identity);
+        return principal;
+    }
+
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
@@ -373,7 +380,7 @@ public class AuthenticationState
         HaveResumedCompletedJourney = true;
     }
 
-    [Obsolete("This is for use by tests only.")]
+    // This is for use in tests
     public void Populate(User user, bool firstTimeSignInForEmail)
     {
         UserId = user.UserId;
@@ -399,9 +406,7 @@ public class AuthenticationState
         }
 
         var claims = GetInternalClaims();
-
-        var identity = new ClaimsIdentity(claims, authenticationType: "email", nameType: Claims.Name, roleType: Claims.Role);
-        var principal = new ClaimsPrincipal(identity);
+        var principal = CreatePrincipal(claims);
 
         // If we're signing in within an OAuth flow then keep the lifetime short
         var expiresUtc = DateTimeOffset.UtcNow.Add(

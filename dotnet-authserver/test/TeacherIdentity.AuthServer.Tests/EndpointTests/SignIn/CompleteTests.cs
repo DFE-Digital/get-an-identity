@@ -131,13 +131,27 @@ public class CompleteTests : TestBase
         bool haveResumedCompletedJourney = false,
         string scope = "trn")
     {
+        if (userType != UserType.Teacher && firstTimeSignInForEmail == true)
+        {
+            throw new ArgumentException("Cannot set firstTimeSignInForEmail = true for Staff users; we don't support registering Staff users.");
+        }
+
         var user = await TestData.CreateUser(userType: userType, hasTrn: hasTrn);
 
         var authenticationStateHelper = CreateAuthenticationStateHelper(
             authState =>
             {
                 authState.OnEmailSet(user.EmailAddress);
-                authState.OnEmailVerified(user);
+
+                if (userType == UserType.Default)
+                {
+                    authState.OnEmailVerified(user: null);
+                    authState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail);
+                }
+                else
+                {
+                    authState.OnEmailVerified(user);
+                }
 
                 authState.EnsureOAuthState();
                 authState.OAuthState.SetAuthorizationResponse(
@@ -154,8 +168,6 @@ public class CompleteTests : TestBase
                 }
             },
             scope);
-
-        await HostFixture.SignInUser(authenticationStateHelper, httpClient, user!.UserId, firstTimeSignInForEmail);
 
         return authenticationStateHelper;
     }

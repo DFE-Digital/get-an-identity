@@ -19,9 +19,7 @@ public class SignInUserMiddleware
         var user = await dbContext.Users.SingleAsync(u => u.UserId == userId);
 
         var authenticationState = context.GetAuthenticationState();
-#pragma warning disable CS0618 // Type or member is obsolete
         authenticationState.Populate(user, firstTimeSignInForEmail);
-#pragma warning restore CS0618 // Type or member is obsolete
 
         await authenticationState.SignIn(context);
     }
