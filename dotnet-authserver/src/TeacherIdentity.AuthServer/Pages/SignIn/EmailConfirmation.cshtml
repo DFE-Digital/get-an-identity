@@ -4,9 +4,9 @@
     ViewBag.Title = "Confirm your email address";
 }
 
-<form action="@LinkGenerator.EmailConfirmation()" method="post" asp-antiforgery="true">
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+    <form action="@LinkGenerator.EmailConfirmation()" method="post" asp-antiforgery="true">
       <h1 class="govuk-heading-xl">Confirm your email address</h1>
 
       <p>We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
@@ -20,6 +20,6 @@
       </p>
 
       <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
-    </div>
+    </form>
   </div>
-</form>
+</div>

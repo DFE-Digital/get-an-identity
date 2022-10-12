@@ -8,9 +8,9 @@
   <govuk-back-link href="@LinkGenerator.EmailConfirmation()" />
 }
 
-<form action="@LinkGenerator.ResendEmailConfirmation()" method="post" asp-antiforgery="true">
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+    <form action="@LinkGenerator.ResendEmailConfirmation()" method="post" asp-antiforgery="true">
       <h1 class="govuk-heading-xl">Request a new security code</h1>
 
       <p>Emails sometimes take a few minutes to arrive. If you do not receive the email, you can request a new one.</p>
@@ -23,6 +23,6 @@
       </govuk-details>
 
       <govuk-button prevent-double-click="true" type="submit">Request a new code</govuk-button>
-    </div>
+    </form>
   </div>
-</form>
+</div>
