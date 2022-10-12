@@ -122,6 +122,12 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // Add the /_sign-in endpoint & assign fixed ip address
             services.AddSingleton<IStartupFilter>(new AssignTestMiddlewareStartupFilter());
 
+            // Add the filter that automatically signs in users if the active AuthenticationState has a UserId set
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new SignInUserPageFilter());
+            });
+
             // Disable the HTTPS requirement for OpenIddict
             services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
 
@@ -149,8 +155,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
         {
-            var httpContextAccessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
             next(app);
+
             app.MapWhen(
                 ctx => ctx.Request.Path == new PathString("/_sign-in") && ctx.Request.Method == HttpMethods.Post,
                 app => app.UseMiddleware<SignInUserMiddleware>());
