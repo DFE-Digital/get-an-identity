@@ -142,6 +142,58 @@ public class SignIn : IClassFixture<HostFixture>
         _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
     }
 
+    [Fact]
+    public async Task StaffUser_CanSignInToAdminPageSuccessfullyWithEmailAndPin()
+    {
+        var email = "admin.user3@example.com";
+
+        var userId = Guid.NewGuid();
+
+        {
+            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+            dbContext.Users.Add(new User()
+            {
+                Created = DateTime.UtcNow,
+                EmailAddress = email,
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                UserId = userId,
+                UserType = UserType.Staff,
+                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
+                Updated = DateTime.UtcNow
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        // Try to access protected admin area on auth server
+
+        await page.GotoAsync($"{HostFixture.AuthServerBaseUrl}/admin/staff");
+
+        // Fill in the sign in form (email + PIN)
+
+        await page.FillAsync("text=Email", email);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the originally request URL, /admin/staff
+
+        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
+        Assert.EndsWith("/admin/staff", page.Url);
+
+        // Check events have been emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId, expectOAuthProperties: false));
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -371,13 +423,20 @@ public class SignIn : IClassFixture<HostFixture>
         await page.WaitForSelectorAsync("h1:has-text('Forbidden')");
     }
 
-    private void AssertEventIsUserSignedIn(Events.EventBase @event, Guid userId)
+    private void AssertEventIsUserSignedIn(
+        Events.EventBase @event,
+        Guid userId,
+        bool expectOAuthProperties = true)
     {
         var userSignedIn = Assert.IsType<Events.UserSignedInEvent>(@event);
-        Assert.Equal(_hostFixture.TestClientId, userSignedIn.ClientId);
         Assert.Equal(DateTime.UtcNow, userSignedIn.CreatedUtc, TimeSpan.FromSeconds(10));
         Assert.Equal(userId, userSignedIn.User.UserId);
-        Assert.NotEmpty(userSignedIn.Scope);
+
+        if (expectOAuthProperties)
+        {
+            Assert.Equal(_hostFixture.TestClientId, userSignedIn.ClientId);
+            Assert.NotEmpty(userSignedIn.Scope);
+        }
     }
 
     private async Task SignInAsNewTeacherUser(
