@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications.Messages;
 
@@ -31,7 +32,8 @@ public class WebHookNotificationPublisher : INotificationPublisher
         Converters =
         {
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false),
-            new NotificationMessageSerializer()
+            new NotificationMessageSerializer(),
+            new DateOnlyConverter()
         },
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
