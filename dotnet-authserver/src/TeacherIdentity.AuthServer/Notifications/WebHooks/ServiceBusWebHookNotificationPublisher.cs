@@ -112,6 +112,8 @@ public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotification
                 return;
             }
 
+            _logger.LogWarning(ex, "Error processing message.");
+
             // Enqueue a clone of this message with a future processing time, based on the retry number and _retryIntervals
             retryNumber++;
             var enqueueInterval = _retryIntervals[retryNumber - 1];
