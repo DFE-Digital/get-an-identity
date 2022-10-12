@@ -629,6 +629,16 @@ public class Program
             {
                 endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
             }
+
+            if (builder.Environment.IsDevelopment())
+            {
+                endpoints.MapPost("/webhook", async context =>
+                {
+                    using var sr = new StreamReader(context.Request.Body);
+                    var body = await sr.ReadToEndAsync();
+                    Console.WriteLine(body);
+                });
+            }
         });
 
         app.UseSwagger(options =>
