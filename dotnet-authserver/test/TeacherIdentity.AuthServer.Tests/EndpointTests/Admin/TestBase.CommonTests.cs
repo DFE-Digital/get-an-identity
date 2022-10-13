@@ -5,10 +5,12 @@ public partial class TestBase
     public async Task AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod method, string url, HttpContent? content = null)
     {
         // Arrange
+        HostFixture.SetUserId(TestUsers.AdminUserWithNoRoles.UserId);
+
         var request = new HttpRequestMessage(method, url);
 
         // Act
-        var response = await AuthenticatedHttpClientWithNoRoles!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
@@ -17,7 +19,7 @@ public partial class TestBase
     public async Task UnauthenticatedUser_RedirectsToSignIn(HttpMethod method, string url, HttpContent? content = null)
     {
         // Arrange
-        var httpClient = CreateAuthenticatedHttpClient();
+        HostFixture.SetUserId(null);
 
         var request = new HttpRequestMessage(method, url);
 
@@ -27,7 +29,7 @@ public partial class TestBase
         }
 
         // Act
-        var response = await httpClient.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);

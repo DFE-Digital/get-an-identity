@@ -30,7 +30,7 @@ public class AddStaffUserTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Get, "/admin/staff/new");
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -70,7 +70,7 @@ public class AddStaffUserTests : TestBase
         };
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Email", "A user already exists with the specified email address");
@@ -98,7 +98,7 @@ public class AddStaffUserTests : TestBase
         };
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);

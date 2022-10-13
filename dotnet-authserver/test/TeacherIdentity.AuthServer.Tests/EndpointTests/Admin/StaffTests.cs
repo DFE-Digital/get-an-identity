@@ -26,7 +26,7 @@ public class StaffTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Get, "/admin/staff");
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -132,34 +131,7 @@ public class AuthenticationState
             throw new InvalidOperationException("Cannot retrieve claims until authentication is complete.");
         }
 
-        return Core();
-
-        IEnumerable<Claim> Core()
-        {
-            yield return new Claim(Claims.Subject, UserId!.ToString()!);
-            yield return new Claim(Claims.Email, EmailAddress!);
-            yield return new Claim(Claims.EmailVerified, bool.TrueString);
-            yield return new Claim(Claims.Name, FirstName + " " + LastName);
-            yield return new Claim(Claims.GivenName, FirstName!);
-            yield return new Claim(Claims.FamilyName, LastName!);
-            yield return new Claim(CustomClaims.HaveCompletedTrnLookup, HaveCompletedTrnLookup.ToString());
-            yield return new Claim(CustomClaims.UserType, UserType!.Value.ToString());
-
-            foreach (var role in StaffRoles ?? Array.Empty<string>())
-            {
-                yield return new Claim(Claims.Role, role);
-            }
-
-            if (DateOfBirth.HasValue)
-            {
-                yield return new Claim(Claims.Birthdate, DateOfBirth!.Value.ToString(CustomClaims.DateFormat));
-            }
-
-            if (Trn is not null)
-            {
-                yield return new Claim(CustomClaims.Trn, Trn);
-            }
-        }
+        return UserClaimHelper.GetInternalClaims(this);
     }
 
     public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
@@ -378,22 +350,6 @@ public class AuthenticationState
         }
 
         HaveResumedCompletedJourney = true;
-    }
-
-    // This is for use in tests
-    public void Populate(User user, bool firstTimeSignInForEmail)
-    {
-        UserId = user.UserId;
-        EmailAddress = user.EmailAddress;
-        EmailAddressVerified = true;
-        FirstName = user.FirstName;
-        LastName = user.LastName;
-        DateOfBirth = user.DateOfBirth;
-        HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
-        FirstTimeSignInForEmail = firstTimeSignInForEmail;
-        Trn = user.Trn;
-        UserType = user.UserType;
-        StaffRoles = user.StaffRoles;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

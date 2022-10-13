@@ -182,10 +182,18 @@ public class Program
         {
             options.AddPolicy(
                 AuthorizationPolicies.GetAnIdentityAdmin,
-                policy => policy
-                    .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .RequireRole(StaffRoles.GetAnIdentityAdmin));
+                policy =>
+                {
+                    policy
+                        .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                        .RequireAuthenticatedUser()
+                        .RequireRole(StaffRoles.GetAnIdentityAdmin);
+
+                    if (builder.Environment.IsUnitTests())
+                    {
+                        policy.AddAuthenticationSchemes("Test");
+                    }
+                });
 
             options.AddPolicy(
                 AuthorizationPolicies.TrnLookupApi,
@@ -458,8 +466,6 @@ public class Program
             var serializerOptions = sp.GetRequiredService<IOptions<JsonOptions>>().Value.JsonSerializerOptions;
             return new Infrastructure.Swagger.JsonSerializerDataContractResolver(serializerOptions);
         });
-
-        builder.Services.AddSingleton<UserClaimHelper>();
 
         builder.Services.AddSingleton<Redactor>();
 
