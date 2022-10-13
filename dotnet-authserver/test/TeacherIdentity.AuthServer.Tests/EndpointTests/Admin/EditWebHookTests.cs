@@ -35,7 +35,7 @@ public class EditWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/webhooks/{webHookId}");
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
@@ -50,7 +50,7 @@ public class EditWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/webhooks/{webHookId}");
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -89,7 +89,7 @@ public class EditWebHookTests : TestBase
         };
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
@@ -112,7 +112,7 @@ public class EditWebHookTests : TestBase
         };
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);

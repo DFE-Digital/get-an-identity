@@ -26,10 +26,8 @@ public class UserClaimHelperTests
             Updated = DateTime.UtcNow
         };
 
-        var helper = new UserClaimHelper();
-
         // Act
-        var result = helper.GetPublicClaims(
+        var result = UserClaimHelper.GetPublicClaims(
             user,
             hasScope: scope => scope == CustomScopes.Trn && haveTrnScope);
 
@@ -89,10 +87,8 @@ public class UserClaimHelperTests
         authenticationState.OnEmailSet(user.EmailAddress);
         authenticationState.OnEmailVerified(user);
 
-        var helper = new UserClaimHelper();
-
         // Act
-        var result = helper.GetPublicClaims(authenticationState, hasScope);
+        var result = UserClaimHelper.GetPublicClaims(authenticationState, hasScope);
 
         // Assert
         var expectedClaims = new List<Claim>()

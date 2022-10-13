@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Controllers;
@@ -13,12 +12,10 @@ namespace TeacherIdentity.AuthServer.Controllers;
 public class UserInfoController : Controller
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly UserClaimHelper _userClaimHelper;
 
-    public UserInfoController(TeacherIdentityServerDbContext dbContext, UserClaimHelper userClaimHelper)
+    public UserInfoController(TeacherIdentityServerDbContext dbContext)
     {
         _dbContext = dbContext;
-        _userClaimHelper = userClaimHelper;
     }
 
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
@@ -40,7 +37,7 @@ public class UserInfoController : Controller
                 }));
         }
 
-        var claims = _userClaimHelper.GetPublicClaims(user, User.HasScope);
+        var claims = UserClaimHelper.GetPublicClaims(user, User.HasScope);
         var response = claims.ToDictionary(c => c.Type, c => (object)c.Value, StringComparer.Ordinal);
         return Ok(response);
     }

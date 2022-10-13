@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -78,32 +79,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         RateLimitStore.Reset();
     }
 
-    public async Task SignInUser(
-        Guid journeyId,
-        HttpClient httpClient,
-        Guid userId,
-        bool firstTimeSignInForEmail)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/_sign-in?{AuthenticationStateMiddleware.IdQueryParameterName}={Uri.EscapeDataString(journeyId.ToString())}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-                .Add("UserId", userId.ToString())
-                .Add("FirstTimeSignInForEmail", firstTimeSignInForEmail.ToString())
-                .ToContent()
-        };
-
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public Task SignInUser(
-        AuthenticationStateHelper authenticationStateHelper,
-        HttpClient httpClient,
-        Guid userId,
-        bool firstTimeSignInForEmail)
-    {
-        return SignInUser(authenticationStateHelper.AuthenticationState.JourneyId, httpClient, userId, firstTimeSignInForEmail);
-    }
+    public void SetUserId(Guid? userId) => Services.GetRequiredService<CurrentUserIdContainer>().CurrentUserId.Value = userId;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -119,14 +95,21 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // (we want to be able to POST directly from a test without having to set antiforgery cookies etc.)
             services.AddSingleton<IPageApplicationModelProvider, RemoveAutoValidateAntiforgeryPageApplicationModelProvider>();
 
-            // Add the /_sign-in endpoint & assign fixed ip address
-            services.AddSingleton<IStartupFilter>(new AssignTestMiddlewareStartupFilter());
-
             // Add the filter that automatically signs in users if the active AuthenticationState has a UserId set
             services.AddMvc(options =>
             {
                 options.Filters.Add(new SignInUserPageFilter());
             });
+
+            // Add the custom test authentication scheme
+            services.AddSingleton<CurrentUserIdContainer>();
+            services.PostConfigure<AuthenticationOptions>(options =>
+                options.AddScheme(
+                    "Test",
+                    scheme =>
+                    {
+                        scheme.HandlerType = typeof(TestAuthenticationHandler);
+                    }));
 
             // Disable the HTTPS requirement for OpenIddict
             services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
@@ -149,18 +132,6 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         builder.ConfigureServices(services => services.Configure<TestServerOptions>(o => o.PreserveExecutionContext = true));
 
         return base.CreateHost(builder);
-    }
-
-    private class AssignTestMiddlewareStartupFilter : IStartupFilter
-    {
-        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
-        {
-            next(app);
-
-            app.MapWhen(
-                ctx => ctx.Request.Path == new PathString("/_sign-in") && ctx.Request.Method == HttpMethods.Post,
-                app => app.UseMiddleware<SignInUserMiddleware>());
-        };
     }
 
     private class RemoveAutoValidateAntiforgeryPageApplicationModelProvider : IPageApplicationModelProvider

@@ -23,22 +23,19 @@ public class AuthorizationController : Controller
     private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly UserClaimHelper _userClaimHelper;
 
     public AuthorizationController(
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
         IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        UserClaimHelper userClaimHelper)
+        TeacherIdentityServerDbContext dbContext)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
         _linkGenerator = linkGenerator;
         _dbContext = dbContext;
-        _userClaimHelper = userClaimHelper;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -175,7 +172,7 @@ public class AuthorizationController : Controller
             case ConsentTypes.Implicit:
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
-                var claims = _userClaimHelper.GetPublicClaims(authenticationState, request.HasScope);
+                var claims = UserClaimHelper.GetPublicClaims(authenticationState, request.HasScope);
 
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
                 var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -269,7 +266,7 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            var claims = _userClaimHelper.GetPublicClaims(user, request.HasScope);
+            var claims = UserClaimHelper.GetPublicClaims(user, request.HasScope);
 
             var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             identity.AddClaims(claims);

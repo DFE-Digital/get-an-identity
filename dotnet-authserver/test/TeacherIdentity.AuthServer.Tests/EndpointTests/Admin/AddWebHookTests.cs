@@ -29,7 +29,7 @@ public class AddWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Get, "/admin/webhooks/new");
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -63,7 +63,7 @@ public class AddWebHookTests : TestBase
         };
 
         // Act
-        var response = await AuthenticatedHttpClient!.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
