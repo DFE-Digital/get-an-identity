@@ -55,6 +55,7 @@ locals {
       DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
       DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
       WebHooks__QueueName                          = azurerm_servicebus_queue.webhooks.name
+      Serilog__WriteTo__2__Args__uri               = local.infrastructure_secrets.LOGSTASH_ENDPOINT
     }
   )
 
