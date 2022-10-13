@@ -54,7 +54,7 @@ The API is an ASP.NET Core 6 web application. To develop locally you will need t
 - a local Postgres 13+ instance;
 - [SASS]( https://sass-lang.com/install).
 
-#### Database setup
+#### Initial setup
 
 Install Postgres then add a connection string to user secrets for the `TeacherIdentityServer`, `TeacherIdentityAuthServerTests` and `TeacherIdentityServerEndToEndTests` projects.
 
@@ -65,13 +65,19 @@ dotnet user-secrets --id TeacherIdentityServerEndToEndTests set AuthorizationSer
 ```
 Where `your_postgres_user` and `your_postgres_password` are the username and password of your Postgres installation, respectively.
 
-The databases will be created automatically when running the API or tests in development mode.
+Next set the email address you want to use for local development.
+
+```shell
+dotnet user-secrets --id TeacherIdentityServer set DeveloperEmail "your_email_address"
+```
+Where `your_email_address` is an email address you can access.
+
+Finally run the DevBootstrap project. This will create the database, add an admin user account and configure the OIDC clients for local development.
 
 #### Test client
 
-The solution includes a test client that is used for testing end-to-end OIDC flows. This client's details must be added to the database.
-Run the `TeacherIdentity.DevBootstrap` console app to configure the test client for local development. This only needs to be done once.
-Once this has been run, you should be able to launch both the `TeacherIdentity.AuthServer` project and the `TeacherIdentity.TestClient` project and browse to `https://localhost:7261` to start the sign in journey.
+The solution includes a test client that is used for testing end-to-end OIDC flows.
+Once initial setup has been done, you should be able to launch both the `TeacherIdentity.AuthServer` project and the `TeacherIdentity.TestClient` project and browse to `https://localhost:7261` to start the sign in journey and sign in with the email address your configured above.
 
 
 ### BigQuery
