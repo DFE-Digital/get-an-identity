@@ -85,61 +85,10 @@ public class SignIn : IClassFixture<HostFixture>
     {
         var email = "admin.user@example.com";
 
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Staff,
-                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
-
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        // Start on the client app and try to access a protected area with admin scope
-
-        await page.GotoAsync("/profile?scope=get-an-identity:admin");
-
-        // Fill in the sign in form (email + PIN)
-
-        await page.FillAsync("text=Email", email);
-        await page.ClickAsync("button:has-text('Continue')");
-
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:has-text('Continue')");
-
-        // Should now be on the confirmation page
-
-        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
-        await page.ClickAsync("button:has-text('Continue')");
-
-        // Should now be back at the client, signed in
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
-
-        var signedInEmail = await page.InnerTextAsync("data-testid=email");
-        Assert.Equal(string.Empty, await page.InnerTextAsync("data-testid=trn"));
-        Assert.Equal(email, signedInEmail);
-
-        // Check events have been emitted
-
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
+        await SignInExistingStaffUserWithTestClient(page, email);
     }
 
     [Fact]
@@ -423,6 +372,27 @@ public class SignIn : IClassFixture<HostFixture>
         await page.WaitForSelectorAsync("h1:has-text('Forbidden')");
     }
 
+    [Fact]
+    public async Task FirstRequestToProtectedAreaOfSiteForUserAlreadySignedInViaOAuth_IssuesUserSignedInEvent()
+    {
+        var email = "admin.user4@example.com";
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var userId = await SignInExistingStaffUserWithTestClient(page, email);
+        _hostFixture.EventObserver.Clear();
+
+        // Try to access protected admin area on auth server, should be authenticated already
+
+        await page.GotoAsync($"{HostFixture.AuthServerBaseUrl}/admin/staff");
+        await page.WaitForSelectorAsync("caption:has-text('Staff users')");
+
+        // Should have a second signed in event emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId, expectOAuthProperties: false));
+    }
+
     private void AssertEventIsUserSignedIn(
         Events.EventBase @event,
         Guid userId,
@@ -498,5 +468,63 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
         Assert.Equal(email, await page.InnerTextAsync("data-testid=email"));
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+    }
+
+    private async Task<Guid> SignInExistingStaffUserWithTestClient(IPage page, string email)
+    {
+        var userId = Guid.NewGuid();
+
+        {
+            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+            dbContext.Users.Add(new User()
+            {
+                Created = DateTime.UtcNow,
+                EmailAddress = email,
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                UserId = userId,
+                UserType = UserType.Staff,
+                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
+                Updated = DateTime.UtcNow
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Start on the client app and try to access a protected area with admin scope
+
+        await page.GotoAsync("/profile?scope=get-an-identity:admin");
+
+        // Fill in the sign in form (email + PIN)
+
+        await page.FillAsync("text=Email", email);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the confirmation page
+
+        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be back at the client, signed in
+
+        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
+        var pageUrlHost = new Uri(page.Url).Host;
+        Assert.Equal(clientAppHost, pageUrlHost);
+
+        var signedInEmail = await page.InnerTextAsync("data-testid=email");
+        Assert.Equal(string.Empty, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(email, signedInEmail);
+
+        // Check events have been emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
+
+        return userId;
     }
 }
