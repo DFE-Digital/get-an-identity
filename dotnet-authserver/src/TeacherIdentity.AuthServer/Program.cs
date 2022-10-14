@@ -98,6 +98,7 @@ public class Program
         builder.Services.AddAntiforgery(options =>
         {
             options.Cookie.Name = "tis-antiforgery";
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.SuppressXFrameOptionsHeader = true;
         });
 
@@ -130,6 +131,7 @@ public class Program
                 options.Cookie.Name = "tis-auth";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 
                 options.Events.OnRedirectToAccessDenied = async ctx =>
                 {
@@ -248,6 +250,7 @@ public class Program
             options.Cookie.Name = "tis-session";
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         });
 
         var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
