@@ -164,19 +164,23 @@ public class Program
 
                     return Task.CompletedTask;
                 };
-
-                options.Events.OnSignedIn = async ctx =>
-                {
-                    var authenticationState = ctx.HttpContext.GetAuthenticationState();
-
-                    // AuthorizationController handles events for OAuth journeys
-                    if (authenticationState.OAuthState is null)
-                    {
-                        await ctx.HttpContext.SaveUserSignedInEvent(ctx.Principal!);
-                    }
-                };
             })
             .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
+
+        builder.Services.Configure<AuthenticationOptions>(options =>
+            options.AddScheme(
+                "Delegated",
+                builder => builder.HandlerType = typeof(DelegatedAuthenticationHandler)));
+
+        builder.Services.Configure<DelegatedAuthenticationOptions>("Delegated", options =>
+        {
+            options.DelegatedAuthenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+            options.OnUserSignedIn = async (httpContext, principal) =>
+            {
+                await httpContext.SaveUserSignedInEvent(principal);
+            };
+        });
 
         builder.Services.AddAuthorization(options =>
         {
@@ -185,7 +189,7 @@ public class Program
                 policy =>
                 {
                     policy
-                        .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                        .AddAuthenticationSchemes("Delegated")
                         .RequireAuthenticatedUser()
                         .RequireRole(StaffRoles.GetAnIdentityAdmin);
 

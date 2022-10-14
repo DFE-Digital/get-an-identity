@@ -14,7 +14,7 @@ public static class HttpContextExtensions
 
     public static async Task SaveUserSignedInEvent(this HttpContext httpContext, ClaimsPrincipal principal)
     {
-        var authenticationState = httpContext.GetAuthenticationState();
+        httpContext.TryGetAuthenticationState(out var authenticationState);
 
         await using var scope = httpContext.RequestServices.CreateAsyncScope();
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
@@ -25,9 +25,9 @@ public static class HttpContextExtensions
 
         dbContext.AddEvent(new Events.UserSignedInEvent()
         {
-            ClientId = authenticationState.OAuthState?.ClientId,
+            ClientId = authenticationState?.OAuthState?.ClientId,
             CreatedUtc = clock.UtcNow,
-            Scope = authenticationState.OAuthState?.Scope,
+            Scope = authenticationState?.OAuthState?.Scope,
             User = Events.User.FromModel(user!)
         });
 
