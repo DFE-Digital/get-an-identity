@@ -519,6 +519,7 @@ public class Program
                 .AddHttpClient<IWebHookNotificationSender, WebHookNotificationSender>(httpClient =>
                 {
                     httpClient.Timeout = TimeSpan.FromSeconds(30);
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Teacher Identity");
                 })
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
                 {
