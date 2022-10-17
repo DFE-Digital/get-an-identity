@@ -64,8 +64,10 @@ public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotification
         var messages = webHooks
             .Select(wh => new SendNotificationToWebHook()
             {
+                NotificationId = notification.NotificationId,
                 Endpoint = wh.Endpoint,
-                Payload = payload
+                Payload = payload,
+                Secret = wh.Secret
             })
             .Select(msg => new ServiceBusMessage(BinaryData.FromObjectAsJson(msg))
             {
@@ -138,7 +140,7 @@ public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotification
 
     private async Task ProcessSendNotificationToWebHookMessage(SendNotificationToWebHook message)
     {
-        await Sender.SendNotification(message.Endpoint, message.Payload);
+        await Sender.SendNotification(message.NotificationId, message.Endpoint, message.Payload, message.Secret ?? string.Empty);
     }
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken) =>
