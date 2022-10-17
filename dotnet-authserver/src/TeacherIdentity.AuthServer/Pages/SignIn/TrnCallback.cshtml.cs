@@ -58,7 +58,7 @@ public class TrnCallbackModel : PageModel
         }
 
         var userId = Guid.NewGuid();
-        var user = new Models.User()
+        var user = new User()
         {
             CompletedTrnLookup = _clock.UtcNow,
             Created = _clock.UtcNow,
@@ -76,6 +76,13 @@ public class TrnCallbackModel : PageModel
         _dbContext.Users.Add(user);
         lookupState.Locked = _clock.UtcNow;
         lookupState.UserId = userId;
+
+        _dbContext.AddEvent(new Events.UserRegisteredEvent()
+        {
+            ClientId = authenticationState.OAuthState?.ClientId,
+            CreatedUtc = _clock.UtcNow,
+            User = Events.User.FromModel(user)
+        });
 
         try
         {

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
@@ -167,6 +168,16 @@ public class SetTeacherTrnTests : TestBase
 
         HostFixture.DqtApiClient
             .Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), Times.Once);
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventChanges.Trn, userUpdatedEvent.Changes);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            });
     }
 
     public static TheoryData<string> InvalidTrnData { get; } = new TheoryData<string>()

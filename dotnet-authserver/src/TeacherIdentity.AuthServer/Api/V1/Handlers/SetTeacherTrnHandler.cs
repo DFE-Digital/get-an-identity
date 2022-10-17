@@ -38,8 +38,21 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             throw new ErrorException(ErrorRegistry.UserMustBeTeacher());
         }
 
+        if (user.Trn == request.Body.Trn)
+        {
+            return Unit.Value;
+        }
+
         user.Trn = request.Body.Trn;
         user.Updated = _clock.UtcNow;
+
+        _dbContext.AddEvent(new Events.UserUpdatedEvent()
+        {
+            Source = Events.UserUpdatedEventSource.Api,
+            CreatedUtc = _clock.UtcNow,
+            Changes = Events.UserUpdatedEventChanges.Trn,
+            User = Events.User.FromModel(user)
+        });
 
         try
         {

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
@@ -145,6 +146,15 @@ public class TrnCallbackTests : TestBase
 
             return user.UserId;
         });
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userRegisteredEvent = Assert.IsType<UserRegisteredEvent>(e);
+                Assert.Equal(Clock.UtcNow, userRegisteredEvent.CreatedUtc);
+                Assert.Equal(authStateHelper.AuthenticationState.OAuthState!.ClientId, userRegisteredEvent.ClientId);
+                Assert.Equal(userId, userRegisteredEvent.User.UserId);
+            });
     }
 
     [Fact]
