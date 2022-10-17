@@ -660,9 +660,12 @@ public class Program
             {
                 endpoints.MapPost("/webhook", async context =>
                 {
+                    var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger("WebHookDebug");
+
                     using var sr = new StreamReader(context.Request.Body);
                     var body = await sr.ReadToEndAsync();
-                    Console.WriteLine(body);
+                    logger.LogInformation("Received web hook: {Payload}", body);
                 });
             }
         });
