@@ -55,9 +55,24 @@ public class TrnInUseChooseEmailModel : PageModel
             .SingleAsync(s => s.JourneyId == authenticationState.JourneyId);
         var user = await _dbContext.Users.SingleAsync(u => u.EmailAddress == authenticationState.TrnOwnerEmailAddress);
 
+        var emailChanged = user.EmailAddress != Email;
+
         user.EmailAddress = Email;
         lookupState.Locked = _clock.UtcNow;
         lookupState.UserId = user.UserId;
+
+        if (emailChanged)
+        {
+            user.Updated = _clock.UtcNow;
+
+            _dbContext.AddEvent(new Events.UserUpdatedEvent()
+            {
+                Source = Events.UserUpdatedEventSource.TrnMatchedToExistingUser,
+                Changes = Events.UserUpdatedEventChanges.EmailAddress,
+                CreatedUtc = _clock.UtcNow,
+                User = Events.User.FromModel(user)
+            });
+        }
 
         await _dbContext.SaveChangesAsync();
 

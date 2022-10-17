@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -272,6 +273,23 @@ public class TrnInUseChooseEmailTests : TestBase
 
             return user.UserId;
         });
+
+        // Should get a UserUpdatedEvent if the email address was changed
+        if (newEmailChosen)
+        {
+            EventObserver.AssertEventsSaved(
+                e =>
+                {
+                    var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                    Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                    Assert.Equal(UserUpdatedEventSource.TrnMatchedToExistingUser, userUpdatedEvent.Source);
+                    Assert.Equal(userId, userUpdatedEvent.User.UserId);
+                });
+        }
+        else
+        {
+            EventObserver.AssertEventsSaved();
+        }
     }
 
     private AuthenticationStateHelper CreateAuthenticationStateHelper(string email, string existingTrnOwnerEmail) =>

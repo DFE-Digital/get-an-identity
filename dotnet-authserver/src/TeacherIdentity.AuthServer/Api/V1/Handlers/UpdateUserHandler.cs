@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
 using TeacherIdentity.AuthServer.Api.Validation;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Handlers;
@@ -32,29 +33,38 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, UserInfo>
             throw new ErrorException(ErrorRegistry.YouAreNotAuthorizedToPerformThisAction());
         }
 
-        var updateMade = false;
+        UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (request.Body.EmailSet)
+        if (request.Body.EmailSet && request.Body.Email != user.EmailAddress)
         {
             user.EmailAddress = request.Body.Email!;
-            updateMade = true;
+            changes |= UserUpdatedEventChanges.EmailAddress;
         }
 
-        if (request.Body.FirstNameSet)
+        if (request.Body.FirstNameSet && request.Body.FirstName != user.FirstName)
         {
             user.FirstName = request.Body.FirstName!;
-            updateMade = true;
+            changes |= UserUpdatedEventChanges.FirstName;
         }
 
-        if (request.Body.LastNameSet)
+        if (request.Body.LastNameSet && request.Body.LastName != user.LastName)
         {
             user.LastName = request.Body.LastName!;
-            updateMade = true;
+            changes |= UserUpdatedEventChanges.LastName;
         }
 
-        if (updateMade)
+        if (changes != UserUpdatedEventChanges.None)
         {
             user.Updated = _clock.UtcNow;
+
+            _dbContext.AddEvent(new Events.UserUpdatedEvent()
+            {
+                Source = Events.UserUpdatedEventSource.Api,
+                CreatedUtc = _clock.UtcNow,
+                Changes = changes,
+                User = Events.User.FromModel(user)
+            });
+
             await _dbContext.SaveChangesAsync();
         }
 

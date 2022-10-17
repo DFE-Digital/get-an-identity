@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Api.V1.ApiModels;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
@@ -165,6 +166,16 @@ public class UpdateUserTests : TestBase
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(Clock.UtcNow, user.Updated);
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventChanges.EmailAddress | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            });
     }
 
     [Fact]
