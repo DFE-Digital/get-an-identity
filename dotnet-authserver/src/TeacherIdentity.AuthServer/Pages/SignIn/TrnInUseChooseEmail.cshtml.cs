@@ -70,7 +70,7 @@ public class TrnInUseChooseEmailModel : PageModel
                 Source = Events.UserUpdatedEventSource.TrnMatchedToExistingUser,
                 Changes = Events.UserUpdatedEventChanges.EmailAddress,
                 CreatedUtc = _clock.UtcNow,
-                User = Events.User.FromModel(user)
+                User = user
             });
         }
 

@@ -24,4 +24,6 @@ public class User
         UserId = user.UserId,
         UserType = user.UserType
     };
+
+    public static implicit operator User(Models.User user) => FromModel(user);
 }
