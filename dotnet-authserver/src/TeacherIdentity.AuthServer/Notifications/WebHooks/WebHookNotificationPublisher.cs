@@ -59,7 +59,7 @@ public class WebHookNotificationPublisher : INotificationPublisher
 
         foreach (var webHook in webHooks)
         {
-            await Sender.SendNotification(webHook.Endpoint, payload);
+            await Sender.SendNotification(notification.NotificationId, webHook.Endpoint, payload, webHook.Secret);
         }
     }
 

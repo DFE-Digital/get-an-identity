@@ -40,6 +40,7 @@ public class PublishNotificationsEventObserver : IEventObserver
         {
             yield return new NotificationEnvelope()
             {
+                NotificationId = Guid.NewGuid(),
                 Message = new UserSignedInMessage()
                 {
                     User = Messages.User.FromEvent(userSignedIn.User)
