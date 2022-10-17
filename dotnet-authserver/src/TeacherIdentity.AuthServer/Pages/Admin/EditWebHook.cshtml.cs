@@ -70,17 +70,20 @@ public class EditWebHookModel : PageModel
         webHook.Enabled = Enabled;
         webHook.Endpoint = Endpoint!;
 
-        _dbContext.AddEvent(new WebHookUpdatedEvent()
+        if (changes != WebHookUpdatedEventChanges.None)
         {
-            Changes = changes,
-            CreatedUtc = _clock.UtcNow,
-            Enabled = Enabled,
-            Endpoint = Endpoint!,
-            UpdatedByUserId = User.GetUserId()!.Value,
-            WebHookId = WebHookId
-        });
+            _dbContext.AddEvent(new WebHookUpdatedEvent()
+            {
+                Changes = changes,
+                CreatedUtc = _clock.UtcNow,
+                Enabled = Enabled,
+                Endpoint = Endpoint!,
+                UpdatedByUserId = User.GetUserId()!.Value,
+                WebHookId = WebHookId
+            });
 
-        await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
+        }
 
         TempData.SetFlashSuccess("Web hook updated");
         return RedirectToPage("WebHooks");
