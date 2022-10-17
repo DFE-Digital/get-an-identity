@@ -48,7 +48,7 @@ public class AddWebHookTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidRequest_CreatesWebHookEmitsEventAndRedirectsToWebHooksPage()
+    public async Task Post_ValidRequest_CreatesWebHookEmitsEventAndRedirects()
     {
         // Arrange
         var endpoint = Faker.Internet.Url();
@@ -67,7 +67,6 @@ public class AddWebHookTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/admin/webhooks", response.Headers.Location?.OriginalString);
 
         var webHookId = await TestData.WithDbContext(async dbContext =>
         {
@@ -78,6 +77,8 @@ public class AddWebHookTests : TestBase
 
             return webHook.WebHookId;
         });
+
+        Assert.Equal($"/admin/webhooks/{webHookId}", response.Headers.Location?.OriginalString);
 
         EventObserver.AssertEventsSaved(
             e =>

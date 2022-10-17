@@ -11,6 +11,7 @@ public class WebHookMapping : IEntityTypeConfiguration<WebHook>
         builder.Property(w => w.WebHookId).IsRequired();
         builder.Property(w => w.Endpoint).IsRequired().HasMaxLength(200);
         builder.Property(w => w.Endpoint).IsRequired();
+        builder.Property(w => w.Secret).HasMaxLength(64);
         builder.HasKey(w => w.WebHookId);
     }
 }

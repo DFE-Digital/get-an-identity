@@ -48,7 +48,8 @@ public class AddWebHookModel : PageModel
         {
             WebHookId = webHookId,
             Enabled = Enabled,
-            Endpoint = Endpoint!
+            Endpoint = Endpoint!,
+            Secret = WebHook.GenerateSecret()
         });
 
         _dbContext.AddEvent(new WebHookAddedEvent()
@@ -63,6 +64,6 @@ public class AddWebHookModel : PageModel
         await _dbContext.SaveChangesAsync();
 
         TempData.SetFlashSuccess("Web hook added");
-        return RedirectToPage("WebHooks");
+        return RedirectToPage("EditWebHook", new { webHookId = webHookId });
     }
 }

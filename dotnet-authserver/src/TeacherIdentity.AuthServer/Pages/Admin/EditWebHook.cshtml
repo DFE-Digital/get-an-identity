@@ -4,6 +4,10 @@
     ViewBag.Title = "Edit web hook";
 }
 
+@section BeforeContent {
+  <govuk-back-link asp-page="WebHooks" />
+}
+
 <form asp-page="EditWebHook" asp-route-webHookId="@Model.WebHookId" method="post">
   <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
@@ -11,6 +15,12 @@
 
   <govuk-checkboxes asp-for="Enabled">
     <govuk-checkboxes-item value="@true">Enabled</govuk-checkboxes-item>
+  </govuk-checkboxes>
+
+  <govuk-input asp-for="Secret" disabled class="govuk-!-margin-bottom-2" />
+
+  <govuk-checkboxes asp-for="RegenerateSecret" class="govuk-checkboxes--small">
+    <govuk-checkboxes-item value="@true">Regenerate secret</govuk-checkboxes-item>
   </govuk-checkboxes>
 
   <govuk-button type="submit" prevent-double-click="true">Save</govuk-button>
