@@ -1,9 +1,13 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using TeacherIdentity.AuthServer.Infrastructure.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+using Optional;
+using Optional.Unsafe;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications.Messages;
 
@@ -27,15 +31,14 @@ public class WebHookNotificationPublisher : INotificationPublisher
         _webHooksCacheLifetime = TimeSpan.FromSeconds(optionsAccessor.Value.WebHooksCacheDurationSeconds);
     }
 
-    protected static JsonSerializerOptions SerializerOptions { get; } = new JsonSerializerOptions()
+    protected static JsonSerializerSettings SerializerSettings { get; } = new JsonSerializerSettings()
     {
         Converters =
         {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false),
-            new NotificationMessageSerializer(),
-            new DateOnlyConverter()
+            new StringEnumConverter(),
+            new DateOnlyJsonConverter()
         },
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        ContractResolver = new ContractResolver()
     };
 
     protected IWebHookNotificationSender Sender { get; }
@@ -64,18 +67,97 @@ public class WebHookNotificationPublisher : INotificationPublisher
     }
 
     protected string SerializeNotification(NotificationEnvelope notification) =>
-        JsonSerializer.Serialize(notification, options: SerializerOptions);
+        JsonConvert.SerializeObject(notification, SerializerSettings);
 
-    private class NotificationMessageSerializer : JsonConverter<INotificationMessage>
+    private class ContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public override INotificationMessage? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            throw new NotSupportedException();
+            var property = base.CreateProperty(member, memberSerialization);
+
+            // If the property is an Option<T> then only serialize it if it has a value
+            if (property.PropertyType?.IsGenericType == true && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
+            {
+                var innerType = property.PropertyType.GetGenericArguments()[0];
+                property.ShouldSerialize = CreateShouldSerializePredicate(member.DeclaringType!, innerType, property.PropertyName!);
+                property.Converter = (JsonConverter)Activator.CreateInstance(typeof(OptionJsonConverter<>).MakeGenericType(innerType))!;
+            }
+
+            return property;
         }
 
-        public override void Write(Utf8JsonWriter writer, INotificationMessage value, JsonSerializerOptions options)
+        private static Predicate<object> CreateShouldSerializePredicate(Type objectType, Type innerPropertyType, string propertyName)
         {
-            JsonSerializer.Serialize(writer, value, value.GetType(), options);
+            var objParameter = Expression.Parameter(typeof(object));
+
+            // Create a delegate that corresponds to:
+            // return ((Option<TProperty>)((T)object).Property).HasValue;
+
+            return (Predicate<object>)Expression.Lambda(
+                typeof(Predicate<object>),
+                Expression.Block(
+                    Expression.Property(
+                        Expression.Convert(
+                            Expression.Property(
+                                Expression.Convert(objParameter, objectType),
+                                propertyName
+                            ),
+                            typeof(Option<>).MakeGenericType(innerPropertyType)),
+                        "HasValue")),
+                objParameter).Compile();
+        }
+    }
+
+    private class OptionJsonConverter<T> : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Option<T>);
+        }
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            var value = serializer.Deserialize<T>(reader);
+            return Option.Some(value);
+        }
+
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            // Note this will throw if HasValue is false, but we should never get here in that case
+            var option = (Option<T>)value!;
+            serializer.Serialize(writer, option.ValueOrFailure());
+        }
+    }
+
+    private class DateOnlyJsonConverter : JsonConverter
+    {
+        private const string Format = "yyyy-MM-dd";
+
+        public override bool CanConvert(Type objectType) => objectType == typeof(DateOnly) || objectType == typeof(DateOnly?);
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            var asString = reader.ReadAsString();
+
+            if (asString is null)
+            {
+                return default;
+            }
+
+            return DateOnly.ParseExact(asString, Format);
+        }
+
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            if (value is null)
+            {
+                writer.WriteNull();
+            }
+            else
+            {
+                var asString = ((DateOnly)value).ToString(Format);
+                writer.WriteValue(asString);
+            }
         }
     }
 }

@@ -35,6 +35,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.5" />
     <PackageReference Include="OpenIddict.AspNetCore" Version="3.1.1" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="3.1.1" />
+    <PackageReference Include="Optional" Version="4.0.0" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
     <PackageReference Include="Scrutor" Version="4.2.0" />
     <PackageReference Include="Sentry.AspNetCore" Version="3.18.0" />
