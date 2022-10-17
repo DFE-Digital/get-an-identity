@@ -15,4 +15,5 @@ public enum WebHookUpdatedEventChanges
     None = 0,
     Endpoint = 1 << 0,
     Enabled = 1 << 1,
+    Secret = 1 << 2,
 }

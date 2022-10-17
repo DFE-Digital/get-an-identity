@@ -29,6 +29,13 @@ public class EditWebHookModel : PageModel
     [BindProperty]
     public bool Enabled { get; set; }
 
+    [Display(Name = "Secret")]
+    public string? Secret { get; set; }
+
+    [Display(Name = "Regenerate secret")]
+    [BindProperty]
+    public bool RegenerateSecret { get; set; }
+
     public async Task<IActionResult> OnGet()
     {
         var webHook = await _dbContext.WebHooks.SingleOrDefaultAsync(wh => wh.WebHookId == WebHookId);
@@ -40,6 +47,7 @@ public class EditWebHookModel : PageModel
 
         Endpoint = webHook.Endpoint;
         Enabled = webHook.Enabled;
+        Secret = webHook.Secret;
 
         return Page();
     }
@@ -65,10 +73,16 @@ public class EditWebHookModel : PageModel
 
         var changes = WebHookUpdatedEventChanges.None |
             (webHook.Enabled != Enabled ? WebHookUpdatedEventChanges.Enabled : WebHookUpdatedEventChanges.None) |
-            (webHook.Endpoint != Endpoint ? WebHookUpdatedEventChanges.Endpoint : WebHookUpdatedEventChanges.None);
+            (webHook.Endpoint != Endpoint ? WebHookUpdatedEventChanges.Endpoint : WebHookUpdatedEventChanges.None) |
+            (RegenerateSecret ? WebHookUpdatedEventChanges.Secret : WebHookUpdatedEventChanges.None);
 
         webHook.Enabled = Enabled;
         webHook.Endpoint = Endpoint!;
+
+        if (RegenerateSecret)
+        {
+            webHook.Secret = WebHook.GenerateSecret();
+        }
 
         if (changes != WebHookUpdatedEventChanges.None)
         {
@@ -86,6 +100,6 @@ public class EditWebHookModel : PageModel
         }
 
         TempData.SetFlashSuccess("Web hook updated");
-        return RedirectToPage("WebHooks");
+        return RedirectToPage("EditWebHook", new { webHookId = WebHookId });
     }
 }
