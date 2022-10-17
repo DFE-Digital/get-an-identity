@@ -81,7 +81,7 @@ public class TrnCallbackModel : PageModel
         {
             ClientId = authenticationState.OAuthState?.ClientId,
             CreatedUtc = _clock.UtcNow,
-            User = Events.User.FromModel(user)
+            User = user
         });
 
         try

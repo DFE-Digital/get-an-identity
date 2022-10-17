@@ -28,7 +28,7 @@ public static class HttpContextExtensions
             ClientId = authenticationState?.OAuthState?.ClientId,
             CreatedUtc = clock.UtcNow,
             Scope = authenticationState?.OAuthState?.Scope,
-            User = Events.User.FromModel(user!)
+            User = user!
         });
 
         await dbContext.SaveChangesAsync();
