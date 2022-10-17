@@ -1,3 +1,4 @@
+using Optional;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Notifications.Messages;
@@ -36,17 +37,25 @@ public class PublishNotificationsEventObserver : IEventObserver
 
     private IEnumerable<NotificationEnvelope> GetNotificationsForEvent(EventBase @event)
     {
-        if (@event is UserSignedInEvent userSignedIn)
+        if (@event is UserUpdatedEvent userUpdated)
         {
             yield return new NotificationEnvelope()
             {
                 NotificationId = Guid.NewGuid(),
-                Message = new UserSignedInMessage()
+                Message = new UserUpdatedMessage()
                 {
-                    User = Messages.User.FromEvent(userSignedIn.User)
+                    User = userUpdated.User,
+                    Changes = new()
+                    {
+                        DateOfBirth = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.DateOfBirth) ? Option.Some(userUpdated.User.DateOfBirth) : default,
+                        EmailAddress = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.EmailAddress) ? Option.Some(userUpdated.User.EmailAddress) : default,
+                        FirstName = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.FirstName) ? Option.Some(userUpdated.User.FirstName) : default,
+                        LastName = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.LastName) ? Option.Some(userUpdated.User.LastName) : default,
+                        Trn = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.Trn) ? Option.Some(userUpdated.User.Trn) : default
+                    }
                 },
-                MessageType = UserSignedInMessage.MessageTypeName,
-                TimeUtc = userSignedIn.CreatedUtc
+                MessageType = UserUpdatedMessage.MessageTypeName,
+                TimeUtc = userUpdated.CreatedUtc
             };
         }
     }

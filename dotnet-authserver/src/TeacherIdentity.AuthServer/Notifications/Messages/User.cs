@@ -18,4 +18,6 @@ public class User
         Trn = user.Trn,
         UserId = user.UserId
     };
+
+    public static implicit operator User(Events.User user) => FromEvent(user);
 }
