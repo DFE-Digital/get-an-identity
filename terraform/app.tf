@@ -56,6 +56,8 @@ locals {
       DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
       WebHooks__QueueName                          = azurerm_servicebus_queue.webhooks.name
       Serilog__WriteTo__2__Args__uri               = local.infrastructure_secrets.LOGSTASH_ENDPOINT
+      WEBSITE_SWAP_WARMUP_PING_PATH                = "/status"
+      WEBSITE_SWAP_WARMUP_PING_STATUSES            = "200"
     }
   )
 
