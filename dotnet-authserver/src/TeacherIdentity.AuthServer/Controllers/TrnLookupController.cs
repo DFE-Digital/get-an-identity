@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
@@ -33,6 +34,11 @@ public class TrnLookupController : ControllerBase
         {
             return BadRequest();
         }
+        if ((string.IsNullOrEmpty(request.PreferredFirstName) && !string.IsNullOrEmpty(request.PreferredLastName))
+            || (!string.IsNullOrEmpty(request.PreferredFirstName) && string.IsNullOrEmpty(request.PreferredLastName)))
+        {
+            return BadRequest();
+        }
 
         var normalizedNino = (request.NationalInsuranceNumber ?? string.Empty)
             .ToUpper()
@@ -45,19 +51,23 @@ public class TrnLookupController : ControllerBase
                 Created = _clock.UtcNow,
                 JourneyId = journeyId,
                 DateOfBirth = request.DateOfBirth,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
+                OfficialFirstName = request.OfficialFirstName,
+                OfficialLastName = request.OfficialLastName,
                 Trn = request.Trn,
-                NationalInsuranceNumber = normalizedNino
+                NationalInsuranceNumber = normalizedNino,
+                PreferredFirstName = request.PreferredFirstName!,
+                PreferredLastName = request.PreferredLastName!,
             });
         }
         else
         {
             existingState.DateOfBirth = request.DateOfBirth;
-            existingState.FirstName = request.FirstName;
-            existingState.LastName = request.LastName;
+            existingState.OfficialFirstName = request.OfficialFirstName;
+            existingState.OfficialLastName = request.OfficialLastName;
             existingState.Trn = request.Trn;
             existingState.NationalInsuranceNumber = normalizedNino;
+            existingState.PreferredFirstName = request.PreferredFirstName!;
+            existingState.PreferredLastName = request.PreferredLastName!;
         }
 
         await _dbContext.SaveChangesAsync();
@@ -68,13 +78,42 @@ public class TrnLookupController : ControllerBase
 
 public class SetJourneyTrnLookupStateRequest
 {
+
+    [JsonIgnore]
+    public string FirstName
+    {
+        get
+        {
+            return OfficialFirstName;
+        }
+        set
+        {
+            OfficialFirstName = value;
+        }
+    }
+
+    [JsonIgnore]
+    public string LastName
+    {
+        get
+        {
+            return OfficialLastName;
+        }
+        set
+        {
+            OfficialLastName = value;
+        }
+    }
+
     [Required]
-    public required string FirstName { get; set; }
+    public required string OfficialFirstName { get; set; }
     [Required]
-    public required string LastName { get; set; }
+    public required string OfficialLastName { get; set; }
     [Required]
     public DateOnly DateOfBirth { get; set; }
     [StringLength(maximumLength: 7, MinimumLength = 7)]
     public string? Trn { get; set; }
     public string? NationalInsuranceNumber { get; set; }
+    public string? PreferredFirstName { get; set; }
+    public string? PreferredLastName { get; set; }
 }

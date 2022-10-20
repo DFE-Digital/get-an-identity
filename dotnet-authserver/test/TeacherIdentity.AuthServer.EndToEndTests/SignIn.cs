@@ -157,7 +157,7 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewTeacherUser(page, email, firstName, lastName, trn, dateOfBirth);
+        await SignInAsNewTeacherUser(page, email, firstName, lastName, trn, dateOfBirth, null, null);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewTeacherUser(page, email, firstName, lastName, trn, dateOfBirth);
+        await SignInAsNewTeacherUser(page, email, firstName, lastName, trn, dateOfBirth, null, null);
 
         await ClearCookiesForTestClient();
 
@@ -282,9 +282,8 @@ public class SignIn : IClassFixture<HostFixture>
         urlPath = new Uri(page.Url).LocalPath;
         Assert.EndsWith("/FindALostTrn", urlPath);
 
-        await page.FillAsync("#FirstName", firstName);
-        await page.FillAsync("#LastName", lastName);
-        await page.FillAsync("#FirstName", firstName);
+        await page.FillAsync("#OfficialFirstName", firstName);
+        await page.FillAsync("#OfficialLastName", lastName);
         await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
         await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
         await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
@@ -415,7 +414,9 @@ public class SignIn : IClassFixture<HostFixture>
         string firstName,
         string lastName,
         string? trn,
-        DateOnly dateOfBirth)
+        DateOnly dateOfBirth,
+        string? preferredFirstName,
+        string? preferredLastName)
     {
         // Start on the client app and try to access a protected area
 
@@ -443,9 +444,10 @@ public class SignIn : IClassFixture<HostFixture>
         urlPath = new Uri(page.Url).LocalPath;
         Assert.EndsWith("/FindALostTrn", urlPath);
 
-        await page.FillAsync("#FirstName", firstName);
-        await page.FillAsync("#LastName", lastName);
-        await page.FillAsync("#FirstName", firstName);
+        await page.FillAsync("#OfficialFirstName", firstName);
+        await page.FillAsync("#OfficialLastName", lastName);
+        await page.FillAsync("#PreferredFirstName", preferredFirstName ?? string.Empty);
+        await page.FillAsync("#PreferredLastName", preferredLastName ?? string.Empty);
         await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
         await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
         await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());

@@ -20,14 +20,22 @@ public class IndexModel : PageModel
     [Required(ErrorMessage = "Enter your email address")]
     public string? Email { get; set; }
     [BindProperty]
-    [Display(Name = "First name")]
-    [Required(ErrorMessage = "Enter your first name")]
-    public string? FirstName { get; set; }
+    [Display(Name = "Official first name")]
+    [Required(ErrorMessage = "Enter your official first name")]
+    public string? OfficialFirstName { get; set; }
 
     [BindProperty]
-    [Display(Name = "Last name")]
-    [Required(ErrorMessage = "Enter your last name")]
-    public string? LastName { get; set; }
+    [Display(Name = "Official Last name")]
+    [Required(ErrorMessage = "Enter your official last name")]
+    public string? OfficialLastName { get; set; }
+
+    [BindProperty]
+    [Display(Name = "Preferred first name")]
+    public string? PreferredFirstName { get; set; }
+
+    [BindProperty]
+    [Display(Name = "Preferred Last name")]
+    public string? PreferredLastName { get; set; }
 
     [BindProperty]
     [Display(Name = "Date of birth")]
@@ -73,10 +81,12 @@ public class IndexModel : PageModel
                 $"/api/find-trn/user/{journeyId}",
                 new
                 {
-                    FirstName = FirstName!,
-                    LastName = LastName!,
+                    OfficialFirstName = OfficialFirstName,
+                    OfficialLastName = OfficialLastName,
                     DateOfBirth = DateOfBirth!.Value.ToString("yyyy-MM-dd"),
-                    Trn = Trn
+                    Trn = Trn,
+                    PreferredFirstName = PreferredFirstName!,
+                    PreferredLastName = PreferredLastName!,
                 });
             response.EnsureSuccessStatusCode();
         }
