@@ -19,7 +19,7 @@ public class EmailModel : PageModel
         _linkGenerator = linkGenerator;
     }
 
-    [Display(Name = "Your email address")]
+    [Display(Name = "Enter your email address")]
     [Required(ErrorMessage = "Enter your email address")]
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
     public string? Email { get; set; }

@@ -50,7 +50,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Email", email);
+        await page.FillAsync("text=Enter your email address", email);
         await page.ClickAsync("button:has-text('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;

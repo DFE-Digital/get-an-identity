@@ -7,8 +7,16 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds-from-desktop">
     <form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
+      <h1 class="govuk-heading-xl">Your email address</h1>
+
+      <p>We use your email address to find your details in our records.</p>
+
+      <p>If we do not recognise your email, we’ll ask you for a few details instead.</p>
+
+      <p>You’ll receive a code by email to confirm your email address.</p>
+
       <govuk-input asp-for="Email" type="email" autocomplete="email">
-        <govuk-input-label class="govuk-label--xl" is-page-heading="true" />
+        <govuk-input-label class="govuk-label--s" />
       </govuk-input>
 
       <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
