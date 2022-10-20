@@ -37,21 +37,14 @@ public class RenderClientScopedPartialViewComponent : ViewComponent
 
         // By convention, pascal case the client ID to get the view suffix
         // e.g. register-for-npq -> RegisterForNpq
-        var viewNameSuffix = ConvertKebabCaseToPascalCase(client.ClientId!);
+        var clientViewName = ConvertKebabCaseToPascalCase(client.ClientId!);
 
         // Look for a client-specific view and or the Default fallback
-        var fullViewName = $"{viewName}.{viewNameSuffix}";
-        var viewResult = _viewEngine.FindView(ViewContext, fullViewName, isMainPage: false);
+        var viewResult = FindView(clientViewName) ?? FindView("Default");
 
-        var fallbackViewName = $"{viewName}.Default";
-        if (!viewResult.Success)
+        if (viewResult is null)
         {
-            viewResult = _viewEngine.FindView(ViewContext, fallbackViewName, isMainPage: false);
-        }
-
-        if (!viewResult.Success)
-        {
-            throw new InvalidOperationException($"Could not find view {fullViewName} or {fallbackViewName}.");
+            throw new InvalidOperationException($"Could not find view '{viewName}' for client '{client.ClientId}' or the 'Default' fallback.");
         }
 
         var view = viewResult.View!;
@@ -63,6 +56,13 @@ public class RenderClientScopedPartialViewComponent : ViewComponent
             await writer.FlushAsync();
 
             return new HtmlContentViewComponentResult(new HtmlString(writer.ToString()));
+        }
+
+        ViewEngineResult? FindView(string clientViewName)
+        {
+            var fullViewName = string.Format(viewName, clientViewName);
+            var viewResult = _viewEngine.FindView(ViewContext, fullViewName, isMainPage: false);
+            return viewResult.Success ? viewResult : null;
         }
     }
 
