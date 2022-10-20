@@ -1,24 +1,16 @@
 @page "/sign-in/trn"
 @model TeacherIdentity.AuthServer.Pages.SignIn.TrnModel
 @{
-    ViewBag.Title = "We’ll ask you some questions to check against our records";
+    ViewBag.Title = (await Component.InvokeAsync("ClientScopedPartial", new { viewName = "_TrnLookup.StartBookend.Title" })).RenderToString();
 }
 
 <govuk-panel class="app-panel--interruption">
-  <govuk-panel-title>We’ll ask you some questions to check against our records</govuk-panel-title>
+  <govuk-panel-title>
+    <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.Title" />
+  </govuk-panel-title>
 
   <govuk-panel-body>
-    <p>We’ll ask for your:</p>
-    <ul class="govuk-list govuk-list--bullet">
-      <li>name</li>
-      <li>date of birth</li>
-      <li>National Insurance number, if you have one</li>
-      <li>teacher reference number (TRN)</li>
-    </ul>
-
-    <p class="govuk-!-margin-bottom-6">
-        If you do not have your TRN or National Insurance number available, we may ask some follow-up questions.
-    </p>
+    <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.Content" />
 
     <form action="@Model.HandoverUrl" method="post" asp-antiforgery="false">
       @foreach (var p in Model.HandoverParameters!)
