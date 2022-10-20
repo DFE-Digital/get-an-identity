@@ -108,8 +108,8 @@ jobs:
     - name: Get Docker image tags
       id: image_tags
       run: |
-        echo ::set-output name=authserver::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA
-        echo ::set-output name=testclient::$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):testclient-$GITHUB_SHA
+        echo authserver=$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA >> $GITHUB_OUTPUT
+        echo testclient=$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):testclient-$GITHUB_SHA >> $GITHUB_OUTPUT
 
     - name: Set KV environment variables
       working-directory: terraform

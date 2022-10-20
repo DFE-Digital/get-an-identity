@@ -25,7 +25,6 @@ outputs:
     description: The name of the postgres server deployed
     value: ${{ steps.terraform.outputs.postgres_server_name }}
 
-
 runs:
   using: composite
 
@@ -52,9 +51,9 @@ runs:
           exit 1
         fi
 
-        echo ::set-output name=resource_group_name::$RESOURCE_GROUP_NAME
-        echo ::set-output name=key_vault_name::$KEY_VAULT_NAME
-        echo ::set-output name=resource_prefix::$RESOURCE_PREFIX
+        echo resource_group_name=$RESOURCE_GROUP_NAME >> $GITHUB_OUTPUT
+        echo key_vault_name=$KEY_VAULT_NAME >> $GITHUB_OUTPUT
+        echo resource_prefix=$RESOURCE_PREFIX >> $GITHUB_OUTPUT
 
       shell: bash
       env:
@@ -80,15 +79,15 @@ runs:
       id: terraform
       run: |
         make ci ${{ inputs.environment_name }} terraform-apply
-        cd terraform && echo ::set-output name=url::https://$(terraform output -raw auth_server_fqdn)/
-        echo ::set-output name=postgres_server_name::$(terraform output -raw postgres_server_name)
+        cd terraform && echo url=https://$(terraform output -raw auth_server_fqdn)/ >> $GITHUB_OUTPUT
+        echo postgres_server_name=$(terraform output -raw postgres_server_name) >> $GITHUB_OUTPUT
         blue_green=$(terraform output -raw blue_green)
-        echo ::set-output name=blue_green::$blue_green
+        echo blue_green=$blue_green >> $GITHUB_OUTPUT
 
         if [ "$blue_green" = "true" ]; then
-          echo ::set-output name=slot_name::$(terraform output -raw web_app_slot_name)
+          echo slot_name=$(terraform output -raw web_app_slot_name) >> $GITHUB_OUTPUT
         else
-          echo ::set-output name=slot_name::production
+          echo slot_name=production >> $GITHUB_OUTPUT
         fi
       env:
         ARM_ACCESS_KEY: ${{ steps.get_secrets.outputs.TFSTATE-CONTAINER-ACCESS-KEY }}
