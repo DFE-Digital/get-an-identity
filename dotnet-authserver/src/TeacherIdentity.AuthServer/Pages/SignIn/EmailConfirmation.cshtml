@@ -5,21 +5,21 @@
 }
 
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds-from-desktop">
-    <form action="@LinkGenerator.EmailConfirmation()" method="post" asp-antiforgery="true">
-      <h1 class="govuk-heading-xl">Confirm your email address</h1>
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.EmailConfirmation()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">Confirm your email address</h1>
 
-      <p>We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
+            <p>We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
 
-      <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
-        <govuk-input-label class="govuk-label--s" />
-      </govuk-input>
+            <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
+                <govuk-input-label class="govuk-label--s" />
+            </govuk-input>
 
-      <p>
-        <a href="@LinkGenerator.ResendEmailConfirmation()">I have not received an email</a>
-      </p>
+            <p>
+                <a href="@LinkGenerator.ResendEmailConfirmation()">I have not received an email</a>
+            </p>
 
-      <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
-    </form>
-  </div>
+            <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
+        </form>
+    </div>
 </div>

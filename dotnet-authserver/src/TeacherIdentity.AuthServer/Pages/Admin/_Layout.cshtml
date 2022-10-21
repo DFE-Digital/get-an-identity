@@ -5,18 +5,18 @@
 }
 
 @section HeaderNav {
-  <ul id="navigation" class="govuk-header__navigation-list">
-    <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/staff") ? "govuk-header__navigation-item--active" : "")">
-      <a class="govuk-header__link" asp-page="Staff">Staff</a>
-    </li>
-    <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/webhooks") ? "govuk-header__navigation-item--active" : "")">
-      <a class="govuk-header__link" asp-page="WebHooks">Web hooks</a>
-    </li>
-  </ul>
+    <ul id="navigation" class="govuk-header__navigation-list">
+        <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/staff") ? "govuk-header__navigation-item--active" : "")">
+            <a class="govuk-header__link" asp-page="Staff">Staff</a>
+        </li>
+        <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/webhooks") ? "govuk-header__navigation-item--active" : "")">
+            <a class="govuk-header__link" asp-page="WebHooks">Web hooks</a>
+        </li>
+    </ul>
 }
 
-@section BeforeContent {
-  @RenderSection("BeforeContent", required: false)
+    @section BeforeContent {
+    @RenderSection("BeforeContent", required: false)
 }
 
 @if (TempData.ContainsKey(TempDataKeys.FlashSuccess))

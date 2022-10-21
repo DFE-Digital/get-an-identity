@@ -28,14 +28,14 @@
         }
 
         <form action="@action" method="@method" asp-antiforgery="false">
-          @if (responseMode != ResponseModes.Fragment)
-          {
-              foreach (var (key, value) in Model.ResponseParameters!)
-              {
-                  <input type="hidden" name="@key" value="@value">
-              }
-          }
-          <govuk-button prevent-double-click="true" type="submit" class="@buttonClasses">Continue</govuk-button>
+            @if (responseMode != ResponseModes.Fragment)
+            {
+                foreach (var (key, value) in Model.ResponseParameters!)
+                {
+                    <input type="hidden" name="@key" value="@value">
+                }
+            }
+            <govuk-button prevent-double-click="true" type="submit" class="@buttonClasses">Continue</govuk-button>
         </form>
     }
 }
@@ -43,13 +43,13 @@
 @if (Model.AlreadyCompleted)
 {
     <div class="govuk-grid-row" data-testid="already-completed-content">
-      <div class="govuk-grid-column-two-thirds-from-desktop">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
         <h1 class="govuk-heading-xl">We’ve finished checking our records</h1>
 
         <p>You can <span data-testid="already-completed-postsigninmessage">@postSignInMessage</span> </p>
 
         @{
-          await RenderForm();
+            await RenderForm();
         }
         </div>
     </div>
@@ -57,56 +57,56 @@
 else if (Model.FirstTimeSignInForEmail)
 {
     <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
-      <govuk-panel-title><span data-testid="first-time-user-postsigninmessage">@titleCasePostSigninMessage</span></govuk-panel-title>
+        <govuk-panel-title><span data-testid="first-time-user-postsigninmessage">@titleCasePostSigninMessage</span></govuk-panel-title>
 
-      <govuk-panel-body>
-        @if (Model.GotTrn)
-        {
-            <p data-testid="known-trn-content">Thank you, we’ve finished checking our records.</p>
-        }
-        else
-        {
-            <span data-testid="unknown-trn-content"></span>
-            <h2 class="govuk-heading-m">You can continue without a match</h2>
-            <p>We will attempt to match your record again. If we cannot, someone might be in touch to ask for more information.</p>
-        }
+        <govuk-panel-body>
+            @if (Model.GotTrn)
+            {
+                <p data-testid="known-trn-content">Thank you, we’ve finished checking our records.</p>
+            }
+            else
+            {
+                <span data-testid="unknown-trn-content"></span>
+                <h2 class="govuk-heading-m">You can continue without a match</h2>
+                <p>We will attempt to match your record again. If we cannot, someone might be in touch to ask for more information.</p>
+            }
 
-        <h2 class="govuk-heading-m">Next time</h2>
-        <p class="govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
+            <h2 class="govuk-heading-m">Next time</h2>
+            <p class="govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
 
-        @{
-          await RenderForm("app-button--inverse govuk-!-margin-bottom-0");
-        }
-      </govuk-panel-body>
+            @{
+                await RenderForm("app-button--inverse govuk-!-margin-bottom-0");
+            }
+        </govuk-panel-body>
     </govuk-panel>
 }
 else
 {
     <div class="govuk-grid-row" data-testid="known-user-content">
-      <div class="govuk-grid-column-two-thirds-from-desktop">
-        <h1 class="govuk-heading-xl">You’re signed in</h1>
+        <div class="govuk-grid-column-two-thirds-from-desktop">
+            <h1 class="govuk-heading-xl">You’re signed in</h1>
 
-        <govuk-summary-list>
-          <govuk-summary-list-row>
-            <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
-            <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
-          </govuk-summary-list-row>
-          @if (Model.UserType == UserType.Default)
-          {
-            <govuk-summary-list-row data-testid="trn-row">
-              <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
-              <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
-            </govuk-summary-list-row>
-            <govuk-summary-list-row>
-              <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
-              <govuk-summary-list-row-value>@(Model.DateOfBirth!.Value.ToString("d MMMM yyyy"))</govuk-summary-list-row-value>
-            </govuk-summary-list-row>
-          }
-        </govuk-summary-list>
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                @if (Model.UserType == UserType.Default)
+                {
+                    <govuk-summary-list-row data-testid="trn-row">
+                        <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+                    </govuk-summary-list-row>
+                    <govuk-summary-list-row>
+                        <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@(Model.DateOfBirth!.Value.ToString("d MMMM yyyy"))</govuk-summary-list-row-value>
+                    </govuk-summary-list-row>
+                }
+            </govuk-summary-list>
 
-        @{
-          await RenderForm();
-        }
+            @{
+                await RenderForm();
+            }
         </div>
     </div>
 }

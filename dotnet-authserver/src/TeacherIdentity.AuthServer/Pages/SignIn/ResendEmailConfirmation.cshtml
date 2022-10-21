@@ -5,24 +5,24 @@
 }
 
 @section BeforeContent {
-  <govuk-back-link href="@LinkGenerator.EmailConfirmation()" />
+    <govuk-back-link href="@LinkGenerator.EmailConfirmation()" />
 }
 
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds-from-desktop">
-    <form action="@LinkGenerator.ResendEmailConfirmation()" method="post" asp-antiforgery="true">
-      <h1 class="govuk-heading-xl">Request a new security code</h1>
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.ResendEmailConfirmation()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">Request a new security code</h1>
 
-      <p>Emails sometimes take a few minutes to arrive. If you do not receive the email, you can request a new one.</p>
+            <p>Emails sometimes take a few minutes to arrive. If you do not receive the email, you can request a new one.</p>
 
-      <govuk-details open="@(!ModelState.IsValid)">
-        <govuk-details-summary>Change where the email is sent</govuk-details-summary>
-        <govuk-details-text>
-          <govuk-input asp-for="Email" type="email" autocomplete="email" />
-        </govuk-details-text>
-      </govuk-details>
+            <govuk-details open="@(!ModelState.IsValid)">
+                <govuk-details-summary>Change where the email is sent</govuk-details-summary>
+                <govuk-details-text>
+                    <govuk-input asp-for="Email" type="email" autocomplete="email" />
+                </govuk-details-text>
+            </govuk-details>
 
-      <govuk-button prevent-double-click="true" type="submit">Request a new code</govuk-button>
-    </form>
-  </div>
+            <govuk-button prevent-double-click="true" type="submit">Request a new code</govuk-button>
+        </form>
+    </div>
 </div>

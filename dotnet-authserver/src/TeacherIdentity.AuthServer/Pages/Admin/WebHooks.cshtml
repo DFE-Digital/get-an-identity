@@ -5,22 +5,22 @@
 }
 
 <table class="govuk-table">
-  <caption class="govuk-table__caption govuk-table__caption--xl">@ViewBag.Title</caption>
-  <thead class="govuk-table__head">
-    <tr class="govuk-table__row">
-      <th scope="col" class="govuk-table__header">Endpoint</th>
-      <th scope="col" class="govuk-table__header">Enabled</th>
-    </tr>
-  </thead>
-  <tbody class="govuk-table__body">
-    @foreach (var webHook in Model.WebHooks!)
-    {
+    <caption class="govuk-table__caption govuk-table__caption--xl">@ViewBag.Title</caption>
+    <thead class="govuk-table__head">
         <tr class="govuk-table__row">
-          <td class="govuk-table__cell"><a asp-page="EditWebHook" asp-route-webHookId="@webHook.WebHookId">@webHook.Endpoint</a></td>
-          <td class="govuk-table__cell">@(webHook.Enabled ? "Yes" : "No")</td>
+            <th scope="col" class="govuk-table__header">Endpoint</th>
+            <th scope="col" class="govuk-table__header">Enabled</th>
         </tr>
-    }
-  </tbody>
+    </thead>
+    <tbody class="govuk-table__body">
+        @foreach (var webHook in Model.WebHooks!)
+        {
+            <tr class="govuk-table__row">
+                <td class="govuk-table__cell"><a asp-page="EditWebHook" asp-route-webHookId="@webHook.WebHookId">@webHook.Endpoint</a></td>
+                <td class="govuk-table__cell">@(webHook.Enabled ? "Yes" : "No")</td>
+            </tr>
+        }
+    </tbody>
 </table>
 
 <p><a asp-page="AddWebHook">Add web hook</a></p>
