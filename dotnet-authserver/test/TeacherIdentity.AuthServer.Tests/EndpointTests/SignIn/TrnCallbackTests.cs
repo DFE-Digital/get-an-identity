@@ -100,6 +100,51 @@ public class TrnCallbackTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task Get_ValidCallback_CreatesUserWithPreferredNames(bool hasTrn)
+    {
+        // Arrange
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var preferredFirstName = Faker.Name.First();
+        var preferredLastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = hasTrn ? TestData.GenerateTrn() : null;
+
+        var authStateHelper = CreateAuthenticationStateHelper(email);
+
+        await SaveLookupState(authStateHelper.AuthenticationState.JourneyId, firstName, lastName, dateOfBirth, trn, preferredFirstName, preferredLastName);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var user = await dbContext.Users.Where(u => u.FirstName == preferredFirstName && u.LastName == preferredLastName && u.DateOfBirth == dateOfBirth).SingleOrDefaultAsync();
+
+            Assert.NotNull(user);
+            Assert.Equal(authStateHelper.AuthenticationState.UserId, user!.UserId);
+            Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, user.EmailAddress);
+            Assert.Equal(preferredFirstName, user.FirstName);
+            Assert.Equal(preferredLastName, user.LastName);
+            Assert.Equal(dateOfBirth, user.DateOfBirth);
+            Assert.Equal(Clock.UtcNow, user.Created);
+            Assert.Equal(Clock.UtcNow, user.CompletedTrnLookup);
+            Assert.Equal(Clock.UtcNow, user.Updated);
+            Assert.Equal(Clock.UtcNow, user.LastSignedIn);
+            Assert.Equal(UserType.Default, user.UserType);
+        });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task Get_ValidCallback_CreatesUserLocksLookupStateCallsDqtApiAndRedirectsToNextPage(bool hasTrn)
     {
         // Arrange
@@ -208,7 +253,10 @@ public class TrnCallbackTests : TestBase
         string? firstName = null,
         string? lastName = null,
         DateOnly? dateOfBirth = null,
-        string? trn = GenerateRandomTrnSentinel)
+        string? trn = GenerateRandomTrnSentinel,
+        string? preferredFirstName = null,
+        string? preferredLastName = null
+        )
     {
         if (trn == GenerateRandomTrnSentinel)
         {
@@ -222,10 +270,12 @@ public class TrnCallbackTests : TestBase
                 JourneyId = journeyId,
                 Created = Clock.UtcNow,
                 DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = firstName ?? Faker.Name.First(),
-                LastName = lastName ?? Faker.Name.Last(),
+                OfficialFirstName = firstName ?? Faker.Name.First(),
+                OfficialLastName = lastName ?? Faker.Name.Last(),
                 Trn = trn,
-                NationalInsuranceNumber = null
+                NationalInsuranceNumber = null,
+                PreferredFirstName = preferredFirstName,
+                PreferredLastName = preferredLastName,
             });
 
             await dbContext.SaveChangesAsync();

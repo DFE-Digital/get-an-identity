@@ -322,8 +322,8 @@ public class TrnInUseChooseEmailTests : TestBase
                 JourneyId = journeyId,
                 Created = Clock.UtcNow,
                 DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = firstName ?? Faker.Name.First(),
-                LastName = lastName ?? Faker.Name.Last(),
+                OfficialFirstName = firstName ?? Faker.Name.First(),
+                OfficialLastName = lastName ?? Faker.Name.Last(),
                 Trn = trn,
                 NationalInsuranceNumber = null
             });

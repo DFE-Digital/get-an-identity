@@ -47,8 +47,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 JourneyId = journeyId,
                 Created = Clock.UtcNow,
                 DateOfBirth = user.DateOfBirth!.Value,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                OfficialFirstName = user.FirstName,
+                OfficialLastName = user.LastName,
                 Locked = Clock.UtcNow,
                 UserId = user.UserId,
                 Trn = null,
@@ -92,8 +92,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 JourneyId = journeyId,
                 Created = Clock.UtcNow.AddMinutes(-2),
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
+                OfficialFirstName = Faker.Name.First(),
+                OfficialLastName = Faker.Name.Last(),
                 Locked = null,
                 UserId = null,
                 Trn = null,
@@ -112,8 +112,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
         {
             Content = JsonContent.Create(new
             {
-                FirstName = firstName,
-                LastName = lastName,
+                OfficialFirstName = firstName,
+                OfficialLastName = lastName,
                 DateOfBirth = dateOfBirth.ToString("yyyy-MM-dd"),
                 Trn = trn
             })
@@ -130,11 +130,46 @@ public class SetJourneyTrnLookupStateTests : TestBase
             var state = await dbContext.JourneyTrnLookupStates.SingleOrDefaultAsync(s => s.JourneyId == journeyId);
 
             Assert.NotNull(state);
-            Assert.Equal(firstName, state!.FirstName);
-            Assert.Equal(lastName, state.LastName);
+            Assert.Equal(firstName, state!.OfficialFirstName);
+            Assert.Equal(lastName, state.OfficialLastName);
             Assert.Equal(dateOfBirth, state.DateOfBirth);
             Assert.Equal(trn, state.Trn);
         });
+    }
+
+
+    [Theory]
+    [InlineData(null, "fakelastname")]
+    [InlineData("testing", null)]
+    public async Task Put_InvalidPreferredNameCombination_ReturnsBadRequest(string preferredFirstName, string preferredLastName)
+    {
+        // Arrange
+        var journeyId = Guid.NewGuid();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = TestData.GenerateTrn();
+        var nino = Faker.Identification.UkNationalInsuranceNumber(formatted: true);
+
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/find-trn/user/{journeyId}")
+        {
+            Content = JsonContent.Create(new
+            {
+                OfficialFirstName = firstName,
+                OfficialLastName = lastName,
+                DateOfBirth = dateOfBirth.ToString("yyyy-MM-dd"),
+                Trn = trn,
+                NationalInsuranceNumber = nino,
+                PreferredFirstName = preferredFirstName,
+                PreferredLastName = preferredLastName
+            })
+        };
+
+        // Act
+        var response = await ApiKeyHttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
     [Theory]
@@ -154,8 +189,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
         {
             Content = JsonContent.Create(new
             {
-                FirstName = firstName,
-                LastName = lastName,
+                OfficialFirstName = firstName,
+                OfficialLastName = lastName,
                 DateOfBirth = dateOfBirth.ToString("yyyy-MM-dd"),
                 Trn = trn,
                 NationalInsuranceNumber = nino
@@ -173,8 +208,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
             var state = await dbContext.JourneyTrnLookupStates.SingleOrDefaultAsync(s => s.JourneyId == journeyId);
 
             Assert.NotNull(state);
-            Assert.Equal(firstName, state!.FirstName);
-            Assert.Equal(lastName, state.LastName);
+            Assert.Equal(firstName, state!.OfficialFirstName);
+            Assert.Equal(lastName, state.OfficialLastName);
             Assert.Equal(dateOfBirth, state.DateOfBirth);
             Assert.Equal(trn, state.Trn);
             Assert.Equal(nino.ToUpper().Replace(" ", ""), state.NationalInsuranceNumber);

@@ -9,8 +9,8 @@ public class JourneyTrnLookupStateMapping : IEntityTypeConfiguration<JourneyTrnL
     {
         builder.ToTable("journey_trn_lookup_states");
         builder.HasKey(s => s.JourneyId);
-        builder.Property(s => s.FirstName).IsRequired();
-        builder.Property(s => s.LastName).IsRequired();
+        builder.Property(s => s.OfficialFirstName).IsRequired();
+        builder.Property(s => s.OfficialLastName).IsRequired();
         builder.Property(s => s.DateOfBirth).IsRequired();
         builder.Property(s => s.Trn).HasMaxLength(7).IsFixedLength();
         builder.Property(s => s.NationalInsuranceNumber).HasMaxLength(9).IsFixedLength();
