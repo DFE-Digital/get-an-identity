@@ -34,7 +34,6 @@ public static class TestClients
         Requirements =
         {
             Requirements.Features.ProofKeyForCodeExchange
-        },
-        PostSignInMessage = "continue with the Test Client"
+        }
     };
 }

@@ -9,5 +9,4 @@ public class ClientConfiguration
     public string? DisplayName { get; set; }
     public string? ServiceUrl { get; set; }
     public string[]? Scopes { get; set; }
-    public string? PostSignInMessage { get; set; }
 }
