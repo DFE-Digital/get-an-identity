@@ -1,13 +1,9 @@
 @page "/sign-in/complete"
 @using static OpenIddict.Abstractions.OpenIddictConstants
-@inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @model TeacherIdentity.AuthServer.Pages.SignIn.CompleteModel
 @{
-    var client = await CurrentClientProvider.GetCurrentClient();
-    var postSignInMessage = client?.PostSignInMessage;
-    var titleCasePostSigninMessage = client?.GetPostSignInMessageAsTitleCase();
-    ViewBag.Title = Model.FirstTimeSignInForEmail ? "Continue with your NPQ registration" :
-        Model.AlreadyCompleted ? "We’ve finished checking our records" :
+    ViewBag.Title = Model.FirstTimeSignInForEmail ?
+        (await Component.InvokeAsync("ClientScopedPartial", new { viewName = "_TrnLookup.EndBookend.FirstTimeSignIn.{0}.Title" })).RenderToString() :
         "You’re signed in";
 
     async Task RenderForm(string? buttonClasses = null)
@@ -40,39 +36,25 @@
     }
 }
 
-@if (Model.AlreadyCompleted)
-{
-    <div class="govuk-grid-row" data-testid="already-completed-content">
-        <div class="govuk-grid-column-two-thirds-from-desktop">
-        <h1 class="govuk-heading-xl">We’ve finished checking our records</h1>
-
-        <p>You can <span data-testid="already-completed-postsigninmessage">@postSignInMessage</span> </p>
-
-        @{
-            await RenderForm();
-        }
-        </div>
-    </div>
-}
-else if (Model.FirstTimeSignInForEmail)
+@if (Model.FirstTimeSignInForEmail)
 {
     <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
-        <govuk-panel-title><span data-testid="first-time-user-postsigninmessage">@titleCasePostSigninMessage</span></govuk-panel-title>
+        <govuk-panel-title><span data-testid="first-time-user-postsigninmessage"></span>@ViewBag.Title</govuk-panel-title>
 
         <govuk-panel-body>
             @if (Model.GotTrn)
             {
-                <p data-testid="known-trn-content">Thank you, we’ve finished checking our records.</p>
+                <span data-testid="known-trn-content"></span>
+                <p>Thank you, we’ve finished checking our records.</p>
+
+                <p>We’ll only need your email address <strong>(@Model.Email)</strong> to find your details in future.</p>
             }
             else
             {
                 <span data-testid="unknown-trn-content"></span>
-                <h2 class="govuk-heading-m">You can continue without a match</h2>
-                <p>We will attempt to match your record again. If we cannot, someone might be in touch to ask for more information.</p>
+                <p>You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.</p>
+                <p>If you need to come back to this service later, use your email address <strong>@Model.Email</strong> when prompted and you will not have to answer these questions again.</p>
             }
-
-            <h2 class="govuk-heading-m">Next time</h2>
-            <p class="govuk-!-margin-bottom-6">Next time, you can skip these questions by signing in with your email address: <b>@Model.Email</b></p>
 
             @{
                 await RenderForm("app-button--inverse govuk-!-margin-bottom-0");
@@ -84,7 +66,7 @@ else
 {
     <div class="govuk-grid-row" data-testid="known-user-content">
         <div class="govuk-grid-column-two-thirds-from-desktop">
-            <h1 class="govuk-heading-xl">You’re signed in</h1>
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <govuk-summary-list>
                 <govuk-summary-list-row>
