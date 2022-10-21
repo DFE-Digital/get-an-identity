@@ -20,18 +20,18 @@ public class AddStaffUserModel : PageModel
     }
 
     [Display(Name = "Email address")]
-    [Required(ErrorMessage = "Enter the user's email address")]
+    [Required(ErrorMessage = "Enter the user’s email address")]
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
     [MaxLength(200, ErrorMessage = "Email address must be 200 characters or less")]
     public string? Email { get; set; }
 
     [Display(Name = "First name")]
-    [Required(ErrorMessage = "Enter the user's first name")]
+    [Required(ErrorMessage = "Enter the user’s first name")]
     [MaxLength(200, ErrorMessage = "First name must be 200 characters or less")]
     public string? FirstName { get; set; }
 
     [Display(Name = "Last name")]
-    [Required(ErrorMessage = "Enter the user's last name")]
+    [Required(ErrorMessage = "Enter the user’s last name")]
     [MaxLength(200, ErrorMessage = "Last name must be 200 characters or less")]
     public string? LastName { get; set; }
 
