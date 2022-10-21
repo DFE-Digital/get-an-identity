@@ -5,13 +5,13 @@
 }
 
 <form asp-page="AddWebHook" method="post">
-  <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+    <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
-  <govuk-input asp-for="Endpoint" type="url" />
+    <govuk-input asp-for="Endpoint" type="url" />
 
-  <govuk-checkboxes asp-for="Enabled">
-    <govuk-checkboxes-item value="@true">Enabled</govuk-checkboxes-item>
-  </govuk-checkboxes>
+    <govuk-checkboxes asp-for="Enabled">
+        <govuk-checkboxes-item value="@true">Enabled</govuk-checkboxes-item>
+    </govuk-checkboxes>
 
-  <govuk-button type="submit" prevent-double-click="true">Save</govuk-button>
+    <govuk-button type="submit" prevent-double-click="true">Save</govuk-button>
 </form>

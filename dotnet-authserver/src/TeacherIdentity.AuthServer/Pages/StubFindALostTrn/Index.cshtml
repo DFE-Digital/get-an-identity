@@ -7,21 +7,21 @@
 <govuk-back-link href="@Model.PreviousUrl" />
 
 <form action="@(PageContext.HttpContext.Request.Path + PageContext.HttpContext.Request.QueryString)" method="post" asp-antiforgery="true">
-  <h1 class="govuk-heading-xl">STUB Find a lost TRN</h1>
+    <h1 class="govuk-heading-xl">STUB Find a lost TRN</h1>
 
-  <govuk-input asp-for="Email" type="email" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="Email" type="email" input-class="govuk-input--width-20" />
 
-  <govuk-input asp-for="OfficialFirstName" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="OfficialFirstName" input-class="govuk-input--width-20" />
 
-  <govuk-input asp-for="OfficialLastName" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="OfficialLastName" input-class="govuk-input--width-20" />
 
-  <govuk-input asp-for="PreferredFirstName" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="PreferredFirstName" input-class="govuk-input--width-20" />
 
-  <govuk-input asp-for="PreferredLastName" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="PreferredLastName" input-class="govuk-input--width-20" />
 
-  <govuk-date-input asp-for="DateOfBirth" />
+    <govuk-date-input asp-for="DateOfBirth" />
 
-  <govuk-input asp-for="Trn" input-class="govuk-input--width-10" />
+    <govuk-input asp-for="Trn" input-class="govuk-input--width-10" />
 
-  <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
+    <govuk-button prevent-double-click="true" type="submit">Continue</govuk-button>
 </form>

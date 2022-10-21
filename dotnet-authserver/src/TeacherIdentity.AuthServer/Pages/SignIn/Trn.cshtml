@@ -5,20 +5,20 @@
 }
 
 <govuk-panel class="app-panel--interruption">
-  <govuk-panel-title>
-    <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.Title" />
-  </govuk-panel-title>
+    <govuk-panel-title>
+        <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.Title" />
+    </govuk-panel-title>
 
-  <govuk-panel-body>
-    <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.Content" />
+    <govuk-panel-body>
+        <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.Content" />
 
-    <form action="@Model.HandoverUrl" method="post" asp-antiforgery="false">
-      @foreach (var p in Model.HandoverParameters!)
-      {
-        <input type="hidden" name="@(p.Key)" value="@(p.Value)"/>
-      }
+        <form action="@Model.HandoverUrl" method="post" asp-antiforgery="false">
+            @foreach (var p in Model.HandoverParameters!)
+            {
+                <input type="hidden" name="@(p.Key)" value="@(p.Value)" />
+            }
 
-      <govuk-button prevent-double-click="true" type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
-    </form>
-  </govuk-panel-body>
+            <govuk-button prevent-double-click="true" type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+        </form>
+    </govuk-panel-body>
 </govuk-panel>
