@@ -24,6 +24,7 @@ public static partial class AssertEx
     {
         var problemDetails = await ResponseIsProblemDetails(response, expectedStatusCode);
 
+        Assert.NotNull(problemDetails.Extensions);
         Assert.Contains(problemDetails.Extensions, kvp => kvp.Key == "errorCode");
         Assert.Equal(expectedErrorCode, problemDetails.Extensions?["errorCode"].GetInt32());
     }
@@ -60,7 +61,7 @@ public static partial class AssertEx
     {
         public string? Title { get; set; }
         public int Status { get; set; }
-        public Dictionary<string, string[]>? Errors { get; set; }
+        public IDictionary<string, string[]>? Errors { get; set; }
         [JsonExtensionData]
         public IDictionary<string, JsonElement>? Extensions { get; set; }
     }

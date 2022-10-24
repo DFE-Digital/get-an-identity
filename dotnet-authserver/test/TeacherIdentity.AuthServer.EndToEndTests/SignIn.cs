@@ -404,7 +404,7 @@ public class SignIn : IClassFixture<HostFixture>
         if (expectOAuthProperties)
         {
             Assert.Equal(_hostFixture.TestClientId, userSignedIn.ClientId);
-            Assert.NotEmpty(userSignedIn.Scope);
+            Assert.NotNull(userSignedIn.Scope);
         }
     }
 
