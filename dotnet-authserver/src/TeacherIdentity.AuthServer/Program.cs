@@ -1,14 +1,9 @@
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
-using Azure.Messaging.ServiceBus;
-using FluentValidation;
 using GovUk.Frontend.AspNetCore;
 using Hangfire;
-using Hangfire.PostgreSql;
 using Joonasw.AspNetCore.SecurityHeaders;
-using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -21,37 +16,22 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Notify.Client;
 using OpenIddict.Validation.AspNetCore;
 using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using StackExchange.Redis;
-using Swashbuckle.AspNetCore.Filters;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using TeacherIdentity.AuthServer.Api.Validation;
+using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
-using TeacherIdentity.AuthServer.Infrastructure.ApplicationModel;
-using TeacherIdentity.AuthServer.Infrastructure.Filters;
-using TeacherIdentity.AuthServer.Infrastructure.Json;
-using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
-using TeacherIdentity.AuthServer.Jobs;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
-using TeacherIdentity.AuthServer.Notifications.WebHooks;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services;
-using TeacherIdentity.AuthServer.Services.BackgroundJobs;
-using TeacherIdentity.AuthServer.Services.DqtApi;
-using TeacherIdentity.AuthServer.Services.Email;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
-using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using static OpenIddict.Server.OpenIddictServerEvents;
@@ -64,6 +44,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        MetricLabels.ConfigureLabels(builder.Configuration);
+
         builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
 
         builder.WebHost.ConfigureKestrel(options =>
@@ -74,6 +56,21 @@ public class Program
         if (builder.Environment.IsProduction())
         {
             builder.WebHost.UseSentry();
+
+            builder.Services.Configure<SentryAspNetCoreOptions>(options =>
+            {
+                var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
+                if (!string.IsNullOrEmpty(hostingEnvironmentName))
+                {
+                    options.Environment = hostingEnvironmentName;
+                }
+
+                var gitSha = builder.Configuration["GitSha"];
+                if (!string.IsNullOrEmpty(gitSha))
+                {
+                    options.Release = gitSha;
+                }
+            });
 
             builder.Services.AddDataProtection()
                 .PersistKeysToAzureBlobStorage(
@@ -93,8 +90,6 @@ public class Program
             ConfigureRateLimitServices();
         }
 
-        MetricLabels.ConfigureLabels(builder.Configuration);
-
         builder.Services.AddAntiforgery(options =>
         {
             options.Cookie.Name = "tis-antiforgery";
@@ -103,27 +98,6 @@ public class Program
         });
 
         builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
-
-        if (builder.Environment.IsProduction())
-        {
-            builder.Services.AddOptions<DqtApiOptions>()
-                .Bind(builder.Configuration.GetSection("DqtApi"))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-
-            builder.Services
-                .AddSingleton<IDqtApiClient, DqtApiClient>()
-                .AddHttpClient<IDqtApiClient, DqtApiClient>((sp, httpClient) =>
-                {
-                    var options = sp.GetRequiredService<IOptions<DqtApiOptions>>();
-                    httpClient.BaseAddress = new Uri(options.Value.BaseAddress);
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.ApiKey);
-                });
-        }
-        else
-        {
-            builder.Services.AddSingleton<IDqtApiClient, FakeDqtApiClient>();
-        }
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>
@@ -220,10 +194,8 @@ public class Program
         builder.Services.AddControllersWithViews()
             .AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.Converters.Add(new DateOnlyConverter());
+                options.JsonSerializerOptions.Converters.Add(new Infrastructure.Json.DateOnlyConverter());
             });
-
-        builder.Services.AddSingleton<RequireAuthenticationStateFilter>();
 
         builder.Services.AddRazorPages(options =>
         {
@@ -233,8 +205,8 @@ public class Program
                 model =>
                 {
                     model.Filters.Add(new RequireAuthenticationStateFilterFactory());
-                    model.Filters.Add(new NoCachePageFilter());
-                    model.Filters.Add(new RedirectToCompletePageFilter());
+                    model.Filters.Add(new Infrastructure.Filters.NoCachePageFilter());
+                    model.Filters.Add(new Infrastructure.Filters.RedirectToCompletePageFilter());
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(
@@ -351,132 +323,14 @@ public class Program
             options.KnownProxies.Clear();
         });
 
-        builder.Services.AddOptions<FindALostTrnIntegrationOptions>()
-            .Bind(builder.Configuration.GetSection("FindALostTrnIntegration"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        builder.Services.AddTransient<FindALostTrnIntegrationHelper>();
-
-        builder.Services.AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>();
-
-        if (builder.Environment.IsProduction())
+        builder.Services.AddMvc(options =>
         {
-            builder.Services.Configure<SentryAspNetCoreOptions>(options =>
-            {
-                var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
-                if (!string.IsNullOrEmpty(hostingEnvironmentName))
-                {
-                    options.Environment = hostingEnvironmentName;
-                }
-
-                var gitSha = builder.Configuration["GitSha"];
-                if (!string.IsNullOrEmpty(gitSha))
-                {
-                    options.Release = gitSha;
-                }
-            });
-        }
+            options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
+        });
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
-        if (builder.Environment.IsDevelopment())
-        {
-            builder.Services.AddSingleton<IDistributedCache, DevelopmentFileDistributedCache>();
-        }
-
-        if (!builder.Environment.IsUnitTests())
-        {
-            builder.Services.AddHangfire(configuration => configuration
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UsePostgreSqlStorage(pgConnectionString));
-
-            builder.Services.AddHangfireServer();
-
-            builder.Services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
-        }
-
-        if (builder.Environment.IsProduction())
-        {
-            builder.Services.AddSingleton(new NotificationClient(builder.Configuration["NotifyApiKey"]));
-            builder.Services.AddSingleton<IEmailSender, NotifyEmailSender>();
-            builder.Services.AddSingleton<IRateLimitStore, RateLimitStore>();
-
-            // Use Hangfire for scheduling emails in the background (so we get retries etc.).
-            // As the implementation needs to be able to resolve itself we need two service registrations here;
-            // one for the interface (that decorates the 'base' notify implementation) and another for the concrete type.
-            builder.Services.Decorate<IEmailSender, BackgroundEmailSender>();
-            builder.Services.AddSingleton<BackgroundEmailSender>(sp => (BackgroundEmailSender)sp.GetRequiredService<IEmailSender>());
-        }
-        else
-        {
-            builder.Services.AddSingleton<IEmailSender, NoopEmailSender>();
-            builder.Services.AddSingleton<IRateLimitStore, NoopRateLimitStore>();
-        }
-
-        builder.Services.AddTransient<IRequestClientIpProvider, RequestClientIpProvider>();
-
-        builder.Services.AddSingleton<IClock, SystemClock>();
-
-        builder.Services.AddTransient<IEmailVerificationService, EmailVerificationService>();
-
-        builder.Services.AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>();
-
-        builder.Services.AddSingleton<IActionDescriptorProvider, RemoveStubFindEndpointsActionDescriptorProvider>();
-
-        builder.Services.AddOptions<EmailVerificationOptions>()
-            .Bind(builder.Configuration.GetSection("EmailVerification"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        builder.Services.AddOptions<RateLimitStoreOptions>()
-            .Bind(builder.Configuration.GetSection("EmailVerificationRateLimit"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         builder.Services.AddApplicationInsightsTelemetry();
-
-        builder.Services.AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>();
-
-        builder.Services.AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>();
-
-        if (builder.Environment.IsProduction())
-        {
-            builder.Services.AddSingleton<IBackgroundJobScheduler, HangfireBackgroundJobScheduler>();
-        }
-        else
-        {
-            builder.Services.AddSingleton<IBackgroundJobScheduler, ExecuteImmediatelyJobScheduler>();
-        }
-
-        builder.Services.AddMvc(options =>
-        {
-            options.Conventions.Add(new ApiControllerConvention());
-        });
-
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Get an identity to access Teacher Services API", Version = "v1" });
-
-            c.DocInclusionPredicate((docName, api) => docName.Equals(api.GroupName, StringComparison.OrdinalIgnoreCase));
-            c.EnableAnnotations();
-            c.ExampleFilters();
-            c.OperationFilter<ResponseContentTypeOperationFilter>();
-            c.OperationFilter<RateLimitOperationFilter>();
-        });
-
-        builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
-        builder.Services.AddTransient<ISerializerDataContractResolver>(sp =>
-        {
-            var serializerOptions = sp.GetRequiredService<IOptions<JsonOptions>>().Value.JsonSerializerOptions;
-            return new Infrastructure.Swagger.JsonSerializerDataContractResolver(serializerOptions);
-        });
-
-        builder.Services.AddSingleton<Redactor>();
-
-        builder.Services.AddSingleton<PinValidator>();
 
         builder.Services.AddHsts(options =>
         {
@@ -485,57 +339,35 @@ public class Program
             options.MaxAge = TimeSpan.FromDays(365);
         });
 
-        builder.Services.AddSingleton<IEventObserver, PublishNotificationsEventObserver>();
-
-        if (!builder.Environment.IsUnitTests())
-        {
-            if (builder.Environment.IsProduction() ||
-                builder.Configuration.GetValue<bool?>("ServiceBusWebHookNotificationPublisher") == true)
-            {
-                var sbClient = new ServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
-
-                builder.Services.AddSingleton(sbClient);
-                builder.Services.AddSingleton<ServiceBusWebHookNotificationPublisher>();
-                builder.Services.AddSingleton<INotificationPublisher>(sp => sp.GetRequiredService<ServiceBusWebHookNotificationPublisher>());
-                builder.Services.AddHostedService(sp => sp.GetRequiredService<ServiceBusWebHookNotificationPublisher>());
-
-                builder.Services.AddOptions<ServiceBusWebHookOptions>()
-                    .Bind(builder.Configuration.GetSection("WebHooks"))
-                    .ValidateDataAnnotations()
-                    .ValidateOnStart();
-            }
-            else
-            {
-                builder.Services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
-            }
-
-            builder.Services.AddOptions<WebHookOptions>()
-                .Bind(builder.Configuration.GetSection("WebHooks"))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-
-            builder.Services
-                .AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>()
-                .AddHttpClient<IWebHookNotificationSender, WebHookNotificationSender>(httpClient =>
-                {
-                    httpClient.Timeout = TimeSpan.FromSeconds(30);
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Teacher Identity");
-                })
-                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false,
-                    PreAuthenticate = true
-                });
-        }
-
         builder.Services.AddMemoryCache();
 
-        builder.Services.AddMediatR(typeof(Program));
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddSingleton<IDistributedCache, DevelopmentFileDistributedCache>();
+        }
 
-        builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
+        builder.Services.AddApiSwagger();
 
-        builder.Services.Decorate<Microsoft.AspNetCore.Mvc.Infrastructure.ProblemDetailsFactory, CamelCaseErrorKeysProblemDetailsFactory>();
+        // Custom MVC filters & extensions
+        builder.Services
+            .AddSingleton<IActionDescriptorProvider, Infrastructure.ApplicationModel.RemoveStubFindEndpointsActionDescriptorProvider>()
+            .AddSingleton<RequireAuthenticationStateFilter>()
+            .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>();
+
+        builder.Services
+            .AddSingleton<IClock, SystemClock>()
+            .AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>()
+            .AddTransient<IRequestClientIpProvider, RequestClientIpProvider>()
+            .AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>()
+            .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
+            .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
+            .AddSingleton<IEventObserver, PublishNotificationsEventObserver>();
+
+        builder.Services.AddNotifications(builder.Environment, builder.Configuration);
+
+        builder.Services.AddAuthServerServices(builder.Environment, builder.Configuration, pgConnectionString);
+
+        builder.Services.AddApiServices();
 
         var app = builder.Build();
 
@@ -585,7 +417,7 @@ public class Program
             ctx => !ctx.Request.Path.StartsWithSegments(new PathString("/connect")),
             a =>
             {
-                a.UseMiddleware<AppendSecurityResponseHeadersMiddleware>();
+                a.UseMiddleware<Infrastructure.Middleware.AppendSecurityResponseHeadersMiddleware>();
 
                 a.UseCsp(options =>
                 {
@@ -628,7 +460,7 @@ public class Program
         {
             app.UseWhen(
                 ctx => ctx.Request.Path.StartsWithSegments("/api") && !ctx.Request.Path.StartsWithSegments("/api/find-trn"),
-                a => a.UseMiddleware<RateLimitMiddleware>());
+                a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
         }
 
         app.UseEndpoints(endpoints =>
