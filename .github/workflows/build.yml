@@ -15,20 +15,13 @@ defaults:
   run:
     working-directory: dotnet-authserver
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  setup:
-    name: Cancel previous runs for PR
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
-      if: github.event_name == 'pull_request'
-
   build:
     name: Build
-    needs: [setup]
     runs-on: ubuntu-latest
 
     outputs:
