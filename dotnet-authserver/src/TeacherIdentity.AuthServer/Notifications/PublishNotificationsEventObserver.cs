@@ -18,21 +18,27 @@ public class PublishNotificationsEventObserver : IEventObserver
         _logger = logger;
     }
 
-    public async Task OnEventSaved(EventBase @event)
+    public Task OnEventSaved(EventBase @event)
     {
-        var notifications = GetNotificationsForEvent(@event);
-
-        foreach (var notification in notifications)
+        // Background generating and sending notifications
+        Task.Run(async () =>
         {
-            try
+            var notifications = GetNotificationsForEvent(@event);
+
+            foreach (var notification in notifications)
             {
-                await _notificationPublisher.PublishNotification(notification);
+                try
+                {
+                    await _notificationPublisher.PublishNotification(notification);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to publish notification.");
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to publish notification.");
-            }
-        }
+        });
+
+        return Task.CompletedTask;
     }
 
     private IEnumerable<NotificationEnvelope> GetNotificationsForEvent(EventBase @event)
