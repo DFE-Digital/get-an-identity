@@ -128,3 +128,21 @@ runs:
       shell: bash
       env:
         EXPECTED_SHA: ${{ inputs.image_tag }}
+
+    - name: Smoke tests
+      id: smoke-tests
+      run: |
+        dotnet test --configuration Release --logger trx --settings ci.runsettings
+      shell: bash
+      env:
+        BaseUrl: ${{ steps.terraform.outputs.url }}
+      working-directory: dotnet-authserver/test/TeacherIdentity.AuthServer.SmokeTests
+
+    - name: Smoke tests report
+      uses: dorny/test-reporter@v1
+      if: always() && (steps.smoke-tests.outcome == 'success' || steps.smoke-tests.outcome == 'failure')
+      with:
+        name: ${{ inputs.environment_name }} smoke test results
+        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.SmokeTests/**/*.trx'
+        reporter: dotnet-trx
+
