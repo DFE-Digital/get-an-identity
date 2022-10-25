@@ -7,13 +7,15 @@ on:
   pull_request:
     branches:
     - main
+  workflow_dispatch:
+    inputs:
+      deploy_to_production:
+        type: boolean
+        description: 'Deploy to production'
+        default: false
 
 env:
   CONTAINER_REGISTRY: ghcr.io
-
-defaults:
-  run:
-    working-directory: dotnet-authserver
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build
+    name: Build & test
     runs-on: ubuntu-latest
 
     outputs:
@@ -55,12 +57,14 @@ jobs:
         #https://github.com/dotnet/format/issues/1433
         dotnet tool install -g dotnet-format --version "7.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet7/nuget/v3/index.json
         dotnet-format --verify-no-changes
+      working-directory: dotnet-authserver
 
     - name: Install SASS
       run: npm install -g sass
 
     - name: Build
       run: dotnet build --configuration Release
+      working-directory: dotnet-authserver
 
     - name: Unit tests
       uses: ./.github/workflows/actions/test
@@ -71,6 +75,7 @@ jobs:
 
     - name: Install Playwright
       run: pwsh ./test/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
+      working-directory: dotnet-authserver
 
     - name: End-to-end tests
       uses: ./.github/workflows/actions/test
@@ -83,6 +88,7 @@ jobs:
       run: |
         dotnet publish --configuration Release --no-build src/TeacherIdentity.AuthServer/TeacherIdentity.AuthServer.csproj
         dotnet publish --configuration Release --no-build src/TeacherIdentity.TestClient/TeacherIdentity.TestClient.csproj
+      working-directory: dotnet-authserver
 
     - name: Get Docker image tags
       id: image_tags
@@ -102,7 +108,8 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
 
-    - uses: DfE-Digital/keyvault-yaml-secret@v1
+    - name: Get MONITORING secret
+      uses: DfE-Digital/keyvault-yaml-secret@v1
       id: get_monitoring_secret
       with:
         keyvault: ${{ env.KEY_VAULT_NAME }}
@@ -111,7 +118,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: DFE-Digital/keyvault-yaml-secret@v1
+    - name: Get INFRASTRUCTURE secret
+      uses: DFE-Digital/keyvault-yaml-secret@v1
       if: github.actor != 'dependabot[bot]'
       id: get-secret
       with:
@@ -238,7 +246,7 @@ jobs:
     name: Deploy to production environment
     needs: [build, deploy_preprod]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: (github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch') || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_production == 'true')
     environment:
       name: production
       url: ${{ steps.deploy.outputs.environment_url }}
