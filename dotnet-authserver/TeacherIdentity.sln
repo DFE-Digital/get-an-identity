@@ -21,17 +21,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.SampleApi",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.KeyGenerator", "src\TeacherIdentity.KeyGenerator\TeacherIdentity.KeyGenerator.csproj", "{06195501-2ED1-4BD2-AAFB-87C22801F7FD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{D8D752A9-F33A-4CDF-86A7-EC062A41A57D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D8D752A9-F33A-4CDF-86A7-EC062A41A57D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.EndToEndTests", "test\TeacherIdentity.AuthServer.EndToEndTests\TeacherIdentity.AuthServer.EndToEndTests.csproj", "{9D2CB114-86CB-4431-A9E1-5C0AD5AA3988}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.EndToEndTests", "tests\TeacherIdentity.AuthServer.EndToEndTests\TeacherIdentity.AuthServer.EndToEndTests.csproj", "{9D2CB114-86CB-4431-A9E1-5C0AD5AA3988}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.Tests", "test\TeacherIdentity.AuthServer.Tests\TeacherIdentity.AuthServer.Tests.csproj", "{1AAAB1A6-7BC8-47F9-9919-C3404B3BF02E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.Tests", "tests\TeacherIdentity.AuthServer.Tests\TeacherIdentity.AuthServer.Tests.csproj", "{1AAAB1A6-7BC8-47F9-9919-C3404B3BF02E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.TestCommon", "test\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj", "{F101CEA4-DA68-449A-8096-0413C4248B83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.TestCommon", "tests\TeacherIdentity.AuthServer.TestCommon\TeacherIdentity.AuthServer.TestCommon.csproj", "{F101CEA4-DA68-449A-8096-0413C4248B83}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.DevBootstrap", "src\TeacherIdentity.DevBootstrap\TeacherIdentity.DevBootstrap.csproj", "{6289F94C-49B6-4B9F-B6BE-04E58C5364D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherIdentity.AuthServer.SmokeTests", "test\TeacherIdentity.AuthServer.SmokeTests\TeacherIdentity.AuthServer.SmokeTests.csproj", "{FE7C1186-0713-4449-9BCA-4FE726BA57A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeacherIdentity.AuthServer.SmokeTests", "tests\TeacherIdentity.AuthServer.SmokeTests\TeacherIdentity.AuthServer.SmokeTests.csproj", "{FE7C1186-0713-4449-9BCA-4FE726BA57A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
