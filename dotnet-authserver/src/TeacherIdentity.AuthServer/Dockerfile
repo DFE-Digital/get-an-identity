@@ -4,8 +4,6 @@ ARG GIT_SHA
 
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends openssh-server \
-  # remove below line after microsoft updates debian to 11 in aspnet:6.0 base image
-  && apt-get install --yes --no-install-recommends libc6=2.31-13+deb11u4 libc-bin=2.31-13+deb11u4 libpcre2-8-0=10.36-2+deb11u1 \
   && echo "root:Docker!" | chpasswd
 
 COPY <<EOF /etc/ssh/sshd_config
