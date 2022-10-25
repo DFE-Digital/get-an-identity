@@ -130,19 +130,8 @@ runs:
         EXPECTED_SHA: ${{ inputs.image_tag }}
 
     - name: Smoke tests
-      id: smoke-tests
-      run: |
-        dotnet test --configuration Release --logger trx --settings ci.runsettings
-      shell: bash
-      env:
-        BaseUrl: ${{ steps.terraform.outputs.url }}
-      working-directory: dotnet-authserver/test/TeacherIdentity.AuthServer.SmokeTests
-
-    - name: Smoke tests report
-      uses: dorny/test-reporter@v1
-      if: always() && (steps.smoke-tests.outcome == 'success' || steps.smoke-tests.outcome == 'failure')
+      uses: ./.github/workflows/actions/test
       with:
-        name: ${{ inputs.environment_name }} smoke test results
-        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.SmokeTests/**/*.trx'
-        reporter: dotnet-trx
-
+        test_project_path: dotnet-authserver/test/TeacherIdentity.AuthServer.SmokeTests
+        report_name: "${{ inputs.environment_name }} smoke test results"
+        dotnet_test_args: "--settings ci.runsettings -e BaseUrl=${{ steps.terraform.outputs.url }}"

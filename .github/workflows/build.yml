@@ -62,36 +62,22 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release
 
+    - name: Unit tests
+      uses: ./.github/workflows/actions/test
+      with:
+        test_project_path: dotnet-authserver/test/TeacherIdentity.AuthServer.Tests
+        report_name: "Unit test results"
+        dotnet_test_args: '-e ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
+
     - name: Install Playwright
       run: pwsh ./test/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
 
-    - name: Unit tests
-      id: unit-tests
-      run: dotnet test ./test/TeacherIdentity.AuthServer.Tests/ --configuration Release --no-build --logger trx
-      env:
-        ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
-
-    - name: Unit tests report
-      uses: dorny/test-reporter@v1
-      if: always() && (steps.unit-tests.outcome == 'success' || steps.unit-tests.outcome == 'failure')
-      with:
-        name: Unit test results
-        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.Tests/**/*.trx'
-        reporter: dotnet-trx
-
     - name: End-to-end tests
-      id: e2e-tests
-      run: dotnet test ./test/TeacherIdentity.AuthServer.EndToEndTests/ --configuration Release --no-build --logger trx
-      env:
-        AuthorizationServer__ConnectionStrings__DefaultConnection: "Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"
-
-    - name: End-to-end tests report
-      uses: dorny/test-reporter@v1
-      if: always() && (steps.e2e-tests.outcome == 'success' || steps.e2e-tests.outcome == 'failure')
+      uses: ./.github/workflows/actions/test
       with:
-        name: End-to-end test results
-        path: 'dotnet-authserver/test/TeacherIdentity.AuthServer.EndToEndTests/**/*.trx'
-        reporter: dotnet-trx
+        test_project_path: dotnet-authserver/test/TeacherIdentity.AuthServer.EndToEndTests
+        report_name: "End-to-end test results"
+        dotnet_test_args: '-e AuthorizationServer__ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 
     - name: Publish
       run: |
