@@ -69,18 +69,18 @@ jobs:
     - name: Unit tests
       uses: ./.github/workflows/actions/test
       with:
-        test_project_path: dotnet-authserver/test/TeacherIdentity.AuthServer.Tests
+        test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.Tests
         report_name: "Unit test results"
         dotnet_test_args: '-e ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 
     - name: Install Playwright
-      run: pwsh ./test/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
+      run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
       working-directory: dotnet-authserver
 
     - name: End-to-end tests
       uses: ./.github/workflows/actions/test
       with:
-        test_project_path: dotnet-authserver/test/TeacherIdentity.AuthServer.EndToEndTests
+        test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.EndToEndTests
         report_name: "End-to-end test results"
         dotnet_test_args: '-e AuthorizationServer__ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 

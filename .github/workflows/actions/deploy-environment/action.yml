@@ -132,6 +132,6 @@ runs:
     - name: Smoke tests
       uses: ./.github/workflows/actions/test
       with:
-        test_project_path: dotnet-authserver/test/TeacherIdentity.AuthServer.SmokeTests
+        test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.SmokeTests
         report_name: "${{ inputs.environment_name }} smoke test results"
         dotnet_test_args: "--settings ci.runsettings -e BaseUrl=${{ steps.terraform.outputs.url }}"
