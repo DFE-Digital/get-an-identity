@@ -1,10 +1,18 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 public class CompleteModel : PageModel
 {
+    private readonly IDqtApiClient _dqtApiClient;
+
+    public CompleteModel(IDqtApiClient dqtApiClient)
+    {
+        _dqtApiClient = dqtApiClient;
+    }
+
     public string? Email { get; set; }
 
     public bool GotTrn { get; set; }
@@ -13,9 +21,9 @@ public class CompleteModel : PageModel
 
     public string? Name { get; set; }
 
-    public string? Trn { get; set; }
+    public string? DqtName { get; set; }
 
-    public DateOnly? DateOfBirth { get; set; }
+    public string? Trn { get; set; }
 
     public string? RedirectUri { get; set; }
 
@@ -27,10 +35,22 @@ public class CompleteModel : PageModel
 
     public UserType UserType { get; set; }
 
-    public void OnGet()
+    public async Task OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
         authenticationState.EnsureOAuthState();
+
+        if (authenticationState.Trn is not null)
+        {
+            var teacherInfo = await _dqtApiClient.GetTeacherByTrn(authenticationState.Trn);
+
+            if (teacherInfo is null)
+            {
+                throw new Exception($"DQT API lookup failed for TRN {authenticationState.Trn}.");
+            }
+
+            DqtName = $"{teacherInfo.FirstName} {teacherInfo.LastName}";
+        }
 
         RedirectUri = authenticationState.OAuthState.RedirectUri;
         ResponseMode = authenticationState.OAuthState.AuthorizationResponseMode!;
@@ -40,7 +60,6 @@ public class CompleteModel : PageModel
         FirstTimeSignInForEmail = authenticationState.FirstTimeSignInForEmail!.Value;
         Name = $"{authenticationState.FirstName} {authenticationState.LastName}";
         Trn = authenticationState.Trn;
-        DateOfBirth = authenticationState.DateOfBirth;
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
         UserType = authenticationState.UserType!.Value;
     }

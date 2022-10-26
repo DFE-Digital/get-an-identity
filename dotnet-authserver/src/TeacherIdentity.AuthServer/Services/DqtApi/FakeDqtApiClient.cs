@@ -1,41 +1,50 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 /// <summary>
-/// A fake implementation of <see cref="IDqtApiClient"/> that writes UserId/TRN associations to a JSON file.
+/// A fake implementation of <see cref="IDqtApiClient"/> that writes data to a local JSON file.
 /// </summary>
 public class FakeDqtApiClient : IDqtApiClient
 {
     private readonly object _gate = new object();
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
-    public Task<DqtTeacherIdentityInfo?> GetTeacherIdentityInfo(Guid userId)
+    public FakeDqtApiClient(TeacherIdentityServerDbContext dbContext)
     {
-        DqtTeacherIdentityInfo? result = null;
-
-        WithDatabaseFile(db =>
-        {
-            if (db.UserIdTrnAssociations.TryGetValue(userId, out var trn))
-            {
-                result = new DqtTeacherIdentityInfo()
-                {
-                    Trn = trn,
-                    UserId = userId
-                };
-            }
-        });
-
-        return Task.FromResult(result);
+        _dbContext = dbContext;
     }
 
-    public Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo info)
+    public async Task<TeacherInfo?> GetTeacherByTrn(string trn)
     {
-        WithDatabaseFile(db =>
-        {
-            db.UserIdTrnAssociations[info.UserId] = info.Trn;
-        });
+        TeacherInfo? result = default;
+        WithDatabaseFile(db => db.Teachers.TryGetValue(trn, out result));
 
-        return Task.CompletedTask;
+        if (result is null)
+        {
+            var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Trn == trn);
+
+            if (user is not null)
+            {
+                result = new TeacherInfo()
+                {
+                    Trn = trn,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                };
+            }
+        }
+
+        return result;
+    }
+
+    public Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo info) => Task.CompletedTask;
+
+    public void SetTeacherInfo(TeacherInfo teacherInfo)
+    {
+        WithDatabaseFile(db => db.Teachers[teacherInfo.Trn] = teacherInfo);
     }
 
     private void WithDatabaseFile(Action<FakeDatabaseFile> action)
@@ -64,9 +73,6 @@ public class FakeDqtApiClient : IDqtApiClient
 
     private class FakeDatabaseFile
     {
-        /// <summary>
-        /// A mapping from user IDs to TRNs.
-        /// </summary>
-        public Dictionary<Guid, string> UserIdTrnAssociations { get; set; } = new();
+        public Dictionary<string, TeacherInfo> Teachers { get; init; } = new();
     }
 }

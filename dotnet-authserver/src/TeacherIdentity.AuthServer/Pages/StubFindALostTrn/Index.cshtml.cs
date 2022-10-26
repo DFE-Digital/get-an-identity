@@ -3,22 +3,26 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.StubFindALostTrn;
 
 public class IndexModel : PageModel
 {
     private readonly IApiClientRepository _apiClientRepository;
+    private readonly IDqtApiClient _dqtApiClient;
 
-    public IndexModel(IApiClientRepository apiClientRepository)
+    public IndexModel(IApiClientRepository apiClientRepository, IDqtApiClient dqtApiClient)
     {
         _apiClientRepository = apiClientRepository;
+        _dqtApiClient = dqtApiClient;
     }
 
     [BindProperty]
     [Display(Name = "Email address")]
     [Required(ErrorMessage = "Enter your email address")]
     public string? Email { get; set; }
+
     [BindProperty]
     [Display(Name = "Official first name")]
     [Required(ErrorMessage = "Enter your official first name")]
@@ -63,6 +67,8 @@ public class IndexModel : PageModel
 
         await PersistLookupState();
 
+        PersistTeacherInfoInFakeDqtClient();
+
         var redirectUrl = HttpContext.Session.GetString("FindALostTrn:RedirectUrl")!;
         return Redirect(redirectUrl);
 
@@ -89,6 +95,26 @@ public class IndexModel : PageModel
                     PreferredLastName = PreferredLastName!,
                 });
             response.EnsureSuccessStatusCode();
+        }
+
+        void PersistTeacherInfoInFakeDqtClient()
+        {
+            if (_dqtApiClient is not FakeDqtApiClient fakeDqtApiClient)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(Trn))
+            {
+                return;
+            }
+
+            fakeDqtApiClient.SetTeacherInfo(new TeacherInfo()
+            {
+                Trn = Trn!,
+                FirstName = OfficialFirstName!,
+                LastName = OfficialLastName!
+            });
         }
     }
 }
