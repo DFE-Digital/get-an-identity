@@ -5,7 +5,7 @@ namespace TeacherIdentity.AuthServer;
 
 public interface IIdentityLinkGenerator
 {
-    string PageWithAuthenticationJourneyId(string pageName);
+    string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true);
 }
 
 public class IdentityLinkGenerator : IIdentityLinkGenerator
@@ -19,13 +19,29 @@ public class IdentityLinkGenerator : IIdentityLinkGenerator
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public string PageWithAuthenticationJourneyId(string pageName)
+    public string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
     {
         var httpContext = _httpContextAccessor.HttpContext ?? throw new InvalidOperationException("No HttpContext.");
-        var authenticationState = httpContext.GetAuthenticationState();
 
-        return new Url(_linkGenerator.GetPathByPage(pageName))
-            .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authenticationState.JourneyId);
+        AuthenticationState? authenticationState;
+
+        if (authenticationJourneyRequired)
+        {
+            authenticationState = httpContext.GetAuthenticationState();
+        }
+        else
+        {
+            httpContext.TryGetAuthenticationState(out authenticationState);
+        }
+
+        var url = new Url(_linkGenerator.GetPathByPage(pageName));
+
+        if (authenticationState is not null)
+        {
+            url = url.SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authenticationState.JourneyId);
+        }
+
+        return url;
     }
 }
 
@@ -52,4 +68,9 @@ public static class IdentityLinkGeneratorExtensions
     public static string TrnCallback(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
 
     public static string UpdateDetails(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/UpdateDetails");
+
+    public static string UpdateName(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateName", authenticationJourneyRequired: false)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl);
 }
