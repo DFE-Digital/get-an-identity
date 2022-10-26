@@ -26,6 +26,7 @@ using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Models;
@@ -206,7 +207,7 @@ public class Program
                 {
                     model.Filters.Add(new RequireAuthenticationStateFilterFactory());
                     model.Filters.Add(new Infrastructure.Filters.NoCachePageFilter());
-                    model.Filters.Add(new Infrastructure.Filters.RedirectToCompletePageFilter());
+                    model.Filters.Add(new Infrastructure.Filters.RedirectToCompletePageFilterFactory());
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(
@@ -361,7 +362,8 @@ public class Program
             .AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>()
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
-            .AddSingleton<IEventObserver, PublishNotificationsEventObserver>();
+            .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
+            .AddSingleton<RedirectToCompletePageFilter>();
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 
