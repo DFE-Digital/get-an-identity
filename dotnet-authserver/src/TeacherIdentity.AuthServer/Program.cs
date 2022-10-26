@@ -162,6 +162,12 @@ public class Program
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy(
+                AuthorizationPolicies.Authenticated,
+                policy => policy
+                    .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser());
+
+            options.AddPolicy(
                 AuthorizationPolicies.GetAnIdentityAdmin,
                 policy =>
                 {
@@ -215,6 +221,13 @@ public class Program
                 model =>
                 {
                     model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.GetAnIdentityAdmin));
+                });
+
+            options.Conventions.AddFolderApplicationModelConvention(
+                "/Authenticated",
+                model =>
+                {
+                    model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.Authenticated));
                 });
         });
 
