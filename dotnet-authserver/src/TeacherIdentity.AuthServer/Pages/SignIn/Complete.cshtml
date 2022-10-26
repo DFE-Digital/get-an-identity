@@ -4,91 +4,98 @@
 @{
     ViewBag.Title = Model.FirstTimeSignInForEmail ?
         (await Component.InvokeAsync("ClientScopedPartial", new { viewName = "_TrnLookup.EndBookend.FirstTimeSignIn.{0}.Title" })).RenderToString() :
-        "You’re signed in";
+        "Confirm your details";
 
-    async Task RenderForm(string? buttonClasses = null)
+    var responseMode = Model.ResponseMode!;
+    var method = responseMode == ResponseModes.FormPost ? "post" : "get";
+    var action = Model.RedirectUri!;
+
+    if (Model.ResponseMode == ResponseModes.Fragment)
     {
-        var responseMode = Model.ResponseMode!;
-        var method = responseMode == ResponseModes.FormPost ? "post" : "get";
-        var action = Model.RedirectUri!;
-
-        if (Model.ResponseMode == ResponseModes.Fragment)
+        foreach (var (key, value) in Model.ResponseParameters!)
         {
-            foreach (var (key, value) in Model.ResponseParameters!)
-            {
-                action += action.Contains("#") ? "&" : "#" +
-                    Uri.EscapeDataString(key) +
-                    "=" +
-                    Uri.EscapeDataString(value);
-            }
+            action += action.Contains("#") ? "&" : "#" +
+                Uri.EscapeDataString(key) +
+                "=" +
+                Uri.EscapeDataString(value);
         }
-
-        <form action="@action" method="@method" asp-antiforgery="false">
-            @if (responseMode != ResponseModes.Fragment)
-            {
-                foreach (var (key, value) in Model.ResponseParameters!)
-                {
-                    <input type="hidden" name="@key" value="@value">
-                }
-            }
-            <govuk-button prevent-double-click="true" type="submit" class="@buttonClasses">Continue</govuk-button>
-        </form>
     }
 }
 
-@if (Model.FirstTimeSignInForEmail)
-{
-    <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
-        <govuk-panel-title><span data-testid="first-time-user-postsigninmessage"></span>@ViewBag.Title</govuk-panel-title>
+<form action="@action" method="@method" asp-antiforgery="false">
+    @if (responseMode != ResponseModes.Fragment)
+    {
+        foreach (var (key, value) in Model.ResponseParameters!)
+        {
+            <input type="hidden" name="@key" value="@value">
+        }
+    }
 
-        <govuk-panel-body>
-            @if (Model.GotTrn)
-            {
-                <span data-testid="known-trn-content"></span>
-                <p>Thank you, we’ve finished checking our records.</p>
+    @if (Model.FirstTimeSignInForEmail)
+    {
+        <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
+            <govuk-panel-title><span data-testid="first-time-user-postsigninmessage"></span>@ViewBag.Title</govuk-panel-title>
 
-                <p>We’ll only need your email address <strong>(@Model.Email)</strong> to find your details in future.</p>
-            }
-            else
-            {
-                <span data-testid="unknown-trn-content"></span>
-                <p>You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.</p>
-                <p>If you need to come back to this service later, use your email address <strong>@Model.Email</strong> when prompted and you will not have to answer these questions again.</p>
-            }
-
-            @{
-                await RenderForm("app-button--inverse govuk-!-margin-bottom-0");
-            }
-        </govuk-panel-body>
-    </govuk-panel>
-}
-else
-{
-    <div class="govuk-grid-row" data-testid="known-user-content">
-        <div class="govuk-grid-column-two-thirds-from-desktop">
-            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
-
-            <govuk-summary-list>
-                <govuk-summary-list-row>
-                    <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
-                </govuk-summary-list-row>
-                @if (Model.UserType == UserType.Default)
+            <govuk-panel-body>
+                @if (Model.GotTrn)
                 {
-                    <govuk-summary-list-row data-testid="trn-row">
-                        <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
-                        <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
-                    </govuk-summary-list-row>
-                    <govuk-summary-list-row>
-                        <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
-                        <govuk-summary-list-row-value>@(Model.DateOfBirth!.Value.ToString("d MMMM yyyy"))</govuk-summary-list-row-value>
-                    </govuk-summary-list-row>
-                }
-            </govuk-summary-list>
+                    <span data-testid="known-trn-content"></span>
+                    <p>Thank you, we’ve finished checking our records.</p>
 
-            @{
-                await RenderForm();
-            }
+                    <p>We’ll only need your email address <strong>(@Model.Email)</strong> to find your details in future.</p>
+                }
+                else
+                {
+                    <span data-testid="unknown-trn-content"></span>
+                    <p>You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.</p>
+                    <p>If you need to come back to this service later, use your email address <strong>@Model.Email</strong> when prompted and you will not have to answer these questions again.</p>
+                }
+
+                <govuk-button prevent-double-click="true" type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+            </govuk-panel-body>
+        </govuk-panel>
+    }
+    else
+    {
+        <div class="govuk-grid-row" data-testid="known-user-content">
+            <div class="govuk-grid-column-two-thirds-from-desktop">
+                <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+                <p>We found the following details in our records.</p>
+
+                <govuk-summary-list>
+                    @if (Model.UserType == UserType.Default)
+                    {
+                        <govuk-summary-list-row data-testid="official-name-row">
+                            <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>
+                                @Model.DqtName
+                                <p class="govuk-hint govuk-!-font-size-14">used for certificates</p>
+                            </govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                    }
+                    <govuk-summary-list-row>
+                        <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>
+                            @Model.Name
+                            <p class="govuk-hint govuk-!-font-size-14">used for email correspondence</p>
+                        </govuk-summary-list-row-value>
+                    </govuk-summary-list-row>
+                    @if (Model.UserType == UserType.Default)
+                    {
+                        <govuk-summary-list-row data-testid="trn-row">
+                            <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                    }
+                    <govuk-summary-list-row>
+                        <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@Model.Email</govuk-summary-list-row-value>
+                    </govuk-summary-list-row>
+                </govuk-summary-list>
+
+                <govuk-button prevent-double-click="true" type="submit">Confirm and continue</govuk-button>
+            </div>
         </div>
-    </div>
-}
+    }
+</form>

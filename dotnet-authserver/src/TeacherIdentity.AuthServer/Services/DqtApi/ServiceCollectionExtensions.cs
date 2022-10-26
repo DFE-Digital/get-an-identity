@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddSingleton<IDqtApiClient, FakeDqtApiClient>();
+            services.AddTransient<IDqtApiClient, FakeDqtApiClient>();
         }
 
         return services;

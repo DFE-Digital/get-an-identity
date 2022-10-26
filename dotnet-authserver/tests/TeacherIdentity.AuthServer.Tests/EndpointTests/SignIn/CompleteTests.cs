@@ -3,6 +3,7 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class CompleteTests : TestBase
 {
     public CompleteTests(HostFixture hostFixture)
@@ -14,7 +15,7 @@ public class CompleteTests : TestBase
     public async Task Get_FirstTimeSignInForEmailWithTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, firstTimeSignInForEmail: true, hasTrn: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(firstTimeSignInForEmail: true, hasTrn: true);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -33,7 +34,7 @@ public class CompleteTests : TestBase
     public async Task Get_FirstTimeSignInForEmailWithoutTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, firstTimeSignInForEmail: true, hasTrn: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(firstTimeSignInForEmail: true, hasTrn: false);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -50,7 +51,7 @@ public class CompleteTests : TestBase
     public async Task Get_KnownUser_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient);
+        var authStateHelper = await CreateAuthenticationStateHelper();
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -67,7 +68,7 @@ public class CompleteTests : TestBase
     public async Task Get_AuthorizationRequestHasTrnScope_ShowsTrnRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, scope: CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(scope: CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -84,7 +85,7 @@ public class CompleteTests : TestBase
     public async Task Get_AuthorizationRequestDoesNotHaveTrnScope_DoesNotShowTrnRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(HttpClient, userType: UserType.Staff, hasTrn: false, scope: CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(userType: UserType.Staff, hasTrn: false, scope: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -98,7 +99,6 @@ public class CompleteTests : TestBase
     }
 
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
-        HttpClient httpClient,
         bool hasTrn = true,
         UserType userType = UserType.Default,
         bool firstTimeSignInForEmail = false,
@@ -142,6 +142,18 @@ public class CompleteTests : TestBase
                 }
             },
             scope);
+
+        if (user.Trn is not null)
+        {
+            HostFixture.DqtApiClient
+                .Setup(mock => mock.GetTeacherByTrn(user.Trn))
+                .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+                {
+                    Trn = user.Trn,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                });
+        }
 
         return authenticationStateHelper;
     }
