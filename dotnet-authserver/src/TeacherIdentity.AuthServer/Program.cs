@@ -163,9 +163,17 @@ public class Program
         {
             options.AddPolicy(
                 AuthorizationPolicies.Authenticated,
-                policy => policy
-                    .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser());
+                policy =>
+                {
+                    policy
+                        .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                        .RequireAuthenticatedUser();
+
+                    if (builder.Environment.IsUnitTests())
+                    {
+                        policy.AddAuthenticationSchemes("Test");
+                    }
+                });
 
             options.AddPolicy(
                 AuthorizationPolicies.GetAnIdentityAdmin,

@@ -243,7 +243,7 @@ public partial class AuthenticationStateTests
 
         void ConfigureMockForPage(string pageName, string returnsPath)
         {
-            linkGenerator.Setup(mock => mock.PageWithAuthenticationJourneyId(pageName))
+            linkGenerator.Setup(mock => mock.PageWithAuthenticationJourneyId(pageName, /* authenticationJourneyRequired: */ true))
                 .Returns(returnsPath.SetQueryParam("asid", authenticationState.JourneyId.ToString()));
         }
 

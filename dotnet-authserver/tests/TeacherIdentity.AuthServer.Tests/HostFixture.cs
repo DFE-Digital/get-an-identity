@@ -79,6 +79,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         RateLimitStore.Reset();
     }
 
+    // N.B. Don't call this from InitializeAsync - it won't work
     public void SetUserId(Guid? userId) => Services.GetRequiredService<CurrentUserIdContainer>().CurrentUserId.Value = userId;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

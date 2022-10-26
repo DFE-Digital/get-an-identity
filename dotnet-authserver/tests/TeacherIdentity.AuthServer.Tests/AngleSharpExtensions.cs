@@ -20,6 +20,22 @@ public static class AngleSharpExtensions
     public static IReadOnlyList<IElement> GetAllElementsByTestId(this IHtmlDocument doc, string testId) =>
         doc.Body!.GetAllElementsByTestId(testId);
 
+    public static IElement? GetElementByLabel(this IHtmlDocument doc, string label)
+    {
+        var allLabels = doc.QuerySelectorAll("label");
+
+        foreach (var l in allLabels)
+        {
+            if (l.TextContent.Trim() == label)
+            {
+                var @for = l.GetAttribute("for");
+                return @for is not null ? doc.GetElementById(@for) : null;
+            }
+        }
+
+        return null;
+    }
+
     public static IElement? GetElementByTestId(this IHtmlDocument doc, string testId) =>
         doc.Body!.GetElementByTestId(testId);
 

@@ -3,20 +3,11 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
-[Collection(nameof(DisableParallelization))]
-public class GetAllUsersTests : TestBase, IAsyncLifetime
+public class GetAllUsersTests : TestBase
 {
     public GetAllUsersTests(HostFixture hostFixture)
         : base(hostFixture)
     {
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
-
-    public async Task InitializeAsync()
-    {
-        await HostFixture.DbHelper.ClearData();
-        await HostFixture.ConfigureTestUsers();
     }
 
     [Theory]
@@ -51,8 +42,11 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         // Assert
         var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
 
+        // Remove any other test users
+        var filteredUsers = responseObj.Users.Where(u => sortedUsers.Select(u => u.UserId).Contains(u.UserId));
+
         Assert.Collection(
-            responseObj.Users,
+            filteredUsers,
             user =>
             {
                 Assert.Equal(sortedUsers[0].UserId, user.UserId);

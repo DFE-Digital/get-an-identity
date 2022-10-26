@@ -342,6 +342,12 @@ public class AuthenticationState
         StaffRoles = user.StaffRoles;
     }
 
+    public void OnNameChanged(string firstName, string lastName)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+    }
+
     public void OnHaveResumedCompletedJourney()
     {
         if (!IsComplete())

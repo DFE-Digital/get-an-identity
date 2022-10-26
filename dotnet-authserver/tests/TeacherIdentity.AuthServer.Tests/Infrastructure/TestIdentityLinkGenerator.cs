@@ -16,7 +16,7 @@ public class TestIdentityLinkGenerator : IIdentityLinkGenerator
         _linkGenerator = linkGenerator;
     }
 
-    public string PageWithAuthenticationJourneyId(string pageName)
+    public string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
     {
         return new Url(_linkGenerator.GetPathByPage(pageName))
             .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, _authenticationState.JourneyId);
