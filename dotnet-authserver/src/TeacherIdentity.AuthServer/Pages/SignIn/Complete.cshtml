@@ -94,7 +94,10 @@
                     </govuk-summary-list-row>
                 </govuk-summary-list>
 
-                <govuk-button prevent-double-click="true" type="submit">Confirm and continue</govuk-button>
+                <div class="govuk-button-group">
+                    <govuk-button prevent-double-click="true" type="submit">Confirm and continue</govuk-button>
+                    <govuk-button-link href="@LinkGenerator.UpdateDetails()" class="govuk-button--secondary">Update details</govuk-button-link>
+                </div>
             </div>
         </div>
     }

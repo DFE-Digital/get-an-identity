@@ -22,4 +22,22 @@ public static class AngleSharpExtensions
 
     public static IElement? GetElementByTestId(this IHtmlDocument doc, string testId) =>
         doc.Body!.GetElementByTestId(testId);
+
+    public static string? GetSummaryListValueForKey(this IHtmlDocument doc, string key)
+    {
+        var allRows = doc.QuerySelectorAll(".govuk-summary-list__row");
+
+        foreach (var row in allRows)
+        {
+            var rowKey = row.QuerySelector(".govuk-summary-list__key");
+
+            if (rowKey?.TextContent.Trim() == key)
+            {
+                var rowValue = row.QuerySelector(".govuk-summary-list__value");
+                return rowValue?.TextContent.Trim();
+            }
+        }
+
+        return null;
+    }
 }
