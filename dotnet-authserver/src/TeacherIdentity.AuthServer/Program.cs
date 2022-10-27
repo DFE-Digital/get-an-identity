@@ -167,32 +167,16 @@ public class Program
         {
             options.AddPolicy(
                 AuthorizationPolicies.Authenticated,
-                policy =>
-                {
-                    policy
-                        .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
-                        .RequireAuthenticatedUser();
-
-                    if (builder.Environment.IsUnitTests())
-                    {
-                        policy.AddAuthenticationSchemes("Test");
-                    }
-                });
+                policy => policy
+                    .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser());
 
             options.AddPolicy(
                 AuthorizationPolicies.GetAnIdentityAdmin,
-                policy =>
-                {
-                    policy
-                        .AddAuthenticationSchemes("Delegated")
-                        .RequireAuthenticatedUser()
-                        .RequireRole(StaffRoles.GetAnIdentityAdmin);
-
-                    if (builder.Environment.IsUnitTests())
-                    {
-                        policy.AddAuthenticationSchemes("Test");
-                    }
-                });
+                policy => policy
+                    .AddAuthenticationSchemes("Delegated")
+                    .RequireAuthenticatedUser()
+                    .RequireRole(StaffRoles.GetAnIdentityAdmin));
 
             options.AddPolicy(
                 AuthorizationPolicies.TrnLookupApi,
