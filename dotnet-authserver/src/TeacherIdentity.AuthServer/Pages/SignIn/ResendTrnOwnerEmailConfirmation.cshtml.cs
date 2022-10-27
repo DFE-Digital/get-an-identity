@@ -28,7 +28,21 @@ public class ResendTrnOwnerEmailConfirmationModel : PageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(email);
 
-        await _emailVerificationService.GeneratePin(email!);
+        var pinGenerationResult = await _emailVerificationService.GeneratePin(email!);
+
+        if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+        {
+            if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+            {
+                return new ViewResult()
+                {
+                    StatusCode = 429,
+                    ViewName = "TooManyRequests"
+                };
+            }
+
+            throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+        }
 
         return Redirect(_linkGenerator.TrnInUse());
     }

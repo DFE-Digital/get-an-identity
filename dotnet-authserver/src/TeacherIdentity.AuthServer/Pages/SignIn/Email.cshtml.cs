@@ -37,14 +37,20 @@ public class EmailModel : PageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
-        var result = await _emailVerificationService.GeneratePin(Email!);
-        if (result.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+        var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
+
+        if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
         {
-            return new ViewResult()
+            if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
             {
-                StatusCode = 429,
-                ViewName = "TooManyRequests"
-            };
+                return new ViewResult()
+                {
+                    StatusCode = 429,
+                    ViewName = "TooManyRequests"
+                };
+            }
+
+            throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
         }
 
         return Redirect(_linkGenerator.EmailConfirmation());

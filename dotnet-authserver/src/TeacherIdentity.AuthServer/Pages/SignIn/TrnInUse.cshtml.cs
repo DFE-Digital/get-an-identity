@@ -51,7 +51,22 @@ public class TrnInUseModel : PageModel
         {
             if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
             {
-                await _emailVerificationService.GeneratePin(Email!);
+                var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
+
+                if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+                {
+                    if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+                    {
+                        return new ViewResult()
+                        {
+                            StatusCode = 429,
+                            ViewName = "TooManyRequests"
+                        };
+                    }
+
+                    throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+                }
+
                 ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
             }
             else
