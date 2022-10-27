@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.BackgroundJobs;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -15,7 +13,6 @@ public class TrnCallbackModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
-    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly IEmailVerificationService _emailVerificationService;
     private readonly ILogger<TrnCallbackModel> _logger;
 
@@ -23,14 +20,12 @@ public class TrnCallbackModel : PageModel
         TeacherIdentityServerDbContext dbContext,
         IIdentityLinkGenerator linkGenerator,
         IClock clock,
-        IBackgroundJobScheduler backgroundJobScheduler,
         IEmailVerificationService emailVerificationService,
         ILogger<TrnCallbackModel> logger)
     {
         _dbContext = dbContext;
         _linkGenerator = linkGenerator;
         _clock = clock;
-        _backgroundJobScheduler = backgroundJobScheduler;
         _emailVerificationService = emailVerificationService;
         _logger = logger;
     }
@@ -100,13 +95,6 @@ public class TrnCallbackModel : PageModel
             await _emailVerificationService.GeneratePin(existingUserEmail);
 
             return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-        }
-
-        var trn = lookupState.Trn;
-        if (!string.IsNullOrEmpty(trn))
-        {
-            await _backgroundJobScheduler.Enqueue<IDqtApiClient>(
-                dqtApiClient => dqtApiClient.SetTeacherIdentityInfo(new DqtTeacherIdentityInfo() { Trn = trn!, UserId = user.UserId }));
         }
 
         authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail: true);

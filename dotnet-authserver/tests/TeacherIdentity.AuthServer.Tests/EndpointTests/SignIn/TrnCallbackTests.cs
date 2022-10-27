@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -182,9 +181,6 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(Clock.UtcNow, user.Updated);
             Assert.Equal(Clock.UtcNow, user.LastSignedIn);
             Assert.Equal(UserType.Default, user.UserType);
-
-            var dqtApiCallExpectedTimes = hasTrn ? Times.Once() : Times.Never();
-            HostFixture.DqtApiClient.Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), dqtApiCallExpectedTimes);
 
             var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);
             Assert.Equal(Clock.UtcNow, lookupState.Locked);
