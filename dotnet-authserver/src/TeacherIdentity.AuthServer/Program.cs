@@ -27,6 +27,7 @@ using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
+using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Models;
@@ -336,6 +337,8 @@ public class Program
         builder.Services.AddMvc(options =>
         {
             options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
+
+            options.ModelBinderProviders.Insert(0, new ProtectedStringModelBinderProvider());
         });
 
         builder.Services.AddCsp(nonceByteAmount: 32);
@@ -372,7 +375,8 @@ public class Program
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
-            .AddSingleton<RedirectToCompletePageFilter>();
+            .AddSingleton<RedirectToCompletePageFilter>()
+            .AddSingleton<ProtectedStringFactory>();
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 
