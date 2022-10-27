@@ -19,7 +19,9 @@ public class UpdateNameTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/update-name");
+        var returnUrl = "/_tests/empty";
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/update-name?returnUrl={UrlEncoder.Default.Encode(returnUrl)}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -44,7 +46,9 @@ public class UpdateNameTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/update-name")
+        var returnUrl = "/_tests/empty";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-name?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
                 .Add("FirstName", firstName)
@@ -68,7 +72,7 @@ public class UpdateNameTests : TestBase
 
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var returnUrl = "/return-url";
+        var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-name?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
@@ -99,6 +103,10 @@ public class UpdateNameTests : TestBase
                 Assert.Equal(UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             });
+
+        var redirectedResponse = await response.FollowRedirect(HttpClient);
+        var redirectedDoc = await redirectedResponse.GetDocument();
+        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Preferred name updated");
     }
 
     public static TheoryData<string, string, string, string> InvalidNamesData { get; } = new()

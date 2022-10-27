@@ -20,6 +20,20 @@ public static partial class AssertEx
         Assert.Equal(expectedMessage, errorMessage);
     }
 
+    public static void HtmlDocumentHasFlashSuccess(IHtmlDocument doc, string expectedMessage)
+    {
+        var banner = doc.GetElementsByClassName("govuk-notification-banner--success").SingleOrDefault();
+
+        if (banner is null)
+        {
+            throw new XunitException("No notification banner found.");
+        }
+
+        var message = banner.GetElementsByClassName("govuk-notification-banner__heading").SingleOrDefault();
+
+        Assert.Equal(expectedMessage, message?.TextContent?.Trim());
+    }
+
     public static async Task HtmlResponseHasError(
         HttpResponseMessage response,
         string fieldName,
