@@ -17,5 +17,6 @@ public class User
     public DateTime? CompletedTrnLookup { get; set; }
     public UserType UserType { get; set; }
     public string? Trn { get; set; }
+    public TrnAssociationSource? TrnAssociationSource { get; set; }
     public string[] StaffRoles { get; set; } = Array.Empty<string>();
 }

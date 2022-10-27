@@ -65,6 +65,7 @@ public class TrnCallbackModel : PageModel
             UserId = userId,
             UserType = UserType.Default,
             Trn = lookupState.Trn,
+            TrnAssociationSource = !string.IsNullOrEmpty(lookupState.Trn) ? TrnAssociationSource.Lookup : null,
             LastSignedIn = _clock.UtcNow
         };
 

@@ -36,6 +36,7 @@ public partial class TestData
                 UserType = userType,
                 DateOfBirth = userType is UserType.Default ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
                 Trn = hasTrn == true ? GenerateTrn() : null,
+                TrnAssociationSource = hasTrn == true ? TrnAssociationSource.Lookup : null,
                 Updated = _clock.UtcNow
             };
 

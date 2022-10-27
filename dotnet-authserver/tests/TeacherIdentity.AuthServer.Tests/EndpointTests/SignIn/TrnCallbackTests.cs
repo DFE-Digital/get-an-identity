@@ -48,6 +48,7 @@ public class TrnCallbackTests : TestBase
                         FirstName = firstName,
                         LastName = lastName,
                         Trn = trn,
+                        TrnAssociationSource = TrnAssociationSource.Lookup,
                         Updated = Clock.UtcNow,
                         UserId = Guid.NewGuid(),
                         UserType = UserType.Default
@@ -99,7 +100,7 @@ public class TrnCallbackTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Get_ValidCallback_CreatesUserWithPreferredNames(bool hasTrn)
+    public async Task Get_ValidCallbackWithPreferredNames_CreatesUserWithPreferredNames(bool hasTrn)
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -128,23 +129,24 @@ public class TrnCallbackTests : TestBase
             var user = await dbContext.Users.Where(u => u.FirstName == preferredFirstName && u.LastName == preferredLastName && u.DateOfBirth == dateOfBirth).SingleOrDefaultAsync();
 
             Assert.NotNull(user);
-            Assert.Equal(authStateHelper.AuthenticationState.UserId, user!.UserId);
-            Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, user.EmailAddress);
             Assert.Equal(preferredFirstName, user.FirstName);
             Assert.Equal(preferredLastName, user.LastName);
-            Assert.Equal(dateOfBirth, user.DateOfBirth);
-            Assert.Equal(Clock.UtcNow, user.Created);
-            Assert.Equal(Clock.UtcNow, user.CompletedTrnLookup);
-            Assert.Equal(Clock.UtcNow, user.Updated);
-            Assert.Equal(Clock.UtcNow, user.LastSignedIn);
-            Assert.Equal(UserType.Default, user.UserType);
+
+            if (hasTrn)
+            {
+                Assert.Equal(TrnAssociationSource.Lookup, user.TrnAssociationSource);
+            }
+            else
+            {
+                Assert.Null(user.TrnAssociationSource);
+            }
         });
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Get_ValidCallback_CreatesUserLocksLookupStateCallsDqtApiAndRedirectsToNextPage(bool hasTrn)
+    public async Task Get_ValidCallback_CreatesUserLocksLookupStateAndRedirectsToNextPage(bool hasTrn)
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -181,6 +183,16 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(Clock.UtcNow, user.Updated);
             Assert.Equal(Clock.UtcNow, user.LastSignedIn);
             Assert.Equal(UserType.Default, user.UserType);
+            Assert.Equal(trn, user.Trn);
+
+            if (hasTrn)
+            {
+                Assert.Equal(TrnAssociationSource.Lookup, user.TrnAssociationSource);
+            }
+            else
+            {
+                Assert.Null(user.TrnAssociationSource);
+            }
 
             var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);
             Assert.Equal(Clock.UtcNow, lookupState.Locked);
