@@ -93,7 +93,21 @@ public class TrnCallbackModel : PageModel
 
             authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
 
-            await _emailVerificationService.GeneratePin(existingUserEmail);
+            var pinGenerationResult = await _emailVerificationService.GeneratePin(existingUserEmail);
+
+            if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+            {
+                if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+                {
+                    return new ViewResult()
+                    {
+                        StatusCode = 429,
+                        ViewName = "TooManyRequests"
+                    };
+                }
+
+                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+            }
 
             return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
