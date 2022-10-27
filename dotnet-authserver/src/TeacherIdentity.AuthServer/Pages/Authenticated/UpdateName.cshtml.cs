@@ -83,14 +83,14 @@ public class UpdateNameModel : PageModel
             });
 
             await _dbContext.SaveChangesAsync();
-        }
 
-        if (HttpContext.TryGetAuthenticationState(out var authenticationState))
-        {
-            authenticationState.OnNameChanged(FirstName!, LastName!);
-        }
+            if (HttpContext.TryGetAuthenticationState(out var authenticationState))
+            {
+                authenticationState.OnNameChanged(FirstName!, LastName!);
+            }
 
-        TempData.SetFlashSuccess("Preferred name updated");
+            TempData.SetFlashSuccess("Preferred name updated");
+        }
 
         var safeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ?
             ReturnUrl :
