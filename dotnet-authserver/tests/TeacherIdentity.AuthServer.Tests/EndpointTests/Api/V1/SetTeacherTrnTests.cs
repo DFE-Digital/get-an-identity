@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class SetTeacherTrnTests : TestBase
 {
     public SetTeacherTrnTests(HostFixture hostFixture)
@@ -137,7 +135,7 @@ public class SetTeacherTrnTests : TestBase
 
     [Theory]
     [MemberData(nameof(PermittedScopes))]
-    public async Task Put_ValidRequest_UpdatesUserAndCallsDqtApiAndReturnsNoContent(string scope)
+    public async Task Put_ValidRequest_UpdatesUserAndReturnsNoContent(string scope)
     {
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
@@ -165,9 +163,6 @@ public class SetTeacherTrnTests : TestBase
             Assert.Equal(trn, user.Trn);
             Assert.Equal(Clock.UtcNow, user.Updated);
         });
-
-        HostFixture.DqtApiClient
-            .Verify(mock => mock.SetTeacherIdentityInfo(It.Is<DqtTeacherIdentityInfo>(x => x.UserId == user!.UserId && x.Trn == trn)), Times.Once);
 
         EventObserver.AssertEventsSaved(
             e =>

@@ -40,8 +40,6 @@ public class FakeDqtApiClient : IDqtApiClient
         return result;
     }
 
-    public Task SetTeacherIdentityInfo(DqtTeacherIdentityInfo info) => Task.CompletedTask;
-
     public void SetTeacherInfo(TeacherInfo teacherInfo)
     {
         WithDatabaseFile(db => db.Teachers[teacherInfo.Trn] = teacherInfo);
