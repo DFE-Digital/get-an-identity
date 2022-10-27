@@ -9,16 +9,14 @@
         <form action="@LinkGenerator.TrnInUseChooseEmail()" method="post" asp-antiforgery="true">
             <govuk-radios asp-for="Email">
                 <govuk-radios-fieldset>
-                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl">
-                        Which email address do you want to use?
-                    </govuk-radios-fieldset-legend>
+                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl"/>
 
                     <govuk-radios-item value="@Model.SignedInEmail" data-testid="Email-SignedIn">@Model.SignedInEmail</govuk-radios-item>
                     <govuk-radios-item value="@Model.ExistingAccountEmail" data-testid="Email-ExistingAccount">@Model.ExistingAccountEmail</govuk-radios-item>
                 </govuk-radios-fieldset>
             </govuk-radios>
 
-            <govuk-button type="submit" prevent-double-click="true">Continue</govuk-button>
+            <govuk-button type="submit">Continue</govuk-button>
         </form>
     </div>
 </div>
