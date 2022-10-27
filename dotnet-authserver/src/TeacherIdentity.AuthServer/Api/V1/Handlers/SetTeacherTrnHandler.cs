@@ -39,6 +39,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
         }
 
         user.Trn = request.Body.Trn;
+        user.TrnAssociationSource = TrnAssociationSource.Api;
         user.Updated = _clock.UtcNow;
 
         _dbContext.AddEvent(new Events.UserUpdatedEvent()

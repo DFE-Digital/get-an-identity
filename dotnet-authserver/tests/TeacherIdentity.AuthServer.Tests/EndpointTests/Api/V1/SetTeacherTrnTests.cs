@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
@@ -161,6 +162,7 @@ public class SetTeacherTrnTests : TestBase
         {
             user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
             Assert.Equal(trn, user.Trn);
+            Assert.Equal(TrnAssociationSource.Api, user.TrnAssociationSource);
             Assert.Equal(Clock.UtcNow, user.Updated);
         });
 

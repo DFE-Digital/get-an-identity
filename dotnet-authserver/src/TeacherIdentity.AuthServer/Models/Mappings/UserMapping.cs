@@ -19,6 +19,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.CompletedTrnLookup);
         builder.Property(u => u.UserType).IsRequired();
         builder.Property(u => u.Trn).HasMaxLength(7).IsFixedLength();
+        builder.Property(u => u.TrnAssociationSource);
         builder.Property(u => u.StaffRoles).HasColumnType("varchar[]");
         builder.Property<bool>("is_deleted").IsRequired().HasDefaultValue(false);
         builder.HasQueryFilter(u => EF.Property<bool>(u, "is_deleted") == false);
