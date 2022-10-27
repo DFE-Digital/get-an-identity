@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.TestHost;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EventProcessing;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
@@ -107,10 +109,19 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.PostConfigure<AuthenticationOptions>(options =>
                 options.AddScheme(
                     "Test",
-                    scheme =>
-                    {
-                        scheme.HandlerType = typeof(TestAuthenticationHandler);
-                    }));
+                    scheme => scheme.HandlerType = typeof(TestAuthenticationHandler)));
+            services.PostConfigure<AuthorizationOptions>(options =>
+            {
+                AddTestAuthenticationSchemeToPolicy(AuthorizationPolicies.Authenticated);
+                AddTestAuthenticationSchemeToPolicy(AuthorizationPolicies.GetAnIdentityAdmin);
+
+                void AddTestAuthenticationSchemeToPolicy(string policyName)
+                {
+                    var policy = options.GetPolicy(policyName) ?? throw new InvalidOperationException($"No authorization policy named '{policyName}'.");
+                    var builder = new AuthorizationPolicyBuilder(policy).AddAuthenticationSchemes("Test");
+                    options.AddPolicy(policyName, builder.Build());
+                }
+            });
 
             // Disable the HTTPS requirement for OpenIddict
             services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
