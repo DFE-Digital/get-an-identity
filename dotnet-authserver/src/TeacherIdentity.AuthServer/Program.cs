@@ -98,7 +98,11 @@ public class Program
             options.SuppressXFrameOptionsHeader = true;
         });
 
-        builder.Services.AddGovUkFrontend(options => options.AddImportsToHtml = false);
+        builder.Services.AddGovUkFrontend(options =>
+        {
+            options.AddImportsToHtml = false;
+            options.DefaultButtonPreventDoubleClick = true;
+        });
 
         builder.Services.AddAuthentication()
             .AddCookie(options =>

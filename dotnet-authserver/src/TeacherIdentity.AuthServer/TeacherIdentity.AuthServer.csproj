@@ -18,7 +18,7 @@
     <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.2.2" />
     <PackageReference Include="Flurl" Version="3.0.6" />
-    <PackageReference Include="GovUk.Frontend.AspNetCore" Version="1.0.0-beta2" />
+    <PackageReference Include="GovUk.Frontend.AspNetCore" Version="1.0.0-beta3" />
     <PackageReference Include="GovukNotify" Version="6.0.0" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.30" />
     <PackageReference Include="Hangfire.Core" Version="1.7.30" />

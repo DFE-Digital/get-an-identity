@@ -24,6 +24,7 @@ public class TrnInUseChooseEmailModel : PageModel
     }
 
     [BindProperty]
+    [Display(Name = "Which email address do you want to use?")]
     [Required(ErrorMessage = "Enter the email address you want to use")]
     public string? Email { get; set; }
 

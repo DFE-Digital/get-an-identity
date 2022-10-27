@@ -35,6 +35,7 @@ public class AddStaffUserModel : PageModel
     [MaxLength(200, ErrorMessage = "Last name must be 200 characters or less")]
     public string? LastName { get; set; }
 
+    [Display(Name = "Roles")]
     public string[]? StaffRoles { get; set; }
 
     public void OnGet()
