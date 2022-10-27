@@ -90,5 +90,9 @@ public class AddWebHookTests : TestBase
                 Assert.Equal(enabled, webHookAdded.Enabled);
                 Assert.Equal(endpoint, webHookAdded.Endpoint);
             });
+
+        var redirectedResponse = await response.FollowRedirect(HttpClient);
+        var redirectedDoc = await redirectedResponse.GetDocument();
+        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Web hook added");
     }
 }

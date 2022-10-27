@@ -128,5 +128,9 @@ public class AddStaffUserTests : TestBase
                 Assert.Equal(Clock.UtcNow, staffUserAdded.CreatedUtc);
                 Assert.Equal(userId, staffUserAdded.User.UserId);
             });
+
+        var redirectedResponse = await response.FollowRedirect(HttpClient);
+        var redirectedDoc = await redirectedResponse.GetDocument();
+        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Staff user added");
     }
 }

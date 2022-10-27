@@ -64,4 +64,28 @@ public static class HttpResponseMessageExtensions
             }
         }
     }
+
+    public static async Task<HttpResponseMessage> FollowRedirect(this HttpResponseMessage response, HttpClient httpClient)
+    {
+        var statusCode = (int)response.StatusCode;
+
+        if (statusCode < 300 || statusCode > 399)
+        {
+            throw new InvalidOperationException($"Response status code is not a redirect status: {statusCode}.");
+        }
+
+        if (statusCode != StatusCodes.Status302Found)
+        {
+            throw new NotSupportedException();
+        }
+
+        var location = response.Headers.Location?.OriginalString;
+
+        if (location is null)
+        {
+            throw new InvalidOperationException("Response does not contain a Location header.");
+        }
+
+        return await httpClient.GetAsync(location);
+    }
 }

@@ -115,6 +115,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // Disable the HTTPS requirement for OpenIddict
             services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
 
+            // Add Pages defined in this test project
+            services.AddRazorPages().AddApplicationPart(typeof(HostFixture).Assembly);
+
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
             services.AddSingleton<IClock, TestClock>();

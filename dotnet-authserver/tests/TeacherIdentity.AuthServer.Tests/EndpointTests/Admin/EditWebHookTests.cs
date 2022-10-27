@@ -219,6 +219,10 @@ public class EditWebHookTests : TestBase
                 var webHookUpdated = Assert.IsType<WebHookUpdatedEvent>(e);
                 Assert.True(webHookUpdated.Changes.HasFlag(WebHookUpdatedEventChanges.Secret));
             });
+
+        var redirectedResponse = await response.FollowRedirect(HttpClient);
+        var redirectedDoc = await redirectedResponse.GetDocument();
+        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Web hook updated");
     }
 
     private Task<Guid> CreateWebHook(string? endpoint = null, bool enabled = true) =>
