@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -104,23 +104,15 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
                 options.Filters.Add(new SignInUserPageFilter());
             });
 
-            // Add the custom test authentication scheme
+            // Add the custom test authentication handler
             services.AddSingleton<CurrentUserIdContainer>();
             services.PostConfigure<AuthenticationOptions>(options =>
-                options.AddScheme(
-                    "Test",
-                    scheme => scheme.HandlerType = typeof(TestAuthenticationHandler)));
-            services.PostConfigure<AuthorizationOptions>(options =>
-            {
-                AddTestAuthenticationSchemeToPolicy(AuthorizationPolicies.Authenticated);
-                AddTestAuthenticationSchemeToPolicy(AuthorizationPolicies.GetAnIdentityAdmin);
+                options.Schemes.Single(s => s.Name == CookieAuthenticationDefaults.AuthenticationScheme).HandlerType = typeof(TestAuthenticationHandler));
 
-                void AddTestAuthenticationSchemeToPolicy(string policyName)
-                {
-                    var policy = options.GetPolicy(policyName) ?? throw new InvalidOperationException($"No authorization policy named '{policyName}'.");
-                    var builder = new AuthorizationPolicyBuilder(policy).AddAuthenticationSchemes("Test");
-                    options.AddPolicy(policyName, builder.Build());
-                }
+            // Disable tracking sign in events from the Delegated authentication handler
+            services.PostConfigure<DelegatedAuthenticationOptions>("Delegated", options =>
+            {
+                options.OnUserSignedIn = (httpContext, principal) => Task.CompletedTask;
             });
 
             // Disable the HTTPS requirement for OpenIddict
