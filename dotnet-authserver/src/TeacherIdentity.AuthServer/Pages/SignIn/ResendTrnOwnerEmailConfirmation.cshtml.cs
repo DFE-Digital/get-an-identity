@@ -26,8 +26,6 @@ public class ResendTrnOwnerEmailConfirmationModel : PageModel
     {
         var email = HttpContext.GetAuthenticationState().TrnOwnerEmailAddress!;
 
-        HttpContext.GetAuthenticationState().OnEmailSet(email);
-
         var pinGenerationResult = await _emailVerificationService.GeneratePin(email!);
 
         if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
