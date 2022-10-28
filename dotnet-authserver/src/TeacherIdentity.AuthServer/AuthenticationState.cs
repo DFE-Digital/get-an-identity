@@ -342,6 +342,11 @@ public class AuthenticationState
         StaffRoles = user.StaffRoles;
     }
 
+    public void OnEmailChanged(string email)
+    {
+        EmailAddress = email;
+    }
+
     public void OnNameChanged(string firstName, string lastName)
     {
         FirstName = firstName;

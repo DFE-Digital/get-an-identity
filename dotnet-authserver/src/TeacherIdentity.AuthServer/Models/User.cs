@@ -6,6 +6,8 @@ public class User
     public const int FirstNameAddressMaxLength = 200;
     public const int LastNameAddressMaxLength = 200;
 
+    public const string EmailAddressUniqueIndexName = "ix_users_email_address";
+
     public Guid UserId { get; set; }
     public required string EmailAddress { get; set; }
     public required string FirstName { get; set; }

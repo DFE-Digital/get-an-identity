@@ -4,6 +4,7 @@ public sealed class PinGenerationResult
 {
     public string? Pin { get; private set; }
     public PinGenerationFailedReasons FailedReasons { get; private set; }
+    public bool Succeeded => FailedReasons == PinGenerationFailedReasons.None;
 
     public static PinGenerationResult Failed(PinGenerationFailedReasons failedReasons)
     {
