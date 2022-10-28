@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -97,13 +96,13 @@ public class EmailConfirmationModel : PageModel
         // If the UserType is not allowed then return an error
         if (user is not null && !permittedUserTypes.Contains(user.UserType))
         {
-            return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
+            return new ForbidResult();
         }
 
         // We only support registering users with the TRN requirement currently
         if (user is null && !authenticationState.UserRequirements.HasFlag(UserRequirements.TrnHolder))
         {
-            return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
+            return new ForbidResult();
         }
 
         authenticationState.OnEmailVerified(user);

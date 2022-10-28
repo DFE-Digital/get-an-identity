@@ -105,7 +105,7 @@ public class Program
             options.DefaultButtonPreventDoubleClick = true;
         });
 
-        builder.Services.AddAuthentication()
+        builder.Services.AddAuthentication(options => options.DefaultForbidScheme = CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
                 options.Cookie.Name = "tis-auth";
