@@ -1,0 +1,28 @@
+@page "/update-email/resend-confirmation"
+@model TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail.ResendConfirmationModel
+@{
+    ViewBag.Title = "Request a new security code";
+
+    var safeCancelUrl = !string.IsNullOrEmpty(Model.CancelUrl) && Url.IsLocalUrl(Model.CancelUrl) ?
+        Model.CancelUrl :
+        "/";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@safeCancelUrl" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.ResendUpdateEmailConfirmation(Model.Email!, Model.ReturnUrl, Model.CancelUrl)" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">Request a new security code</h1>
+
+            <p>Emails sometimes take a few minutes to arrive. If you do not receive the email, you can request a new one.</p>
+
+            <div class="govuk-button-group">
+                <govuk-button type="submit">Request a new code</govuk-button>
+                <govuk-button-link href="@safeCancelUrl" class="govuk-button--secondary">Cancel changes</govuk-button-link>
+            </div>
+        </form>
+    </div>
+</div>

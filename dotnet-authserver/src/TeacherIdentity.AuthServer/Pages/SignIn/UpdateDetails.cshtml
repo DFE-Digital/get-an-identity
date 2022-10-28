@@ -46,7 +46,7 @@
                 <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.Email</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action visually-hidden-text="email" href="#">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action visually-hidden-text="email" href="@LinkGenerator.UpdateEmail(returnUrl: LinkGenerator.CompleteAuthorization(), cancelUrl: LinkGenerator.UpdateDetails())">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
         </govuk-summary-list>

@@ -69,6 +69,23 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string UpdateDetails(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/UpdateDetails");
 
+    public static string UpdateEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl);
+
+    public static string UpdateEmailConfirmation(this IIdentityLinkGenerator linkGenerator, ProtectedString email, string? returnUrl, string? cancelUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Confirmation", authenticationJourneyRequired: false)
+            .SetQueryParam("email", email.EncryptedValue)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl);
+
+    public static string ResendUpdateEmailConfirmation(this IIdentityLinkGenerator linkGenerator, ProtectedString email, string? returnUrl, string? cancelUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/ResendConfirmation", authenticationJourneyRequired: false)
+            .SetQueryParam("email", email.EncryptedValue)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl);
+
     public static string UpdateName(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateName", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)
