@@ -73,8 +73,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -95,8 +96,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -117,8 +119,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -139,8 +142,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -165,8 +169,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -194,8 +199,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -220,8 +226,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -250,8 +257,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -280,8 +288,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -305,8 +314,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -329,8 +339,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -358,8 +369,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -382,8 +394,9 @@ public class EmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act

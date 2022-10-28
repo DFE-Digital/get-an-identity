@@ -57,9 +57,10 @@ public class AddWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/webhooks/new")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Endpoint", endpoint)
-                .Add("Enabled", enabled)
-                .ToContent()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled }
+            }
         };
 
         // Act

@@ -44,8 +44,9 @@ public class IndexTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", newEmail)
-                .ToContent()
+            {
+                { "Email", newEmail }
+            }
         };
 
         // Act
@@ -70,8 +71,9 @@ public class IndexTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", newEmail)
-                .ToContent()
+            {
+                { "Email", newEmail }
+            }
         };
 
         // Act
@@ -93,8 +95,9 @@ public class IndexTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", user.EmailAddress)
-                .ToContent()
+            {
+                { "Email", user.EmailAddress }
+            }
         };
 
         // Act
@@ -118,8 +121,9 @@ public class IndexTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", newEmail)
-                .ToContent()
+            {
+                { "Email", newEmail }
+            }
         };
 
         // Act
@@ -150,8 +154,9 @@ public class IndexTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", newEmail)
-                .ToContent()
+            {
+                { "Email", newEmail }
+            }
         };
 
         // Act
