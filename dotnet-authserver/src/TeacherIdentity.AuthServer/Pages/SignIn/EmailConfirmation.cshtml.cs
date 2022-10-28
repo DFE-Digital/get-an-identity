@@ -100,8 +100,8 @@ public class EmailConfirmationModel : PageModel
             return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
-        // We don't support registering Staff users
-        if (permittedUserTypes.Length == 1 && permittedUserTypes.Single() == UserType.Staff && user is null)
+        // We only support registering users with the TRN requirement currently
+        if (user is null && !authenticationState.UserRequirements.HasFlag(UserRequirements.TrnHolder))
         {
             return new ForbidResult(authenticationScheme: CookieAuthenticationDefaults.AuthenticationScheme);
         }
