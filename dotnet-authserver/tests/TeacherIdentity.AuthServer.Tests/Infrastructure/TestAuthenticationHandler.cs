@@ -7,26 +7,18 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.Infrastructure;
 
-public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthenticationHandler : CookieAuthenticationHandler
 {
     private readonly CurrentUserIdContainer _currentUserIdContainer;
 
     public TestAuthenticationHandler(
         CurrentUserIdContainer currentUserIdContainer,
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        IOptionsMonitor<CookieAuthenticationOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        ISystemClock clock)
-        : base(options, logger, encoder, clock)
+        ISystemClock clock) : base(options, logger, encoder, clock)
     {
         _currentUserIdContainer = currentUserIdContainer;
-    }
-
-    protected override Task InitializeHandlerAsync()
-    {
-        Options.ForwardChallenge = CookieAuthenticationDefaults.AuthenticationScheme;
-
-        return base.InitializeHandlerAsync();
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -42,14 +34,7 @@ public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSch
             return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
         }
 
-        return AuthenticateResult.NoResult();
-    }
-
-    protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
-    {
-        // Allow the cookies handler to own handle this
-
-        return Task.CompletedTask;
+        return await base.HandleAuthenticateAsync();
     }
 }
 
