@@ -196,9 +196,9 @@ public static class UserClaimHelper
             yield return new Claim(Claims.Birthdate, dateOfBirth!.Value.ToString(CustomClaims.DateFormat));
         }
 
-        if (trn is not null && hasScope(CustomScopes.Trn))
+        if (hasScope(CustomScopes.Trn))
         {
-            yield return new Claim(CustomClaims.Trn, trn);
+            yield return new Claim(CustomClaims.Trn, trn ?? string.Empty);
         }
     }
 }
