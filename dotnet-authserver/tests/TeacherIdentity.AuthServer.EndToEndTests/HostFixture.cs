@@ -94,7 +94,10 @@ public class HostFixture : IAsyncLifetime
 
         _playright = await Playwright.CreateAsync();
 
-        var browserOptions = new BrowserTypeLaunchOptions();
+        var browserOptions = new BrowserTypeLaunchOptions()
+        {
+            Timeout = 10000
+        };
 
         if (Debugger.IsAttached)
         {

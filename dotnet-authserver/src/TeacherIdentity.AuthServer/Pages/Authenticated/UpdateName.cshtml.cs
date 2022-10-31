@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +12,16 @@ public class UpdateNameModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
-    public UpdateNameModel(TeacherIdentityServerDbContext dbContext, IClock clock)
+    public UpdateNameModel(
+        TeacherIdentityServerDbContext dbContext,
+        IClock clock,
+        IIdentityLinkGenerator linkGenerator)
     {
         _dbContext = dbContext;
         _clock = clock;
+        _linkGenerator = linkGenerator;
     }
 
     [BindProperty]
@@ -70,6 +76,10 @@ public class UpdateNameModel : PageModel
         user.FirstName = FirstName!;
         user.LastName = LastName!;
 
+        var safeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ?
+            ReturnUrl :
+            "/";
+
         if (changes != UserUpdatedEventChanges.None)
         {
             user.Updated = _clock.UtcNow;
@@ -84,17 +94,23 @@ public class UpdateNameModel : PageModel
 
             await _dbContext.SaveChangesAsync();
 
+            await HttpContext.ReSignInCookies(user);
+
             if (HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
                 authenticationState.OnNameChanged(FirstName!, LastName!);
+
+                // If we're inside an OAuth journey we need to redirect back to the authorize endpoint so the
+                // OpenIddict auth handler can SignIn again with the revised user details
+
+                authenticationState.EnsureOAuthState();
+                Debug.Assert(ReturnUrl == _linkGenerator.CompleteAuthorization());
+
+                safeReturnUrl = authenticationState.PostSignInUrl;
             }
 
             TempData.SetFlashSuccess("Preferred name updated");
         }
-
-        var safeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ?
-            ReturnUrl :
-            "/";
 
         return Redirect(safeReturnUrl);
     }
