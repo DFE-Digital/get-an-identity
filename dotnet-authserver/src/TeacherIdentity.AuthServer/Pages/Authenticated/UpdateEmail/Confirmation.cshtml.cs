@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -13,17 +14,20 @@ public class ConfirmationModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IEmailVerificationService _emailVerificationService;
     private readonly PinValidator _pinValidator;
+    private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public ConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailVerificationService,
         PinValidator pinValidator,
+        IIdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;
         _emailVerificationService = emailVerificationService;
         _pinValidator = pinValidator;
+        _linkGenerator = linkGenerator;
         _clock = clock;
     }
 
@@ -98,6 +102,10 @@ public class ConfirmationModel : PageModel
         var userId = User.GetUserId()!.Value;
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
+        var safeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ?
+            ReturnUrl :
+            "/";
+
         if (user.EmailAddress != Email.PlainValue)
         {
             user.EmailAddress = Email.PlainValue;
@@ -116,14 +124,18 @@ public class ConfirmationModel : PageModel
             if (HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
                 authenticationState.OnEmailChanged(Email!.PlainValue);
+
+                // If we're inside an OAuth journey we need to redirect back to the authorize endpoint so the
+                // OpenIddict auth handler can SignIn again with the revised user details
+
+                authenticationState.EnsureOAuthState();
+                Debug.Assert(ReturnUrl == _linkGenerator.CompleteAuthorization());
+
+                safeReturnUrl = authenticationState.PostSignInUrl;
             }
 
             TempData.SetFlashSuccess("Email address updated");
         }
-
-        var safeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ?
-            ReturnUrl :
-            "/";
 
         return Redirect(safeReturnUrl);
     }
