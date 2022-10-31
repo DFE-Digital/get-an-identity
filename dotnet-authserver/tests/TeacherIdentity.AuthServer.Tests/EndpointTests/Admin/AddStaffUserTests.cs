@@ -61,12 +61,13 @@ public class AddStaffUserTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/staff/new")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", email)
-                .Add("FirstName", firstName)
-                .Add("LastName", lastName)
-                .Add("StaffRoles", role1)
-                .Add("StaffRoles", role2)
-                .ToContent()
+            {
+                { "Email", email },
+                { "FirstName", firstName },
+                { "LastName", lastName },
+                { "StaffRoles", role1 },
+                { "StaffRoles", role2 }
+            }
         };
 
         // Act
@@ -89,12 +90,13 @@ public class AddStaffUserTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/staff/new")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", email)
-                .Add("FirstName", firstName)
-                .Add("LastName", lastName)
-                .Add("StaffRoles", role1)
-                .Add("StaffRoles", role2)
-                .ToContent()
+            {
+                { "Email", email },
+                { "FirstName", firstName },
+                { "LastName", lastName },
+                { "StaffRoles", role1 },
+                { "StaffRoles", role2 }
+            }
         };
 
         // Act

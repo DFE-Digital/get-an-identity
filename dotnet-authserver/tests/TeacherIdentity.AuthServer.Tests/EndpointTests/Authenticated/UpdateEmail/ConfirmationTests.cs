@@ -78,8 +78,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -110,8 +111,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -140,8 +142,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -170,8 +173,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -200,8 +204,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pin)
-                .ToContent()
+            {
+                { "Code", pin }
+            }
         };
 
         // Act
@@ -234,8 +239,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -271,8 +277,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act
@@ -305,8 +312,9 @@ public class ConfirmationTests : TestBase
             $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Code", pinResult.Pin!)
-                .ToContent()
+            {
+                { "Code", pinResult.Pin! }
+            }
         };
 
         // Act

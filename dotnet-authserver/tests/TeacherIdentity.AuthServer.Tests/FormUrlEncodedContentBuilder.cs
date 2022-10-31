@@ -1,6 +1,8 @@
+using System.Collections;
+
 namespace TeacherIdentity.AuthServer.Tests;
 
-public class FormUrlEncodedContentBuilder
+public class FormUrlEncodedContentBuilder : IEnumerable<KeyValuePair<string, string?>>
 {
     private readonly List<KeyValuePair<string, string?>> _values;
 
@@ -38,5 +40,11 @@ public class FormUrlEncodedContentBuilder
         return this;
     }
 
-    public FormUrlEncodedContent ToContent() => new(_values);
+    public static implicit operator FormUrlEncodedContent(FormUrlEncodedContentBuilder builder) => builder.Build();
+
+    public FormUrlEncodedContent Build() => new(_values);
+
+    public IEnumerator<KeyValuePair<string, string?>> GetEnumerator() => _values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

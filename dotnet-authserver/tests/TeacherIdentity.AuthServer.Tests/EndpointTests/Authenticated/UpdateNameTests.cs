@@ -51,9 +51,10 @@ public class UpdateNameTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-name?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("FirstName", firstName)
-                .Add("LastName", lastName)
-                .ToContent()
+            {
+                { "FirstName", firstName },
+                { "LastName", lastName }
+            }
         };
 
         // Act
@@ -77,9 +78,10 @@ public class UpdateNameTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/update-name?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("FirstName", firstName)
-                .Add("LastName", lastName)
-                .ToContent()
+            {
+                { "FirstName", firstName },
+                { "LastName", lastName }
+            }
         };
 
         // Act

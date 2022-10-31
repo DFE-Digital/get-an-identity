@@ -83,9 +83,10 @@ public class EditWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Endpoint", endpoint)
-                .Add("Enabled", enabled)
-                .ToContent()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled }
+            }
         };
 
         // Act
@@ -106,9 +107,10 @@ public class EditWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Endpoint", endpoint)
-                .Add("Enabled", enabled)
-                .ToContent()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled }
+            }
         };
 
         // Act
@@ -152,10 +154,11 @@ public class EditWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Endpoint", endpoint)
-                .Add("Enabled", enabled)
-                .Add("RegenerateSecret", false.ToString())
-                .ToContent()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled },
+                { "RegenerateSecret", false.ToString() }
+            }
         };
 
         // Act
@@ -193,10 +196,11 @@ public class EditWebHookTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Endpoint", endpoint)
-                .Add("Enabled", enabled)
-                .Add("RegenerateSecret", true.ToString())
-                .ToContent()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled },
+                { "RegenerateSecret", true.ToString() }
+            }
         };
 
         // Act

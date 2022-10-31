@@ -82,8 +82,9 @@ public class ResendEmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", differentEmail)
-                .ToContent()
+            {
+                { "Email", differentEmail }
+            }
         };
 
         // Act
@@ -108,8 +109,9 @@ public class ResendEmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", email)
-                .ToContent()
+            {
+                { "Email", email }
+            }
         };
 
         // Act
@@ -130,8 +132,9 @@ public class ResendEmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", differentEmail)
-                .ToContent()
+            {
+                { "Email", differentEmail }
+            }
         };
 
         // Act
@@ -151,8 +154,9 @@ public class ResendEmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", differentEmail)
-                .ToContent()
+            {
+                { "Email", differentEmail }
+            }
         };
 
         // Act
@@ -173,8 +177,9 @@ public class ResendEmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", differentEmail)
-                .ToContent()
+            {
+                { "Email", differentEmail }
+            }
         };
 
         // Act
@@ -194,8 +199,9 @@ public class ResendEmailConfirmationTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", differentEmail)
-                .ToContent()
+            {
+                { "Email", differentEmail }
+            }
         };
 
         // Act

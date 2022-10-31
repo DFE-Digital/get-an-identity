@@ -44,8 +44,9 @@ public class EmailTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", email)
-                .ToContent()
+            {
+                { "Email", email }
+            }
         };
 
         // Act
@@ -63,7 +64,7 @@ public class EmailTests : TestBase
         var authStateHelper = CreateAuthenticationStateHelper();
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
-            Content = new FormUrlEncodedContentBuilder().ToContent()
+            Content = new FormUrlEncodedContentBuilder()
         };
 
         // Act
@@ -81,8 +82,9 @@ public class EmailTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", "xxx")
-                .ToContent()
+            {
+                { "Email", "xxx" }
+            }
         };
 
         // Act
@@ -109,8 +111,9 @@ public class EmailTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
-                .Add("Email", email)
-                .ToContent()
+            {
+                { "Email", email }
+            }
         };
 
         // Act
