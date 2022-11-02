@@ -16,7 +16,7 @@ public class TeacherIdentityApplicationManager : OpenIddictApplicationManager<Ap
     {
     }
 
-    protected new TeacherIdentityApplicationStore Store => (TeacherIdentityApplicationStore)base.Store;
+    public new TeacherIdentityApplicationStore Store => (TeacherIdentityApplicationStore)base.Store;
 
     public override async ValueTask PopulateAsync(Application application, OpenIddictApplicationDescriptor descriptor, CancellationToken cancellationToken = default)
     {

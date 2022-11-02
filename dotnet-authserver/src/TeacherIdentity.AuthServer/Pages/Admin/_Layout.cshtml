@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Http.Extensions
 @{
     ViewBag.ServiceName = "Get an identity admin";
     ViewBag.ServiceUrl = "/admin";
@@ -6,6 +7,9 @@
 
 @section HeaderNav {
     <ul id="navigation" class="govuk-header__navigation-list">
+        <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/clients") ? "govuk-header__navigation-item--active" : "")">
+            <a class="govuk-header__link" asp-page="Clients">Clients</a>
+        </li>
         <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/staff") ? "govuk-header__navigation-item--active" : "")">
             <a class="govuk-header__link" asp-page="Staff">Staff</a>
         </li>

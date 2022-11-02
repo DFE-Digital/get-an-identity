@@ -15,6 +15,8 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
     {
     }
 
+    public new TeacherIdentityServerDbContext Context => (TeacherIdentityServerDbContext)base.Context;
+
     public ValueTask<string?> GetServiceUrlAsync(Application application)
     {
         if (application is null)

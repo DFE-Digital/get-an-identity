@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using Prometheus;
 using Sentry.AspNetCore;
@@ -263,6 +264,9 @@ public class Program
 
                 options.AddApplicationStore<TeacherIdentityApplicationStore>();
                 options.ReplaceApplicationManager<TeacherIdentityApplicationManager>();
+
+                builder.Services.AddTransient<TeacherIdentityApplicationStore>(
+                    sp => (TeacherIdentityApplicationStore)sp.GetRequiredService<IOpenIddictApplicationStore<Application>>());
             })
             .AddServer(options =>
             {
