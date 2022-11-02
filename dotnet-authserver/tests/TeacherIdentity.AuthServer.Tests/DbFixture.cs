@@ -24,7 +24,6 @@ public class DbFixture : IAsyncLifetime
     public TestData TestData => Services.GetRequiredService<TestData>();
 
     public TeacherIdentityServerDbContext GetDbContext() => Services.GetRequiredService<TeacherIdentityServerDbContext>();
-    public IRequestClientIpProvider RequestClientIpProvider => Services.GetRequiredService<IRequestClientIpProvider>();
 
     public async Task InitializeAsync()
     {
@@ -47,7 +46,6 @@ public class DbFixture : IAsyncLifetime
         services.AddSingleton<TestData>();
         services.AddSingleton<IClock, TestClock>();
         services.AddSingleton<IEventObserver, NoopEventObserver>();
-        services.AddSingleton<IRequestClientIpProvider, TestRequestClientIpProvider>();
 
         return services.BuildServiceProvider();
     }
