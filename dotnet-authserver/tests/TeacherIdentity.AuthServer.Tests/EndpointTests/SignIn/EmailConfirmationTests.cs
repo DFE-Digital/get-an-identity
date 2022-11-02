@@ -163,7 +163,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get(emailVerificationService).Reset();
+        Spy.Get<IEmailVerificationService>().Reset();
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -193,7 +193,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
         var pinResult = await emailVerificationService.GeneratePin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get(emailVerificationService).Reset();
+        Spy.Get<IEmailVerificationService>().Reset();
 
         var authStateHelper = CreateAuthenticationStateHelper(email);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")

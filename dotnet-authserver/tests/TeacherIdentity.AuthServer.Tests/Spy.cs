@@ -1,54 +1,58 @@
-using System.Collections.Concurrent;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using Castle.DynamicProxy;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
 public static class Spy
 {
-    // Hold onto all spies so we can get a Spy<T> from the proxied <T>;
-    // key is the generated proxy object and the value is its owning Spy<T>
-    private static readonly ConditionalWeakTable<object, object> _allSpies = new();
+    private static readonly Dictionary<Type, object> _allSpies = new();
 
-    public static T Of<T>(T wrappedInstance) where T : class =>
-        new Spy<T>(wrappedInstance).Object;
-
-    public static Spy<T> Get<T>(T proxy)
+    public static Spy<T> Get<T>()
         where T : class
     {
-        if (!_allSpies.TryGetValue(proxy, out var spy))
+        lock (_allSpies)
         {
-            throw new ArgumentException("Instance is not a known spy.");
+            if (!_allSpies.ContainsKey(typeof(T)))
+            {
+                _allSpies[typeof(T)] = new Spy<T>();
+            }
+
+            return (Spy<T>)_allSpies[typeof(T)];
         }
-
-        return (Spy<T>)spy;
     }
-
-    internal static void TrackSpy<T>(Spy<T> spy) where T : class =>
-        _allSpies.Add(spy.Object, spy);
 }
 
 public class Spy<T>
     where T : class
 {
-    private static readonly ConcurrentDictionary<Type, object> _mocksPerType = new();
-
     private readonly Mock<T> _mock;
+    private readonly List<T> _wrappedInstances = new();
 
-    public Spy(T wrappedInstance)
+    public Spy()
     {
-        _mock = (Mock<T>)_mocksPerType.GetOrAdd(typeof(T), _ => new Mock<T>());
-
-        Object = new ProxyGenerator().CreateInterfaceProxyWithoutTarget<T>(
-            new RecordInvocationsAndForwardInterceptor(wrappedInstance, _mock));
-
-        Spy.TrackSpy(this);
+        _mock = new Mock<T>();
     }
 
-    public T Object { get; }
+    public T Wrap(T innerInstance)
+    {
+        lock (_wrappedInstances)
+        {
+            _wrappedInstances.Add(innerInstance);
+        }
 
-    public static implicit operator T(Spy<T> spy) => spy.Object;
+        return (T)new ProxyGenerator().CreateInterfaceProxyWithoutTarget(
+            typeof(T),
+            additionalInterfacesToProxy: new[] { typeof(IDisposable) },
+            new RecordInvocationsAndForwardInterceptor(innerInstance, _mock, OnDispose));
+
+        void OnDispose()
+        {
+            lock (_wrappedInstances)
+            {
+                _wrappedInstances.Remove(innerInstance);
+            }
+        }
+    }
 
     public void Reset() => _mock.Reset();
 
@@ -89,15 +93,23 @@ public class Spy<T>
     {
         private readonly T _inner;
         private readonly Mock<T> _mock;
+        private readonly Action _onDispose;
 
-        public RecordInvocationsAndForwardInterceptor(T inner, Mock<T> mock)
+        public RecordInvocationsAndForwardInterceptor(T inner, Mock<T> mock, Action onDispose)
         {
             _inner = inner;
             _mock = mock;
+            _onDispose = onDispose;
         }
 
         public void Intercept(Castle.DynamicProxy.IInvocation invocation)
         {
+            if (invocation.Method == typeof(IDisposable).GetMethod(nameof(IDisposable.Dispose)))
+            {
+                _onDispose();
+                return;
+            }
+
             // Log the call on the mock, so it can be verified
             invocation.Method.Invoke(_mock.Object, invocation.Arguments);
 

@@ -228,7 +228,7 @@ public class ConfirmationTests : TestBase
         var pinResult = await emailVerificationService.GeneratePin(newEmail);
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get(emailVerificationService).Reset();
+        Spy.Get<IEmailVerificationService>().Reset();
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
 
@@ -266,7 +266,7 @@ public class ConfirmationTests : TestBase
         var pinResult = await emailVerificationService.GeneratePin(newEmail);
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get(emailVerificationService).Reset();
+        Spy.Get<IEmailVerificationService>().Reset();
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
 
