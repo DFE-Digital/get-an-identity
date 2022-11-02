@@ -24,8 +24,6 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailRequest, GetUse
 
         var user = await _dbContext.Users
             .Where(u => u.UserType == UserType.Default && u.UserId == request.UserId)
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
             .Select(u => new GetUserDetailResponse()
             {
                 UserId = u.UserId,
@@ -33,7 +31,10 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailRequest, GetUse
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 DateOfBirth = u.DateOfBirth,
-                Trn = u.Trn
+                Trn = u.Trn,
+                Created = u.Created,
+                RegisteredWithClientId = u.RegisteredWithClientId,
+                RegisteredWithClientDisplayName = u.RegisteredWithClient != null ? u.RegisteredWithClient.DisplayName : null
             })
             .SingleOrDefaultAsync();
 

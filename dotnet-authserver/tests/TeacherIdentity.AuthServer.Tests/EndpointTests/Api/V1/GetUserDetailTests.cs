@@ -46,7 +46,8 @@ public class GetUserDetailTests : TestBase
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
 
-        var user = await TestData.CreateUser(hasTrn: true);
+        var registeredWithClient = TestClients.Client1;
+        var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);
 
         // Act
         var response = await httpClient.GetAsync($"/api/v1/users/{user.UserId}");
@@ -59,6 +60,9 @@ public class GetUserDetailTests : TestBase
         Assert.Equal(user.FirstName, responseObj.FirstName);
         Assert.Equal(user.LastName, responseObj.LastName);
         Assert.Equal(user.Trn, responseObj.Trn);
+        Assert.Equal(user.Created, responseObj.Created);
+        Assert.Equal(registeredWithClient.ClientId, responseObj.RegisteredWithClientId);
+        Assert.Equal(registeredWithClient.DisplayName, responseObj.RegisteredWithClientDisplayName);
     }
 
     public static TheoryData<string> NotPermittedScopes => ScopeTheoryData.GetAllAdminScopesExcept(PermittedScopes);

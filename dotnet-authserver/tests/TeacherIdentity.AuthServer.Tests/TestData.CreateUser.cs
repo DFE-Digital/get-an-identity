@@ -4,7 +4,12 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public partial class TestData
 {
-    public Task<User> CreateUser(string? email = null, bool? hasTrn = null, bool? haveCompletedTrnLookup = null, UserType userType = UserType.Default) =>
+    public Task<User> CreateUser(
+            string? email = null,
+            bool? hasTrn = null,
+            bool? haveCompletedTrnLookup = null,
+            UserType userType = UserType.Default,
+            string? registeredWithClientId = null) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn is null && userType == UserType.Default)
@@ -37,7 +42,8 @@ public partial class TestData
                 DateOfBirth = userType is UserType.Default ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
                 Trn = hasTrn == true ? GenerateTrn() : null,
                 TrnAssociationSource = hasTrn == true ? TrnAssociationSource.Lookup : null,
-                Updated = _clock.UtcNow
+                Updated = _clock.UtcNow,
+                RegisteredWithClientId = registeredWithClientId
             };
 
             dbContext.Users.Add(user);
