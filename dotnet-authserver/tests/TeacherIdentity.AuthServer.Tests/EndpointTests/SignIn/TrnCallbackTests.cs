@@ -184,6 +184,7 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(Clock.UtcNow, user.LastSignedIn);
             Assert.Equal(UserType.Default, user.UserType);
             Assert.Equal(trn, user.Trn);
+            Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, user.RegisteredWithClientId);
 
             if (hasTrn)
             {
