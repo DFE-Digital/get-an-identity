@@ -1,5 +1,4 @@
 using OpenIddict.Abstractions;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Oidc;
 
@@ -21,50 +20,14 @@ public class ClientConfigurationHelper
         {
             var application = await manager.FindByClientIdAsync(clientConfig.ClientId ?? throw new Exception("Missing ClientId"));
 
-            var descriptor = new TeacherIdentityApplicationDescriptor()
-            {
-                ClientId = clientConfig.ClientId,
-                ClientSecret = clientConfig.ClientSecret,
-                Type = ClientTypes.Confidential,
-                ConsentType = ConsentTypes.Implicit,
-                DisplayName = clientConfig.DisplayName,
-                ServiceUrl = clientConfig.ServiceUrl,
-                Requirements =
-                {
-                    Requirements.Features.ProofKeyForCodeExchange
-                }
-            };
-
-            foreach (var redirectUri in clientConfig.RedirectUris ?? Array.Empty<string>())
-            {
-                descriptor.RedirectUris.Add(new Uri(redirectUri));
-            }
-
-            foreach (var redirectUri in clientConfig.PostLogoutRedirectUris ?? Array.Empty<string>())
-            {
-                descriptor.PostLogoutRedirectUris.Add(new Uri(redirectUri));
-            }
-
-            var permissions = new[]
-            {
-                Permissions.Endpoints.Authorization,
-                Permissions.Endpoints.Token,
-                Permissions.Endpoints.Logout,
-                Permissions.GrantTypes.AuthorizationCode,
-                Permissions.ResponseTypes.Code,
-                Permissions.Scopes.Email,
-                Permissions.Scopes.Profile
-            };
-
-            foreach (var permission in permissions)
-            {
-                descriptor.Permissions.Add(permission);
-            }
-
-            foreach (var scp in clientConfig.Scopes ?? Array.Empty<string>())
-            {
-                descriptor.Permissions.Add($"scp:{scp}");
-            }
+            var descriptor = TeacherIdentityApplicationDescriptor.Create(
+                clientConfig.ClientId,
+                clientConfig.ClientSecret,
+                clientConfig.DisplayName,
+                clientConfig.ServiceUrl,
+                clientConfig.RedirectUris ?? Array.Empty<string>(),
+                clientConfig.PostLogoutRedirectUris ?? Array.Empty<string>(),
+                clientConfig.Scopes ?? Array.Empty<string>());
 
             if (application is not null)
             {
