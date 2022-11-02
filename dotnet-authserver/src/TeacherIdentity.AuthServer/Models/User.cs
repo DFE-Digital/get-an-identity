@@ -21,4 +21,6 @@ public class User
     public string? Trn { get; set; }
     public TrnAssociationSource? TrnAssociationSource { get; set; }
     public string[] StaffRoles { get; set; } = Array.Empty<string>();
+    public Application? RegisteredWithClient { get; set; }
+    public string? RegisteredWithClientId { get; set; }
 }

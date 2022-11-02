@@ -21,7 +21,9 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.Trn).HasMaxLength(7).IsFixedLength();
         builder.Property(u => u.TrnAssociationSource);
         builder.Property(u => u.StaffRoles).HasColumnType("varchar[]");
+        builder.Property(u => u.RegisteredWithClientId).HasMaxLength(100);
         builder.Property<bool>("is_deleted").IsRequired().HasDefaultValue(false);
+        builder.HasOne(u => u.RegisteredWithClient).WithMany().HasForeignKey(u => u.RegisteredWithClientId).HasPrincipalKey(a => a.ClientId);
         builder.HasQueryFilter(u => EF.Property<bool>(u, "is_deleted") == false);
     }
 }
