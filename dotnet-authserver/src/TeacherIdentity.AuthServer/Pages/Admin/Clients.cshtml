@@ -1,0 +1,27 @@
+@page "/admin/clients"
+@model TeacherIdentity.AuthServer.Pages.Admin.ClientsModel
+@{
+    ViewBag.Title = "Clients";
+}
+
+<table class="govuk-table">
+  <caption class="govuk-table__caption govuk-table__caption--xl">Clients</caption>
+  <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+      <th scope="col" class="govuk-table__header">Client ID</th>
+      <th scope="col" class="govuk-table__header">Display name</th>
+    </tr>
+  </thead>
+  <tbody class="govuk-table__body">
+    @foreach (var client in Model.Clients!)
+    {
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell"><a asp-page="EditClient" asp-route-clientId="@client.ClientId">@client.ClientId</a></td>
+          <td class="govuk-table__cell">@client.DisplayName</td>
+        </tr>
+    }
+  </tbody>
+</table>
+
+<p><a asp-page="AddClient">Add client</a></p>
+

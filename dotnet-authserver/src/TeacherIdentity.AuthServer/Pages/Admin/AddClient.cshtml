@@ -1,0 +1,39 @@
+@page "/admin/clients/new"
+@using TeacherIdentity.AuthServer.Oidc
+@model TeacherIdentity.AuthServer.Pages.Admin.AddClientModel
+@{
+    ViewBag.Title = "Add client";
+}
+
+@section BeforeContent {
+  <govuk-back-link asp-page="Clients" />
+}
+
+<form asp-page="AddClient" method="post">
+    <h1 class="govuk-heading-xl">Add client</h1>
+
+    <govuk-input asp-for="ClientId" input-class="govuk-input--width-10" />
+    <govuk-input asp-for="ClientSecret" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20" />
+    <govuk-input asp-for="ServiceUrl" type="url" input-class="govuk-input--width-30" />
+
+    <govuk-textarea asp-for="RedirectUris" textarea-class="govuk-input--width-30">
+        <govuk-textarea-value>@string.Join("\n", Model.RedirectUris!)</govuk-textarea-value>
+    </govuk-textarea>
+
+    <govuk-textarea asp-for="PostLogoutRedirectUris" textarea-class="govuk-input--width-30">
+        <govuk-textarea-value>@string.Join("\n", Model.PostLogoutRedirectUris!)</govuk-textarea-value>
+    </govuk-textarea>
+
+    <govuk-checkboxes asp-for="Scopes">
+        <govuk-checkboxes-fieldset>
+            <govuk-checkboxes-fieldset-legend>Scopes</govuk-checkboxes-fieldset-legend>
+            @foreach (var scope in CustomScopes.All)
+            {
+                <govuk-checkboxes-item value="@scope">@scope</govuk-checkboxes-item>
+            }
+        </govuk-checkboxes-fieldset>
+    </govuk-checkboxes>
+
+    <govuk-button type="submit">Save</govuk-button>
+</form>
