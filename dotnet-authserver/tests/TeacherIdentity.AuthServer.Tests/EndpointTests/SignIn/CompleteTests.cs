@@ -65,7 +65,7 @@ public class CompleteTests : TestBase
     }
 
     [Fact]
-    public async Task Get_AuthorizationRequestHasTrnScope_ShowsTrnRow()
+    public async Task Get_UserTypeIsDefault_ShowsTrnRow()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(scope: CustomScopes.Trn);
@@ -82,7 +82,7 @@ public class CompleteTests : TestBase
     }
 
     [Fact]
-    public async Task Get_AuthorizationRequestDoesNotHaveTrnScope_DoesNotShowTrnRow()
+    public async Task Get_UserTypeIsNotDefault_DoesNotShowTrnRow()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(userType: UserType.Staff, hasTrn: false, scope: CustomScopes.GetAnIdentityAdmin);
@@ -96,6 +96,24 @@ public class CompleteTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.Null(doc.GetElementByTestId("trn-row"));
+    }
+
+    [Fact]
+    public async Task Get_TrnIsNotKnown_RendersPlaceholderContent()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(hasTrn: false, firstTimeSignInForEmail: false, scope: CustomScopes.Trn);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.StartsWith("Awaiting name", doc.GetSummaryListValueForKey("Name"));
+        Assert.Equal("Awaiting TRN", doc.GetSummaryListValueForKey("TRN"));
     }
 
     private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(

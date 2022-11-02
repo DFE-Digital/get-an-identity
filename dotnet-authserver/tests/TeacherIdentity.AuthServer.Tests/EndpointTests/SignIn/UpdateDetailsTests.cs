@@ -66,6 +66,24 @@ public class UpdateDetailsTests : TestBase
         Assert.DoesNotContain(doc.GetElementsByTagName("h2"), h2 => h2.TextContent == "Update your name");
     }
 
+    [Fact]
+    public async Task Get_TrnIsNotKnown_RendersPlaceholderContent()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: false, userType: UserType.Default);
+        var authStateHelper = CreateAuthenticationStateHelper(user);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/update-details?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.StartsWith("Awaiting name", doc.GetSummaryListValueForKey("Name"));
+    }
+
     private AuthenticationStateHelper CreateAuthenticationStateHelper(User user)
     {
         var scope = user.UserType == UserType.Staff ? CustomScopes.GetAnIdentityAdmin : null;
