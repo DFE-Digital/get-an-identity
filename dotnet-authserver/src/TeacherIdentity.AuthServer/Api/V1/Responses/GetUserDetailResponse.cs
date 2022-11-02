@@ -5,6 +5,10 @@ namespace TeacherIdentity.AuthServer.Api.V1.Responses;
 
 public class GetUserDetailResponse : UserInfo
 {
+    public required DateTime Created { get; init; }
+    public required string? RegisteredWithClientId { get; init; }
+    public required string? RegisteredWithClientDisplayName { get; init; }
+
     public class TrnRequestInfoExample : IExamplesProvider<GetUserDetailResponse>
     {
         public GetUserDetailResponse GetExamples() => new()
@@ -14,7 +18,10 @@ public class GetUserDetailResponse : UserInfo
             Email = "kevin.e@example.com",
             FirstName = "Kevin",
             LastName = "E",
-            Trn = "2921020"
+            Trn = "2921020",
+            Created = new DateTime(2022, 11, 2, 16, 19, 0),
+            RegisteredWithClientId = "register-for-npq",
+            RegisteredWithClientDisplayName = "Register for a National Professional Qualification"
         };
     }
 }
