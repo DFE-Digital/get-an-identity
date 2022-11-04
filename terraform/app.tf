@@ -29,9 +29,16 @@ locals {
     ]...))
   ]...)
 
+  auth_server_notify_domain_allow_list_env_vars = merge([
+    for i, v in lookup(local.infrastructure_secrets, "NOTIFY_DOMAIN_ALLOW_LIST", []) : {
+      "Notify__DomainAllowList__${i}" = v
+    }
+  ]...)
+
   auth_server_env_vars = merge(
     local.auth_server_clients_app_env_vars,
     local.auth_server_api_clients_app_env_vars,
+    local.auth_server_notify_domain_allow_list_env_vars,
     {
       EnvironmentName                              = local.hosting_environment,
       ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string
@@ -45,7 +52,9 @@ locals {
       EncryptionKeys__1                            = local.infrastructure_secrets.ENCRYPTION_KEY1,
       SigningKeys__0                               = local.infrastructure_secrets.SIGNING_KEY0,
       SigningKeys__1                               = local.infrastructure_secrets.SIGNING_KEY1,
-      NotifyApiKey                                 = local.infrastructure_secrets.NOTIFY_API_KEY,
+      Notify__ApiKey                               = local.infrastructure_secrets.NOTIFY_API_KEY,
+      Notify__ApplyDomainFiltering                 = lookup(local.infrastructure_secrets, "NOTIFY_APPLY_DOMAIN_FILTERING", "false")
+      Notify__NoSendApiKey                         = lookup(local.infrastructure_secrets, "NOTIFY_NO_SEND_API_KEY", "")
       AdminCredentials__Username                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
       AdminCredentials__Password                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
       Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN,
