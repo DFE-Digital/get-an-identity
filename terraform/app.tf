@@ -78,6 +78,12 @@ locals {
   }
 }
 
+data "azurerm_linux_web_app" "auth-server-app" {
+  provider            = azurerm
+  name                = local.auth_server_app_name
+  resource_group_name = data.azurerm_resource_group.group.name
+}
+
 resource "azurerm_postgresql_flexible_server" "postgres-server" {
   name                   = local.postgres_server_name
   location               = data.azurerm_resource_group.group.location
@@ -210,7 +216,11 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     }]
   }
 
-  app_settings = local.auth_server_env_vars
+  sticky_settings {
+    app_setting_names = keys(data.azurerm_linux_web_app.auth-server-app.app_settings)
+  }
+
+  app_settings = data.azurerm_linux_web_app.auth-server-app.app_settings
 
   lifecycle {
     ignore_changes = [
