@@ -1,5 +1,3 @@
-using Notify.Client;
-
 namespace TeacherIdentity.AuthServer.Services.Email;
 
 public static class ServiceCollectionExtensions
@@ -11,7 +9,11 @@ public static class ServiceCollectionExtensions
     {
         if (environment.IsProduction())
         {
-            services.AddSingleton(new NotificationClient(configuration["NotifyApiKey"]));
+            services.AddOptions<NotifyOptions>()
+                .Bind(configuration.GetSection("Notify"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
             services.AddSingleton<IEmailSender, NotifyEmailSender>();
 
             // Use Hangfire for scheduling emails in the background (so we get retries etc.).

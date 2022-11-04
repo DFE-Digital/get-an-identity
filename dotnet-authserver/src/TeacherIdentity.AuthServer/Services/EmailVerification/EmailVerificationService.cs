@@ -36,7 +36,7 @@ public class EmailVerificationService : IEmailVerificationService
         _logger = logger;
         _pinLifetime = TimeSpan.FromSeconds(optionsAccessor.Value.PinLifetimeSeconds);
         _rateLimiter = rateLimiter;
-        _clientIpProvider = clientIpProvider; ;
+        _clientIpProvider = clientIpProvider;
     }
 
     public async Task<PinGenerationResult> GeneratePin(string email)
