@@ -14,13 +14,7 @@ namespace TeacherIdentity.AuthServer;
 
 public class AuthenticationState
 {
-    public enum TrnLookupState
-    {
-        None = 0,
-        Complete = 1,
-        ExistingTrnFound = 3,
-        EmailOfExistingAccountForTrnVerified = 4
-    }
+    private static readonly TimeSpan _authCookieLifetime = TimeSpan.FromMinutes(20);
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
     {
@@ -375,9 +369,7 @@ public class AuthenticationState
         var claims = GetInternalClaims();
         var principal = CreatePrincipal(claims);
 
-        // If we're signing in within an OAuth flow then keep the lifetime short
-        var expiresUtc = DateTimeOffset.UtcNow.Add(
-            OAuthState is not null ? TimeSpan.FromMinutes(10) : TimeSpan.FromDays(1));
+        var expiresUtc = DateTimeOffset.UtcNow.Add(_authCookieLifetime);
 
         await httpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -386,6 +378,14 @@ public class AuthenticationState
             {
                 ExpiresUtc = expiresUtc
             });
+    }
+
+    public enum TrnLookupState
+    {
+        None = 0,
+        Complete = 1,
+        ExistingTrnFound = 3,
+        EmailOfExistingAccountForTrnVerified = 4
     }
 }
 
