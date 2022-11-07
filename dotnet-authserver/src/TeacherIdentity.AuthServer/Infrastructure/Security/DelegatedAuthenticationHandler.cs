@@ -43,7 +43,13 @@ public class DelegatedAuthenticationHandler : IAuthenticationHandler
             var principal = delegatedResult.Principal.Clone();
             ((ClaimsIdentity)principal.Identity!).AddClaim(new Claim(SignedInToDelegatedSchemeClaimType, _scheme.Name));
 
-            await _context.SignInAsync(_options.DelegatedAuthenticationScheme, principal);
+            await _context.SignInAsync(
+                _options.DelegatedAuthenticationScheme,
+                principal,
+                new AuthenticationProperties()
+                {
+                    ExpiresUtc = DateTimeOffset.UtcNow.Add(_options.Expires)
+                });
 
             if (_options.OnUserSignedIn is not null)
             {
@@ -81,6 +87,8 @@ public class DelegatedAuthenticationOptions
         get => _delegatedAuthenticationScheme;
         set => _delegatedAuthenticationScheme = value ?? throw new ArgumentNullException(nameof(value));
     }
+
+    public TimeSpan Expires { get; set; } = TimeSpan.FromHours(2);
 
     public Func<HttpContext, ClaimsPrincipal, Task>? OnUserSignedIn { get; set; }
 }
