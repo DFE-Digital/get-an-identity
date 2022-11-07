@@ -1,4 +1,5 @@
 @inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
+@inject TeacherIdentity.AuthServer.IIdentityLinkGenerator LinkGenerator
 @{
     if (string.IsNullOrEmpty(ViewBag.Title))
     {
@@ -78,6 +79,11 @@
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" asp-page="/Cookies">
                                 Cookies
+                            </a>
+                        </li>
+                        <li class="govuk-footer__inline-list-item">
+                            <a class="govuk-footer__link" href="@LinkGenerator.Privacy()">
+                                Privacy
                             </a>
                         </li>
                     </ul>
