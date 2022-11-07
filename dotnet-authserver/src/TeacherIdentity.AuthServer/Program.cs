@@ -382,7 +382,9 @@ public class Program
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
             .AddSingleton<RedirectToCompletePageFilter>()
-            .AddSingleton<ProtectedStringFactory>();
+            .AddSingleton<ProtectedStringFactory>()
+            .AddTransient<ClientScopedViewHelper>()
+            .AddTransient<IActionContextAccessor, ActionContextAccessor>();
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 
