@@ -91,6 +91,12 @@ public static class IdentityLinkGeneratorExtensions
             .SetQueryParam("returnUrl", returnUrl)
             .SetQueryParam("cancelUrl", cancelUrl);
 
+    public static string Cookies(this IIdentityLinkGenerator linkGenerator) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
+
     public static string Privacy(this IIdentityLinkGenerator linkGenerator) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Privacy", authenticationJourneyRequired: false);
+
+    public static string Accessibility(this IIdentityLinkGenerator linkGenerator) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Accessibility", authenticationJourneyRequired: false);
 }
