@@ -365,6 +365,8 @@ public class Program
 
         builder.Services.AddApiSwagger();
 
+        builder.Services.AddApplicationInsightsTelemetryProcessor<Infrastructure.ApplicationInsights.FilterDependenciesTelemetryProcessor>();
+
         // Custom MVC filters & extensions
         builder.Services
             .AddSingleton<IActionDescriptorProvider, Infrastructure.ApplicationModel.RemoveStubFindEndpointsActionDescriptorProvider>()
