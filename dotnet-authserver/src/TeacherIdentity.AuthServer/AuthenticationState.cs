@@ -15,6 +15,7 @@ namespace TeacherIdentity.AuthServer;
 public class AuthenticationState
 {
     private static readonly TimeSpan _authCookieLifetime = TimeSpan.FromMinutes(20);
+    private static readonly TimeSpan _journeyLifetime = TimeSpan.FromMinutes(20);
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
     {
@@ -28,11 +29,13 @@ public class AuthenticationState
         Guid journeyId,
         UserRequirements userRequirements,
         string postSignInUrl,
+        DateTime startedAt,
         OAuthAuthorizationState? oAuthState = null)
     {
         JourneyId = journeyId;
         UserRequirements = userRequirements;
         PostSignInUrl = postSignInUrl;
+        StartedAt = startedAt;
         OAuthState = oAuthState;
     }
 
@@ -40,6 +43,8 @@ public class AuthenticationState
     public UserRequirements UserRequirements { get; }
     public string PostSignInUrl { get; }
     public OAuthAuthorizationState? OAuthState { get; set; }
+    [JsonInclude]
+    public DateTime StartedAt { get; private set; }
     [JsonInclude]
     public Guid? UserId { get; private set; }
     [JsonInclude]
@@ -89,10 +94,11 @@ public class AuthenticationState
         UserRequirements userRequirements,
         ClaimsPrincipal principal,
         string postSignInUrl,
+        DateTime startedAt,
         OAuthAuthorizationState? oAuthState = null,
         bool? firstTimeSignInForEmail = null)
     {
-        return new AuthenticationState(journeyId, userRequirements, postSignInUrl, oAuthState)
+        return new AuthenticationState(journeyId, userRequirements, postSignInUrl, startedAt, oAuthState)
         {
             UserId = principal.GetUserId(throwIfMissing: false),
             FirstTimeSignInForEmail = firstTimeSignInForEmail,
@@ -176,6 +182,26 @@ public class AuthenticationState
         (TrnLookup == TrnLookupState.Complete || !UserRequirements.HasFlag(UserRequirements.TrnHolder)) &&
         UserId.HasValue;
 
+    public bool HasExpired(DateTime utcNow) => (StartedAt + _journeyLifetime) <= utcNow;
+
+    public void Reset(DateTime resetAt)
+    {
+        StartedAt = resetAt;
+        UserId = default;
+        FirstTimeSignInForEmail = default;
+        EmailAddress = default;
+        EmailAddressVerified = default;
+        FirstName = default;
+        LastName = default;
+        DateOfBirth = default;
+        Trn = default;
+        UserType = default;
+        StaffRoles = default;
+        HaveCompletedTrnLookup = default;
+        TrnLookup = default;
+        TrnOwnerEmailAddress = default;
+    }
+
     public void OnEmailSet(string email)
     {
         EmailAddress = email;
@@ -240,7 +266,7 @@ public class AuthenticationState
         TrnOwnerEmailAddress = existingTrnOwnerEmail;
     }
 
-    public void OnTrnLookupCompletedAndUserRegistered(User user, bool firstTimeSignInForEmail)
+    public void OnTrnLookupCompletedAndUserRegistered(User user)
     {
         if (EmailAddress is null)
         {
@@ -271,7 +297,7 @@ public class AuthenticationState
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = true;
-        FirstTimeSignInForEmail = firstTimeSignInForEmail;
+        FirstTimeSignInForEmail = true;
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
         UserType = user.UserType;

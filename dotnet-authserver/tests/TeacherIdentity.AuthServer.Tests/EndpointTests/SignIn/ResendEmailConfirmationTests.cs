@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks
@@ -9,16 +11,34 @@ public class ResendEmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Get_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => { });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -33,11 +53,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(Faker.Internet.Email());
-            authState.OnEmailVerified(user: null);
-        });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -53,7 +69,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -67,16 +83,34 @@ public class ResendEmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_MissingAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Post, "/sign-in/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Post_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => { });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var differentEmail = Faker.Internet.Email();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -100,11 +134,7 @@ public class ResendEmailConfirmationTests : TestBase
     {
         // Arrange
         var email = Faker.Internet.Email();
-        var authStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(email);
-            authState.OnEmailVerified(user: null);
-        });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -126,7 +156,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
         var differentEmail = "";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -148,7 +178,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_InvalidEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
         var differentEmail = "xx";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -170,9 +200,10 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(It.IsAny<string>())).Returns(Task.FromResult(true));
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
         var differentEmail = "valid@email.com";
+
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -193,7 +224,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_ValidRequest_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToConfirmation()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
         var differentEmail = Faker.Internet.Email();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -215,10 +246,4 @@ public class ResendEmailConfirmationTests : TestBase
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(differentEmail), Times.Once);
     }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
-        CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(Faker.Internet.Email());
-        });
 }

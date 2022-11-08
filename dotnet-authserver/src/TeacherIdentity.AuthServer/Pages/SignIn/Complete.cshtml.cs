@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
+[AllowCompletedAuthenticationJourney]
 public class CompleteModel : PageModel
 {
     private readonly IDqtApiClient _dqtApiClient;

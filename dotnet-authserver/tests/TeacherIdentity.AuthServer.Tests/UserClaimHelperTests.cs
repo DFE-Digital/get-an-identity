@@ -79,6 +79,7 @@ public class UserClaimHelperTests
             journeyId: Guid.NewGuid(),
             userRequirements,
             postSignInUrl: "",
+            startedAt: DateTime.UtcNow,
             new OAuthAuthorizationState(
                 clientId: "",
                 scope: "email profile" + (haveTrnScope ? " trn" : ""),

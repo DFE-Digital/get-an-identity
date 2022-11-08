@@ -8,16 +8,34 @@ public class TrnTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn");
+    }
+
+    [Fact]
+    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_NoEmail_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState => { });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -33,10 +51,7 @@ public class TrnTests : TestBase
     public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(Faker.Internet.Email());
-        });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -52,7 +67,7 @@ public class TrnTests : TestBase
     public async Task Get_ValidRequest_ReturnsOk()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -62,11 +77,4 @@ public class TrnTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
     }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper() =>
-        CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(Faker.Internet.Email());
-            authState.OnEmailVerified(user: null);
-        });
 }

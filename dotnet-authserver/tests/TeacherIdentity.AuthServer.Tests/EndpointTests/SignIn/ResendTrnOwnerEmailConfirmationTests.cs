@@ -9,9 +9,33 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    {
+        var email = Faker.Internet.Email();
+        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
+
+        await JourneyHasExpired_RendersErrorPage(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            HttpMethod.Get,
+            "/sign-in/trn/resend-email-confirmation");
     }
 
     [Fact]
@@ -21,7 +45,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -33,9 +57,33 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        var email = Faker.Internet.Email();
+        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
+
+        await JourneyHasExpired_RendersErrorPage(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            HttpMethod.Post,
+            "/sign-in/trn/resend-email-confirmation");
     }
 
     [Fact]
@@ -45,7 +93,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -58,12 +106,4 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingTrnOwner.EmailAddress), Times.Once);
     }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper(string email, string existingTrnOwnerEmail) =>
-        CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(email);
-            authState.OnEmailVerified(user: null);
-            authState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
-        });
 }

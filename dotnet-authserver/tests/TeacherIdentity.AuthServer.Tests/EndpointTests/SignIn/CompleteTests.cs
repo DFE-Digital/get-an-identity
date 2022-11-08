@@ -12,10 +12,36 @@ public class CompleteTests : TestBase
     }
 
     [Fact]
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/complete");
+    }
+
+    [Fact]
+    public async Task Get_MissingAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/complete");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(HttpMethod.Get, "/sign-in/complete");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_DoesNotRenderErrorPage()
+    {
+        var user = await TestData.CreateUser(hasTrn: true);
+        await JourneyHasExpired_DoesNotRenderErrorPage(c => c.Completed(user), HttpMethod.Get, "/sign-in/complete");
+    }
+
+    [Fact]
     public async Task Get_FirstTimeSignInForEmailWithTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(firstTimeSignInForEmail: true, hasTrn: true);
+        var user = await TestData.CreateUser(hasTrn: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -34,7 +60,8 @@ public class CompleteTests : TestBase
     public async Task Get_FirstTimeSignInForEmailWithoutTrn_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(firstTimeSignInForEmail: true, hasTrn: false);
+        var user = await TestData.CreateUser(hasTrn: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -51,7 +78,8 @@ public class CompleteTests : TestBase
     public async Task Get_KnownUser_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper();
+        var user = await TestData.CreateUser();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -68,7 +96,8 @@ public class CompleteTests : TestBase
     public async Task Get_UserTypeIsDefault_ShowsTrnRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(scope: CustomScopes.Trn);
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -85,7 +114,8 @@ public class CompleteTests : TestBase
     public async Task Get_UserTypeIsNotDefault_DoesNotShowTrnRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(userType: UserType.Staff, hasTrn: false, scope: CustomScopes.GetAnIdentityAdmin);
+        var user = await TestData.CreateUser(userType: UserType.Staff);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false), additionalScopes: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -102,7 +132,8 @@ public class CompleteTests : TestBase
     public async Task Get_TrnIsNotKnown_RendersPlaceholderContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(hasTrn: false, firstTimeSignInForEmail: false, scope: CustomScopes.Trn);
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -114,65 +145,5 @@ public class CompleteTests : TestBase
         var doc = await response.GetDocument();
         Assert.StartsWith("Awaiting name", doc.GetSummaryListValueForKey("Name"));
         Assert.Equal("Awaiting TRN", doc.GetSummaryListValueForKey("TRN"));
-    }
-
-    private async Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
-        bool hasTrn = true,
-        UserType userType = UserType.Default,
-        bool firstTimeSignInForEmail = false,
-        bool haveResumedCompletedJourney = false,
-        string scope = "trn")
-    {
-        if (userType != UserType.Teacher && firstTimeSignInForEmail == true)
-        {
-            throw new ArgumentException("Cannot set firstTimeSignInForEmail = true for Staff users; we don't support registering Staff users.");
-        }
-
-        var user = await TestData.CreateUser(userType: userType, hasTrn: hasTrn);
-
-        var authenticationStateHelper = CreateAuthenticationStateHelper(
-            authState =>
-            {
-                authState.OnEmailSet(user.EmailAddress);
-
-                if (userType == UserType.Default)
-                {
-                    authState.OnEmailVerified(user: null);
-                    authState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail);
-                }
-                else
-                {
-                    authState.OnEmailVerified(user);
-                }
-
-                authState.EnsureOAuthState();
-                authState.OAuthState.SetAuthorizationResponse(
-                    new[]
-                    {
-                        new KeyValuePair<string, string>("code", "abc"),
-                        new KeyValuePair<string, string>("state", "syz")
-                    },
-                    responseMode: "form_post");
-
-                if (haveResumedCompletedJourney)
-                {
-                    authState.OnHaveResumedCompletedJourney();
-                }
-            },
-            scope);
-
-        if (user.Trn is not null)
-        {
-            HostFixture.DqtApiClient
-                .Setup(mock => mock.GetTeacherByTrn(user.Trn))
-                .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
-                {
-                    Trn = user.Trn,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName
-                });
-        }
-
-        return authenticationStateHelper;
     }
 }

@@ -89,7 +89,8 @@ public class AuthorizationController : Controller
                 userRequirements,
                 principal,
                 GetCallbackUrl(journeyId),
-                new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
+                startedAt: DateTime.UtcNow,
+                oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
                 firstTimeSignInForEmail: authenticateResult?.Succeeded != true);
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));

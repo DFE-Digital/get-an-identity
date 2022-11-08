@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks
@@ -9,16 +11,34 @@ public class EmailTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/email");
+    }
+
+    [Fact]
+    public async Task Get_MissingAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/email");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/email");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.Start(), HttpMethod.Get, "/sign-in/email");
     }
 
     [Fact]
     public async Task Get_ValidRequest_ReturnsOk()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -29,18 +49,38 @@ public class EmailTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/email");
+    }
+
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/email");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/email");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.Start(), HttpMethod.Post, "/sign-in/email");
     }
 
     [Fact]
     public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(It.IsAny<string>())).Returns(Task.FromResult(true));
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var email = Faker.Internet.Email();
+
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -61,7 +101,7 @@ public class EmailTests : TestBase
     public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -78,7 +118,7 @@ public class EmailTests : TestBase
     public async Task Post_InvalidEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -100,7 +140,7 @@ public class EmailTests : TestBase
     public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToConfirmation(bool emailIsKnown)
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var email = Faker.Internet.Email();
 
         if (emailIsKnown)

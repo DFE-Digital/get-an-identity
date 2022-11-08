@@ -113,7 +113,7 @@ public class TrnCallbackModel : PageModel
             return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
 
-        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail: true);
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user);
         await authenticationState.SignIn(HttpContext);
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
