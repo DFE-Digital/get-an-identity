@@ -90,4 +90,7 @@ public static class IdentityLinkGeneratorExtensions
         linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateName", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)
             .SetQueryParam("cancelUrl", cancelUrl);
+
+    public static string Privacy(this IIdentityLinkGenerator linkGenerator) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Privacy", authenticationJourneyRequired: false);
 }

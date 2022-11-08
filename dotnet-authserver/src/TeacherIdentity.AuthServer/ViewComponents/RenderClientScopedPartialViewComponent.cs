@@ -30,21 +30,16 @@ public class RenderClientScopedPartialViewComponent : ViewComponent
 
         var client = await _currentClientProvider.GetCurrentClient();
 
-        if (client is null)
-        {
-            throw new InvalidOperationException("OIDC client could not be retrieved.");
-        }
-
         // By convention, pascal case the client ID to get the view suffix
         // e.g. register-for-npq -> RegisterForNpq
-        var clientViewName = ConvertKebabCaseToPascalCase(client.ClientId!);
+        var clientViewName = client is not null ? ConvertKebabCaseToPascalCase(client.ClientId!) : null;
 
         // Look for a client-specific view and or the Default fallback
-        var viewResult = FindView(clientViewName) ?? FindView("Default");
+        var viewResult = (clientViewName is not null ? FindView(clientViewName) : null) ?? FindView("Default");
 
         if (viewResult is null)
         {
-            throw new InvalidOperationException($"Could not find view '{viewName}' for client '{client.ClientId}' or the 'Default' fallback.");
+            throw new InvalidOperationException($"Could not find view '{viewName}' for client '{client?.ClientId ?? "(none)"}' or the 'Default' fallback.");
         }
 
         var view = viewResult.View!;
