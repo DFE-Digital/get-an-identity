@@ -47,8 +47,7 @@
                 else
                 {
                     <span data-testid="unknown-trn-content"></span>
-                    <p>You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.</p>
-                    <p>If you need to come back to this service later, use your email address <strong>@Model.Email</strong> when prompted and you will not have to answer these questions again.</p>
+                    <vc:client-scoped-partial view-name="_TrnLookup.EndBookend.FirstTimeSignInWithoutTrn.{0}.Content" />
                 }
 
                 <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
