@@ -11,7 +11,8 @@ public class TeacherIdentityServerDesignTimeDbContextFactory : IDesignTimeDbCont
             .AddUserSecrets<TeacherIdentityServerDesignTimeDbContextFactory>(optional: true)  // Optional for CI
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection") ??
+            throw new Exception("Connection string DefaultConnection is missing.");
 
         var optionsBuilder = new DbContextOptionsBuilder<TeacherIdentityServerDbContext>();
         TeacherIdentityServerDbContext.ConfigureOptions(optionsBuilder, connectionString);

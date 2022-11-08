@@ -50,7 +50,6 @@ jobs:
     - uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
-        dotnet-quality: preview
 
     - name: Lint
       run: |
@@ -74,7 +73,7 @@ jobs:
         dotnet_test_args: '-e ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 
     - name: Install Playwright
-      run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net6.0/playwright.ps1 install
+      run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net7.0/playwright.ps1 install
       working-directory: dotnet-authserver
 
     - name: End-to-end tests

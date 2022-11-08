@@ -10,7 +10,8 @@ public class DbFixture : IAsyncLifetime
     public DbFixture(TestConfiguration testConfiguration, DbHelper dbHelper)
     {
         var configuration = testConfiguration.Configuration;
-        ConnectionString = configuration.GetConnectionString("DefaultConnection");
+        ConnectionString = configuration.GetConnectionString("DefaultConnection") ??
+            throw new Exception("Connection string DefaultConnection is missing.");
         DbHelper = dbHelper;
         Services = GetServices();
     }

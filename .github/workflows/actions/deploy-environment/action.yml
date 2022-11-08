@@ -129,6 +129,10 @@ runs:
       env:
         EXPECTED_SHA: ${{ inputs.image_tag }}
 
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+
     - name: Smoke tests
       uses: ./.github/workflows/actions/test
       with:

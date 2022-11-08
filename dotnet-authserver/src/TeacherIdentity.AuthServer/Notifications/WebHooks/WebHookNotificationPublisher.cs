@@ -52,7 +52,7 @@ public class WebHookNotificationPublisher : INotificationPublisher
 
                 await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
                 return await dbContext.WebHooks.Where(wh => wh.Enabled).ToArrayAsync();
-            });
+            })!;
 
     public virtual async Task PublishNotification(NotificationEnvelope notification)
     {
