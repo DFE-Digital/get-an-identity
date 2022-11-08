@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
+using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
@@ -27,8 +28,6 @@ public abstract partial class TestBase
 
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
-    public AuthenticationStateHelper CreateAuthenticationStateHelper(
-        Action<AuthenticationState>? configureAuthenticationState = null,
-        string? scope = null) =>
-            AuthenticationStateHelper.Create(configureAuthenticationState, HostFixture, scope ?? "trn");
+    public Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(Func<Configure, Func<AuthenticationState, Task>> configure, string? additionalScopes = "trn") =>
+        AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes);
 }

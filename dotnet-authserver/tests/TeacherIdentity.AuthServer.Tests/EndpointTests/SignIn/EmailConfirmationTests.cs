@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -10,23 +11,38 @@ public class EmailConfirmationTests : TestBase
     public EmailConfirmationTests(HostFixture hostFixture)
         : base(hostFixture)
     {
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(false);
+    }
+
+    [Fact]
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/email-confirmation");
     }
 
     [Fact]
     public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/email-confirmation");
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), HttpMethod.Get, "/sign-in/email-confirmation");
     }
 
     [Fact]
     public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(Faker.Internet.Email());
-            authState.OnEmailVerified(user: null);
-        });
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -41,7 +57,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = CreateAuthenticationStateHelper();
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -55,9 +71,27 @@ public class EmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), HttpMethod.Post, "/sign-in/email-confirmation");
     }
 
     [Fact]
@@ -69,7 +103,7 @@ public class EmailConfirmationTests : TestBase
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -92,7 +126,7 @@ public class EmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var pin = "0";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -115,7 +149,7 @@ public class EmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var pin = "0123345678";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -138,7 +172,7 @@ public class EmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var pin = "abc";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -165,7 +199,7 @@ public class EmailConfirmationTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         Spy.Get<IEmailVerificationService>().Reset();
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -195,7 +229,7 @@ public class EmailConfirmationTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
         Spy.Get<IEmailVerificationService>().Reset();
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -222,7 +256,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(email);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -253,7 +287,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
-        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -284,7 +318,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(email);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, scope: CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -304,13 +338,12 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(false));
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
-        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -330,12 +363,11 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_ValidPinForAdminScopeForKnownUserWithTrn_UpdatesAuthenticationStateSignsInAndRedirects()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(false));
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
-        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -360,12 +392,13 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_BlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(true));
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
+
         var email = Faker.Internet.Email();
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(email);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -390,7 +423,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
-        var authStateHelper = CreateAuthenticationStateHelper(user.EmailAddress, scope: CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -405,12 +438,4 @@ public class EmailConfirmationTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
     }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper(string? email = null, string scope = "trn") =>
-        CreateAuthenticationStateHelper(
-            authState =>
-            {
-                authState.OnEmailSet(email ?? Faker.Internet.Email());
-            },
-            scope);
 }

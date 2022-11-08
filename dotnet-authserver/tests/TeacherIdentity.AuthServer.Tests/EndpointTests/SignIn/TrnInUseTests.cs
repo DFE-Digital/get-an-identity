@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -14,9 +13,33 @@ public class TrnInUseTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn/different-email");
+    }
+
+    [Fact]
+    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn/different-email");
+    }
+
+    [Fact]
+    public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/different-email");
+    }
+
+    [Fact]
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    {
+        var email = Faker.Internet.Email();
+        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
+
+        await JourneyHasExpired_RendersErrorPage(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            HttpMethod.Get,
+            "/sign-in/trn/different-email");
     }
 
     [Theory]
@@ -26,53 +49,9 @@ public class TrnInUseTests : TestBase
     public async Task Get_TrnLookupStateIsInvalid_RedirectsToNextPage(AuthenticationState.TrnLookupState trnLookupState)
     {
         // Arrange
-        var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = TestData.GenerateTrn();
 
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
-
-        var authStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(email);
-            authState.OnEmailVerified(user: null);
-
-            if (trnLookupState == AuthenticationState.TrnLookupState.None)
-            {
-            }
-            else if (trnLookupState == AuthenticationState.TrnLookupState.Complete)
-            {
-                authState.OnTrnLookupCompletedAndUserRegistered(
-                    new User()
-                    {
-                        CompletedTrnLookup = Clock.UtcNow,
-                        Created = Clock.UtcNow,
-                        DateOfBirth = dateOfBirth,
-                        EmailAddress = email,
-                        FirstName = firstName,
-                        LastName = lastName,
-                        Trn = trn,
-                        Updated = Clock.UtcNow,
-                        UserId = Guid.NewGuid(),
-                        UserType = UserType.Default
-                    },
-                    firstTimeSignInForEmail: true);
-            }
-            else if (trnLookupState == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
-            {
-                authState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email());
-                authState.OnEmailVerifiedOfExistingAccountForTrn();
-            }
-            else
-            {
-                throw new NotImplementedException($"Unknown {nameof(AuthenticationState.TrnLookupState)}: '{trnLookupState}'.");
-            }
-        });
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -90,8 +69,7 @@ public class TrnInUseTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -105,9 +83,33 @@ public class TrnInUseTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/different-email");
+    }
+
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/different-email");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/different-email");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        var email = Faker.Internet.Email();
+        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
+
+        await JourneyHasExpired_RendersErrorPage(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            HttpMethod.Post,
+            "/sign-in/trn/different-email");
     }
 
     [Theory]
@@ -117,53 +119,12 @@ public class TrnInUseTests : TestBase
     public async Task Post_TrnLookupStateIsInvalid_RedirectsToNextPage(AuthenticationState.TrnLookupState trnLookupState)
     {
         // Arrange
-        var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = TestData.GenerateTrn();
 
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
 
-        var authStateHelper = CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(email);
-            authState.OnEmailVerified(user: null);
-
-            if (trnLookupState == AuthenticationState.TrnLookupState.None)
-            {
-            }
-            else if (trnLookupState == AuthenticationState.TrnLookupState.Complete)
-            {
-                authState.OnTrnLookupCompletedAndUserRegistered(
-                    new User()
-                    {
-                        CompletedTrnLookup = Clock.UtcNow,
-                        Created = Clock.UtcNow,
-                        DateOfBirth = dateOfBirth,
-                        EmailAddress = email,
-                        FirstName = firstName,
-                        LastName = lastName,
-                        Trn = trn,
-                        Updated = Clock.UtcNow,
-                        UserId = Guid.NewGuid(),
-                        UserType = UserType.Default
-                    },
-                    firstTimeSignInForEmail: true);
-            }
-            else if (trnLookupState == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
-            {
-                authState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email());
-                authState.OnEmailVerifiedOfExistingAccountForTrn();
-            }
-            else
-            {
-                throw new NotImplementedException($"Unknown {nameof(AuthenticationState.TrnLookupState)}: '{trnLookupState}'.");
-            }
-        });
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -190,8 +151,7 @@ public class TrnInUseTests : TestBase
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -215,8 +175,7 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var pin = "0";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -240,8 +199,7 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var pin = "0123345678";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -265,8 +223,7 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var pin = "abc";
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -293,8 +250,7 @@ public class TrnInUseTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         Spy.Get<IEmailVerificationService>().Reset();
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -325,8 +281,7 @@ public class TrnInUseTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
         Spy.Get<IEmailVerificationService>().Reset();
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -353,8 +308,7 @@ public class TrnInUseTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
 
-        var authStateHelper = CreateAuthenticationStateHelper(email, existingTrnOwner.EmailAddress);
-
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -372,12 +326,4 @@ public class TrnInUseTests : TestBase
 
         Assert.Equal(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, authStateHelper.AuthenticationState.TrnLookup);
     }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper(string email, string existingTrnOwnerEmail) =>
-        CreateAuthenticationStateHelper(authState =>
-        {
-            authState.OnEmailSet(email);
-            authState.OnEmailVerified(user: null);
-            authState.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail);
-        });
 }

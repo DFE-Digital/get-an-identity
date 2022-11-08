@@ -137,7 +137,8 @@ public class Program
                         authenticationState = new AuthenticationState(
                             journeyId: Guid.NewGuid(),
                             userRequirements,
-                            postSignInUrl: returnUrl);
+                            postSignInUrl: returnUrl,
+                            startedAt: DateTime.UtcNow);
 
                         ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
                     }
@@ -210,8 +211,7 @@ public class Program
                 model =>
                 {
                     model.Filters.Add(new RequireAuthenticationStateFilterFactory());
-                    model.Filters.Add(new Infrastructure.Filters.NoCachePageFilter());
-                    model.Filters.Add(new Infrastructure.Filters.RedirectToCompletePageFilterFactory());
+                    model.Filters.Add(new NoCachePageFilter());
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(
@@ -370,7 +370,7 @@ public class Program
         // Custom MVC filters & extensions
         builder.Services
             .AddSingleton<IActionDescriptorProvider, Infrastructure.ApplicationModel.RemoveStubFindEndpointsActionDescriptorProvider>()
-            .AddSingleton<RequireAuthenticationStateFilter>()
+            .AddTransient<RequireAuthenticationStateFilter>()
             .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>();
 
         builder.Services
@@ -381,7 +381,6 @@ public class Program
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
-            .AddSingleton<RedirectToCompletePageFilter>()
             .AddSingleton<ProtectedStringFactory>()
             .AddTransient<ClientScopedViewHelper>()
             .AddTransient<IActionContextAccessor, ActionContextAccessor>();

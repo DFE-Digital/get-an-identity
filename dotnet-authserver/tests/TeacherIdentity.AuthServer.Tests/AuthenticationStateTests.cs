@@ -47,6 +47,7 @@ public partial class AuthenticationStateTests
             userRequirements,
             principal,
             postSignInUrl: "/",
+            startedAt: DateTime.UtcNow,
             oAuthState: null,
             firstTimeSignInForEmail);
 
@@ -102,6 +103,7 @@ public partial class AuthenticationStateTests
             userRequirements,
             principal,
             postSignInUrl: "/",
+            startedAt: DateTime.UtcNow,
             oAuthState: null,
             firstTimeSignInForEmail);
 
@@ -151,7 +153,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId: Guid.NewGuid(),
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user);
@@ -208,7 +211,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId: Guid.NewGuid(),
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user);
@@ -273,7 +277,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         // Act
         authenticationState.OnEmailSet(email);
@@ -295,7 +300,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
 
@@ -335,7 +341,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
 
@@ -385,7 +392,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
 
@@ -432,22 +440,22 @@ public partial class AuthenticationStateTests
             UserId = userId,
             UserType = UserType.Default
         };
-        var firstTimeSignInForEmail = true;
 
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
 
         // Act
-        authenticationState.OnTrnLookupCompletedAndUserRegistered(user, firstTimeSignInForEmail);
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user);
 
         // Assert
         Assert.True(authenticationState.EmailAddressVerified);
-        Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
+        Assert.True(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
         Assert.Equal(lastName, authenticationState.LastName);
@@ -471,7 +479,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
@@ -498,7 +507,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
@@ -543,7 +553,8 @@ public partial class AuthenticationStateTests
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            postSignInUrl: "/");
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
 
         authenticationState.OnEmailSet(email);
         authenticationState.OnEmailVerified(user: null);
@@ -583,6 +594,7 @@ public partial class AuthenticationStateTests
             journeyId,
             userRequirements,
             postSignInUrl: "/",
+            startedAt: DateTime.UtcNow,
             new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         // Act
@@ -611,6 +623,7 @@ public partial class AuthenticationStateTests
             journeyId,
             userRequirements,
             postSignInUrl: "/",
+            startedAt: DateTime.UtcNow,
             new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         // Act
@@ -642,14 +655,14 @@ public partial class AuthenticationStateTests
             {
                 // No email address
                 {
-                    S(new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl)),
+                    S(new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow)),
                     $"/sign-in/email?asid={journeyId}"
                 },
 
                 // Got an email but not yet verified
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com")
                     ),
                     $"/sign-in/email-confirmation?asid={journeyId}"
@@ -658,7 +671,7 @@ public partial class AuthenticationStateTests
                 // Verified email, not completed TRN lookup yet
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null)
                     ),
@@ -668,7 +681,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedAndUserRegistered(new User()
@@ -682,7 +695,7 @@ public partial class AuthenticationStateTests
                             Updated = DateTime.UtcNow,
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default
-                        }, firstTimeSignInForEmail: true)
+                        })
                     ),
                     postSignInUrl
                 },
@@ -690,7 +703,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup with an already-assigned TRN
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email())
@@ -701,7 +714,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup with an already-assigned TRN and they've verified that account's email
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
@@ -713,7 +726,7 @@ public partial class AuthenticationStateTests
                 // New user who has completed TRN lookup with an already-assigned TRN and they've choosen the email to use
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
@@ -738,7 +751,7 @@ public partial class AuthenticationStateTests
                 // Existing user
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(new User()
                         {

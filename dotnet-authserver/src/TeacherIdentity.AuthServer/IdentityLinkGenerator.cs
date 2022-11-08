@@ -49,6 +49,8 @@ public static class IdentityLinkGeneratorExtensions
 {
     public static string CompleteAuthorization(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Complete");
 
+    public static string Reset(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Reset");
+
     public static string Email(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Email");
 
     public static string EmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");

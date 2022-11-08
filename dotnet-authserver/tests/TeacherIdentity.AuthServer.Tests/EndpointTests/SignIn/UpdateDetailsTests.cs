@@ -16,7 +16,7 @@ public class UpdateDetailsTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser();
-        var authStateHelper = CreateAuthenticationStateHelper(user);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/update-details?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -35,7 +35,7 @@ public class UpdateDetailsTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
-        var authStateHelper = CreateAuthenticationStateHelper(user);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/update-details?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -53,7 +53,7 @@ public class UpdateDetailsTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Staff);
-        var authStateHelper = CreateAuthenticationStateHelper(user);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false), additionalScopes: CustomScopes.GetAnIdentityAdmin);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/update-details?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -71,7 +71,7 @@ public class UpdateDetailsTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: false, userType: UserType.Default);
-        var authStateHelper = CreateAuthenticationStateHelper(user);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/update-details?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -82,32 +82,5 @@ public class UpdateDetailsTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.StartsWith("Awaiting name", doc.GetSummaryListValueForKey("Name"));
-    }
-
-    private AuthenticationStateHelper CreateAuthenticationStateHelper(User user)
-    {
-        var scope = user.UserType == UserType.Staff ? CustomScopes.GetAnIdentityAdmin : null;
-
-        var authenticationStateHelper = CreateAuthenticationStateHelper(
-            authState =>
-            {
-                authState.OnEmailSet(user.EmailAddress);
-                authState.OnEmailVerified(user);
-            },
-            scope);
-
-        if (user.Trn is not null)
-        {
-            HostFixture.DqtApiClient
-                .Setup(mock => mock.GetTeacherByTrn(user.Trn))
-                .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
-                {
-                    Trn = user.Trn,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName
-                });
-        }
-
-        return authenticationStateHelper;
     }
 }

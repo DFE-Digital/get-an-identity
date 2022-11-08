@@ -1,0 +1,17 @@
+@{
+    ViewBag.Title = "Sorry, there is a problem with the service";
+}
+
+<div class="govuk-grid-row" data-testid="JourneyExpiredError">
+    <div class="govuk-grid-column-two-thirds">
+        <form action="@LinkGenerator.Reset()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+            <p>
+                You can go back and try again
+            </p>
+            <p>
+                <govuk-button type="submit">Start again</govuk-button>
+            </p>
+        </form>
+    </div>
+</div>
