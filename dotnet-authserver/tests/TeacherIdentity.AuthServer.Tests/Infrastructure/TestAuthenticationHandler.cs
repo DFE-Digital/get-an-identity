@@ -30,8 +30,12 @@ public class TestAuthenticationHandler : CookieAuthenticationHandler
 
             var claims = UserClaimHelper.GetInternalClaims(user);
             var principal = AuthenticationState.CreatePrincipal(claims);
+            var properties = new AuthenticationProperties()
+            {
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10)
+            };
 
-            return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
+            return AuthenticateResult.Success(new AuthenticationTicket(principal, properties, Scheme.Name));
         }
 
         return await base.HandleAuthenticateAsync();

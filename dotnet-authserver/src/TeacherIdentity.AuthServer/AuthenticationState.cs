@@ -4,8 +4,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -14,7 +12,6 @@ namespace TeacherIdentity.AuthServer;
 
 public class AuthenticationState
 {
-    private static readonly TimeSpan _authCookieLifetime = TimeSpan.FromMinutes(20);
     private static readonly TimeSpan _journeyLifetime = TimeSpan.FromMinutes(20);
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
@@ -38,6 +35,8 @@ public class AuthenticationState
         StartedAt = startedAt;
         OAuthState = oAuthState;
     }
+
+    public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
 
     public Guid JourneyId { get; }
     public UserRequirements UserRequirements { get; }
@@ -184,9 +183,9 @@ public class AuthenticationState
 
     public bool HasExpired(DateTime utcNow) => (StartedAt + _journeyLifetime) <= utcNow;
 
-    public void Reset(DateTime resetAt)
+    public void Reset(DateTime utcNow)
     {
-        StartedAt = resetAt;
+        StartedAt = utcNow;
         UserId = default;
         FirstTimeSignInForEmail = default;
         EmailAddress = default;
@@ -393,17 +392,7 @@ public class AuthenticationState
         }
 
         var claims = GetInternalClaims();
-        var principal = CreatePrincipal(claims);
-
-        var expiresUtc = DateTimeOffset.UtcNow.Add(_authCookieLifetime);
-
-        await httpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            principal,
-            new AuthenticationProperties()
-            {
-                ExpiresUtc = expiresUtc
-            });
+        await httpContext.SignInCookies(claims, AuthCookieLifetime);
     }
 
     public enum TrnLookupState

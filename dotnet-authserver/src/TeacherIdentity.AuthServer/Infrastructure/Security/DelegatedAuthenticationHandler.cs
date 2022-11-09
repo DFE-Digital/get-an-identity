@@ -18,6 +18,7 @@ namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 /// </remarks>
 public class DelegatedAuthenticationHandler : IAuthenticationHandler
 {
+    private const string DelegatingScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     private const string SignedInToDelegatedSchemeClaimType = "_delegated-sign-in-scheme";
 
     private readonly IOptionsMonitor<DelegatedAuthenticationOptions> _optionsMonitor;
@@ -33,40 +34,33 @@ public class DelegatedAuthenticationHandler : IAuthenticationHandler
 
     public async Task<AuthenticateResult> AuthenticateAsync()
     {
-        var delegatedResult = await _context.AuthenticateAsync(_options.DelegatedAuthenticationScheme);
+
+        var delegatedResult = await _context.AuthenticateAsync(DelegatingScheme);
 
         if (delegatedResult.Succeeded &&
             !delegatedResult.Principal.HasClaim(c => c.Type == SignedInToDelegatedSchemeClaimType && c.Value == _scheme.Name))
         {
             // Add a claim the indicates user has authenticated via this scheme
+            var markerClaim = new Claim(SignedInToDelegatedSchemeClaimType, _scheme.Name);
 
-            var principal = delegatedResult.Principal.Clone();
-            ((ClaimsIdentity)principal.Identity!).AddClaim(new Claim(SignedInToDelegatedSchemeClaimType, _scheme.Name));
-
-            await _context.SignInAsync(
-                _options.DelegatedAuthenticationScheme,
-                principal,
-                new AuthenticationProperties()
-                {
-                    ExpiresUtc = DateTimeOffset.UtcNow.Add(_options.Expires)
-                });
+            var principal = await _context.SignInCookies(new[] { markerClaim }, _options.Expires);
 
             if (_options.OnUserSignedIn is not null)
             {
                 await _options.OnUserSignedIn(_context, principal);
             }
 
-            return AuthenticateResult.Success(new AuthenticationTicket(principal, _options.DelegatedAuthenticationScheme));
+            return AuthenticateResult.Success(new AuthenticationTicket(principal, DelegatingScheme));
         }
 
         return delegatedResult;
     }
 
     public Task ChallengeAsync(AuthenticationProperties? properties) =>
-        _context.ChallengeAsync(_options.DelegatedAuthenticationScheme, properties);
+        _context.ChallengeAsync(DelegatingScheme, properties);
 
     public Task ForbidAsync(AuthenticationProperties? properties) =>
-        _context.ForbidAsync(_options.DelegatedAuthenticationScheme, properties);
+        _context.ForbidAsync(DelegatingScheme, properties);
 
     public Task InitializeAsync(AuthenticationScheme scheme, HttpContext context)
     {
@@ -80,14 +74,6 @@ public class DelegatedAuthenticationHandler : IAuthenticationHandler
 
 public class DelegatedAuthenticationOptions
 {
-    private string _delegatedAuthenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-    public string DelegatedAuthenticationScheme
-    {
-        get => _delegatedAuthenticationScheme;
-        set => _delegatedAuthenticationScheme = value ?? throw new ArgumentNullException(nameof(value));
-    }
-
     public TimeSpan Expires { get; set; } = TimeSpan.FromHours(2);
 
     public Func<HttpContext, ClaimsPrincipal, Task>? OnUserSignedIn { get; set; }

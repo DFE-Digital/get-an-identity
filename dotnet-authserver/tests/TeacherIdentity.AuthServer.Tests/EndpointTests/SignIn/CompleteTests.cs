@@ -30,10 +30,10 @@ public class CompleteTests : TestBase
     }
 
     [Fact]
-    public async Task Get_JourneyHasExpired_DoesNotRenderErrorPage()
+    public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
         var user = await TestData.CreateUser(hasTrn: true);
-        await JourneyHasExpired_DoesNotRenderErrorPage(c => c.Completed(user), HttpMethod.Get, "/sign-in/complete");
+        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), HttpMethod.Get, "/sign-in/complete");
     }
 
     [Fact]

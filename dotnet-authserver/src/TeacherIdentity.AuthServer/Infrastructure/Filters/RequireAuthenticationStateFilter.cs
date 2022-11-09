@@ -59,10 +59,12 @@ public class RequireAuthenticationStateFilter : IAuthorizationFilter
 
                     authenticationState.OnHaveResumedCompletedJourney();
                     context.Result = new RedirectResult(completeUrl);
+                    return;
                 }
             }
         }
-        else if (authenticationState.HasExpired(_clock.UtcNow))
+
+        if (authenticationState.HasExpired(_clock.UtcNow))
         {
             if (context.HttpContext.GetEndpoint()?.Metadata.Contains(AllowExpiredAuthenticationJourneyMarker.Instance) != true)
             {
