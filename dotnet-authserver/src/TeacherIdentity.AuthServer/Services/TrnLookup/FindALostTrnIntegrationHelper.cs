@@ -44,9 +44,9 @@ public class FindALostTrnIntegrationHelper
         {
             { "email", authenticationState.EmailAddress! },
             { "redirect_url", callbackUrl },
-            { "redirect_uri", callbackUrl },  // TEMP, for back-compat
             { "client_title", clientDisplayName ?? string.Empty },
             { "journey_id", authenticationState.JourneyId.ToString() },
+            { "client_id", clientId },
             { "client_url", clientServiceUrl },
             { "previous_url", previousUrl }
         };
