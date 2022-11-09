@@ -15,35 +15,87 @@ public static class HttpContextExtensions
             authenticationState :
             throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
 
-    public static async Task ReSignInCookies(this HttpContext httpContext, User user)
+    public static Task<ClaimsPrincipal> SignInCookies(
+        this HttpContext httpContext,
+        User user,
+        TimeSpan? minExpires = null)
+    {
+        var newClaims = UserClaimHelper.GetInternalClaims(user);
+        return SignInCookies(httpContext, newClaims, minExpires);
+    }
+
+    /// <summary>
+    /// Signs in a user using the <see cref="CookieAuthenticationDefaults.AuthenticationScheme"/> scheme.
+    /// </summary>
+    /// <remarks>
+    /// If the user is already signed in, <paramref name="newClaims"/> will be combined with the existing claims.
+    /// </remarks>
+    public static async Task<ClaimsPrincipal> SignInCookies(
+        this HttpContext httpContext,
+        IEnumerable<Claim> newClaims,
+        TimeSpan? minExpires = null)
     {
         var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
         var authenticateResult = await httpContext.AuthenticateAsync(scheme);
 
-        if (!authenticateResult.Succeeded)
+        ClaimsPrincipal principal;
+
+        if (authenticateResult.Succeeded)
         {
-            throw new InvalidOperationException($"User is not authenticated with the '{scheme}' scheme.");
+            principal = authenticateResult.Principal!.Clone();
+
+            // Replace claims in the existing principal with the new versions.
+            // Any claim types that we don't know about are left intact.
+            var newClaimTypes = newClaims.Select(c => c.Type);
+
+            var identity = principal.Identities.Single();
+
+            foreach (var claimType in newClaimTypes)
+            {
+                identity.RemoveClaims(claimType);
+            }
+
+            identity.AddClaims(newClaims);
+        }
+        else
+        {
+            principal = AuthenticationState.CreatePrincipal(newClaims);
         }
 
-        var newPrincipal = authenticateResult.Principal.Clone();
+        var expires = GetExpires();
 
-        // Replace claims in the existing principal with the new versions.
-        // Any claim types that we don't know about are left intact.
-
-        var newClaims = UserClaimHelper.GetInternalClaims(user);
-        var newClaimTypes = newClaims.Select(c => c.Type);
-
-        var identity = newPrincipal.Identities.Single();
-
-        foreach (var claimType in newClaimTypes)
+        var properties = new AuthenticationProperties()
         {
-            identity.RemoveClaims(claimType);
+            IssuedUtc = authenticateResult.Properties?.IssuedUtc,
+            ExpiresUtc = expires
+        };
+
+        await httpContext.SignInAsync(scheme, principal, properties);
+
+        return principal;
+
+        DateTimeOffset GetExpires()
+        {
+            var expiries = new List<DateTimeOffset>();
+
+            if (authenticateResult.Properties?.ExpiresUtc is DateTimeOffset existingExpires)
+            {
+                expiries.Add(existingExpires);
+            }
+
+            if (minExpires is not null)
+            {
+                expiries.Add(DateTimeOffset.UtcNow.Add(minExpires.Value));
+            }
+
+            if (expiries.Count == 0)
+            {
+                throw new InvalidOperationException("Could not deduce expiry for authentication ticket.");
+            }
+
+            return expiries.Max();
         }
-
-        identity.AddClaims(newClaims);
-
-        await httpContext.SignInAsync(scheme, newPrincipal, authenticateResult.Properties);
     }
 
     public static async Task SaveUserSignedInEvent(this HttpContext httpContext, ClaimsPrincipal principal)

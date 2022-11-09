@@ -4,7 +4,7 @@ using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[AllowExpiredAuthenticationJourney]
+[AllowExpiredAuthenticationJourney, AllowCompletedAuthenticationJourney]
 public class ResetModel : PageModel
 {
     private readonly IClock _clock;

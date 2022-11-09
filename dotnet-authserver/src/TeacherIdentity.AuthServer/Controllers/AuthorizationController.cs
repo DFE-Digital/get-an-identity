@@ -77,7 +77,7 @@ public class AuthorizationController : Controller
             }
 
             // If the user is signed in with an incompatible UserType then force the user to sign in again
-            var principal = authenticateResult?.Principal ?? new ClaimsPrincipal();
+            var principal = authenticateResult.Principal ?? new ClaimsPrincipal();
             var permittedUserTypes = userRequirements.GetPermittedUserTypes();
             if (principal.GetUserType(throwIfMissing: false) is UserType userType && !permittedUserTypes.Contains(userType))
             {
@@ -91,7 +91,7 @@ public class AuthorizationController : Controller
                 GetCallbackUrl(journeyId),
                 startedAt: DateTime.UtcNow,
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
-                firstTimeSignInForEmail: authenticateResult?.Succeeded != true);
+                firstTimeSignInForEmail: authenticateResult.Succeeded != true);
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
@@ -108,10 +108,16 @@ public class AuthorizationController : Controller
                 }));
         }
 
-        if (authenticateResult == null || !authenticateResult.Succeeded || request.HasPrompt(Prompts.Login) ||
-           (request.MaxAge != null && authenticateResult.Properties?.IssuedUtc != null &&
-            DateTimeOffset.UtcNow - authenticateResult.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)) ||
-            !authenticationState.IsComplete())
+        var maxAge = AuthenticationState.AuthCookieLifetime;
+        if (request.MaxAge is long maxAgeSeconds && maxAgeSeconds < maxAge.TotalSeconds)
+        {
+            maxAge = TimeSpan.FromSeconds(maxAgeSeconds);
+        }
+
+        var authTicketIsTooOld = authenticateResult.Properties?.IssuedUtc != null &&
+            DateTimeOffset.UtcNow - authenticateResult.Properties.IssuedUtc > maxAge;
+
+        if (!authenticateResult.Succeeded || request.HasPrompt(Prompts.Login) || authTicketIsTooOld || !authenticationState.IsComplete())
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -124,6 +130,11 @@ public class AuthorizationController : Controller
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.LoginRequired,
                         [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is not logged in."
                     }));
+            }
+
+            if (authTicketIsTooOld)
+            {
+                authenticationState.Reset(DateTime.UtcNow);
             }
 
             return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));

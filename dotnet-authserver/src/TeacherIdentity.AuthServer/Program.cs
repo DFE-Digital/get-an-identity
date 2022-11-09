@@ -154,8 +154,6 @@ public class Program
 
         builder.Services.Configure<DelegatedAuthenticationOptions>("Delegated", options =>
         {
-            options.DelegatedAuthenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
             options.OnUserSignedIn = async (httpContext, principal) =>
             {
                 await httpContext.SaveUserSignedInEvent(principal);
@@ -231,6 +229,7 @@ public class Program
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.IdleTimeout = TimeSpan.FromDays(5);
         });
 
         var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
