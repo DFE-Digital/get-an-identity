@@ -8,7 +8,8 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         var testConfiguration = new TestConfiguration();
-        var dbHelper = new DbHelper(testConfiguration.Configuration.GetConnectionString("DefaultConnection"));
+        var dbHelper = new DbHelper(testConfiguration.Configuration.GetConnectionString("DefaultConnection") ??
+            throw new Exception("Connection string DefaultConnection is missing."));
         var hostFixture = new HostFixture(testConfiguration, dbHelper);
 
         hostFixture.Initialize().GetAwaiter().GetResult();

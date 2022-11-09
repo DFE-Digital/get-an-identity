@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
 ARG GIT_SHA
 
 RUN apt-get update \
@@ -23,7 +23,7 @@ EOF
 
 RUN ssh-keygen -A && mkdir -p /var/run/sshd
 
-COPY bin/Release/net6.0/publish/ App/
+COPY bin/Release/net7.0/publish/ App/
 
 ENV GitSha ${GIT_SHA}
 WORKDIR /App

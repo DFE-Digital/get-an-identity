@@ -11,13 +11,13 @@ public class TestAuthenticationStateProvider : IAuthenticationStateProvider
     {
         if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asid))
         {
-            _state.Remove(asid, out _);
+            _state.Remove(asid.ToString(), out _);
         }
     }
 
     public AuthenticationState? GetAuthenticationState(HttpContext httpContext) =>
         httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asid) &&
-            _state.TryGetValue(asid, out var authenticationState) ?
+            _state.TryGetValue(asid.ToString(), out var authenticationState) ?
                 authenticationState :
                 null;
 

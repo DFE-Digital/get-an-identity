@@ -19,12 +19,10 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
-using Prometheus;
 using Sentry.AspNetCore;
 using Serilog;
 using StackExchange.Redis;
 using TeacherIdentity.AuthServer.Api;
-using TeacherIdentity.AuthServer.Configuration;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
@@ -46,8 +44,6 @@ public class Program
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
-        MetricLabels.ConfigureLabels(builder.Configuration);
 
         builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
 
@@ -132,7 +128,7 @@ public class Program
 
                     if (!ctx.HttpContext.TryGetAuthenticationState(out var authenticationState))
                     {
-                        string returnUrl = QueryHelpers.ParseQuery(new Uri(ctx.RedirectUri).Query)["returnUrl"];
+                        var returnUrl = QueryHelpers.ParseQuery(new Uri(ctx.RedirectUri).Query)["returnUrl"].ToString();
 
                         authenticationState = new AuthenticationState(
                             journeyId: Guid.NewGuid(),
@@ -237,7 +233,8 @@ public class Program
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         });
 
-        var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+            throw new Exception("Connection string DefaultConnection is missing.");
 
         var healthCheckBuilder = builder.Services.AddHealthChecks()
             .AddNpgSql(pgConnectionString);
@@ -298,8 +295,8 @@ public class Program
                 }
                 else
                 {
-                    var encryptionKeysConfig = builder.Configuration.GetSection("EncryptionKeys").Get<string[]>();
-                    var signingKeysConfig = builder.Configuration.GetSection("SigningKeys").Get<string[]>();
+                    var encryptionKeysConfig = builder.Configuration.GetSection("EncryptionKeys").Get<string[]>() ?? Array.Empty<string>();
+                    var signingKeysConfig = builder.Configuration.GetSection("SigningKeys").Get<string[]>() ?? Array.Empty<string>();
 
                     foreach (var value in encryptionKeysConfig)
                     {
@@ -470,8 +467,6 @@ public class Program
             app.UseSentryTracing();
         }
 
-        app.UseHttpMetrics();
-
         app.UseHealthChecks("/status");
 
         app.UseAuthentication();
@@ -485,44 +480,40 @@ public class Program
                 a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
         }
 
-        app.UseEndpoints(endpoints =>
+        app.MapControllers();
+        app.MapRazorPages();
+
+        app.MapGet("/health", async context =>
         {
-            endpoints.MapControllers();
-            endpoints.MapRazorPages();
-            endpoints.MapMetrics();
-
-            endpoints.MapGet("/health", async context =>
-            {
-                await context.Response.WriteAsync("OK");
-            });
-
-            var gitSha = builder.Configuration["GitSha"];
-            if (!string.IsNullOrEmpty(gitSha))
-            {
-                endpoints.MapGet("/_sha", async context =>
-                {
-                    await context.Response.WriteAsync(gitSha);
-                });
-            }
-
-            if (!builder.Environment.IsUnitTests())
-            {
-                endpoints.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
-            }
-
-            if (builder.Environment.IsDevelopment())
-            {
-                endpoints.MapPost("/webhook", async context =>
-                {
-                    var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("WebHookDebug");
-
-                    using var sr = new StreamReader(context.Request.Body);
-                    var body = await sr.ReadToEndAsync();
-                    logger.LogInformation("Received web hook: {Payload}", body);
-                });
-            }
+            await context.Response.WriteAsync("OK");
         });
+
+        var gitSha = builder.Configuration["GitSha"];
+        if (!string.IsNullOrEmpty(gitSha))
+        {
+            app.MapGet("/_sha", async context =>
+            {
+                await context.Response.WriteAsync(gitSha);
+            });
+        }
+
+        if (!builder.Environment.IsUnitTests())
+        {
+            app.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
+        }
+
+        if (builder.Environment.IsDevelopment())
+        {
+            app.MapPost("/webhook", async context =>
+            {
+                var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("WebHookDebug");
+
+                using var sr = new StreamReader(context.Request.Body);
+                var body = await sr.ReadToEndAsync();
+                logger.LogInformation("Received web hook: {Payload}", body);
+            });
+        }
 
         app.UseSwagger(options =>
         {

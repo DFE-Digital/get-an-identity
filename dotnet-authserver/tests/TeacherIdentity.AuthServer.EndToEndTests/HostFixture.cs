@@ -46,7 +46,7 @@ public class HostFixture : IAsyncLifetime
     public Task<IBrowserContext> CreateBrowserContext() =>
         Browser!.NewContextAsync(new BrowserNewContextOptions() { BaseURL = ClientBaseUrl });
 
-    public string TestClientId => GetTestConfiguration()["Client:ClientId"];
+    public string TestClientId => GetTestConfiguration()["Client:ClientId"]!;
 
     public async Task DisposeAsync()
     {
@@ -79,14 +79,15 @@ public class HostFixture : IAsyncLifetime
     {
         var testConfiguration = GetTestConfiguration();
 
-        DbHelper = new DbHelper(testConfiguration["AuthorizationServer:ConnectionStrings:DefaultConnection"]);
+        DbHelper = new DbHelper(testConfiguration["AuthorizationServer:ConnectionStrings:DefaultConnection"] ??
+            throw new Exception("Connection string DefaultConnection is missing."));
         await DbHelper.ResetSchema();
 
         _authServerHost = CreateAuthServerHost(testConfiguration);
         AuthServerServices = _authServerHost.Services;
 
         var clientHelper = new ClientConfigurationHelper(AuthServerServices);
-        var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>();
+        var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>() ?? Array.Empty<ClientConfiguration>();
 
         await clientHelper.UpsertClients(clients);
 
