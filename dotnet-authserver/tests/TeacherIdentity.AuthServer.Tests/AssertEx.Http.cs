@@ -37,6 +37,9 @@ public static partial class AssertEx
     {
         var problemDetails = await ResponseIsProblemDetails(response, expectedStatusCode);
 
+        Assert.NotNull(problemDetails.Extensions);
+        Assert.Contains(problemDetails.Extensions, kvp => kvp.Key == "errorCode");
+        Assert.Equal(10004, problemDetails.Extensions?["errorCode"].GetInt32());
         Assert.Equal(expectedError, problemDetails.Errors?[propertyName].Single());
     }
 
