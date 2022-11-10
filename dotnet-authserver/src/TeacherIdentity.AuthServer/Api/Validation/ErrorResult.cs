@@ -27,6 +27,7 @@ public class ErrorResult : IResult
     {
         var error = ErrorRegistry.RequestIsNotValid();
         var statusCode = StatusCodes.Status400BadRequest;
+        var errorsWithNormalizedKeys = errors.ToDictionary(kvp => CamelCaseKey(kvp.Key), kvp => kvp.Value);
 
         return new(new ValidationProblemDetails(errors)
         {
@@ -38,6 +39,9 @@ public class ErrorResult : IResult
                 { "errorCode", error.ErrorCode }
             }
         });
+
+        static string CamelCaseKey(string key) =>
+            string.Join(".", key.Split('.').Select(System.Text.Json.JsonNamingPolicy.CamelCase.ConvertName));
     }
 
     public Task ExecuteAsync(HttpContext httpContext) =>
