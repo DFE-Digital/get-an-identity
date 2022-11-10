@@ -95,6 +95,12 @@ runs:
         IMAGE_TAG: ${{ inputs.image_tag }}
       shell: bash
 
+    - uses: azure/CLI@v1
+      if: ${{ steps.terraform.outputs.blue_green == 'true' }}
+      with:
+        inlineScript: |
+          az webapp start  -g ${{ steps.config.outputs.resource_group_name }} -n ${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name}}-auths-app --slot ${{ steps.terraform.outputs.slot_name}}
+
     - uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name}}-auths-app
@@ -106,6 +112,12 @@ runs:
       with:
         inlineScript: |
           az webapp deployment slot swap  -g ${{ steps.config.outputs.resource_group_name }} -n ${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name}}-auths-app --slot ${{ steps.terraform.outputs.slot_name}} --target-slot production
+
+    - uses: azure/CLI@v1
+      if: ${{ steps.terraform.outputs.blue_green == 'true' }}
+      with:
+        inlineScript: |
+          az webapp stop  -g ${{ steps.config.outputs.resource_group_name }} -n ${{ steps.config.outputs.resource_prefix }}getanid-${{ inputs.environment_name}}-auths-app --slot ${{ steps.terraform.outputs.slot_name}}
 
     - name: Check new site is up
       run: |
