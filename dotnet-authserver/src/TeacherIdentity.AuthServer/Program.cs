@@ -522,6 +522,8 @@ public class Program
             });
         });
 
+        app.MapApiEndpoints();
+
         app.Run();
 
         async Task ConfigureClients()
