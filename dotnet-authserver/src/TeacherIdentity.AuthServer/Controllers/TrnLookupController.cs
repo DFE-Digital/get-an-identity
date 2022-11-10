@@ -26,18 +26,13 @@ public class TrnLookupController : ControllerBase
     [HttpPut("user/{journeyId}")]
     public async Task<IActionResult> SetJourneyTrnLookupStateUser(
         [FromRoute] Guid journeyId,
-        [FromBody] SetJourneyTrnLookupStateRequest request)
+        [FromBody] SetJourneyTrnLookupStateRequestBody request)
     {
         var existingState = await _dbContext.JourneyTrnLookupStates.FindAsync(journeyId);
 
         if (existingState?.Locked is not null)
         {
-            return BadRequest();
-        }
-        if ((string.IsNullOrEmpty(request.PreferredFirstName) && !string.IsNullOrEmpty(request.PreferredLastName))
-            || (!string.IsNullOrEmpty(request.PreferredFirstName) && string.IsNullOrEmpty(request.PreferredLastName)))
-        {
-            return BadRequest();
+            return BadRequest("Journey is locked.");
         }
 
         var normalizedNino = (request.NationalInsuranceNumber ?? string.Empty)
@@ -51,8 +46,8 @@ public class TrnLookupController : ControllerBase
                 Created = _clock.UtcNow,
                 JourneyId = journeyId,
                 DateOfBirth = request.DateOfBirth,
-                OfficialFirstName = request.OfficialFirstName,
-                OfficialLastName = request.OfficialLastName,
+                OfficialFirstName = request.OfficialFirstName!,
+                OfficialLastName = request.OfficialLastName!,
                 Trn = request.Trn,
                 NationalInsuranceNumber = normalizedNino,
                 PreferredFirstName = request.PreferredFirstName!,
@@ -62,8 +57,8 @@ public class TrnLookupController : ControllerBase
         else
         {
             existingState.DateOfBirth = request.DateOfBirth;
-            existingState.OfficialFirstName = request.OfficialFirstName;
-            existingState.OfficialLastName = request.OfficialLastName;
+            existingState.OfficialFirstName = request.OfficialFirstName!;
+            existingState.OfficialLastName = request.OfficialLastName!;
             existingState.Trn = request.Trn;
             existingState.NationalInsuranceNumber = normalizedNino;
             existingState.PreferredFirstName = request.PreferredFirstName!;
@@ -76,39 +71,24 @@ public class TrnLookupController : ControllerBase
     }
 }
 
-public class SetJourneyTrnLookupStateRequest
+public record SetJourneyTrnLookupStateRequestBody : IValidatableObject
 {
-
-    [JsonIgnore]
-    public string FirstName
+    public string? FirstName
     {
-        get
-        {
-            return OfficialFirstName;
-        }
-        set
-        {
-            OfficialFirstName = value;
-        }
+        get => OfficialFirstName;
+        set => OfficialFirstName = value;
     }
 
-    [JsonIgnore]
-    public string LastName
+    public string? LastName
     {
-        get
-        {
-            return OfficialLastName;
-        }
-        set
-        {
-            OfficialLastName = value;
-        }
+        get => OfficialLastName;
+        set => OfficialLastName = value;
     }
 
     [Required]
-    public required string OfficialFirstName { get; set; }
+    public string? OfficialFirstName { get; set; }
     [Required]
-    public required string OfficialLastName { get; set; }
+    public string? OfficialLastName { get; set; }
     [Required]
     public DateOnly DateOfBirth { get; set; }
     [StringLength(maximumLength: 7, MinimumLength = 7)]
@@ -116,4 +96,13 @@ public class SetJourneyTrnLookupStateRequest
     public string? NationalInsuranceNumber { get; set; }
     public string? PreferredFirstName { get; set; }
     public string? PreferredLastName { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if ((string.IsNullOrEmpty(PreferredFirstName) && !string.IsNullOrEmpty(PreferredLastName)) ||
+            (!string.IsNullOrEmpty(PreferredFirstName) && string.IsNullOrEmpty(PreferredLastName)))
+        {
+            yield return new ValidationResult("Preferred name cannot be partially specified.");
+        }
+    }
 }
