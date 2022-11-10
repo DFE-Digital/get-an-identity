@@ -17,14 +17,15 @@ on:
 env:
   CONTAINER_REGISTRY: ghcr.io
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+
 
 jobs:
   build:
     name: Build & test
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     outputs:
       authserver: ${{ steps.image_tags.outputs.authserver }}
