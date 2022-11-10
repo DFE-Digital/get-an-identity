@@ -137,10 +137,9 @@ public class SetJourneyTrnLookupStateTests : TestBase
         });
     }
 
-
     [Theory]
-    [InlineData(null, "fakelastname")]
-    [InlineData("testing", null)]
+    [InlineData(null, "PreferredLastName")]
+    [InlineData("PreferredFirstName", null)]
     public async Task Put_InvalidPreferredNameCombination_ReturnsBadRequest(string preferredFirstName, string preferredLastName)
     {
         // Arrange
@@ -169,7 +168,7 @@ public class SetJourneyTrnLookupStateTests : TestBase
         var response = await ApiKeyHttpClient.SendAsync(request);
 
         // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await AssertEx.JsonResponseIsError(response, 10004, StatusCodes.Status400BadRequest);
     }
 
     [Theory]
@@ -220,9 +219,9 @@ public class SetJourneyTrnLookupStateTests : TestBase
     {
         { "First", "Last", "" },
         { "First", "Last", "xxx" },
-        { "", "Last", "01/01/2000" },
-        { "First", "", "01/01/2000" },
-        { "", "", "01/01/2000" },
+        { "", "Last", "2000-01-01" },
+        { "First", "", "2000-01-01" },
+        { "", "", "2000-01-01" },
         { "First", "", "" },
         { "", "Last", "" },
         { "", "", "" },
