@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Events;
 
-public abstract class EventBase
+public abstract record EventBase
 {
     public required DateTime CreatedUtc { get; init; }
 }

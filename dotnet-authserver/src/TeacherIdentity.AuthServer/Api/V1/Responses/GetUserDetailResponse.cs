@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Responses;
 
-public class GetUserDetailResponse : UserInfo
+public record GetUserDetailResponse : UserInfo
 {
     public required DateTime Created { get; init; }
     public required string? RegisteredWithClientId { get; init; }

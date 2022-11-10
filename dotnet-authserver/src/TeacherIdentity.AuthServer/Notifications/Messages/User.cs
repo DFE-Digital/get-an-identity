@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Notifications.Messages;
 
-public class User
+public record User
 {
     public required Guid UserId { get; init; }
     public required string EmailAddress { get; init; }

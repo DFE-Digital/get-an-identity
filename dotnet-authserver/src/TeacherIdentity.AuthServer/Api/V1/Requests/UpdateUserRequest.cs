@@ -4,13 +4,13 @@ using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Requests;
 
-public class UpdateUserRequest : IRequest<UserInfo>
+public record UpdateUserRequest : IRequest<UserInfo>
 {
     public required Guid UserId { get; set; }
     public required UpdateUserRequestBody Body { get; set; }
 }
 
-public class UpdateUserRequestBody
+public record UpdateUserRequestBody
 {
     private string? _email;
     private string? _firstName;

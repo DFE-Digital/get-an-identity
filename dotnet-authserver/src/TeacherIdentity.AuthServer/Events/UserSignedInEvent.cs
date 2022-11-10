@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Events;
 
-public class UserSignedInEvent : EventBase
+public record UserSignedInEvent : EventBase
 {
     public required User User { get; init; }
     public string? ClientId { get; init; }
