@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using GovUk.Frontend.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.IdentityModel.Logging;
 
 namespace TeacherIdentity.TestClient;
 
@@ -12,6 +13,11 @@ public class Program
         JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
         var builder = WebApplication.CreateBuilder(args);
+
+        if (builder.Environment.IsDevelopment())
+        {
+            IdentityModelEventSource.ShowPII = true;
+        }
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -45,6 +51,21 @@ public class Program
                 options.Scope.Add("profile");
 
                 options.SaveTokens = true;
+
+                var oidcBackChannelAuthority = builder.Configuration["OidcBackChannelAuthority"];
+                if (!string.IsNullOrEmpty(oidcBackChannelAuthority))
+                {
+                    options.BackchannelHttpHandler = new RewriteRequestDomainDelegatingHandler("https", oidcBackChannelAuthority)
+                    {
+                        InnerHandler = new SocketsHttpHandler()
+                        {
+                            SslOptions = new()
+                            {
+                                RemoteCertificateValidationCallback = delegate { return true; }
+                            }
+                        }
+                    };
+                }
 
                 // Log the access token to the console for debugging
                 options.Events.OnTokenResponseReceived = ctx =>
@@ -118,5 +139,34 @@ public class Program
         app.MapControllers();
 
         app.Run();
+    }
+
+    private class RewriteRequestDomainDelegatingHandler : DelegatingHandler
+    {
+        private readonly string _scheme;
+        private readonly string _authority;
+
+        public RewriteRequestDomainDelegatingHandler(string scheme, string authority)
+        {
+            _scheme = scheme;
+            _authority = authority;
+        }
+
+        protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.RequestUri is null || !request.RequestUri.IsAbsoluteUri)
+            {
+                throw new NotSupportedException();
+            }
+
+            request.RequestUri = new Uri($"{_scheme}://{_authority}{request.RequestUri.GetComponents(UriComponents.PathAndQuery, UriFormat.UriEscaped)}");
+
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 }

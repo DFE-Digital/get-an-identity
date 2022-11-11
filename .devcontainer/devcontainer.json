@@ -1,0 +1,41 @@
+{
+  "name": "Get an identity",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "updateContentCommand": "${containerWorkspaceFolder}/.devcontainer/scripts/update-content.sh",
+  "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/scripts/post-create.sh",
+  "postAttachCommand": {
+    "AuthServer": "${containerWorkspaceFolder}/.devcontainer/scripts/authserver-dev.sh",
+    "TestClient": "${containerWorkspaceFolder}/.devcontainer/scripts/testclient-dev.sh"
+  },
+  "forwardPorts": [
+    7236,
+    7261,
+    "postgres:5432"
+  ],
+  "portsAttributes": {
+    "7236": {
+      "label": "AuthServer",
+      "protocol": "https",
+      "onAutoForward": "openPreview"
+    },
+    "7261": {
+      "label": "TestClient",
+      "protocol": "https",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp"
+      ],
+      "settings": {
+        "omnisharp.enableRoslynAnalyzers": true,
+        "omnisharp.enableEditorConfigSupport": true,
+        "omnisharp.enableAsyncCompletion": true
+      }
+    }
+  }
+}

@@ -269,6 +269,12 @@ public class Program
                 options.AddEventHandler<ApplyAuthorizationResponseContext>(
                     builder => builder.UseSingletonHandler<ProcessAuthorizationResponseHandler>());
 
+                var oidcIssuer = builder.Configuration["OidcIssuer"];
+                if (!string.IsNullOrEmpty(oidcIssuer))
+                {
+                    options.SetIssuer(new Uri(oidcIssuer));
+                }
+
                 options
                     .SetAuthorizationEndpointUris("/connect/authorize")
                     .SetLogoutEndpointUris("/connect/signout")
