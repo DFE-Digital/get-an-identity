@@ -1,18 +1,17 @@
-@page "/admin/clients/new"
+@page "/admin/clients/{clientId}"
 @using TeacherIdentity.AuthServer.Oidc
-@model TeacherIdentity.AuthServer.Pages.Admin.AddClientModel
+@model TeacherIdentity.AuthServer.Pages.Admin.EditClientModel
 @{
-    ViewBag.Title = "Add client";
+    ViewBag.Title = Model.ClientId;
 }
 
 @section BeforeContent {
-  <govuk-back-link asp-page="Clients" />
+    <govuk-back-link asp-page="Clients" />
 }
 
-<form asp-page="AddClient" method="post">
-    <h1 class="govuk-heading-xl">Add client</h1>
+<form asp-page="EditClient" asp-route-clientId="@Model.ClientId" method="post">
+    <h1 class="govuk-heading-xl">@Model.ClientId</h1>
 
-    <govuk-input asp-for="ClientId" input-class="govuk-input--width-10" />
     <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20" />
     <govuk-input asp-for="ServiceUrl" type="url" />
 
@@ -24,7 +23,14 @@
         <govuk-textarea-value>@string.Join("\n", Model.PostLogoutRedirectUris!)</govuk-textarea-value>
     </govuk-textarea>
 
-    <govuk-input asp-for="ClientSecret" input-class="govuk-input--width-20" />
+    <govuk-checkboxes asp-for="ResetClientSecret">
+        <govuk-checkboxes-item value="@true">
+            @Html.DisplayNameFor(m => m.ResetClientSecret)
+            <govuk-checkboxes-item-conditional>
+                <govuk-input asp-for="ClientSecret" input-class="govuk-input--width-20" />
+            </govuk-checkboxes-item-conditional>
+        </govuk-checkboxes-item>
+    </govuk-checkboxes>
 
     <govuk-checkboxes asp-for="Scopes">
         <govuk-checkboxes-fieldset>
