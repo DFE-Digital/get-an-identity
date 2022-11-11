@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 
@@ -140,8 +141,8 @@ public class AddClientTests : TestBase
             uri => Assert.Equal(postLogoutRedirectUri2, uri));
         Assert.Collection(
             (await applicationStore.GetPermissionsAsync(application, CancellationToken.None))
-                .Where(p => p.StartsWith("scp:"))
-                .Select(p => p["scp:".Length..])
+                .Where(p => p.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope))
+                .Select(p => p[OpenIddictConstants.Permissions.Prefixes.Scope.Length..])
                 .Except(TeacherIdentityApplicationDescriptor.StandardScopes),
             sc => Assert.Equal(scope1, sc),
             sc => Assert.Equal(scope2, sc));

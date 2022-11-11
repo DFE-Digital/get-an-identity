@@ -18,7 +18,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
         OpenIddictConstants.Permissions.Endpoints.Logout,
         OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
         OpenIddictConstants.Permissions.ResponseTypes.Code
-    }.Concat(StandardScopes.Select(sc => $"scp:{sc}")).ToArray();
+    }.Concat(StandardScopes.Select(sc => $"{OpenIddictConstants.Permissions.Prefixes.Scope}{sc}")).ToArray();
 
     public static string[] StandardScopes => _standardScopes;
 
@@ -75,7 +75,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
 
         foreach (var scp in scopes)
         {
-            descriptor.Permissions.Add($"scp:{scp}");
+            descriptor.Permissions.Add($"{OpenIddictConstants.Permissions.Prefixes.Scope}{scp}");
         }
 
         return descriptor;

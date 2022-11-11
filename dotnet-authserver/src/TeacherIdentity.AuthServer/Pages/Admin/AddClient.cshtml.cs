@@ -26,7 +26,7 @@ public class AddClientModel : PageModel
     public string? ClientId { get; set; }
 
     [BindProperty]
-    [Display(Name = "Client secret")]
+    [Display(Name = "Client secret", Description = "This secret is hashed before it is stored and cannot be retrieved later")]
     [Required(ErrorMessage = "Enter a client secret")]
     public string? ClientSecret { get; set; }
 

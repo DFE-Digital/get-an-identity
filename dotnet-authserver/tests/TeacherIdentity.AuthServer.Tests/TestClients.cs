@@ -27,9 +27,9 @@ public static class TestClients
             Permissions.ResponseTypes.Code,
             Permissions.Scopes.Email,
             Permissions.Scopes.Profile,
-            $"scp:{CustomScopes.GetAnIdentityAdmin}",
-            $"scp:{CustomScopes.GetAnIdentitySupport}",
-            $"scp:{CustomScopes.Trn}",
+            $"{Permissions.Prefixes.Scope}{CustomScopes.GetAnIdentityAdmin}",
+            $"{Permissions.Prefixes.Scope}{CustomScopes.GetAnIdentitySupport}",
+            $"{Permissions.Prefixes.Scope}{CustomScopes.Trn}",
         },
         Requirements =
         {

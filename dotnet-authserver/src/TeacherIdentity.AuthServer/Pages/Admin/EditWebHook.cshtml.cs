@@ -97,9 +97,10 @@ public class EditWebHookModel : PageModel
             });
 
             await _dbContext.SaveChangesAsync();
+
+            TempData.SetFlashSuccess("Web hook updated");
         }
 
-        TempData.SetFlashSuccess("Web hook updated");
         return RedirectToPage("EditWebHook", new { webHookId = WebHookId });
     }
 }
