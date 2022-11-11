@@ -1,24 +1,4 @@
 locals {
-  auth_server_clients_app_env_vars = merge([
-    for i, v in local.infrastructure_secrets.CLIENTS : merge({
-      "Clients__${i}__ClientId"          = v.CLIENT_ID,
-      "Clients__${i}__ClientSecret"      = v.CLIENT_SECRET,
-      "Clients__${i}__DisplayName"       = v.DISPLAY_NAME,
-      "Clients__${i}__ServiceUrl"        = v.SERVICE_URL,
-      "Clients__${i}__PostSignInMessage" = v.POST_SIGN_IN_MESSAGE,
-      },
-      merge([for k, x in v.REDIRECT_URIS : {
-        "Clients__${i}__RedirectUris__${k}" = x
-      }]...),
-      merge([for k, x in lookup(v, "POST_LOGOUT_REDIRECT_URIS", []) : {
-        "Clients__${i}__PostLogoutRedirectUris__${k}" = x
-      }]...),
-      merge([for k, x in v.SCOPES : {
-        "Clients__${i}__Scopes__${k}" = x
-        }
-    ]...))
-  ]...)
-
   auth_server_api_clients_app_env_vars = merge([
     for i, v in local.infrastructure_secrets.API_CLIENTS : merge({
       "ApiClients__${i}__ClientId" = v.CLIENT_ID
@@ -36,7 +16,6 @@ locals {
   ]...)
 
   auth_server_env_vars = merge(
-    local.auth_server_clients_app_env_vars,
     local.auth_server_api_clients_app_env_vars,
     local.auth_server_notify_domain_allow_list_env_vars,
     {
