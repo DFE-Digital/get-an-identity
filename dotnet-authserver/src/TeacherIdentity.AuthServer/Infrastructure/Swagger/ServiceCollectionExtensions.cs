@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -11,7 +12,31 @@ public static class ServiceCollectionExtensions
     {
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo() { Title = "Get an identity to access Teacher Services API", Version = "v1" });
+            c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Get an identity to access Teacher Services API", Version = "v1" });
+
+            c.AddSecurityDefinition(
+                "oauth2",
+                new OpenApiSecurityScheme()
+                {
+                    In = ParameterLocation.Header,
+                    Scheme = "Bearer",
+                    Type = SecuritySchemeType.OpenIdConnect,
+                    OpenIdConnectUrl = new Uri("/.well-known/openid-configuration", UriKind.Relative)
+                });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+            {
+                [
+                    new OpenApiSecurityScheme()
+                    {
+                        Reference = new OpenApiReference()
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "oauth2"
+                        }
+                    }
+                ] = Array.Empty<string>()
+            });
 
             c.DocInclusionPredicate((docName, api) => docName.Equals(api.GroupName, StringComparison.OrdinalIgnoreCase));
             c.EnableAnnotations();
