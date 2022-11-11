@@ -1,3 +1,4 @@
+using System.Resources;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
@@ -7,6 +8,8 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public static class HttpResponseMessageExtensions
 {
+    private static readonly string[] _testDataStrings = GetTestDataStrings();
+
     public static async Task<IHtmlDocument> GetDocument(this HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -38,6 +41,12 @@ public static class HttpResponseMessageExtensions
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
+                        // Some of our test data has non-smart quotes in it; ignore errors for that data
+                        if (_testDataStrings.Any(d => line.Contains(d)))
+                        {
+                            continue;
+                        }
+
                         var nonSmartQuoteIndex = line.IndexOf('\'');
                         if (nonSmartQuoteIndex != -1)
                         {
@@ -87,5 +96,13 @@ public static class HttpResponseMessageExtensions
         }
 
         return await httpClient.GetAsync(location);
+    }
+
+    private static string[] GetTestDataStrings()
+    {
+        var resourceManager = new ResourceManager("Faker.Resources.Name", typeof(Faker.Name).Assembly);
+        var allNames = resourceManager.GetString("First")!.Split(';', StringSplitOptions.TrimEntries)
+            .Concat(resourceManager.GetString("Last")!.Split(';', StringSplitOptions.TrimEntries));
+        return allNames.ToArray();
     }
 }
