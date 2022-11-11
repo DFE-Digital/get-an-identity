@@ -429,6 +429,52 @@ public class Program
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
 
+        app.UseRouting();
+
+        if (builder.Environment.IsProduction())
+        {
+            app.UseSentryTracing();
+        }
+
+        app.UseHealthChecks("/status");
+
+        app.UseSwagger(options =>
+        {
+            options.PreSerializeFilters.Add((_, request) =>
+            {
+                request.HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+            });
+        });
+
+        app.UseAuthentication();
+
+        app.UseAuthorization();
+
+        if (!builder.Environment.IsUnitTests())
+        {
+            app.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
+        }
+
+        if (builder.Environment.IsDevelopment())
+        {
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "V1");
+
+                options.OAuthClientId("swagger-ui");
+                options.OAuthClientSecret("super-secret");
+                options.OAuthUseBasicAuthenticationWithAccessCodeGrant();
+                options.OAuthUsePkce();
+            });
+        }
+
+        if (builder.Environment.IsProduction())
+        {
+            app.UseWhen(
+                ctx => ctx.Request.Path.StartsWithSegments("/api") && !ctx.Request.Path.StartsWithSegments("/api/find-trn"),
+                a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
+        }
+
         // Add security headers middleware but exclude the endpoints managed by OpenIddict
         app.UseWhen(
             ctx => !ctx.Request.Path.StartsWithSegments(new PathString("/connect")),
@@ -458,29 +504,6 @@ public class Program
                 });
             });
 
-        app.UseRouting();
-
-        if (builder.Environment.IsProduction())
-        {
-            app.UseSentryTracing();
-        }
-
-        app.UseHealthChecks("/status");
-
-        app.UseAuthentication();
-
-        app.UseAuthorization();
-
-        if (builder.Environment.IsProduction())
-        {
-            app.UseWhen(
-                ctx => ctx.Request.Path.StartsWithSegments("/api") && !ctx.Request.Path.StartsWithSegments("/api/find-trn"),
-                a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
-        }
-
-        app.MapControllers();
-        app.MapRazorPages();
-
         app.MapGet("/health", async context =>
         {
             await context.Response.WriteAsync("OK");
@@ -493,11 +516,6 @@ public class Program
             {
                 await context.Response.WriteAsync(gitSha);
             });
-        }
-
-        if (!builder.Environment.IsUnitTests())
-        {
-            app.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
         }
 
         if (builder.Environment.IsDevelopment())
@@ -513,14 +531,8 @@ public class Program
             });
         }
 
-        app.UseSwagger(options =>
-        {
-            options.PreSerializeFilters.Add((_, request) =>
-            {
-                request.HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-            });
-        });
-
+        app.MapControllers();
+        app.MapRazorPages();
         app.MapApiEndpoints();
 
         app.Run();
