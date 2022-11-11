@@ -16,7 +16,7 @@ public class RequireScopeAuthorizationHandler : AuthorizationHandler<ScopeAuthor
 
         var scopes = scopeClaim.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        if (scopes.Any(s => s == requirement.Scope))
+        if (requirement.Scopes.Any(s => scopes.Contains(s)))
         {
             context.Succeed(requirement);
         }

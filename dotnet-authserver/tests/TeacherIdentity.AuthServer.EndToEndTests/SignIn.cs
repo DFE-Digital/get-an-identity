@@ -1,6 +1,7 @@
 using FakeItEasy;
 using Microsoft.Playwright;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -355,7 +356,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Start on the client app and try to access a protected area with admin scope
 
-        await page.GotoAsync("/profile?scope=get-an-identity:admin");
+        await page.GotoAsync($"/profile?scope={CustomScopes.UserRead}");
 
         // Fill in the sign in form (email + PIN)
 
@@ -497,7 +498,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Start on the client app and try to access a protected area with admin scope
 
-        await page.GotoAsync("/profile?scope=get-an-identity:admin");
+        await page.GotoAsync($"/profile?scope={CustomScopes.UserRead}");
 
         // Fill in the sign in form (email + PIN)
 

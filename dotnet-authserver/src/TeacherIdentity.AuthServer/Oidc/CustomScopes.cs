@@ -2,19 +2,21 @@ namespace TeacherIdentity.AuthServer.Oidc;
 
 public static class CustomScopes
 {
-    public const string GetAnIdentityAdmin = "get-an-identity:admin";
     public const string GetAnIdentitySupport = "get-an-identity:support";
+    public const string UserRead = "user:read";
+    public const string UserWrite = "user:write";
     public const string Trn = "trn";
 
-    public static string[] All => AdminScopes.Concat(TeacherScopes).ToArray();
+    public static string[] All => StaffUserTypeScopes.Concat(DefaultUserTypesScopes).ToArray();
 
-    public static string[] AdminScopes { get; } = new[]
+    public static string[] StaffUserTypeScopes { get; } = new[]
     {
-        GetAnIdentityAdmin,
-        GetAnIdentitySupport
+        GetAnIdentitySupport,
+        UserRead,
+        UserWrite
     };
 
-    public static string[] TeacherScopes { get; } = new[]
+    public static string[] DefaultUserTypesScopes { get; } = new[]
     {
         Trn
     };

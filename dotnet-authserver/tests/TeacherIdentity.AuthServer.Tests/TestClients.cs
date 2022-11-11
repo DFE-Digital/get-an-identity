@@ -27,8 +27,9 @@ public static class TestClients
             Permissions.ResponseTypes.Code,
             Permissions.Scopes.Email,
             Permissions.Scopes.Profile,
-            $"{Permissions.Prefixes.Scope}{CustomScopes.GetAnIdentityAdmin}",
             $"{Permissions.Prefixes.Scope}{CustomScopes.GetAnIdentitySupport}",
+            $"{Permissions.Prefixes.Scope}{CustomScopes.UserRead}",
+            $"{Permissions.Prefixes.Scope}{CustomScopes.UserWrite}",
             $"{Permissions.Prefixes.Scope}{CustomScopes.Trn}",
         },
         Requirements =
