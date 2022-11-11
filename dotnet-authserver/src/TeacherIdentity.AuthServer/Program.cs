@@ -393,7 +393,6 @@ public class Program
             Environment.GetEnvironmentVariable("WEBSITE_ROLE_INSTANCE_ID") == "0")
         {
             await MigrateDatabase();
-            await ConfigureClients();
         }
 
         app.UseSerilogRequestLogging();
@@ -525,13 +524,6 @@ public class Program
         app.MapApiEndpoints();
 
         app.Run();
-
-        async Task ConfigureClients()
-        {
-            var clients = builder.Configuration.GetSection("Clients").Get<ClientConfiguration[]>() ?? Array.Empty<ClientConfiguration>();
-            var helper = new ClientConfigurationHelper(app.Services);
-            await helper.UpsertClients(clients);
-        }
 
         void ConfigureRateLimitServices()
         {
