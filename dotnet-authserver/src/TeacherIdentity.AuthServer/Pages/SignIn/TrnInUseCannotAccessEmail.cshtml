@@ -3,6 +3,10 @@
     ViewBag.Title = "You need to prove your identity to change your email address";
 }
 
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.TrnInUse()" />
+}
+
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <h1 class="govuk-heading-xl">You need to prove your identity to change your email address</h1>
