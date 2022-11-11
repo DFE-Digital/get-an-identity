@@ -2,7 +2,7 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Events;
 
-public class Client
+public record Client
 {
     public required string ClientId { get; init; }
     public required string DisplayName { get; init; }

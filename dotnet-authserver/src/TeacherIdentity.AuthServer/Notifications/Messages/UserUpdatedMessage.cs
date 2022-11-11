@@ -2,7 +2,7 @@ using Optional;
 
 namespace TeacherIdentity.AuthServer.Notifications.Messages;
 
-public class UserUpdatedMessage : INotificationMessage
+public record UserUpdatedMessage : INotificationMessage
 {
     public const string MessageTypeName = "UserUpdated";
 
@@ -10,7 +10,7 @@ public class UserUpdatedMessage : INotificationMessage
     public required UserUpdatedMessageChanges Changes { get; init; }
 }
 
-public class UserUpdatedMessageChanges
+public record UserUpdatedMessageChanges
 {
     public required Option<string> EmailAddress { get; init; }
     public required Option<string> FirstName { get; init; }

@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Events;
 
-public class UserUpdatedEvent : EventBase
+public record UserUpdatedEvent : EventBase
 {
     public required UserUpdatedEventSource Source { get; init; }
     public required User User { get; init; }

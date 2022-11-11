@@ -2,7 +2,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Events;
 
-public class User
+public record User
 {
     public required Guid UserId { get; init; }
     public required string EmailAddress { get; init; }

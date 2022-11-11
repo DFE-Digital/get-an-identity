@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Events;
 
-public class WebHookUpdatedEvent : EventBase
+public record WebHookUpdatedEvent : EventBase
 {
     public required Guid WebHookId { get; init; }
     public required Guid UpdatedByUserId { get; init; }

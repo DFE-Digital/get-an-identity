@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Notifications.Messages;
 
-public class NotificationEnvelope
+public record NotificationEnvelope
 {
     public required Guid NotificationId { get; init; }
     public required DateTime TimeUtc { get; init; }
