@@ -24,7 +24,7 @@ public class TestBase
 
     public HttpClient ApiKeyHttpClient { get; }
 
-    public Task<HttpClient> CreateHttpClientWithToken(string scope)
+    public Task<HttpClient> CreateHttpClientWithToken(string? scope)
     {
         var scopes = !string.IsNullOrEmpty(scope) ? new[] { scope } : Array.Empty<string>();
         return CreateHttpClientWithToken(scopes);

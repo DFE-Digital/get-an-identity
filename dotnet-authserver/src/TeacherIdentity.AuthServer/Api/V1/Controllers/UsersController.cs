@@ -12,8 +12,6 @@ namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 
 [ApiController]
 [Route("users")]
-[Route("teachers")]
-[Authorize(AuthorizationPolicies.GetAnIdentitySupportApi)]
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -23,6 +21,7 @@ public class UsersController : ControllerBase
         _mediator = mediator;
     }
 
+    [Authorize(AuthorizationPolicies.ApiUserRead)]
     [HttpGet("{userId}")]
     [SwaggerOperation(summary: "Get a user's details by their user ID")]
     [ProducesResponseType(typeof(GetUserDetailResponse), StatusCodes.Status200OK)]
@@ -34,6 +33,7 @@ public class UsersController : ControllerBase
         return Ok(response);
     }
 
+    [Authorize(AuthorizationPolicies.ApiUserRead)]
     [HttpGet("")]
     [SwaggerOperation(summary: "Retrieves all users")]
     [ProducesResponseType(typeof(GetAllUsersResponse), StatusCodes.Status200OK)]
@@ -43,6 +43,7 @@ public class UsersController : ControllerBase
         return Ok(response);
     }
 
+    [Authorize(AuthorizationPolicies.ApiUserWrite)]
     [HttpPut("{userId}/trn")]
     [SwaggerOperation(summary: "Set the TRN for a teacher")]
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
@@ -62,6 +63,7 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(AuthorizationPolicies.ApiUserWrite)]
     [HttpPatch("{userId}")]
     [SwaggerOperation(summary: "Updates a user")]
     [ProducesResponseType(typeof(UserInfo), StatusCodes.Status200OK)]

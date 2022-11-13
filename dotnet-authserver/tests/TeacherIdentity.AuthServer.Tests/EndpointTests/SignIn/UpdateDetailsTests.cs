@@ -53,7 +53,7 @@ public class UpdateDetailsTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Staff);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false), additionalScopes: CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false), additionalScopes: CustomScopes.UserRead);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/update-details?{authStateHelper.ToQueryParam()}");
 
         // Act

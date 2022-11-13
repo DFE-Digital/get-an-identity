@@ -318,7 +318,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(email);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), CustomScopes.UserRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -343,7 +343,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), CustomScopes.UserRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -367,7 +367,7 @@ public class EmailConfirmationTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(user.EmailAddress);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), CustomScopes.GetAnIdentityAdmin);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), CustomScopes.UserRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()

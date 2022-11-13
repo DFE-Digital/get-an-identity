@@ -182,11 +182,18 @@ public class Program
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
-                AuthorizationPolicies.GetAnIdentitySupportApi,
+                AuthorizationPolicies.ApiUserRead,
                 policy => policy
                     .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
-                    .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.GetAnIdentitySupport)));
+                    .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.UserRead, CustomScopes.UserWrite)));
+
+            options.AddPolicy(
+                AuthorizationPolicies.ApiUserWrite,
+                policy => policy
+                    .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.UserWrite)));
         });
 
         builder.Services.AddSingleton<IAuthorizationHandler, RequireScopeAuthorizationHandler>();
@@ -319,7 +326,11 @@ public class Program
                 options.SetAccessTokenLifetime(TimeSpan.FromHours(1));
 
                 options.RegisterClaims(CustomClaims.Trn);
-                options.RegisterScopes(Scopes.Email, Scopes.Profile, CustomScopes.Trn, CustomScopes.GetAnIdentityAdmin, CustomScopes.GetAnIdentitySupport);
+                options.RegisterScopes(
+                    CustomScopes.All
+                        .Append(Scopes.Email)
+                        .Append(Scopes.Profile)
+                        .ToArray());
             })
             .AddValidation(options =>
             {
@@ -475,9 +486,9 @@ public class Program
                 a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
         }
 
-        // Add security headers middleware but exclude the endpoints managed by OpenIddict
+        // Add security headers middleware but exclude the endpoints managed by OpenIddict and the API
         app.UseWhen(
-            ctx => !ctx.Request.Path.StartsWithSegments(new PathString("/connect")),
+            ctx => !ctx.Request.Path.StartsWithSegments(new PathString("/connect")) && !ctx.Request.Path.StartsWithSegments(new PathString("/api")),
             a =>
             {
                 a.UseMiddleware<Infrastructure.Middleware.AppendSecurityResponseHeadersMiddleware>();

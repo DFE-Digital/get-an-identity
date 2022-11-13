@@ -61,8 +61,8 @@ public class AddClientTests : TestBase
         var redirectUri2 = serviceUrl + "/callback2";
         var postLogoutRedirectUri1 = serviceUrl + "/logout-callback";
         var postLogoutRedirectUri2 = serviceUrl + "/logout-callback2";
-        var scope1 = CustomScopes.GetAnIdentityAdmin;
-        var scope2 = CustomScopes.GetAnIdentitySupport;
+        var scope1 = CustomScopes.UserRead;
+        var scope2 = CustomScopes.UserWrite;
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/clients/new")
         {
@@ -98,8 +98,8 @@ public class AddClientTests : TestBase
         var redirectUri2 = serviceUrl + "/callback2";
         var postLogoutRedirectUri1 = serviceUrl + "/logout-callback";
         var postLogoutRedirectUri2 = serviceUrl + "/logout-callback2";
-        var scope1 = CustomScopes.GetAnIdentityAdmin;
-        var scope2 = CustomScopes.GetAnIdentitySupport;
+        var scope1 = CustomScopes.UserRead;
+        var scope2 = CustomScopes.UserWrite;
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/clients/new")
         {

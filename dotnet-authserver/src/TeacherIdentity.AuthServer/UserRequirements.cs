@@ -63,12 +63,17 @@ public static class UserRequirementsExtensions
             userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
         }
 
-        if (hasScope(CustomScopes.GetAnIdentityAdmin))
+        if (hasScope(CustomScopes.GetAnIdentitySupport))
         {
-            userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentityAdmin;
+            userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
         }
 
-        if (hasScope(CustomScopes.GetAnIdentitySupport))
+        if (hasScope(CustomScopes.UserRead))
+        {
+            userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
+        }
+
+        if (hasScope(CustomScopes.UserWrite))
         {
             userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
         }
@@ -111,9 +116,12 @@ public static class UserRequirementsExtensions
             return false;
         }
 
-        if (userRequirements.HasFlag(UserRequirements.GetAnIdentitySupport) && !principal.IsInRole(StaffRoles.GetAnIdentitySupport))
+        if (userRequirements.HasFlag(UserRequirements.GetAnIdentitySupport))
         {
-            return false;
+            if (!(principal.IsInRole(StaffRoles.GetAnIdentitySupport) || principal.IsInRole(StaffRoles.GetAnIdentityAdmin)))
+            {
+                return false;
+            }
         }
 
         return true;

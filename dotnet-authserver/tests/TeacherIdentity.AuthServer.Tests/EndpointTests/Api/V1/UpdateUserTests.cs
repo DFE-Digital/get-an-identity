@@ -208,9 +208,9 @@ public class UpdateUserTests : TestBase
         Assert.Equal(user.Created, user.Updated);
     }
 
-    public static TheoryData<string> NotPermittedScopes => ScopeTheoryData.GetAllAdminScopesExcept(PermittedScopes);
+    public static TheoryData<string> NotPermittedScopes => ScopeTheoryData.GetAllStaffUserScopesExcept(PermittedScopes);
 
-    public static TheoryData<string> PermittedScopes => ScopeTheoryData.Single(CustomScopes.GetAnIdentitySupport);
+    public static TheoryData<string> PermittedScopes => ScopeTheoryData.Single(CustomScopes.UserWrite);
 
     public static IEnumerable<object[]> GetInvalidRequestData()
     {

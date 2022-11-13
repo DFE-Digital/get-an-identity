@@ -103,7 +103,7 @@ public class EditClientTests : TestBase
         var newRedirectUri2 = newServiceUrl + "/callback2";
         var newPostLogoutRedirectUri1 = newServiceUrl + "/logout-callback";
         var newPostLogoutRedirectUri2 = newServiceUrl + "/logout-callback2";
-        var newScope = CustomScopes.GetAnIdentitySupport;
+        var newScope = CustomScopes.UserWrite;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/clients/{clientId}")
         {
@@ -186,7 +186,7 @@ public class EditClientTests : TestBase
         var serviceUrl = $"https://{Faker.Internet.DomainName()}/";
         var redirectUri1 = serviceUrl + "/callback";
         var postLogoutRedirectUri1 = serviceUrl + "/logout-callback";
-        var scope1 = CustomScopes.GetAnIdentityAdmin;
+        var scope1 = CustomScopes.UserRead;
 
         var appManager = HostFixture.Services.GetRequiredService<TeacherIdentityApplicationManager>();
         await appManager.CreateAsync(
