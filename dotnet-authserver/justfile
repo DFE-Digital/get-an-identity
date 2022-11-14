@@ -1,0 +1,26 @@
+set shell := ["pwsh", "-c"]
+
+# build solution
+build:
+  dotnet build
+
+# run unit tests and end-to-end tests
+test:
+  dotnet test tests/TeacherIdentity.AuthServer.Tests/
+  dotnet test tests/TeacherIdentity.AuthServer.EndToEndTests/
+
+# formats code
+lint:
+  dotnet format
+
+# build and watch AuthServer
+watch:
+  dotnet watch --project src/TeacherIdentity.AuthServer/
+
+# build and run AuthServer
+run-authserver:
+  dotnet run --project src/TeacherIdentity.AuthServer/
+
+# build and run TestClient
+run-testclient:
+  dotnet run --project src/TeacherIdentity.TestClient/
