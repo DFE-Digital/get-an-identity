@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
@@ -18,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using Sentry.AspNetCore;
 using Serilog;
@@ -143,6 +145,36 @@ public class Program
                     ctx.Response.Redirect(authenticationState.GetNextHopUrl(linkGenerator));
 
                     return Task.CompletedTask;
+                };
+
+                options.Events.OnSigningOut = async ctx =>
+                {
+                    var httpContext = ctx.HttpContext;
+
+                    ClaimsPrincipal? user = null;
+                    string? clientId = null;
+
+                    var oidcAuthenticateResult = await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                    if (oidcAuthenticateResult.Succeeded)
+                    {
+                        user = oidcAuthenticateResult.Principal;
+                        clientId = user.FindFirstValue(Claims.Audience);
+                    }
+                    else
+                    {
+                        var cookiesAuthenticateResult = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                        if (cookiesAuthenticateResult.Succeeded)
+                        {
+                            user = cookiesAuthenticateResult.Principal;
+                        }
+                    }
+
+                    if (user is null)
+                    {
+                        throw new InvalidOperationException("Cannot identify current user.");
+                    }
+
+                    await ctx.HttpContext.SaveUserSignedOutEvent(user, clientId);
                 };
             })
             .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
