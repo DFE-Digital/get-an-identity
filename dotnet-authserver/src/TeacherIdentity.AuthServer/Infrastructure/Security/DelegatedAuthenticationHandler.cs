@@ -34,7 +34,6 @@ public class DelegatedAuthenticationHandler : IAuthenticationHandler
 
     public async Task<AuthenticateResult> AuthenticateAsync()
     {
-
         var delegatedResult = await _context.AuthenticateAsync(DelegatingScheme);
 
         if (delegatedResult.Succeeded &&

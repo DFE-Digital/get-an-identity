@@ -17,11 +17,11 @@ public class SignOut : IClassFixture<HostFixture>
         var email = "joe.bloggs+existing-user@example.com";
         var trn = "1234567";
 
+        var userId = Guid.NewGuid();
+
         {
             using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
 
             dbContext.Users.Add(new User()
             {
@@ -69,12 +69,26 @@ public class SignOut : IClassFixture<HostFixture>
         Assert.Equal(clientAppHost, pageUrlHost);
 
         // Hit the sign out link
-        await page.ClickAsync("text=Sign out");
+        await page.RunAndWaitForResponseAsync(
+            () => page.ClickAsync("text=Sign out"),
+            resp => resp.Status == 200 && resp.Url == HostFixture.ClientBaseUrl + "/");
 
         // Should now be back at the client, signed out
 
         clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
         pageUrlHost = new Uri(page.Url).Host;
         Assert.Equal(clientAppHost, pageUrlHost);
+
+        // Check events have been emitted
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => Assert.IsType<Events.UserSignedInEvent>(e),
+            e =>
+            {
+                var userSignedOut = Assert.IsType<Events.UserSignedOutEvent>(e);
+                Assert.Equal(DateTime.UtcNow, userSignedOut.CreatedUtc, TimeSpan.FromSeconds(10));
+                Assert.Equal(userId, userSignedOut.User.UserId);
+                Assert.Equal(_hostFixture.TestClientId, userSignedOut.ClientId);
+            });
     }
 }

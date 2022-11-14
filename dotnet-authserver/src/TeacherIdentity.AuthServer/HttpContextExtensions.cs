@@ -120,6 +120,25 @@ public static class HttpContextExtensions
         await dbContext.SaveChangesAsync();
     }
 
+    public static async Task SaveUserSignedOutEvent(this HttpContext httpContext, ClaimsPrincipal principal, string? clientId)
+    {
+        await using var scope = httpContext.RequestServices.CreateAsyncScope();
+        var clock = scope.ServiceProvider.GetRequiredService<IClock>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+        var userId = principal.GetUserId()!.Value;
+        var user = await dbContext.Users.FindAsync(userId);
+
+        dbContext.AddEvent(new Events.UserSignedOutEvent()
+        {
+            ClientId = clientId,
+            CreatedUtc = clock.UtcNow,
+            User = user!
+        });
+
+        await dbContext.SaveChangesAsync();
+    }
+
     public static bool TryGetAuthenticationState(
         this HttpContext httpContext,
         [NotNullWhen(true)] out AuthenticationState? authenticationState)
