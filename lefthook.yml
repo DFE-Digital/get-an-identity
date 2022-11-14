@@ -1,0 +1,5 @@
+pre-commit:
+  commands:
+    dotnet-format:
+      glob: "dotnet-authserver/**/*.cs"
+      run: dotnet format dotnet-authserver/TeacherIdentity.sln --verify-no-changes --include {staged_files}

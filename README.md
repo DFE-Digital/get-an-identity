@@ -79,6 +79,10 @@ Finally run the DevBootstrap project. This will create the database, add an admi
 The solution includes a test client that is used for testing end-to-end OIDC flows.
 Once initial setup has been done, you should be able to launch both the `TeacherIdentity.AuthServer` project and the `TeacherIdentity.TestClient` project and browse to `https://localhost:7261` to start the sign in journey and sign in with the email address your configured above.
 
+#### Pre-commit hooks
+
+Install [Lefthook](https://github.com/evilmartians/lefthook/) then run `lefthook install`. This will install a pre-commit hook that will lint any staged `.cs` files.
+
 
 ### BigQuery
 
