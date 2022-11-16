@@ -1,0 +1,29 @@
+@page "/admin/staff/{userId}"
+@model TeacherIdentity.AuthServer.Pages.Admin.EditStaffUserModel
+@{
+    ViewBag.Title = $"Edit {Model.FirstName} {Model.LastName}";
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="Staff" />
+}
+
+<form asp-page="EditStaffUser" method="post">
+    <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+    <govuk-input asp-for="Email" input-class="govuk-input--width-20" type="email" autocomplete="off" />
+    <govuk-input asp-for="FirstName" input-class="govuk-input--width-10" autocomplete="off" />
+    <govuk-input asp-for="LastName" input-class="govuk-input--width-10" autocomplete="off" />
+
+    <govuk-checkboxes asp-for="StaffRoles">
+        <govuk-checkboxes-fieldset>
+            <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m" />
+            @foreach (var role in StaffRoles.All)
+            {
+                <govuk-checkboxes-item value="@role">@StaffRoles.GetRoleLabel(role)</govuk-checkboxes-item>
+            }
+        </govuk-checkboxes-fieldset>
+    </govuk-checkboxes>
+
+    <govuk-button type="submit">Save</govuk-button>
+</form>
