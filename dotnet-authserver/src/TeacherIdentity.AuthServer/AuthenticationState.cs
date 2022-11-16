@@ -392,7 +392,7 @@ public class AuthenticationState
         }
 
         var claims = GetInternalClaims();
-        await httpContext.SignInCookies(claims, AuthCookieLifetime);
+        await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
     }
 
     public enum TrnLookupState

@@ -94,7 +94,7 @@ public class UpdateNameModel : PageModel
 
             await _dbContext.SaveChangesAsync();
 
-            await HttpContext.SignInCookies(user);
+            await HttpContext.SignInCookies(user, resetIssued: false);
 
             if (HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
