@@ -132,7 +132,7 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            if (authTicketIsTooOld)
+            if (authTicketIsTooOld || request.HasPrompt(Prompts.Login))
             {
                 authenticationState.Reset(DateTime.UtcNow);
             }
