@@ -42,7 +42,7 @@ public class DelegatedAuthenticationHandler : IAuthenticationHandler
             // Add a claim the indicates user has authenticated via this scheme
             var markerClaim = new Claim(SignedInToDelegatedSchemeClaimType, _scheme.Name);
 
-            var principal = await _context.SignInCookies(new[] { markerClaim }, _options.Expires);
+            var principal = await _context.SignInCookies(new[] { markerClaim }, resetIssued: false, _options.Expires);
 
             if (_options.OnUserSignedIn is not null)
             {

@@ -18,10 +18,11 @@ public static class HttpContextExtensions
     public static Task<ClaimsPrincipal> SignInCookies(
         this HttpContext httpContext,
         User user,
+        bool resetIssued,
         TimeSpan? minExpires = null)
     {
         var newClaims = UserClaimHelper.GetInternalClaims(user);
-        return SignInCookies(httpContext, newClaims, minExpires);
+        return SignInCookies(httpContext, newClaims, resetIssued, minExpires);
     }
 
     /// <summary>
@@ -33,6 +34,7 @@ public static class HttpContextExtensions
     public static async Task<ClaimsPrincipal> SignInCookies(
         this HttpContext httpContext,
         IEnumerable<Claim> newClaims,
+        bool resetIssued,
         TimeSpan? minExpires = null)
     {
         var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -67,7 +69,7 @@ public static class HttpContextExtensions
 
         var properties = new AuthenticationProperties()
         {
-            IssuedUtc = authenticateResult.Properties?.IssuedUtc,
+            IssuedUtc = resetIssued ? DateTimeOffset.UtcNow : authenticateResult.Properties?.IssuedUtc,
             ExpiresUtc = expires
         };
 
