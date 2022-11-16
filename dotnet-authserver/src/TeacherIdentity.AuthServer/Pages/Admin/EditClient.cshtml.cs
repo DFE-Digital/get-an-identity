@@ -118,9 +118,9 @@ public class EditClientModel : PageModel
             (ResetClientSecret ? ClientUpdatedEventChanges.ClientSecret : ClientUpdatedEventChanges.None) |
             (DisplayName != client.DisplayName ? ClientUpdatedEventChanges.DisplayName : ClientUpdatedEventChanges.None) |
             (ServiceUrl != client.ServiceUrl ? ClientUpdatedEventChanges.ServiceUrl : ClientUpdatedEventChanges.None) |
-            (!SequencesAreEqualIgnoringOrder(RedirectUris, client.GetRedirectUris()) ? ClientUpdatedEventChanges.RedirectUris : ClientUpdatedEventChanges.None) |
-            (!SequencesAreEqualIgnoringOrder(PostLogoutRedirectUris, client.GetPostLogoutRedirectUris()) ? ClientUpdatedEventChanges.PostLogoutRedirectUris : ClientUpdatedEventChanges.None) |
-            (!SequencesAreEqualIgnoringOrder(allScopes, client.GetScopes()) ? ClientUpdatedEventChanges.Scopes : ClientUpdatedEventChanges.None);
+            (!RedirectUris.SequenceEqualIgnoringOrder(client.GetRedirectUris()) ? ClientUpdatedEventChanges.RedirectUris : ClientUpdatedEventChanges.None) |
+            (!PostLogoutRedirectUris.SequenceEqualIgnoringOrder(client.GetPostLogoutRedirectUris()) ? ClientUpdatedEventChanges.PostLogoutRedirectUris : ClientUpdatedEventChanges.None) |
+            (!allScopes.SequenceEqualIgnoringOrder(client.GetScopes()) ? ClientUpdatedEventChanges.Scopes : ClientUpdatedEventChanges.None);
 
         await _applicationStore.SetDisplayNameAsync(client, DisplayName, CancellationToken.None);
         await _applicationStore.SetServiceUrlAsync(client, ServiceUrl);
@@ -158,13 +158,5 @@ public class EditClientModel : PageModel
         }
 
         return RedirectToPage("Clients");
-
-        static bool SequencesAreEqualIgnoringOrder<T>(IEnumerable<T> first, IEnumerable<T> second)
-            where T : IComparable
-        {
-            var firstArray = first.ToArray().OrderBy(s => s);
-            var secondArray = second.ToArray().OrderBy(s => s);
-            return firstArray.SequenceEqual(secondArray);
-        }
     }
 }

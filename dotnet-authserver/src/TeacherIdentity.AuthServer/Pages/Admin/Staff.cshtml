@@ -16,7 +16,16 @@
         @foreach (var user in Model.Users!)
         {
             <tr class="govuk-table__row">
-                <td class="govuk-table__cell">@user.FirstName @user.LastName</td>
+                <td class="govuk-table__cell">
+                    @if (user.UserId != User.GetUserId()!.Value)
+                    {
+                        <a asp-page="EditStaffUser" asp-route-userId="@user.UserId">@user.FirstName @user.LastName</a>
+                    }
+                    else
+                    {
+                        <text>@user.FirstName @user.LastName</text>
+                    }
+                </td>
                 <td class="govuk-table__cell">@user.Email</td>
             </tr>
         }
