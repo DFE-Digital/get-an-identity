@@ -439,6 +439,7 @@ public class Program
         }
 
         app.UseSerilogRequestLogging();
+        app.UseMiddleware<Infrastructure.Middleware.RequestLogContextMiddleware>();
 
         app.UseWhen(
             context => !context.Request.Path.StartsWithSegments("/api") && !context.Request.Path.StartsWithSegments("/connect"),
