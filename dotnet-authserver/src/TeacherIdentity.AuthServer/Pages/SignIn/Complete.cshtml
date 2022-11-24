@@ -4,7 +4,7 @@
 @{
     ViewBag.Title = Model.FirstTimeSignInForEmail ?
         (await Component.InvokeAsync("ClientScopedPartial", new { viewName = "_TrnLookup.EndBookend.FirstTimeSignIn.{0}.Title" })).RenderToString() :
-        "Confirm your details";
+        "Your details";
 
     var responseMode = Model.ResponseMode!;
     var method = responseMode == ResponseModes.FormPost ? "post" : "get";
@@ -94,7 +94,7 @@
                 </govuk-summary-list>
 
                 <div class="govuk-button-group">
-                    <govuk-button type="submit">Confirm and continue</govuk-button>
+                    <govuk-button type="submit">Continue</govuk-button>
                     <govuk-button-link href="@LinkGenerator.UpdateDetails()" class="govuk-button--secondary">Update details</govuk-button-link>
                 </div>
             </div>

@@ -62,7 +62,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Confirm your details page
 
-        await page.WaitForSelectorAsync("h1:has-text('Confirm your details')");
+        await page.WaitForSelectorAsync("h1:has-text('Your details')");
         await page.ClickAsync("a:has-text('Update details')");
 
         // Update your details page
@@ -79,7 +79,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Confirm your details
 
-        await page.WaitForSelectorAsync("h1:has-text('Confirm your details')");
+        await page.WaitForSelectorAsync("h1:has-text('Your details')");
         await page.ClickAsync("button:has-text('Continue')");
 
         // Test Client app
@@ -142,7 +142,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Confirm your details page
 
-        await page.WaitForSelectorAsync("h1:has-text('Confirm your details')");
+        await page.WaitForSelectorAsync("h1:has-text('Your details')");
         await page.ClickAsync("a:has-text('Update details')");
 
         // Update your details page
@@ -165,7 +165,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Confirm your details page
 
-        await page.WaitForSelectorAsync("h1:has-text('Confirm your details')");
+        await page.WaitForSelectorAsync("h1:has-text('Your details')");
         await page.ClickAsync("button:has-text('Continue')");
 
         // Test Client app
