@@ -1,5 +1,7 @@
+using Dfe.Analytics.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace TeacherIdentity.AuthServer.Controllers;
 
@@ -16,6 +18,20 @@ public class ErrorController : Controller
         if (exceptionHandlerPathFeature == null && statusCodeReExecuteFeature == null)
         {
             return NotFound();
+        }
+
+        // Ensure the Analytics event we track has the original request's details
+        if (statusCodeReExecuteFeature is not null)
+        {
+            var analyticsFeature = HttpContext.Features.Get<WebRequestEventFeature>();
+            if (analyticsFeature is not null)
+            {
+                var @event = analyticsFeature.Event;
+                @event.RequestPath = statusCodeReExecuteFeature.OriginalPath;
+
+                @event.RequestQuery = QueryHelpers.ParseQuery(statusCodeReExecuteFeature.OriginalQueryString)
+                    .ToDictionary(q => q.Key, q => q.Value.Where(v => v is not null).Select(v => v!).ToArray());
+            }
         }
 
         var statusCode = code ?? 500;
