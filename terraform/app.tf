@@ -27,6 +27,8 @@ locals {
       ConnectionStrings__ServiceBus                = azurerm_servicebus_namespace.sb_namespace.default_primary_connection_string
       DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
       DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
+      DfeAnalytics__CredentialsJson                = local.infrastructure_secrets.ANALYTICS_CREDENTIALS
+      DfeAnalytics__DatasetId                      = local.infrastructure_secrets.ANALYTICS_DATASETID
       EncryptionKeys__0                            = local.infrastructure_secrets.ENCRYPTION_KEY0,
       EncryptionKeys__1                            = local.infrastructure_secrets.ENCRYPTION_KEY1,
       SigningKeys__0                               = local.infrastructure_secrets.SIGNING_KEY0,

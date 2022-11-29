@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
+using Dfe.Analytics.AspNetCore;
 using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Joonasw.AspNetCore.SecurityHeaders;
@@ -47,6 +48,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
+
         builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
 
         builder.WebHost.ConfigureKestrel(options =>
@@ -60,11 +63,7 @@ public class Program
 
             builder.Services.Configure<SentryAspNetCoreOptions>(options =>
             {
-                var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
-                if (!string.IsNullOrEmpty(hostingEnvironmentName))
-                {
-                    options.Environment = hostingEnvironmentName;
-                }
+                options.Environment = hostingEnvironmentName ?? throw new Exception("EnvironmentName missing from configuration.");
 
                 var gitSha = builder.Configuration["GitSha"];
                 if (!string.IsNullOrEmpty(gitSha))
@@ -406,6 +405,15 @@ public class Program
 
         builder.Services.AddApplicationInsightsTelemetryProcessor<Infrastructure.ApplicationInsights.FilterDependenciesTelemetryProcessor>();
 
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddDfeAnalytics(options =>
+            {
+                options.Environment = hostingEnvironmentName ?? throw new Exception("EnvironmentName missing from configuration.");
+                options.UserIdClaimType = Claims.Subject;
+            });
+        }
+
         // Custom MVC filters & extensions
         builder.Services
             .AddSingleton<IActionDescriptorProvider, Infrastructure.ApplicationModel.RemoveStubFindEndpointsActionDescriptorProvider>()
@@ -517,6 +525,13 @@ public class Program
             app.UseWhen(
                 ctx => ctx.Request.Path.StartsWithSegments("/api") && !ctx.Request.Path.StartsWithSegments("/api/find-trn"),
                 a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
+        }
+
+        if (builder.Environment.IsProduction())
+        {
+            app.UseWhen(
+                ctx => ctx.Request.Path != new PathString("/health") && ctx.Request.Headers.UserAgent != "AlwaysOn",
+                a => a.UseDfeAnalytics());
         }
 
         // Add security headers middleware but exclude the endpoints managed by OpenIddict and the API
