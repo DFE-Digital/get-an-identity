@@ -21,7 +21,7 @@
     <PackageReference Include="Flurl" Version="3.0.6" />
     <PackageReference Include="GovUk.Frontend.AspNetCore" Version="1.0.0-beta3" />
     <PackageReference Include="GovukNotify" Version="6.0.0" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.30" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.32" />
     <PackageReference Include="Hangfire.Core" Version="1.7.30" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.9.8" />
     <PackageReference Include="Joonasw.AspNetCore.SecurityHeaders" Version="4.0.1" />
