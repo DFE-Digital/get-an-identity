@@ -219,7 +219,7 @@ public class AuthenticationState
 
         if (user is not null)
         {
-            Debug.Assert(user.EmailAddress == EmailAddress);
+            Debug.Assert(user.EmailAddress.Equals(EmailAddress, StringComparison.OrdinalIgnoreCase));
 
             var permittedUserTypes = GetPermittedUserTypes();
             if (!permittedUserTypes.Contains(user.UserType))
