@@ -78,7 +78,8 @@ public class Program
                     containerName: builder.Configuration["DataProtectionKeysContainerName"],
                     blobName: "keys");
 
-            var redisConfiguration = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis"));
+            var redisConfiguration = ConfigurationOptions.Parse(
+                builder.Configuration.GetConnectionString("Redis") ?? throw new Exception("Connection string Redis is missing."));
 
             builder.Services.AddStackExchangeRedisCache(options =>
             {
