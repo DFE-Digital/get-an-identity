@@ -15,7 +15,7 @@ public class DbHelper
     public DbHelper(string connectionString)
     {
         _connectionString = connectionString;
-        _checkpoint = CreateCheckpoint();
+        _checkpoint = CreateRespawner();
     }
 
     public async Task ClearData()
@@ -49,10 +49,10 @@ public class DbHelper
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.MigrateAsync();
 
-        _checkpoint = CreateCheckpoint();
+        _checkpoint = CreateRespawner();
     }
 
-    private static Checkpoint CreateCheckpoint() => new Checkpoint()
+    private static Checkpoint CreateRespawner() => new Checkpoint()
     {
         DbAdapter = DbAdapter.Postgres,
         TablesToIgnore = new Table[]
