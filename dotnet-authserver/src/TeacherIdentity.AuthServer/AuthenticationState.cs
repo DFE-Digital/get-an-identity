@@ -27,11 +27,13 @@ public class AuthenticationState
         UserRequirements userRequirements,
         string postSignInUrl,
         DateTime startedAt,
+        string? sessionId = null,
         OAuthAuthorizationState? oAuthState = null)
     {
         JourneyId = journeyId;
         UserRequirements = userRequirements;
         PostSignInUrl = postSignInUrl;
+        SessionId = sessionId;
         StartedAt = startedAt;
         OAuthState = oAuthState;
     }
@@ -41,7 +43,8 @@ public class AuthenticationState
     public Guid JourneyId { get; }
     public UserRequirements UserRequirements { get; }
     public string PostSignInUrl { get; }
-    public OAuthAuthorizationState? OAuthState { get; set; }
+    public string? SessionId { get; }
+    public OAuthAuthorizationState? OAuthState { get; }
     [JsonInclude]
     public DateTime StartedAt { get; private set; }
     [JsonInclude]
@@ -94,10 +97,11 @@ public class AuthenticationState
         ClaimsPrincipal principal,
         string postSignInUrl,
         DateTime startedAt,
+        string? sessionId = null,
         OAuthAuthorizationState? oAuthState = null,
         bool? firstTimeSignInForEmail = null)
     {
-        return new AuthenticationState(journeyId, userRequirements, postSignInUrl, startedAt, oAuthState)
+        return new AuthenticationState(journeyId, userRequirements, postSignInUrl, startedAt, sessionId, oAuthState)
         {
             UserId = principal.GetUserId(throwIfMissing: false),
             FirstTimeSignInForEmail = firstTimeSignInForEmail,

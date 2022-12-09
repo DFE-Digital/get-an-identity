@@ -84,12 +84,15 @@ public class AuthorizationController : Controller
                 principal = new ClaimsPrincipal();
             }
 
+            var sessionId = request["session_id"]?.Value as string;
+
             authenticationState = AuthenticationState.FromInternalClaims(
                 journeyId,
                 userRequirements,
                 principal,
                 GetCallbackUrl(journeyId),
                 startedAt: DateTime.UtcNow,
+                sessionId,
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
                 firstTimeSignInForEmail: authenticateResult.Succeeded != true);
 
