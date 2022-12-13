@@ -29,6 +29,7 @@ using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
+using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
@@ -136,6 +137,7 @@ public class Program
                             journeyId: Guid.NewGuid(),
                             userRequirements,
                             postSignInUrl: returnUrl,
+                            sessionId: null,
                             startedAt: DateTime.UtcNow);
 
                         ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
@@ -481,6 +483,7 @@ public class Program
         app.UseSession();
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
+        app.UseMiddleware<AppendSessionIdToAnalyticsEventsMiddleware>();
 
         app.UseRouting();
 

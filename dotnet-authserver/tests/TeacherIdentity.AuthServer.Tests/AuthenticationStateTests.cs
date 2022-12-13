@@ -49,7 +49,7 @@ public partial class AuthenticationStateTests
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
             oAuthState: null,
-            firstTimeSignInForEmail);
+            firstTimeSignInForEmail: firstTimeSignInForEmail);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -105,7 +105,7 @@ public partial class AuthenticationStateTests
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
             oAuthState: null,
-            firstTimeSignInForEmail);
+            firstTimeSignInForEmail: firstTimeSignInForEmail);
 
         // Assert
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
@@ -595,7 +595,7 @@ public partial class AuthenticationStateTests
             userRequirements,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
-            new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
+            oAuthState: new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         // Act
         var result = authenticationState.OAuthState!.ResolveServiceUrl(client);
@@ -624,7 +624,7 @@ public partial class AuthenticationStateTests
             userRequirements,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
-            new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
+            oAuthState: new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
 
         // Act
         var result = authenticationState.OAuthState!.ResolveServiceUrl(client);

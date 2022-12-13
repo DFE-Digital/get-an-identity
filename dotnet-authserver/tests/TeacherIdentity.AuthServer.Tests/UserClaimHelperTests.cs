@@ -80,7 +80,7 @@ public class UserClaimHelperTests
             userRequirements,
             postSignInUrl: "",
             startedAt: DateTime.UtcNow,
-            new OAuthAuthorizationState(
+            oAuthState: new OAuthAuthorizationState(
                 clientId: "",
                 scope: "email profile" + (haveTrnScope ? " trn" : ""),
                 redirectUri: ""));
