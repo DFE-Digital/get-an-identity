@@ -37,9 +37,9 @@ public class UsersController : ControllerBase
     [HttpGet("")]
     [SwaggerOperation(summary: "Retrieves all users")]
     [ProducesResponseType(typeof(GetAllUsersResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<IActionResult> GetAllUsers([FromQuery] GetAllUsersRequest request)
     {
-        var response = await _mediator.Send(new GetAllUsersRequest());
+        var response = await _mediator.Send(request);
         return Ok(response);
     }
 
