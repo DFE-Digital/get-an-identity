@@ -30,8 +30,8 @@ public class UpdateNameTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal(user.FirstName, doc.GetElementByLabel("Preferred first name")?.GetAttribute("value"));
-        Assert.Equal(user.LastName, doc.GetElementByLabel("Preferred last name")?.GetAttribute("value"));
+        Assert.Equal(user.FirstName, doc.GetElementByLabel("First name")?.GetAttribute("value"));
+        Assert.Equal(user.LastName, doc.GetElementByLabel("Last name")?.GetAttribute("value"));
     }
 
     [Theory]
@@ -108,7 +108,7 @@ public class UpdateNameTests : TestBase
 
         var redirectedResponse = await response.FollowRedirect(HttpClient);
         var redirectedDoc = await redirectedResponse.GetDocument();
-        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Preferred name updated");
+        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Name updated");
     }
 
     public static TheoryData<string, string, string, string> InvalidNamesData { get; } = new()
@@ -117,25 +117,25 @@ public class UpdateNameTests : TestBase
             "Joe",
             "",
             "LastName",
-            "Enter your preferred last name"
+            "Enter your last name"
         },
         {
             "",
             "Bloggs",
             "FirstName",
-            "Enter your preferred first name"
+            "Enter your first name"
         },
         {
             new string('x', 201),
             "Bloggs",
             "FirstName",
-            "Preferred first name must be 200 characters or less"
+            "First name must be 200 characters or less"
         },
         {
             "Joe",
             new string('x', 201),
             "LastName",
-            "Preferred last name must be 200 characters or less"
+            "Last name must be 200 characters or less"
         }
     };
 }

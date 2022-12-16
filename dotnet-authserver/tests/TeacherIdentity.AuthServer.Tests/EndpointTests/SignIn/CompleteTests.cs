@@ -1,6 +1,3 @@
-using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
-
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
@@ -90,60 +87,5 @@ public class CompleteTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.NotNull(doc.GetElementByTestId("known-user-content"));
-    }
-
-    [Fact]
-    public async Task Get_UserTypeIsDefault_ShowsTrnRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: true);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-        var doc = await response.GetDocument();
-        Assert.NotNull(doc.GetElementByTestId("trn-row"));
-    }
-
-    [Fact]
-    public async Task Get_UserTypeIsNotDefault_DoesNotShowTrnRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Staff);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false), additionalScopes: CustomScopes.UserRead);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-        var doc = await response.GetDocument();
-        Assert.Null(doc.GetElementByTestId("trn-row"));
-    }
-
-    [Fact]
-    public async Task Get_TrnIsNotKnown_RendersPlaceholderContent()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-        var doc = await response.GetDocument();
-        Assert.StartsWith("Awaiting name", doc.GetSummaryListValueForKey("Name"));
-        Assert.Equal("Awaiting TRN", doc.GetSummaryListValueForKey("TRN"));
     }
 }

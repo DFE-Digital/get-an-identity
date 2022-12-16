@@ -25,15 +25,15 @@ public class UpdateNameModel : PageModel
     }
 
     [BindProperty]
-    [Display(Name = "Preferred first name")]
-    [Required(ErrorMessage = "Enter your preferred first name")]
-    [MaxLength(200, ErrorMessage = "Preferred first name must be 200 characters or less")]
+    [Display(Name = "First name")]
+    [Required(ErrorMessage = "Enter your first name")]
+    [MaxLength(200, ErrorMessage = "First name must be 200 characters or less")]
     public string? FirstName { get; set; }
 
     [BindProperty]
-    [Display(Name = "Preferred last name")]
-    [Required(ErrorMessage = "Enter your preferred last name")]
-    [MaxLength(200, ErrorMessage = "Preferred last name must be 200 characters or less")]
+    [Display(Name = "Last name")]
+    [Required(ErrorMessage = "Enter your last name")]
+    [MaxLength(200, ErrorMessage = "Last name must be 200 characters or less")]
     public string? LastName { get; set; }
 
     [FromQuery(Name = "cancelUrl")]
@@ -109,7 +109,7 @@ public class UpdateNameModel : PageModel
                 safeReturnUrl = authenticationState.PostSignInUrl;
             }
 
-            TempData.SetFlashSuccess("Preferred name updated");
+            TempData.SetFlashSuccess("Name updated");
         }
 
         return Redirect(safeReturnUrl);
