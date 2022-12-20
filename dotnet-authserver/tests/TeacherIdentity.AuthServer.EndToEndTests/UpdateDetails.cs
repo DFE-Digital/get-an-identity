@@ -63,18 +63,13 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Confirm your details page
 
         await page.WaitForSelectorAsync("h1:has-text('Your details')");
-        await page.ClickAsync("a:has-text('Update details')");
+        await page.ClickAsync($"a:right-of(:text('{firstName} {lastName}'))");
 
-        // Update your details page
+        // Update your name page
 
-        await page.WaitForSelectorAsync("h1:has-text('Update your details')");
-        await page.ClickAsync("a:right-of(:text('Preferred name'))");
-
-        // Update your preferred name page
-
-        await page.WaitForSelectorAsync("h1:has-text('Update your preferred name')");
-        await page.FillAsync("text=Preferred first name", newFirstName);
-        await page.FillAsync("text=Preferred last name", newLastName);
+        await page.WaitForSelectorAsync("h1:has-text('Update your name')");
+        await page.FillAsync("text=First name", newFirstName);
+        await page.FillAsync("text=Last name", newLastName);
         await page.ClickAsync("button:has-text('Continue')");
 
         // Confirm your details
@@ -143,12 +138,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Confirm your details page
 
         await page.WaitForSelectorAsync("h1:has-text('Your details')");
-        await page.ClickAsync("a:has-text('Update details')");
-
-        // Update your details page
-
-        await page.WaitForSelectorAsync("h1:has-text('Update your details')");
-        await page.ClickAsync($"a:right-of(:text('{email}'))");
+        await page.ClickAsync("a:right-of(:text('Email address'))");
 
         // Update your email page
 

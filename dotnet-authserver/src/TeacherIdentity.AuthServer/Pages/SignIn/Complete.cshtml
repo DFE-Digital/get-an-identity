@@ -60,43 +60,24 @@
             <div class="govuk-grid-column-two-thirds-from-desktop">
                 <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
-                <p>We found the following details in our records.</p>
-
                 <govuk-summary-list>
-                    @if (Model.UserType == UserType.Default)
-                    {
-                        <govuk-summary-list-row data-testid="official-name-row">
-                            <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
-                            <govuk-summary-list-row-value>
-                                @(Model.DqtName.ToNullIfEmpty() ?? "Awaiting name")
-                                <p class="govuk-hint govuk-!-font-size-14">used for certificates</p>
-                            </govuk-summary-list-row-value>
-                        </govuk-summary-list-row>
-                    }
                     <govuk-summary-list-row>
-                        <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
-                        <govuk-summary-list-row-value>
-                            @Model.Name
-                            <p class="govuk-hint govuk-!-font-size-14">used for email correspondence</p>
-                        </govuk-summary-list-row-value>
+                        <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action visually-hidden-text="name" href="@LinkGenerator.UpdateName(returnUrl: LinkGenerator.CompleteAuthorization(), cancelUrl: LinkGenerator.CompleteAuthorization())">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
-                    @if (Model.UserType == UserType.Default)
-                    {
-                        <govuk-summary-list-row data-testid="trn-row">
-                            <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
-                            <govuk-summary-list-row-value>@(Model.Trn.ToNullIfEmpty() ?? "Awaiting TRN")</govuk-summary-list-row-value>
-                        </govuk-summary-list-row>
-                    }
                     <govuk-summary-list-row>
                         <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
                         <govuk-summary-list-row-value>@Model.Email</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action visually-hidden-text="email" href="@LinkGenerator.UpdateEmail(returnUrl: LinkGenerator.CompleteAuthorization(), cancelUrl: LinkGenerator.CompleteAuthorization())">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
                 </govuk-summary-list>
 
-                <div class="govuk-button-group">
-                    <govuk-button type="submit">Continue</govuk-button>
-                    <govuk-button-link href="@LinkGenerator.UpdateDetails()" class="govuk-button--secondary">Update details</govuk-button-link>
-                </div>
+                <govuk-button type="submit">Continue</govuk-button>
             </div>
         </div>
     }
