@@ -70,7 +70,7 @@
                     </govuk-summary-list-row>
                     <govuk-summary-list-row>
                         <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
-                        <govuk-summary-list-row-value>@Html.ShyEmail(Model.Email!)</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.Email!)</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
                             <govuk-summary-list-row-action visually-hidden-text="email" href="@LinkGenerator.UpdateEmail(returnUrl: LinkGenerator.CompleteAuthorization(), cancelUrl: LinkGenerator.CompleteAuthorization())">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
