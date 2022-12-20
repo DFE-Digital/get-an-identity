@@ -42,7 +42,7 @@
                     <span data-testid="known-trn-content"></span>
                     <p>Thank you, we’ve finished checking our records.</p>
 
-                    <p>We’ll only need your email address <strong>(@Model.Email)</strong> to find your details in future.</p>
+                    <p>We’ll only need your email address <strong>(@Html.ShyEmail(Model.Email!))</strong> to find your details in future.</p>
                 }
                 else
                 {
@@ -70,7 +70,7 @@
                     </govuk-summary-list-row>
                     <govuk-summary-list-row>
                         <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
-                        <govuk-summary-list-row-value>@Model.Email</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-value>@Html.ShyEmail(Model.Email!)</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
                             <govuk-summary-list-row-action visually-hidden-text="email" href="@LinkGenerator.UpdateEmail(returnUrl: LinkGenerator.CompleteAuthorization(), cancelUrl: LinkGenerator.CompleteAuthorization())">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
