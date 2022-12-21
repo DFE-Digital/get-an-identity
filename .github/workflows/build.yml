@@ -3,10 +3,10 @@ name: Build authorization server
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
   workflow_dispatch:
     inputs:
       deploy_to_production:
@@ -17,7 +17,11 @@ on:
 env:
   CONTAINER_REGISTRY: ghcr.io
 
-
+permissions:
+  checks: write
+  deployments: write
+  packages: write
+  pull-requests: write
 
 jobs:
   build:
@@ -46,151 +50,151 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '7.0.x'
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
 
-    - name: Lint
-      run: |
-        #https://github.com/dotnet/format/issues/1433
-        dotnet tool install -g dotnet-format --version "7.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet7/nuget/v3/index.json
-        dotnet-format --verify-no-changes
-      working-directory: dotnet-authserver
+      - name: Lint
+        run: |
+          #https://github.com/dotnet/format/issues/1433
+          dotnet tool install -g dotnet-format --version "7.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet7/nuget/v3/index.json
+          dotnet-format --verify-no-changes
+        working-directory: dotnet-authserver
 
-    - name: Install SASS
-      run: npm install -g sass
+      - name: Install SASS
+        run: npm install -g sass
 
-    - name: Build
-      run: dotnet build --configuration Release
-      working-directory: dotnet-authserver
+      - name: Build
+        run: dotnet build --configuration Release
+        working-directory: dotnet-authserver
 
-    - name: Unit tests
-      uses: ./.github/workflows/actions/test
-      with:
-        test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.Tests
-        report_name: "Unit test results"
-        dotnet_test_args: '-e ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
+      - name: Unit tests
+        uses: ./.github/workflows/actions/test
+        with:
+          test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.Tests
+          report_name: "Unit test results"
+          dotnet_test_args: '-e ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 
-    - name: Install Playwright
-      run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net7.0/playwright.ps1 install
-      working-directory: dotnet-authserver
+      - name: Install Playwright
+        run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net7.0/playwright.ps1 install
+        working-directory: dotnet-authserver
 
-    - name: End-to-end tests
-      uses: ./.github/workflows/actions/test
-      with:
-        test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.EndToEndTests
-        report_name: "End-to-end test results"
-        dotnet_test_args: '-e AuthorizationServer__ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
+      - name: End-to-end tests
+        uses: ./.github/workflows/actions/test
+        with:
+          test_project_path: dotnet-authserver/tests/TeacherIdentity.AuthServer.EndToEndTests
+          report_name: "End-to-end test results"
+          dotnet_test_args: '-e AuthorizationServer__ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 
-    - name: Publish
-      run: |
-        dotnet publish --configuration Release --no-build src/TeacherIdentity.AuthServer/TeacherIdentity.AuthServer.csproj
-        dotnet publish --configuration Release --no-build src/TeacherIdentity.TestClient/TeacherIdentity.TestClient.csproj
-      working-directory: dotnet-authserver
+      - name: Publish
+        run: |
+          dotnet publish --configuration Release --no-build src/TeacherIdentity.AuthServer/TeacherIdentity.AuthServer.csproj
+          dotnet publish --configuration Release --no-build src/TeacherIdentity.TestClient/TeacherIdentity.TestClient.csproj
+        working-directory: dotnet-authserver
 
-    - name: Get Docker image tags
-      id: image_tags
-      run: |
-        echo authserver=$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA >> $GITHUB_OUTPUT
-        echo testclient=$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):testclient-$GITHUB_SHA >> $GITHUB_OUTPUT
+      - name: Get Docker image tags
+        id: image_tags
+        run: |
+          echo authserver=$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):authserver-$GITHUB_SHA >> $GITHUB_OUTPUT
+          echo testclient=$CONTAINER_REGISTRY/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]'):testclient-$GITHUB_SHA >> $GITHUB_OUTPUT
 
-    - name: Set KV environment variables
-      working-directory: terraform
-      if: github.actor != 'dependabot[bot]'
-      run: |
-        tf_vars_file=workspace_variables/dev.tfvars.json
-        echo "KEY_VAULT_NAME=$(jq -r '.key_vault_name' ${tf_vars_file})" >> $GITHUB_ENV
+      - name: Set KV environment variables
+        working-directory: terraform
+        if: github.actor != 'dependabot[bot]'
+        run: |
+          tf_vars_file=workspace_variables/dev.tfvars.json
+          echo "KEY_VAULT_NAME=$(jq -r '.key_vault_name' ${tf_vars_file})" >> $GITHUB_ENV
 
-    - uses: azure/login@v1
-      if: github.actor != 'dependabot[bot]'
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+      - uses: azure/login@v1
+        if: github.actor != 'dependabot[bot]'
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
 
-    - name: Get MONITORING secret
-      uses: DfE-Digital/keyvault-yaml-secret@v1
-      id: get_monitoring_secret
-      with:
-        keyvault: ${{ env.KEY_VAULT_NAME }}
-        secret: MONITORING
-        key: SLACK_WEBHOOK
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get MONITORING secret
+        uses: DfE-Digital/keyvault-yaml-secret@v1
+        id: get_monitoring_secret
+        with:
+          keyvault: ${{ env.KEY_VAULT_NAME }}
+          secret: MONITORING
+          key: SLACK_WEBHOOK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Get INFRASTRUCTURE secret
-      uses: DFE-Digital/keyvault-yaml-secret@v1
-      if: github.actor != 'dependabot[bot]'
-      id: get-secret
-      with:
-        keyvault: ${{ env.KEY_VAULT_NAME }}
-        secret: INFRASTRUCTURE
-        key: SNYK_TOKEN
+      - name: Get INFRASTRUCTURE secret
+        uses: DFE-Digital/keyvault-yaml-secret@v1
+        if: github.actor != 'dependabot[bot]'
+        id: get-secret
+        with:
+          keyvault: ${{ env.KEY_VAULT_NAME }}
+          secret: INFRASTRUCTURE
+          key: SNYK_TOKEN
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ env.CONTAINER_REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.CONTAINER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Auth server docker build
-      uses: docker/build-push-action@v3
-      with:
-        context: dotnet-authserver/src/TeacherIdentity.AuthServer
-        push: false
-        tags: ${{ steps.image_tags.outputs.authserver }}
-        build-args: |
-          GIT_SHA=${{ github.sha }}
+      - name: Auth server docker build
+        uses: docker/build-push-action@v3
+        with:
+          context: dotnet-authserver/src/TeacherIdentity.AuthServer
+          push: false
+          tags: ${{ steps.image_tags.outputs.authserver }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
 
-    - name: Run Snyk to check auth server Docker image for vulnerabilities
-      if: github.actor != 'dependabot[bot]'
-      uses: snyk/actions/docker@master
-      env:
-        SNYK_TOKEN: ${{ steps.get-secret.outputs.snyk_token }}
-      with:
-        image: ${{ steps.image_tags.outputs.authserver }}
-        args: --file=dotnet-authserver/src/TeacherIdentity.AuthServer/Dockerfile --severity-threshold=high
-      continue-on-error: true
+      - name: Run Snyk to check auth server Docker image for vulnerabilities
+        if: github.actor != 'dependabot[bot]'
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ steps.get-secret.outputs.snyk_token }}
+        with:
+          image: ${{ steps.image_tags.outputs.authserver }}
+          args: --file=dotnet-authserver/src/TeacherIdentity.AuthServer/Dockerfile --severity-threshold=high
+        continue-on-error: true
 
-    - name: Push auth server docker image
-      run: docker image push ${{ steps.image_tags.outputs.authserver }}
+      - name: Push auth server docker image
+        run: docker image push ${{ steps.image_tags.outputs.authserver }}
 
-    - name: Test client docker build
-      uses: docker/build-push-action@v3
-      with:
-        context: dotnet-authserver/src/TeacherIdentity.TestClient
-        push: true
-        tags: ${{ steps.image_tags.outputs.testclient }}
+      - name: Test client docker build
+        uses: docker/build-push-action@v3
+        with:
+          context: dotnet-authserver/src/TeacherIdentity.TestClient
+          push: true
+          tags: ${{ steps.image_tags.outputs.testclient }}
 
   validate_terraform:
     name: Validate Terraform
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.0.10
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.0.10
 
-    - name: Check formatting
-      run: terraform fmt -check
-      working-directory: terraform
+      - name: Check formatting
+        run: terraform fmt -check
+        working-directory: terraform
 
-    - name: Validate
-      run: |
-        terraform init -backend=false
-        terraform validate -no-color
-      working-directory: terraform
+      - name: Validate
+        run: |
+          terraform init -backend=false
+          terraform validate -no-color
+        working-directory: terraform
 
-    - name: Lint
-      uses: reviewdog/action-tflint@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        tflint_rulesets: azurerm
-        working_directory: terraform
-      continue-on-error: true  # temporary- we're getting sporadic 503 errors here in action setup
+      - name: Lint
+        uses: reviewdog/action-tflint@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tflint_rulesets: azurerm
+          working_directory: terraform
+        continue-on-error: true # temporary- we're getting sporadic 503 errors here in action setup
 
   deploy_dev:
     name: Deploy to dev environment
@@ -206,16 +210,16 @@ jobs:
       environment_url: ${{ steps.deploy.outputs.environment_url }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: ./.github/workflows/actions/deploy-environment
-      id: deploy
-      with:
-        environment_name: dev
-        image_tag: ${{ github.sha }}
-        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-        terraform_vars: workspace_variables/dev.tfvars.json
-        terraform_backend_vars: workspace_variables/dev.backend.tfvars
+      - uses: ./.github/workflows/actions/deploy-environment
+        id: deploy
+        with:
+          environment_name: dev
+          image_tag: ${{ github.sha }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          terraform_vars: workspace_variables/dev.tfvars.json
+          terraform_backend_vars: workspace_variables/dev.backend.tfvars
 
   deploy_preprod:
     name: Deploy to preprod environment
@@ -231,16 +235,16 @@ jobs:
       environment_url: ${{ steps.deploy.outputs.environment_url }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: ./.github/workflows/actions/deploy-environment
-      id: deploy
-      with:
-        environment_name: preprod
-        image_tag: ${{ github.sha }}
-        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-        terraform_vars: workspace_variables/preprod.tfvars.json
-        terraform_backend_vars: workspace_variables/preprod.backend.tfvars
+      - uses: ./.github/workflows/actions/deploy-environment
+        id: deploy
+        with:
+          environment_name: preprod
+          image_tag: ${{ github.sha }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          terraform_vars: workspace_variables/preprod.tfvars.json
+          terraform_backend_vars: workspace_variables/preprod.backend.tfvars
 
   deploy_production:
     name: Deploy to production environment
@@ -257,13 +261,13 @@ jobs:
       postgres_server_name: ${{ steps.deploy.outputs.postgres_server_name }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: ./.github/workflows/actions/deploy-environment
-      id: deploy
-      with:
-        environment_name: production
-        image_tag: ${{ github.sha }}
-        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-        terraform_vars: workspace_variables/production.tfvars.json
-        terraform_backend_vars: workspace_variables/production.backend.tfvars
+      - uses: ./.github/workflows/actions/deploy-environment
+        id: deploy
+        with:
+          environment_name: production
+          image_tag: ${{ github.sha }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          terraform_vars: workspace_variables/production.tfvars.json
+          terraform_backend_vars: workspace_variables/production.backend.tfvars
