@@ -23,5 +23,5 @@ public class User
     public string[] StaffRoles { get; set; } = Array.Empty<string>();
     public Application? RegisteredWithClient { get; set; }
     public string? RegisteredWithClientId { get; set; }
-    public TrnLookupStatus TrnLookupStatus { get; set; }
+    public TrnLookupStatus? TrnLookupStatus { get; set; }
 }

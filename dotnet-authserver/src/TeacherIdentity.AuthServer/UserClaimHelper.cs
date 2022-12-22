@@ -73,7 +73,7 @@ public static class UserClaimHelper
             authenticationState.HaveCompletedTrnLookup,
             authenticationState.UserType!.Value,
             authenticationState.StaffRoles,
-            authenticationState.TrnLookupStatus!.Value);
+            authenticationState.TrnLookupStatus);
     }
 
     public static IEnumerable<Claim> GetPublicClaims(User user, Func<string, bool> hasScope)
@@ -104,7 +104,7 @@ public static class UserClaimHelper
             authenticationState.LastName!,
             authenticationState.DateOfBirth,
             authenticationState.Trn,
-            authenticationState.TrnLookupStatus!.Value);
+            authenticationState.TrnLookupStatus);
     }
 
     private static string? GetClaim(ClaimsPrincipal principal, string claimType, bool throwIfMissing)
@@ -156,7 +156,7 @@ public static class UserClaimHelper
         bool haveCompletedTrnLookup,
         UserType userType,
         string[]? staffRoles,
-        TrnLookupStatus trnLookupStatus)
+        TrnLookupStatus? trnLookupStatus)
     {
         yield return new Claim(Claims.Subject, userId.ToString()!);
         yield return new Claim(Claims.Email, email);
@@ -166,7 +166,6 @@ public static class UserClaimHelper
         yield return new Claim(Claims.FamilyName, lastName);
         yield return new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString());
         yield return new Claim(CustomClaims.UserType, userType.ToString());
-        yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus.ToString());
 
         if (dateOfBirth.HasValue)
         {
@@ -182,6 +181,11 @@ public static class UserClaimHelper
         {
             yield return new Claim(Claims.Role, role);
         }
+
+        if (trnLookupStatus is TrnLookupStatus trs)
+        {
+            yield return new Claim(CustomClaims.TrnLookupStatus, trs.ToString());
+        }
     }
 
     private static IEnumerable<Claim> GetPublicClaims(
@@ -192,7 +196,7 @@ public static class UserClaimHelper
         string lastName,
         DateOnly? dateOfBirth,
         string? trn,
-        TrnLookupStatus trnLookupStatus)
+        TrnLookupStatus? trnLookupStatus)
     {
         yield return new Claim(Claims.Subject, userId.ToString()!);
         yield return new Claim(Claims.Email, email);
@@ -208,7 +212,7 @@ public static class UserClaimHelper
 
         if (hasScope(CustomScopes.Trn))
         {
-            yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus.ToString());
+            yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus!.Value.ToString());
 
             if (trn is not null)
             {

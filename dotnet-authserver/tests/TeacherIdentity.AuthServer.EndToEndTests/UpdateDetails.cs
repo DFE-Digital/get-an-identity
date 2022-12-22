@@ -37,7 +37,8 @@ public class UpdateDetails : IClassFixture<HostFixture>
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow
+                Updated = DateTime.UtcNow,
+                TrnLookupStatus = TrnLookupStatus.None
             });
 
             await dbContext.SaveChangesAsync();
@@ -112,7 +113,8 @@ public class UpdateDetails : IClassFixture<HostFixture>
                 UserType = UserType.Default,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow
+                Updated = DateTime.UtcNow,
+                TrnLookupStatus = TrnLookupStatus.None
             });
 
             await dbContext.SaveChangesAsync();

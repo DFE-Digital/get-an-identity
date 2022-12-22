@@ -118,6 +118,7 @@ public class AddStaffUserTests : TestBase
             Assert.Equal(expectedRoles, user!.StaffRoles);
             Assert.Equal(Clock.UtcNow, user!.Created);
             Assert.Equal(Clock.UtcNow, user!.Updated);
+            Assert.Null(user.TrnLookupStatus);
 
             return user.UserId;
         });

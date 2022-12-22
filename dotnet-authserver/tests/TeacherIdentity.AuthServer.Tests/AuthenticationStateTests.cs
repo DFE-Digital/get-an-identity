@@ -92,8 +92,7 @@ public partial class AuthenticationStateTests
             new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
             new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
             new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
-            new Claim(CustomClaims.UserType, userType.ToString()),
-            new Claim(CustomClaims.TrnLookupStatus, TrnLookupStatus.None.ToString())
+            new Claim(CustomClaims.UserType, userType.ToString())
         };
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
@@ -120,7 +119,7 @@ public partial class AuthenticationStateTests
         Assert.Equal(staffRoles, authenticationState.StaffRoles);
         Assert.Equal(userId, authenticationState.UserId);
         Assert.Equal(userType, authenticationState.UserType);
-        Assert.Equal(TrnLookupStatus.None, authenticationState.TrnLookupStatus);
+        Assert.Null(authenticationState.TrnLookupStatus);
     }
 
     [Fact]
@@ -240,8 +239,7 @@ public partial class AuthenticationStateTests
             new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
             new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
             new Claim(CustomClaims.HaveCompletedTrnLookup, bool.FalseString),
-            new Claim(CustomClaims.UserType, userType.ToString()),
-            new Claim(CustomClaims.TrnLookupStatus, TrnLookupStatus.None.ToString())
+            new Claim(CustomClaims.UserType, userType.ToString())
         };
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), claims.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
     }

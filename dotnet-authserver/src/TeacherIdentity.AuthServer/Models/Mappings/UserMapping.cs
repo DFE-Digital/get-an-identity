@@ -23,7 +23,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.StaffRoles).HasColumnType("varchar[]");
         builder.Property(u => u.RegisteredWithClientId).HasMaxLength(100);
         builder.Property<bool>("is_deleted").IsRequired().HasDefaultValue(false);
-        builder.Property(u => u.TrnLookupStatus).IsRequired();
+        builder.Property(u => u.TrnLookupStatus);
         builder.HasOne(u => u.RegisteredWithClient).WithMany().HasForeignKey(u => u.RegisteredWithClientId).HasPrincipalKey(a => a.ClientId);
         builder.HasQueryFilter(u => EF.Property<bool>(u, "is_deleted") == false);
     }

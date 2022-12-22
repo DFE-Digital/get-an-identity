@@ -13,7 +13,7 @@ public record User
     public required string? Trn { get; init; }
     public required TrnAssociationSource? TrnAssociationSource { get; init; }
     public required string[] StaffRoles { get; init; } = Array.Empty<string>();
-    public required TrnLookupStatus TrnLookupStatus { get; init; }
+    public required TrnLookupStatus? TrnLookupStatus { get; init; }
 
     public static User FromModel(Models.User user) => new()
     {
