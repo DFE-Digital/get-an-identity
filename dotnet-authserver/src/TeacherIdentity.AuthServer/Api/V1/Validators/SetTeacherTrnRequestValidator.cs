@@ -8,9 +8,7 @@ public class SetTeacherTrnRequestValidator : AbstractValidator<SetTeacherTrnRequ
     public SetTeacherTrnRequestValidator()
     {
         RuleFor(r => r.Body.Trn)
-            .NotEmpty()
-                .WithMessage("TRN is required.")
-            .Must(trn => trn?.Length == 7 && trn.All(c => c >= '0' && c <= '9'))
+            .Must(trn => trn is null || (trn.Length == 7 && trn.All(Char.IsAsciiDigit)))
                 .WithMessage("TRN is not valid.");
     }
 }

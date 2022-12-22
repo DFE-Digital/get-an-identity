@@ -10,5 +10,5 @@ public record SetTeacherTrnRequest : IRequest
 
 public record SetTeacherTrnRequestBody
 {
-    public required string Trn { get; init; }
+    public required string? Trn { get; init; }
 }
