@@ -30,7 +30,7 @@ Currently the only implemented notification is when a user is changed (name, ema
 
 ### `UserUpdated`
 
-`UserUpdated` is generated when a user's email address, name, TRN and/or date of birth have been changed, whether by an API call or by the user themselves. It has the following message schema:
+`UserUpdated` is generated when a user's email address, name, TRN, TRN lookup status and/or date of birth have been changed, whether by an API call or by the user themselves. It has the following message schema:
 
 ```json
 {
@@ -40,14 +40,16 @@ Currently the only implemented notification is when a user is changed (name, ema
     "firstName": "",
     "lastName": "",
     "dateOfBirth": "",
-    "trn": ""
+    "trn": "",
+    "trnLookupStatus": "None|Pending|Found|Failed"
   },
   "changes": {
     "emailAddress": "",
     "firstName": "",
     "lastName": "",
     "dateOfBirth": "",
-    "trn": ""
+    "trn": "",
+    "trnLookupStatus": ""
   }
 }
 ```

@@ -38,6 +38,9 @@ public static class UserClaimHelper
     public static UserType? GetUserType(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, CustomClaims.UserType, throwIfMissing, value => Enum.Parse<UserType>(value));
 
+    public static TrnLookupStatus? GetTrnLookupStatus(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
+        GetClaim(principal, CustomClaims.TrnLookupStatus, throwIfMissing, value => Enum.Parse<TrnLookupStatus>(value));
+
     public static IEnumerable<Claim> GetInternalClaims(User user)
     {
         return GetInternalClaims(
@@ -49,7 +52,8 @@ public static class UserClaimHelper
             user.Trn,
             user.CompletedTrnLookup.HasValue,
             user.UserType,
-            user.StaffRoles);
+            user.StaffRoles,
+            user.TrnLookupStatus);
     }
 
     public static IEnumerable<Claim> GetInternalClaims(AuthenticationState authenticationState)
@@ -68,7 +72,8 @@ public static class UserClaimHelper
             authenticationState.Trn,
             authenticationState.HaveCompletedTrnLookup,
             authenticationState.UserType!.Value,
-            authenticationState.StaffRoles);
+            authenticationState.StaffRoles,
+            authenticationState.TrnLookupStatus!.Value);
     }
 
     public static IEnumerable<Claim> GetPublicClaims(User user, Func<string, bool> hasScope)
@@ -80,7 +85,8 @@ public static class UserClaimHelper
             user.FirstName,
             user.LastName,
             user.DateOfBirth,
-            user.Trn);
+            user.Trn,
+            user.TrnLookupStatus);
     }
 
     public static IEnumerable<Claim> GetPublicClaims(AuthenticationState authenticationState, Func<string, bool> hasScope)
@@ -97,7 +103,8 @@ public static class UserClaimHelper
             authenticationState.FirstName!,
             authenticationState.LastName!,
             authenticationState.DateOfBirth,
-            authenticationState.Trn);
+            authenticationState.Trn,
+            authenticationState.TrnLookupStatus!.Value);
     }
 
     private static string? GetClaim(ClaimsPrincipal principal, string claimType, bool throwIfMissing)
@@ -148,7 +155,8 @@ public static class UserClaimHelper
         string? trn,
         bool haveCompletedTrnLookup,
         UserType userType,
-        string[]? staffRoles)
+        string[]? staffRoles,
+        TrnLookupStatus trnLookupStatus)
     {
         yield return new Claim(Claims.Subject, userId.ToString()!);
         yield return new Claim(Claims.Email, email);
@@ -158,6 +166,7 @@ public static class UserClaimHelper
         yield return new Claim(Claims.FamilyName, lastName);
         yield return new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString());
         yield return new Claim(CustomClaims.UserType, userType.ToString());
+        yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus.ToString());
 
         if (dateOfBirth.HasValue)
         {
@@ -182,7 +191,8 @@ public static class UserClaimHelper
         string firstName,
         string lastName,
         DateOnly? dateOfBirth,
-        string? trn)
+        string? trn,
+        TrnLookupStatus trnLookupStatus)
     {
         yield return new Claim(Claims.Subject, userId.ToString()!);
         yield return new Claim(Claims.Email, email);
@@ -196,9 +206,14 @@ public static class UserClaimHelper
             yield return new Claim(Claims.Birthdate, dateOfBirth!.Value.ToString(CustomClaims.DateFormat));
         }
 
-        if (trn is not null && hasScope(CustomScopes.Trn))
+        if (hasScope(CustomScopes.Trn))
         {
-            yield return new Claim(CustomClaims.Trn, trn);
+            yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus.ToString());
+
+            if (trn is not null)
+            {
+                yield return new Claim(CustomClaims.Trn, trn);
+            }
         }
     }
 }

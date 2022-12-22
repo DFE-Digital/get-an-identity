@@ -23,7 +23,8 @@ public class UserClaimHelperTests
             Trn = "1234567",
             Created = DateTime.UtcNow,
             UserType = UserType.Default,
-            Updated = DateTime.UtcNow
+            Updated = DateTime.UtcNow,
+            TrnLookupStatus = TrnLookupStatus.Found
         };
 
         // Act
@@ -46,6 +47,7 @@ public class UserClaimHelperTests
         if (haveTrnScope)
         {
             expectedClaims.Add(new Claim(CustomClaims.Trn, user.Trn));
+            expectedClaims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus.ToString()));
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
@@ -68,7 +70,8 @@ public class UserClaimHelperTests
             CompletedTrnLookup = DateTime.UtcNow,
             Created = DateTime.UtcNow,
             UserType = UserType.Default,
-            Updated = DateTime.UtcNow
+            Updated = DateTime.UtcNow,
+            TrnLookupStatus = TrnLookupStatus.Found
         };
 
         Func<string, bool> hasScope = s => s == CustomScopes.Trn && haveTrnScope;
@@ -106,6 +109,7 @@ public class UserClaimHelperTests
         if (haveTrnScope)
         {
             expectedClaims.Add(new Claim(CustomClaims.Trn, authenticationState.Trn!));
+            expectedClaims.Add(new Claim(CustomClaims.TrnLookupStatus, authenticationState.TrnLookupStatus!.Value.ToString()));
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());

@@ -9,6 +9,7 @@ public static class ErrorRegistry
         new ErrorDescriptor(10003, "User not found"),
         new ErrorDescriptor(10004, "Request is not valid"),
         new ErrorDescriptor(10005, "You are not authorized to perform this action"),
+        new ErrorDescriptor(10006, "User already has a TRN assigned"),
     }.ToDictionary(d => d.ErrorCode, d => d);
 
     public static Error UserMustBeTeacher() => CreateError(10001);
@@ -20,6 +21,8 @@ public static class ErrorRegistry
     public static Error RequestIsNotValid() => CreateError(10004);
 
     public static Error YouAreNotAuthorizedToPerformThisAction() => CreateError(10005);
+
+    public static Error UserAlreadyHasTrnAssigned() => CreateError(10006);
 
     private static Error CreateError(int errorCode, string? detail = null)
     {

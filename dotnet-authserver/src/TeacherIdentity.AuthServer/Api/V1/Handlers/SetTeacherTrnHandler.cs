@@ -38,7 +38,13 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             return Unit.Value;
         }
 
+        if (user.Trn is not null)
+        {
+            throw new ErrorException(ErrorRegistry.UserAlreadyHasTrnAssigned());
+        }
+
         user.Trn = request.Body.Trn;
+        user.TrnLookupStatus = TrnLookupStatus.Found;
         user.TrnAssociationSource = TrnAssociationSource.Api;
         user.Updated = _clock.UtcNow;
 
@@ -46,7 +52,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
         {
             Source = Events.UserUpdatedEventSource.Api,
             CreatedUtc = _clock.UtcNow,
-            Changes = Events.UserUpdatedEventChanges.Trn,
+            Changes = Events.UserUpdatedEventChanges.Trn | Events.UserUpdatedEventChanges.TrnLookupStatus,
             User = Events.User.FromModel(user)
         });
 
