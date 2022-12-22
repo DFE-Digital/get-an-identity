@@ -14,4 +14,5 @@ public class JourneyTrnLookupState
     public required string? NationalInsuranceNumber { get; set; }
     public string? PreferredFirstName { get; set; }
     public string? PreferredLastName { get; set; }
+    public required bool SupportTicketCreated { get; init; }
 }

@@ -36,13 +36,11 @@ public class TrnCallbackTests : TestBase
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var preferredFirstName = Faker.Name.First();
-        var preferredLastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = TestData.GenerateTrn();
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, preferredFirstName, preferredLastName),
+            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName),
             HttpMethod.Get,
             "/sign-in/trn/callback");
     }
@@ -95,7 +93,8 @@ public class TrnCallbackTests : TestBase
         var trn = TestData.GenerateTrn();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, preferredFirstName, preferredLastName));
+            c => c.TrnLookupCallbackCompleted(
+                email, trn, dateOfBirth, firstName, lastName, preferredFirstName: preferredFirstName, preferredLastName: preferredLastName));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
@@ -117,9 +116,13 @@ public class TrnCallbackTests : TestBase
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Get_ValidCallback_CreatesUserLocksLookupStateAndRedirectsToNextPage(bool hasTrn)
+    [InlineData(true, false, TrnLookupStatus.Found)]
+    [InlineData(false, false, TrnLookupStatus.None)]
+    [InlineData(false, true, TrnLookupStatus.Pending)]
+    public async Task Get_ValidCallback_CreatesUserLocksLookupStateAndRedirectsToNextPage(
+        bool hasTrn,
+        bool supportTicketCreated,
+        TrnLookupStatus expectedTrnLookupStatus)
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -129,7 +132,7 @@ public class TrnCallbackTests : TestBase
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName));
+            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, supportTicketCreated));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
@@ -157,16 +160,15 @@ public class TrnCallbackTests : TestBase
             Assert.Equal(UserType.Default, user.UserType);
             Assert.Equal(trn, user.Trn);
             Assert.Equal(authStateHelper.AuthenticationState.OAuthState?.ClientId, user.RegisteredWithClientId);
+            Assert.Equal(expectedTrnLookupStatus, user.TrnLookupStatus);
 
             if (hasTrn)
             {
                 Assert.Equal(TrnAssociationSource.Lookup, user.TrnAssociationSource);
-                Assert.Equal(TrnLookupStatus.Found, user.TrnLookupStatus);
             }
             else
             {
                 Assert.Null(user.TrnAssociationSource);
-                Assert.Equal(TrnLookupStatus.Pending, user.TrnLookupStatus);
             }
 
             var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);

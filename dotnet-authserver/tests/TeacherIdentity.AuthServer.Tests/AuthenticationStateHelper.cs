@@ -116,6 +116,7 @@ public sealed class AuthenticationStateHelper
             DateOnly dateOfBirth,
             string officialFirstName,
             string officialLastName,
+            bool? supportTicketCreated = null,
             string? preferredFirstName = null,
             string? preferredLastName = null) => async s =>
             {
@@ -134,7 +135,8 @@ public sealed class AuthenticationStateHelper
                         Trn = trn,
                         NationalInsuranceNumber = null,
                         PreferredFirstName = preferredFirstName,
-                        PreferredLastName = preferredLastName
+                        PreferredLastName = preferredLastName,
+                        SupportTicketCreated = supportTicketCreated ?? trn is null
                     });
 
                     await dbContext.SaveChangesAsync();
@@ -150,8 +152,8 @@ public sealed class AuthenticationStateHelper
                     user.DateOfBirth!.Value,
                     officialFirstName ?? user.FirstName,
                     officialLastName ?? user.LastName,
-                    user.FirstName,
-                    user.LastName)(s);
+                    preferredFirstName: user.FirstName,
+                    preferredLastName: user.LastName)(s);
 
                 s.OnTrnLookupCompletedAndUserRegistered(user);
             };
@@ -174,7 +176,8 @@ public sealed class AuthenticationStateHelper
                         Trn = trnOwner.Trn,
                         NationalInsuranceNumber = null,
                         PreferredFirstName = preferredFirstName,
-                        PreferredLastName = preferredLastName
+                        PreferredLastName = preferredLastName,
+                        SupportTicketCreated = false
                     });
 
                     await dbContext.SaveChangesAsync();

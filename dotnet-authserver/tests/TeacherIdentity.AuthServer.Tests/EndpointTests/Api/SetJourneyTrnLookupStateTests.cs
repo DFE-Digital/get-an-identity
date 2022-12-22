@@ -52,7 +52,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 Locked = Clock.UtcNow,
                 UserId = user.UserId,
                 Trn = null,
-                NationalInsuranceNumber = null
+                NationalInsuranceNumber = null,
+                SupportTicketCreated = false
             });
 
             await dbContext.SaveChangesAsync();
@@ -97,7 +98,8 @@ public class SetJourneyTrnLookupStateTests : TestBase
                 Locked = null,
                 UserId = null,
                 Trn = null,
-                NationalInsuranceNumber = null
+                NationalInsuranceNumber = null,
+                SupportTicketCreated = false
             });
 
             await dbContext.SaveChangesAsync();
