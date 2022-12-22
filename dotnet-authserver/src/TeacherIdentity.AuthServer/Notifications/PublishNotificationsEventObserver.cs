@@ -45,6 +45,11 @@ public class PublishNotificationsEventObserver : IEventObserver
     {
         if (@event is UserUpdatedEvent userUpdated)
         {
+            if (userUpdated.User.UserType == Models.UserType.Staff)
+            {
+                yield break;
+            }
+
             yield return new NotificationEnvelope()
             {
                 NotificationId = Guid.NewGuid(),
