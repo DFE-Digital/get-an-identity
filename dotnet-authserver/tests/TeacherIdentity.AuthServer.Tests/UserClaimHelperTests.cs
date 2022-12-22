@@ -47,7 +47,7 @@ public class UserClaimHelperTests
         if (haveTrnScope)
         {
             expectedClaims.Add(new Claim(CustomClaims.Trn, user.Trn));
-            expectedClaims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus.ToString()));
+            expectedClaims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());

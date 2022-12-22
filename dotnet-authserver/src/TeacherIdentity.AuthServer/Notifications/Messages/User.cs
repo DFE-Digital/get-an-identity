@@ -1,3 +1,5 @@
+using Optional;
+
 namespace TeacherIdentity.AuthServer.Notifications.Messages;
 
 public record User
@@ -8,7 +10,7 @@ public record User
     public required string LastName { get; init; }
     public required DateOnly? DateOfBirth { get; init; }
     public required string? Trn { get; init; }
-    public required TrnLookupStatus TrnLookupStatus { get; init; }
+    public required Option<TrnLookupStatus> TrnLookupStatus { get; init; }
 
     public static User FromEvent(Events.User user) => new()
     {
@@ -17,7 +19,7 @@ public record User
         FirstName = user.FirstName,
         LastName = user.LastName,
         Trn = user.Trn,
-        TrnLookupStatus = user.TrnLookupStatus,
+        TrnLookupStatus = user.TrnLookupStatus.ToOption(),
         UserId = user.UserId
     };
 
