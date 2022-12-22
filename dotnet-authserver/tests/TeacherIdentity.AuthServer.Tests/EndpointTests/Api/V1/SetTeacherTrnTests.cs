@@ -134,6 +134,30 @@ public class SetTeacherTrnTests : TestBase
         await AssertEx.JsonResponseIsError(response, expectedErrorCode: 10002, expectedStatusCode: StatusCodes.Status400BadRequest);
     }
 
+    [Fact]
+    public async Task Put_UserAlreadyHasTrn_ReturnsError()
+    {
+        // Arrange
+        var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
+
+        var user = await TestData.CreateUser(hasTrn: true);
+        var trn = TestData.GenerateTrn();
+
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
+        {
+            Content = JsonContent.Create(new
+            {
+                Trn = trn
+            })
+        };
+
+        // Act
+        var response = await httpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.JsonResponseIsError(response, expectedErrorCode: 10006, expectedStatusCode: StatusCodes.Status400BadRequest);
+    }
+
     [Theory]
     [MemberData(nameof(PermittedScopes))]
     public async Task Put_ValidRequest_UpdatesUserAndReturnsNoContent(string scope)
@@ -163,6 +187,7 @@ public class SetTeacherTrnTests : TestBase
             user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
             Assert.Equal(trn, user.Trn);
             Assert.Equal(TrnAssociationSource.Api, user.TrnAssociationSource);
+            Assert.Equal(TrnLookupStatus.Found, user.TrnLookupStatus);
             Assert.Equal(Clock.UtcNow, user.Updated);
         });
 
@@ -172,7 +197,7 @@ public class SetTeacherTrnTests : TestBase
                 var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                 Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
-                Assert.Equal(UserUpdatedEventChanges.Trn, userUpdatedEvent.Changes);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             });
     }

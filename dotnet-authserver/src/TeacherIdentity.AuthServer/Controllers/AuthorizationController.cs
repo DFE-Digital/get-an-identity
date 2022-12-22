@@ -400,7 +400,11 @@ public class AuthorizationController : Controller
                 yield break;
 
             case CustomClaims.Trn:
-                yield return Destinations.IdentityToken;
+            case CustomClaims.TrnLookupStatus:
+                if (principal.HasScope(CustomScopes.Trn))
+                {
+                    yield return Destinations.IdentityToken;
+                }
 
                 yield break;
 

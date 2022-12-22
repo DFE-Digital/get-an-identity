@@ -82,10 +82,8 @@ public class TrnCallbackTests : TestBase
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Get_ValidCallbackWithPreferredNames_CreatesUserWithPreferredNames(bool hasTrn)
+    [Fact]
+    public async Task Get_ValidCallbackWithPreferredNames_CreatesUserWithPreferredNames()
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -94,7 +92,7 @@ public class TrnCallbackTests : TestBase
         var preferredFirstName = Faker.Name.First();
         var preferredLastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = hasTrn ? TestData.GenerateTrn() : null;
+        var trn = TestData.GenerateTrn();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, preferredFirstName, preferredLastName));
@@ -115,15 +113,6 @@ public class TrnCallbackTests : TestBase
             Assert.NotNull(user);
             Assert.Equal(preferredFirstName, user.FirstName);
             Assert.Equal(preferredLastName, user.LastName);
-
-            if (hasTrn)
-            {
-                Assert.Equal(TrnAssociationSource.Lookup, user.TrnAssociationSource);
-            }
-            else
-            {
-                Assert.Null(user.TrnAssociationSource);
-            }
         });
     }
 
@@ -172,10 +161,12 @@ public class TrnCallbackTests : TestBase
             if (hasTrn)
             {
                 Assert.Equal(TrnAssociationSource.Lookup, user.TrnAssociationSource);
+                Assert.Equal(TrnLookupStatus.Found, user.TrnLookupStatus);
             }
             else
             {
                 Assert.Null(user.TrnAssociationSource);
+                Assert.Equal(TrnLookupStatus.Pending, user.TrnLookupStatus);
             }
 
             var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);

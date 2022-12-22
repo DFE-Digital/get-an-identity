@@ -73,6 +73,8 @@ public class AuthenticationState
     public TrnLookupState TrnLookup { get; private set; }
     [JsonInclude]
     public string? TrnOwnerEmailAddress { get; private set; }
+    [JsonInclude]
+    public TrnLookupStatus? TrnLookupStatus { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -114,7 +116,8 @@ public class AuthenticationState
             HaveCompletedTrnLookup = principal.GetHaveCompletedTrnLookup(throwIfMissing: false) ?? false,
             TrnLookup = principal.GetHaveCompletedTrnLookup(throwIfMissing: false) == true ? TrnLookupState.Complete : TrnLookupState.None,
             UserType = principal.GetUserType(throwIfMissing: false),
-            StaffRoles = principal.GetStaffRoles()
+            StaffRoles = principal.GetStaffRoles(),
+            TrnLookupStatus = principal.GetTrnLookupStatus(throwIfMissing: false)
         };
     }
 
@@ -203,6 +206,7 @@ public class AuthenticationState
         HaveCompletedTrnLookup = default;
         TrnLookup = default;
         TrnOwnerEmailAddress = default;
+        TrnLookupStatus = default;
     }
 
     public void OnEmailSet(string email)
@@ -239,6 +243,7 @@ public class AuthenticationState
             Trn = user.Trn;
             UserType = user.UserType;
             StaffRoles = user.StaffRoles;
+            TrnLookupStatus = user.TrnLookupStatus;
 
             if (HaveCompletedTrnLookup)
             {
@@ -305,6 +310,7 @@ public class AuthenticationState
         TrnLookup = TrnLookupState.Complete;
         UserType = user.UserType;
         StaffRoles = user.StaffRoles;
+        TrnLookupStatus = user.TrnLookupStatus;
     }
 
     public void OnEmailVerifiedOfExistingAccountForTrn()
@@ -363,6 +369,7 @@ public class AuthenticationState
         TrnLookup = TrnLookupState.Complete;
         UserType = user.UserType;
         StaffRoles = user.StaffRoles;
+        TrnLookupStatus = user.TrnLookupStatus;
     }
 
     public void OnEmailChanged(string email)

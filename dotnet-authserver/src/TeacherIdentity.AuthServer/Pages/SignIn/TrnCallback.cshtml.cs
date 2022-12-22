@@ -67,7 +67,8 @@ public class TrnCallbackModel : PageModel
             Trn = lookupState.Trn,
             TrnAssociationSource = !string.IsNullOrEmpty(lookupState.Trn) ? TrnAssociationSource.Lookup : null,
             LastSignedIn = _clock.UtcNow,
-            RegisteredWithClientId = authenticationState.OAuthState?.ClientId
+            RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
+            TrnLookupStatus = lookupState.Trn is not null ? TrnLookupStatus.Found : TrnLookupStatus.Pending
         };
 
         _dbContext.Users.Add(user);

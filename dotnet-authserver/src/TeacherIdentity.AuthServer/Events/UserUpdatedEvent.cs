@@ -16,6 +16,7 @@ public enum UserUpdatedEventChanges
     LastName = 1 << 2,
     DateOfBirth = 1 << 3,
     Trn = 1 << 4,
+    TrnLookupStatus = 1 << 5
 }
 
 public enum UserUpdatedEventSource
