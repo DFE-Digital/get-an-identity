@@ -9,7 +9,8 @@ public partial class TestData
             bool? hasTrn = null,
             bool? haveCompletedTrnLookup = null,
             UserType userType = UserType.Default,
-            string? registeredWithClientId = null) =>
+            string? registeredWithClientId = null,
+            TrnLookupStatus? trnLookupStatus = null) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn is null && userType == UserType.Default)
@@ -19,6 +20,11 @@ public partial class TestData
             else if (hasTrn == true && userType != UserType.Default)
             {
                 throw new ArgumentException($"Only {UserType.Default} users should have a TRN.");
+            }
+
+            if (hasTrn == true && (trnLookupStatus ?? TrnLookupStatus.Found) != TrnLookupStatus.Found)
+            {
+                throw new ArgumentException($"{nameof(TrnLookupStatus)} must be {TrnLookupStatus.Found} when the user has a TRN.");
             }
 
             if (haveCompletedTrnLookup == true && userType == UserType.Default)
@@ -42,7 +48,7 @@ public partial class TestData
                 DateOfBirth = userType is UserType.Default ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
                 Trn = hasTrn == true ? GenerateTrn() : null,
                 TrnAssociationSource = hasTrn == true ? TrnAssociationSource.Lookup : null,
-                TrnLookupStatus = userType == UserType.Default ? (hasTrn == true ? TrnLookupStatus.Found : TrnLookupStatus.None) : null,
+                TrnLookupStatus = trnLookupStatus ?? (userType == UserType.Default ? (hasTrn == true ? TrnLookupStatus.Found : TrnLookupStatus.None) : null),
                 Updated = _clock.UtcNow,
                 RegisteredWithClientId = registeredWithClientId
             };

@@ -160,7 +160,7 @@ public class SetTeacherTrnTests : TestBase
 
     [Theory]
     [MemberData(nameof(PermittedScopes))]
-    public async Task Put_ValidRequest_UpdatesUserAndReturnsNoContent(string scope)
+    public async Task Put_ValidRequestWithNonEmptyTrn_UpdatesUserAndReturnsNoContent(string scope)
     {
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
@@ -198,6 +198,50 @@ public class SetTeacherTrnTests : TestBase
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                 Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            });
+    }
+
+    [Theory]
+    [MemberData(nameof(PermittedScopes))]
+    public async Task Put_ValidRequestWithEmptyTrn_UpdatesUserAndReturnsNoContent(string scope)
+    {
+        // Arrange
+        var httpClient = await CreateHttpClientWithToken(scope);
+
+        var user = await TestData.CreateUser(hasTrn: false);
+        string? trn = null;
+
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
+        {
+            Content = JsonContent.Create(new
+            {
+                Trn = trn
+            })
+        };
+
+        // Act
+        var response = await httpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
+            Assert.Equal(trn, user.Trn);
+            Assert.Null(user.TrnAssociationSource);
+            Assert.Equal(TrnLookupStatus.Failed, user.TrnLookupStatus);
+            Assert.Equal(Clock.UtcNow, user.Updated);
+        });
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             });
     }

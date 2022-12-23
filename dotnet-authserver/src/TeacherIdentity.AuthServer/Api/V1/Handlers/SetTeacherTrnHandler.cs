@@ -33,8 +33,12 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             throw new ErrorException(ErrorRegistry.UserMustBeTeacher());
         }
 
-        if (user.Trn == request.Body.Trn)
+        var trn = request.Body.Trn;
+
+        if ((trn is not null && user.Trn == trn) ||
+            (trn is null && user.TrnLookupStatus == TrnLookupStatus.Failed))
         {
+            // Nothing is changing
             return Unit.Value;
         }
 
@@ -43,16 +47,28 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             throw new ErrorException(ErrorRegistry.UserAlreadyHasTrnAssigned());
         }
 
-        user.Trn = request.Body.Trn;
-        user.TrnLookupStatus = TrnLookupStatus.Found;
-        user.TrnAssociationSource = TrnAssociationSource.Api;
+        var changes = Events.UserUpdatedEventChanges.None;
+
+        if (trn is null)
+        {
+            user.TrnLookupStatus = TrnLookupStatus.Failed;
+            changes = Events.UserUpdatedEventChanges.TrnLookupStatus;
+        }
+        else
+        {
+            user.Trn = trn;
+            user.TrnLookupStatus = TrnLookupStatus.Found;
+            user.TrnAssociationSource = TrnAssociationSource.Api;
+            changes = Events.UserUpdatedEventChanges.Trn | Events.UserUpdatedEventChanges.TrnLookupStatus;
+        }
+
         user.Updated = _clock.UtcNow;
 
         _dbContext.AddEvent(new Events.UserUpdatedEvent()
         {
             Source = Events.UserUpdatedEventSource.Api,
             CreatedUtc = _clock.UtcNow,
-            Changes = Events.UserUpdatedEventChanges.Trn | Events.UserUpdatedEventChanges.TrnLookupStatus,
+            Changes = changes,
             User = Events.User.FromModel(user)
         });
 
