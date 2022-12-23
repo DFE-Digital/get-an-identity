@@ -100,7 +100,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var httpClient = await CreateHttpClientWithToken(CustomScopes.UserRead);
 
         // Act
-        var response = await httpClient.GetAsync($"/api/v1/users?PageNumber=1&PageSize={pageSize}");
+        var response = await httpClient.GetAsync($"/api/v1/users?pageNumber=1&pageSize={pageSize}");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -115,7 +115,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var httpClient = await CreateHttpClientWithToken(CustomScopes.UserRead);
 
         // Act
-        var response = await httpClient.GetAsync($"/api/v1/users?PageNumber={page}&PageSize=50");
+        var response = await httpClient.GetAsync($"/api/v1/users?pageNumber={page}&pageSize=50");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -133,7 +133,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var sortedUsers = new[] { user1, user2, user3 }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         // Act
-        var response = await httpClient.GetAsync("/api/v1/users?PageNumber=1000&PageSize=40");
+        var response = await httpClient.GetAsync("/api/v1/users?pageNumber=1000&pageSize=40");
 
         // Assert
         var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
@@ -150,7 +150,6 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     [InlineData(2)]
     public async Task Get_ValidRequestWithValidPageRange_ReturnsCorrectPage(int page)
     {
-
         // Arrange
         var httpClient = await CreateHttpClientWithToken(CustomScopes.UserWrite);
         var pageSize = 3;
@@ -168,7 +167,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var pagedUsers = sortedUsers.Skip(skip).Take(pageSize).ToArray();
 
         // Act
-        var response = await httpClient.GetAsync($"/api/v1/users?PageNumber={page}&PageSize={pageSize}");
+        var response = await httpClient.GetAsync($"/api/v1/users?pageNumber={page}&pageSize={pageSize}");
 
         // Assert
         var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
@@ -199,6 +198,30 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
                Assert.Equal(pagedUsers[2].Trn, user.Trn);
            });
         Assert.Equal(sortedUsers.Count(), responseObj.Total);
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithTrnLookupStatusFilter_OnlyReturnsUsersMatchingTrnLookupStatus()
+    {
+        // Arrange
+        var httpClient = await CreateHttpClientWithToken(CustomScopes.UserWrite);
+
+        var userWithNoneStatus = await TestData.CreateUser(trnLookupStatus: TrnLookupStatus.None);
+        var userWithPendingStatus = await TestData.CreateUser(trnLookupStatus: TrnLookupStatus.Pending);
+        var userWithFoundStatus = await TestData.CreateUser(trnLookupStatus: TrnLookupStatus.Found);
+        var userWithFailedStatus = await TestData.CreateUser(trnLookupStatus: TrnLookupStatus.Failed);
+
+        // Act
+        var response = await httpClient.GetAsync($"/api/v1/users?trnLookupStatus=None,Failed");
+
+        // Assert
+        var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
+        var userIds = responseObj.Users.Select(u => u.UserId);
+
+        Assert.Contains(userWithNoneStatus.UserId, userIds);
+        Assert.Contains(userWithFailedStatus.UserId, userIds);
+        Assert.DoesNotContain(userWithPendingStatus.UserId, userIds);
+        Assert.DoesNotContain(userWithFoundStatus.UserId, userIds);
     }
 
     public async Task InitializeAsync()

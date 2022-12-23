@@ -13,18 +13,28 @@ public partial class TestData
             TrnLookupStatus? trnLookupStatus = null) =>
         WithDbContext(async dbContext =>
         {
-            if (hasTrn is null && userType == UserType.Default)
-            {
-                hasTrn = true;
-            }
-            else if (hasTrn == true && userType != UserType.Default)
+            if (hasTrn == true && userType != UserType.Default)
             {
                 throw new ArgumentException($"Only {UserType.Default} users should have a TRN.");
+            }
+
+            if (trnLookupStatus is not null && userType != UserType.Default)
+            {
+                throw new ArgumentException($"{nameof(trnLookupStatus)} can only be set for {UserType.Default} users.");
             }
 
             if (hasTrn == true && (trnLookupStatus ?? TrnLookupStatus.Found) != TrnLookupStatus.Found)
             {
                 throw new ArgumentException($"{nameof(TrnLookupStatus)} must be {TrnLookupStatus.Found} when the user has a TRN.");
+            }
+            else if (hasTrn == false && trnLookupStatus == TrnLookupStatus.Found)
+            {
+                throw new ArgumentException($"{nameof(TrnLookupStatus)} cannot be {TrnLookupStatus.Found} when the user does not have a TRN.");
+            }
+
+            if (userType == UserType.Default && hasTrn is null && trnLookupStatus is not null)
+            {
+                hasTrn = trnLookupStatus == TrnLookupStatus.Found;
             }
 
             if (haveCompletedTrnLookup == true && userType == UserType.Default)
