@@ -50,6 +50,7 @@ public static class TrnLookupEndpoints
                             NationalInsuranceNumber = normalizedNino,
                             PreferredFirstName = body.PreferredFirstName!,
                             PreferredLastName = body.PreferredLastName!,
+                            SupportTicketCreated = body.SupportTicketCreated
                         });
                     }
                     else

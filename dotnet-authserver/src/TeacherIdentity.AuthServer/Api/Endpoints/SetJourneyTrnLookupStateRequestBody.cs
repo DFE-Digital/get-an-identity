@@ -28,6 +28,7 @@ public record SetJourneyTrnLookupStateRequestBody : IValidatableObject
     public string? NationalInsuranceNumber { get; set; }
     public string? PreferredFirstName { get; set; }
     public string? PreferredLastName { get; set; }
+    public bool SupportTicketCreated { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
