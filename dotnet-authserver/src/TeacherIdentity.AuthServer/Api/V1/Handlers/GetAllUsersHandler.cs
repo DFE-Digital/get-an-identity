@@ -21,12 +21,17 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersRequest, GetAllUser
         var pageSize = (request?.PageSize) ?? 25;
         var skip = ((request?.PageNumber ?? 1) - 1) * pageSize;
 
-
         // N.B. The UserType predicate is here to prevent GetAnIdentitySupport users being able to 'see' admins.
         // In future when use of this endpoint is expanded (for admins, say) then this predicate should be dynamic
         // based on the current scope.
         var allUsers = _dbContext.Users.Where(u => u.UserType == UserType.Default);
-        var total = allUsers.Count();
+
+        if (request?.TrnLookupStatus is not null)
+        {
+            allUsers = allUsers.Where(u => request.TrnLookupStatus.Contains(u.TrnLookupStatus!.Value));
+        }
+
+        var total = await allUsers.CountAsync();
 
         var users = await allUsers
             .Where(u => u.UserType == UserType.Default)
