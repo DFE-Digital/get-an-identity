@@ -61,7 +61,7 @@ The `changes` object contains only those properties that were changed and their 
 ## Receiving webhooks
 
 You need a publicly-accessible HTTPS endpoint that accepts JSON using the POST method. Ask one of the Get an identity developers to configure your endpoint.
-When the endpoint is configured will receive a secret; this can be used to [verify the webhook's payload](#verifying-the-webhook).
+When the endpoint is configured you will receive a secret; this can be used to [verify the webhook's payload](#verifying-the-webhook).
 
 Your endpoint should return a success status code (200-299) when the webhook has been processed successfully.
 If an error code is returned, or the endpoint takes longer than 30 seconds to respond, the message will be retried later. The retry intervals are:
@@ -72,6 +72,7 @@ If an error code is returned, or the endpoint takes longer than 30 seconds to re
 - 2 hours,
 - 4 hours,
 - 8 hours.
+
 If after the final retry the message was still not delivered successfully no further attempts will be made to deliver that message.
 
 
