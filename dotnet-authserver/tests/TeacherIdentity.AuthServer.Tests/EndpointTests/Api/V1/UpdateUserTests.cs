@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Api.V1.ApiModels;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 
@@ -158,11 +157,11 @@ public class UpdateUserTests : TestBase
         var response = await httpClient.SendAsync(request);
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<UserInfo>(response);
-        Assert.Equal(user.UserId, responseObj.UserId);
-        Assert.Equal(updatedEmail, responseObj.Email);
-        Assert.Equal(updatedFirstName, responseObj.FirstName);
-        Assert.Equal(updatedLastName, responseObj.LastName);
+        var responseObj = await AssertEx.JsonResponse(response);
+        Assert.Equal(user.UserId, responseObj.RootElement.GetProperty("userId").GetGuid());
+        Assert.Equal(updatedEmail, responseObj.RootElement.GetProperty("email").GetString());
+        Assert.Equal(updatedFirstName, responseObj.RootElement.GetProperty("firstName").GetString());
+        Assert.Equal(updatedLastName, responseObj.RootElement.GetProperty("lastName").GetString());
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(Clock.UtcNow, user.Updated);
@@ -198,11 +197,11 @@ public class UpdateUserTests : TestBase
         var response = await httpClient.SendAsync(request);
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<UserInfo>(response);
-        Assert.Equal(user.UserId, responseObj.UserId);
-        Assert.Equal(user.EmailAddress, responseObj.Email);
-        Assert.Equal(user.FirstName, responseObj.FirstName);
-        Assert.Equal(user.LastName, responseObj.LastName);
+        var responseObj = await AssertEx.JsonResponse(response);
+        Assert.Equal(user.UserId, responseObj.RootElement.GetProperty("userId").GetGuid());
+        Assert.Equal(user.EmailAddress, responseObj.RootElement.GetProperty("email").GetString());
+        Assert.Equal(user.FirstName, responseObj.RootElement.GetProperty("firstName").GetString());
+        Assert.Equal(user.LastName, responseObj.RootElement.GetProperty("lastName").GetString());
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(user.Created, user.Updated);

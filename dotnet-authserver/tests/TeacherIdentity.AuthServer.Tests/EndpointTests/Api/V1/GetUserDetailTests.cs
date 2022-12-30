@@ -1,4 +1,3 @@
-using TeacherIdentity.AuthServer.Api.V1.Responses;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
@@ -53,16 +52,22 @@ public class GetUserDetailTests : TestBase
         var response = await httpClient.GetAsync($"/api/v1/users/{user.UserId}");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetUserDetailResponse>(response);
+        var responseObj = await AssertEx.JsonResponse(response);
 
-        Assert.Equal(user.UserId, responseObj.UserId);
-        Assert.Equal(user.EmailAddress, responseObj.Email);
-        Assert.Equal(user.FirstName, responseObj.FirstName);
-        Assert.Equal(user.LastName, responseObj.LastName);
-        Assert.Equal(user.Trn, responseObj.Trn);
-        Assert.Equal(user.Created, responseObj.Created);
-        Assert.Equal(registeredWithClient.ClientId, responseObj.RegisteredWithClientId);
-        Assert.Equal(registeredWithClient.DisplayName, responseObj.RegisteredWithClientDisplayName);
+        AssertEx.JsonObjectEquals(
+            responseObj,
+            new
+            {
+                userId = user.UserId,
+                email = user.EmailAddress,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                dateOfBirth = user.DateOfBirth,
+                trn = user.Trn,
+                created = user.Created,
+                registeredWithClientId = registeredWithClient.ClientId,
+                registeredWithClientDisplayName = registeredWithClient.DisplayName
+            });
     }
 
     public static TheoryData<string> NotPermittedScopes => ScopeTheoryData.GetAllStaffUserScopesExcept(PermittedScopes);

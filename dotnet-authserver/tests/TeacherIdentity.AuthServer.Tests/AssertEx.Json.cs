@@ -20,7 +20,10 @@ public static partial class AssertEx
     public static void JsonEquals(string expected, string actual) =>
         JsonEquals(JsonNode.Parse(expected), JsonNode.Parse(actual));
 
-    public static void JsonObjectEquals(object actual, object expected) =>
+    public static void JsonObjectEquals(JsonDocument expected, object actual) =>
+        JsonEquals(JsonSerializer.SerializeToNode(expected.RootElement), JsonSerializer.SerializeToNode(actual, SerializerOptions));
+
+    public static void JsonObjectEquals(object expected, object actual) =>
         JsonEquals(JsonSerializer.SerializeToNode(expected, SerializerOptions), JsonSerializer.SerializeToNode(actual, SerializerOptions));
 
     public static void JsonEquals(JsonNode? expected, JsonNode? actual)

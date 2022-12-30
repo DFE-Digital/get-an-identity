@@ -5,7 +5,7 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public static partial class AssertEx
 {
-    public static async Task<T> JsonResponse<T>(HttpResponseMessage response, int expectedStatusCode = StatusCodes.Status200OK)
+    public static async Task<JsonDocument> JsonResponse(HttpResponseMessage response, int expectedStatusCode = StatusCodes.Status200OK)
     {
         if (response is null)
         {
@@ -15,7 +15,7 @@ public static partial class AssertEx
         Assert.Equal(expectedStatusCode, (int)response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
-        var result = await response.Content.ReadFromJsonAsync<T>(SerializerOptions);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(SerializerOptions);
         Assert.NotNull(result);
         return result!;
     }
