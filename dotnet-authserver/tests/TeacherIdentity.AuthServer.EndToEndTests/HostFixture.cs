@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using FakeItEasy;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
@@ -27,19 +28,22 @@ public class HostFixture : IAsyncLifetime
     private IPlaywright? _playright;
     private bool _disposed = false;
 
+    private readonly List<string> _capturedAccessTokens = new();
     private readonly List<(string Email, string Pin)> _capturedEmailConfirmationPins = new();
 
     public IServiceProvider AuthServerServices { get; private set; } = null!;
 
     public IBrowser Browser { get; private set; } = null!;
 
+    public IReadOnlyCollection<string> CapturedAccessTokens => _capturedAccessTokens.AsReadOnly();
+
+    public IReadOnlyCollection<(string Email, string Pin)> CapturedEmailConfirmationPins => _capturedEmailConfirmationPins.AsReadOnly();
+
     public DbHelper? DbHelper { get; private set; }
 
     public IDqtApiClient DqtApiClient = A.Fake<IDqtApiClient>();
 
     public IEmailVerificationService? EmailConfirmationService { get; private set; }
-
-    public IReadOnlyCollection<(string Email, string Pin)> CapturedEmailConfirmationPins => _capturedEmailConfirmationPins.AsReadOnly();
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
@@ -139,6 +143,18 @@ public class HostFixture : IAsyncLifetime
             builder =>
             {
                 builder.UseConfiguration(testConfiguration.GetSection("Client"));
+
+                builder.ConfigureServices(services =>
+                {
+                    services.PostConfigure<OpenIdConnectOptions>("oidc", options =>
+                    {
+                        options.Events.OnTokenResponseReceived = ctx =>
+                        {
+                            _capturedAccessTokens.Add(ctx.TokenEndpointResponse.AccessToken);
+                            return Task.CompletedTask;
+                        };
+                    });
+                });
             });
 
     private static IConfiguration GetTestConfiguration() =>
