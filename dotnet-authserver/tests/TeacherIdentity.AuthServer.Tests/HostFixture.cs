@@ -104,10 +104,10 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
                 options.Filters.Add(new SignInUserPageFilter());
             });
 
-            // Add the custom test authentication handler
+            // Add the custom test cookie authentication handler
             services.AddSingleton<CurrentUserIdContainer>();
             services.PostConfigure<AuthenticationOptions>(options =>
-                options.Schemes.Single(s => s.Name == CookieAuthenticationDefaults.AuthenticationScheme).HandlerType = typeof(TestAuthenticationHandler));
+                options.Schemes.Single(s => s.Name == CookieAuthenticationDefaults.AuthenticationScheme).HandlerType = typeof(TestCookieAuthenticationHandler));
 
             // Disable tracking sign in events from the Delegated authentication handler
             services.PostConfigure<DelegatedAuthenticationOptions>("Delegated", options =>

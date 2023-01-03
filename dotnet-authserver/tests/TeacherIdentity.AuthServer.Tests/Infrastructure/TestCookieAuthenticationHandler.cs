@@ -7,11 +7,11 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.Infrastructure;
 
-public class TestAuthenticationHandler : CookieAuthenticationHandler
+public class TestCookieAuthenticationHandler : CookieAuthenticationHandler
 {
     private readonly CurrentUserIdContainer _currentUserIdContainer;
 
-    public TestAuthenticationHandler(
+    public TestCookieAuthenticationHandler(
         CurrentUserIdContainer currentUserIdContainer,
         IOptionsMonitor<CookieAuthenticationOptions> options,
         ILoggerFactory logger,
