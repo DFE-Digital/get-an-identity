@@ -48,6 +48,7 @@ locals {
       Serilog__WriteTo__2__Args__uri               = local.infrastructure_secrets.LOGSTASH_ENDPOINT
       WEBSITE_SWAP_WARMUP_PING_PATH                = "/status"
       WEBSITE_SWAP_WARMUP_PING_STATUSES            = "200"
+      BaseAddress                                  = local.infrastructure_secrets.BASE_ADDRESS
     }
   )
 

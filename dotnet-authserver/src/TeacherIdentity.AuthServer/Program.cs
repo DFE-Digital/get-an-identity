@@ -8,6 +8,7 @@ using Hangfire;
 using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -21,7 +22,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using OpenIddict.Validation.AspNetCore;
 using Sentry.AspNetCore;
 using Serilog;
 using StackExchange.Redis;
@@ -29,7 +29,6 @@ using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
-using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
@@ -50,6 +49,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         var hostingEnvironmentName = builder.Configuration["EnvironmentName"];
+        var baseAddress = builder.Configuration["BaseAddress"] ?? throw new Exception("BaseAddress missing from configuration.");
 
         builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
 
@@ -179,7 +179,18 @@ public class Program
                     await ctx.HttpContext.SaveUserSignedOutEvent(user, clientId);
                 };
             })
-            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { });
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { })
+            .AddJwtBearer(options =>
+            {
+                options.Authority = baseAddress;
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters.ValidateAudience = false;
+
+                if (builder.Environment.IsUnitTests() || builder.Environment.IsEndToEndTests())
+                {
+                    options.RequireHttpsMetadata = false;
+                }
+            });
 
         builder.Services.Configure<AuthenticationOptions>(options =>
             options.AddScheme(
@@ -218,14 +229,14 @@ public class Program
             options.AddPolicy(
                 AuthorizationPolicies.ApiUserRead,
                 policy => policy
-                    .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
                     .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.UserRead, CustomScopes.UserWrite)));
 
             options.AddPolicy(
                 AuthorizationPolicies.ApiUserWrite,
                 policy => policy
-                    .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
                     .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.UserWrite)));
         });
@@ -310,6 +321,8 @@ public class Program
                 options.AddEventHandler<ApplyAuthorizationResponseContext>(
                     builder => builder.UseSingletonHandler<ProcessAuthorizationResponseHandler>());
 
+                options.SetIssuer(new Uri(baseAddress));
+
                 options
                     .SetAuthorizationEndpointUris("/connect/authorize")
                     .SetLogoutEndpointUris("/connect/signout")
@@ -365,11 +378,6 @@ public class Program
                         .Append(Scopes.Email)
                         .Append(Scopes.Profile)
                         .ToArray());
-            })
-            .AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
             });
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -483,7 +491,7 @@ public class Program
         app.UseSession();
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
-        app.UseMiddleware<AppendSessionIdToAnalyticsEventsMiddleware>();
+        app.UseMiddleware<Infrastructure.Middleware.AppendSessionIdToAnalyticsEventsMiddleware>();
 
         app.UseRouting();
 
