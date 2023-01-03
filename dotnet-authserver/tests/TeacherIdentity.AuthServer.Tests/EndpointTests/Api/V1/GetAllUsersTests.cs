@@ -1,5 +1,4 @@
 using System.Net;
-using TeacherIdentity.AuthServer.Api.V1.Responses;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
@@ -47,47 +46,25 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var user1 = await TestData.CreateUser(hasTrn: true);
         var user2 = await TestData.CreateUser(hasTrn: true);
         var user3 = await TestData.CreateUser(hasTrn: false);
-        var sortedUsers = new[] { user1, user2, user3 }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
+        var allUsers = new[] { user1, user2, user3 }.Append(TestUsers.DefaultUser).OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         // Act
         var response = await httpClient.GetAsync("/api/v1/users");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
+        var responseObj = await AssertEx.JsonResponse(response);
+        var responseUsers = responseObj.RootElement.GetProperty("users").EnumerateArray();
 
-        // Remove any other test users
-        var filteredUsers = responseObj.Users.Where(u => sortedUsers.Select(u => u.UserId).Contains(u.UserId));
-        var filteredOutUsers = responseObj.Users.Where(u => !sortedUsers.Select(u => u.UserId).Contains(u.UserId));
+        foreach (var (responseUser, modelUser) in responseUsers.Zip(allUsers, (response, model) => (Response: response, Model: model)))
+        {
+            Assert.Equal(modelUser.UserId, responseUser.GetProperty("userId").GetGuid());
+            Assert.Equal(modelUser.EmailAddress, responseUser.GetProperty("email").GetString());
+            Assert.Equal(modelUser.FirstName, responseUser.GetProperty("firstName").GetString());
+            Assert.Equal(modelUser.LastName, responseUser.GetProperty("lastName").GetString());
+            Assert.Equal(modelUser.Trn, responseUser.GetProperty("trn").GetString());
+        }
 
-        Assert.Collection(
-            filteredUsers,
-            user =>
-            {
-                Assert.Equal(sortedUsers[0].UserId, user.UserId);
-                Assert.Equal(sortedUsers[0].EmailAddress, user.Email);
-                Assert.Equal(sortedUsers[0].FirstName, user.FirstName);
-                Assert.Equal(sortedUsers[0].LastName, user.LastName);
-                Assert.Equal(sortedUsers[0].Trn, user.Trn);
-            },
-            user =>
-            {
-                Assert.Equal(sortedUsers[1].UserId, user.UserId);
-                Assert.Equal(sortedUsers[1].EmailAddress, user.Email);
-                Assert.Equal(sortedUsers[1].FirstName, user.FirstName);
-                Assert.Equal(sortedUsers[1].LastName, user.LastName);
-                Assert.Equal(sortedUsers[1].Trn, user.Trn);
-            },
-            user =>
-            {
-                Assert.Equal(sortedUsers[2].UserId, user.UserId);
-                Assert.Equal(sortedUsers[2].EmailAddress, user.Email);
-                Assert.Equal(sortedUsers[2].FirstName, user.FirstName);
-                Assert.Equal(sortedUsers[2].LastName, user.LastName);
-                Assert.Equal(sortedUsers[2].Trn, user.Trn);
-            });
-
-        //Total is filtered out test users + expected users
-        Assert.Equal(filteredUsers.Count() + filteredOutUsers.Count(), responseObj.Total);
+        Assert.Equal(allUsers.Length, responseObj.RootElement.GetProperty("total").GetInt32());
     }
 
     [Theory]
@@ -136,13 +113,9 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var response = await httpClient.GetAsync("/api/v1/users?pageNumber=1000&pageSize=40");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
-
-        // Remove any other test users
-        var filteredUsers = responseObj.Users.Where(u => sortedUsers.Select(u => u.UserId).Contains(u.UserId));
-        var filteredOutUsers = responseObj.Users.Where(u => !sortedUsers.Select(u => u.UserId).Contains(u.UserId));
-
-        Assert.Empty(filteredUsers);
+        var responseObj = await AssertEx.JsonResponse(response);
+        var returnedUsers = responseObj.RootElement.GetProperty("users").EnumerateArray();
+        Assert.Empty(returnedUsers);
     }
 
     [Theory]
@@ -170,34 +143,15 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var response = await httpClient.GetAsync($"/api/v1/users?pageNumber={page}&pageSize={pageSize}");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
+        var responseObj = await AssertEx.JsonResponse(response);
+
         Assert.Collection(
-           responseObj.Users,
-           user =>
-           {
-               Assert.Equal(pagedUsers[0].UserId, user.UserId);
-               Assert.Equal(pagedUsers[0].EmailAddress, user.Email);
-               Assert.Equal(pagedUsers[0].FirstName, user.FirstName);
-               Assert.Equal(pagedUsers[0].LastName, user.LastName);
-               Assert.Equal(pagedUsers[0].Trn, user.Trn);
-           },
-           user =>
-           {
-               Assert.Equal(pagedUsers[1].UserId, user.UserId);
-               Assert.Equal(pagedUsers[1].EmailAddress, user.Email);
-               Assert.Equal(pagedUsers[1].FirstName, user.FirstName);
-               Assert.Equal(pagedUsers[1].LastName, user.LastName);
-               Assert.Equal(pagedUsers[1].Trn, user.Trn);
-           },
-           user =>
-           {
-               Assert.Equal(pagedUsers[2].UserId, user.UserId);
-               Assert.Equal(pagedUsers[2].EmailAddress, user.Email);
-               Assert.Equal(pagedUsers[2].FirstName, user.FirstName);
-               Assert.Equal(pagedUsers[2].LastName, user.LastName);
-               Assert.Equal(pagedUsers[2].Trn, user.Trn);
-           });
-        Assert.Equal(sortedUsers.Count(), responseObj.Total);
+           responseObj.RootElement.GetProperty("users").EnumerateArray(),
+           user => Assert.Equal(pagedUsers[0].UserId, user.GetProperty("userId").GetGuid()),
+           user => Assert.Equal(pagedUsers[1].UserId, user.GetProperty("userId").GetGuid()),
+           user => Assert.Equal(pagedUsers[2].UserId, user.GetProperty("userId").GetGuid()));
+
+        Assert.Equal(sortedUsers.Count(), responseObj.RootElement.GetProperty("total").GetInt32());
     }
 
     [Fact]
@@ -215,8 +169,8 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var response = await httpClient.GetAsync($"/api/v1/users?trnLookupStatus=None,Failed");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse<GetAllUsersResponse>(response);
-        var userIds = responseObj.Users.Select(u => u.UserId);
+        var responseObj = await AssertEx.JsonResponse(response);
+        var userIds = responseObj.RootElement.GetProperty("users").EnumerateArray().Select(u => u.GetProperty("userId").GetGuid());
 
         Assert.Contains(userWithNoneStatus.UserId, userIds);
         Assert.Contains(userWithFailedStatus.UserId, userIds);
