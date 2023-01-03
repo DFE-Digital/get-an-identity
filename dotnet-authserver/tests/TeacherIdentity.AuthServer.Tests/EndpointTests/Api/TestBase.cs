@@ -1,5 +1,10 @@
-using IdentityModel.Client;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Server;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api;
 
@@ -30,40 +35,34 @@ public class TestBase
         return CreateHttpClientWithToken(scopes);
     }
 
-    public async Task<HttpClient> CreateHttpClientWithToken(params string[] scopes)
+    public Task<HttpClient> CreateHttpClientWithToken(params string[] scopes)
     {
         var user = TestUsers.AdminUserWithAllRoles;
         var client = TestClients.Client1;
 
-        var allScopes = new[] { "email", "profile", "openid" }.Concat(scopes).Distinct();
+        var allScopes = new[] { "email", "profile", "openid" }.Concat(scopes).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var claims = UserClaimHelper.GetPublicClaims(user, hasScope: allScopes.Contains)
+            .Append(new Claim("client_id", client.ClientId!))
+            .Append(new Claim(Claims.Issuer, new Uri(HostFixture.Configuration["BaseAddress"]!).AbsoluteUri))
+            .Append(new Claim(Claims.Scope, string.Join(" ", allScopes)));
+
+        var jwtHandler = new JwtSecurityTokenHandler();
+        var signingCredentials = HostFixture.Services.GetRequiredService<IOptions<OpenIddictServerOptions>>().Value.SigningCredentials.First();
+
+        var tokenDescriptor = new SecurityTokenDescriptor()
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddDays(1),
+            SigningCredentials = signingCredentials
+        };
+
+        var accessToken = jwtHandler.CreateEncodedJwt(tokenDescriptor);
 
         var httpClient = HostFixture.CreateClient();
-
-        var configuration = await httpClient.GetDiscoveryDocumentAsync(httpClient.BaseAddress!.ToString());
-        if (configuration.IsError)
-        {
-            throw new Exception($"An error occurred while retrieving the configuration document: '{configuration.Error}'.");
-        }
-
-        var response = await httpClient.RequestPasswordTokenAsync(new PasswordTokenRequest()
-        {
-            ClientId = client.ClientId,
-            ClientSecret = client.ClientSecret,
-            Scope = string.Join(" ", allScopes),
-            Address = configuration.TokenEndpoint,
-            UserName = user.EmailAddress,
-            Password = "apasswordwehavetosupplybutdontuse"
-        });
-
-        if (response.IsError)
-        {
-            throw new Exception($"An error occurred while retrieving an access token: '{response.Error}'.");
-        }
-
-        var accessToken = response.AccessToken;
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
-        return httpClient;
+        return Task.FromResult(httpClient);
     }
 
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();

@@ -333,11 +333,6 @@ public class Program
                     .AllowAuthorizationCodeFlow()
                     .AllowClientCredentialsFlow();
 
-                if (builder.Environment.IsUnitTests())
-                {
-                    options.AllowPasswordFlow();
-                }
-
                 if (builder.Environment.IsDevelopment() ||
                     builder.Environment.IsUnitTests() ||
                     builder.Environment.IsEndToEndTests())
