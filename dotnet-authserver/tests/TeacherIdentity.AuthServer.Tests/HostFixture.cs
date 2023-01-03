@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -108,6 +109,11 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<CurrentUserIdContainer>();
             services.PostConfigure<AuthenticationOptions>(options =>
                 options.Schemes.Single(s => s.Name == CookieAuthenticationDefaults.AuthenticationScheme).HandlerType = typeof(TestCookieAuthenticationHandler));
+
+            services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.Backchannel = CreateClient();
+            });
 
             // Disable tracking sign in events from the Delegated authentication handler
             services.PostConfigure<DelegatedAuthenticationOptions>("Delegated", options =>
