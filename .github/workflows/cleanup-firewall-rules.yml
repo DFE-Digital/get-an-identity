@@ -1,0 +1,94 @@
+name: Manual Firewall rules Deletion Preprod and Prouction
+
+on:
+  workflow_dispatch:
+  schedule: 
+    - cron: "0 2 * * 5"
+    - cron: "0 2 * * *"  
+
+jobs:
+  job1:
+    name: List all Firewall Rules ( Preprod )
+    runs-on: ubuntu-latest
+    environment:
+      name: preprod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        if: github.event.schedule == "0 2 * * 5"
+
+      - uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Set environment variables (Preprod)
+        shell: bash
+        run: |
+          tf_vars_file=terraform/workspace_variables/preprod.tfvars.json
+          echo "KEY_VAULT_NAME=$(jq -r '.key_vault_name' ${tf_vars_file})" >> $GITHUB_ENV
+          echo "RESOURCE_PREFIX=$(jq -r '.resource_prefix' ${tf_vars_file})" >> $GITHUB_ENV
+          echo "ENV=$(jq -r '.environment_name' ${tf_vars_file})" >> $GITHUB_ENV
+          echo "RESOURCE_GROUP_NAME=$(jq -r '.resource_group_name' ${tf_vars_file})" >> $GITHUB_ENV
+
+      - name: List firewall rule Preprod
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql  --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+
+      - name: Delete firewall rule Preprod
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az postgres flexible-server firewall-rule delete --rule-name james --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name s165t01-getanid-preprod-psql  --yes       
+            az postgres flexible-server firewall-rule delete --rule-name colin --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name s165t01-getanid-preprod-psql  --yes
+
+  job2:
+    name: List all Firewall Rules ( Production)
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        if: github.event.schedule != "0 2 * * 5"
+
+      - uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Set environment variables (Production)
+        shell: bash
+        run: |
+          tf_vars_file=terraform/workspace_variables/production.tfvars.json
+          echo "KEY_VAULT_NAME=$(jq -r '.key_vault_name' ${tf_vars_file})" >> $GITHUB_ENV
+          echo "RESOURCE_PREFIX=$(jq -r '.resource_prefix' ${tf_vars_file})" >> $GITHUB_ENV
+          echo "ENV=$(jq -r '.environment_name' ${tf_vars_file})" >> $GITHUB_ENV
+          echo "RESOURCE_GROUP_NAME=$(jq -r '.resource_group_name' ${tf_vars_file})" >> $GITHUB_ENV
+
+      - name: Set postgres environment variables
+        shell: bash
+        run: |
+          echo "POSTGRES_SERVER_NAME=${{ env.RESOURCE_PREFIX }}getanid-${{ env.ENV }}-psql" >> $GITHUB_ENV
+          echo "POSTGRES_SERVER_HOST_NAME=${{ env.RESOURCE_PREFIX }}getanid-${{ env.ENV }}-psql.postgres.database.azure.com" >> $GITHUB_ENV
+          echo "POSTGRES_DATABASE_NAME=${{ env.RESOURCE_PREFIX }}getanid-${{ env.ENV }}-psql-db" >> $GITHUB_ENV
+
+      - name: List firewall rule Production
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az postgres flexible-server firewall-rule list --name ${{ env.POSTGRES_SERVER_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+
+      - name: Delete firewall rule Production
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az postgres flexible-server firewall-rule delete --rule-name james --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name ${{ env.POSTGRES_SERVER_NAME }} --yes
