@@ -1,7 +1,9 @@
 name: Re-useable-workflow-firwall
 
-on: 
-  workflow_call:
+on:
+  pull_request:
+    branches:
+      - deploy-cleanup-firewall-rules
   
 jobs:
   job1:

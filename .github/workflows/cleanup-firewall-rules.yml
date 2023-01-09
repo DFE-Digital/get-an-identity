@@ -1,11 +1,10 @@
 name: Manual Firewall rules Deletion Preprod and Prouction
 
-on:
-  pull_request:
-    branches:
-      - deploy-cleanup-firewall-rules
+#on:
+ # pull_request:
+  #  branches:
+   #   - deploy-cleanup-firewall-rules
 
   jobs:
-    call-workflow:
-      uses: ./.github/workflows/re-useable-workflow-firewll.yml
+    uses: ./.github/workflows/re-useable-workflow-firewll.yml
  
