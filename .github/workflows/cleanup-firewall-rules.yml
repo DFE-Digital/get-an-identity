@@ -7,4 +7,5 @@ on:
 
   jobs:
     call-workflow:
-    uses: ./.github/workflows/re-useable-workflow-firewll.yml
+      uses: ./.github/workflows/re-useable-workflow-firewll.yml
+ 
