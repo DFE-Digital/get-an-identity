@@ -1,10 +1,14 @@
-name: Re-useable-workflow-firwall
+name: Firewall rules Deletion
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
-      - deploy-cleanup-firewall-rules
-  
+      - main
+  workflow_dispatch:
+    
 jobs:
   job1:
     name: List all Firewall Rules ( Preprod )
