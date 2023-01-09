@@ -45,7 +45,7 @@ async Task CreateDatabase()
 {
     Console.Write("Checking database exists... ");
 
-    await WithDbContext(dbContext => dbContext.Database.EnsureCreatedAsync());
+    await WithDbContext(dbContext => dbContext.Database.MigrateAsync());
 
     Console.WriteLine("done.");
 }
