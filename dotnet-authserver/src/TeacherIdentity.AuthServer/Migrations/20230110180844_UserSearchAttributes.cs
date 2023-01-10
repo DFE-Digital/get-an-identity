@@ -12,6 +12,26 @@ namespace TeacherIdentity.AuthServer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterColumn<DateOnly>(
+                name: "date_of_birth",
+                table: "users",
+                type: "date",
+                nullable: true,
+                defaultValueSql: "NULL",
+                oldClrType: typeof(DateOnly),
+                oldType: "date",
+                oldNullable: true);
+
+            var dataFixSql = @"
+UPDATE
+    users
+SET
+    date_of_birth = NULL
+WHERE
+    date_of_birth = '-infinity'
+";
+            migrationBuilder.Sql(dataFixSql);
+
             migrationBuilder.CreateTable(
                 name: "user_search_attributes",
                 columns: table => new
@@ -126,6 +146,16 @@ CREATE TRIGGER trg_update_user_search_attributes
         {
             migrationBuilder.DropTable(
                 name: "user_search_attributes");
+
+            migrationBuilder.AlterColumn<DateOnly>(
+                name: "date_of_birth",
+                table: "users",
+                type: "date",
+                nullable: true,
+                oldClrType: typeof(DateOnly),
+                oldType: "date",
+                oldNullable: true,
+                oldDefaultValueSql: "NULL");
         }
     }
 }

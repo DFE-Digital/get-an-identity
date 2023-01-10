@@ -12,7 +12,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    [Migration("20230110133528_UserSearchAttributes")]
+    [Migration("20230110180844_UserSearchAttributes")]
     partial class UserSearchAttributes
     {
         /// <inheritdoc />
@@ -446,8 +446,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnName("created");
 
                     b.Property<DateOnly?>("DateOfBirth")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("date")
-                        .HasColumnName("date_of_birth");
+                        .HasColumnName("date_of_birth")
+                        .HasDefaultValueSql("NULL");
 
                     b.Property<string>("EmailAddress")
                         .IsRequired()
