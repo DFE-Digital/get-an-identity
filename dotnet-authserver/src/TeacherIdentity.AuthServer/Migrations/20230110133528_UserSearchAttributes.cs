@@ -1,5 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,7 +16,8 @@ namespace TeacherIdentity.AuthServer.Migrations
                 name: "user_search_attributes",
                 columns: table => new
                 {
-                    usersearchattributeid = table.Column<Guid>(name: "user_search_attribute_id", type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    usersearchattributeid = table.Column<long>(name: "user_search_attribute_id", type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     userid = table.Column<Guid>(name: "user_id", type: "uuid", nullable: false),
                     attributetype = table.Column<string>(name: "attribute_type", type: "text", nullable: false),
                     attributevalue = table.Column<string>(name: "attribute_value", type: "text", nullable: false, collation: "case_insensitive")

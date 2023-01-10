@@ -8,7 +8,7 @@ public class UserSearchAttributeMapping : IEntityTypeConfiguration<UserSearchAtt
     public void Configure(EntityTypeBuilder<UserSearchAttribute> builder)
     {
         builder.ToTable("user_search_attributes");
-        builder.Property(a => a.UserSearchAttributeId).IsRequired().HasDefaultValueSql("gen_random_uuid()");
+        builder.Property(a => a.UserSearchAttributeId).IsRequired().ValueGeneratedOnAdd();
         builder.HasKey(a => a.UserSearchAttributeId);
         builder.Property(a => a.UserId).IsRequired();
         builder.HasIndex(a => a.UserId).HasDatabaseName(UserSearchAttribute.UserIdIndexName);

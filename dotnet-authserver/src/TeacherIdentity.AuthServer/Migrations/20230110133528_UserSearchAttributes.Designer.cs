@@ -12,7 +12,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    [Migration("20230109150454_UserSearchAttributes")]
+    [Migration("20230110133528_UserSearchAttributes")]
     partial class UserSearchAttributes
     {
         /// <inheritdoc />
@@ -531,11 +531,12 @@ namespace TeacherIdentity.AuthServer.Migrations
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.UserSearchAttribute", b =>
                 {
-                    b.Property<Guid>("UserSearchAttributeId")
+                    b.Property<long>("UserSearchAttributeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_search_attribute_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_search_attribute_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserSearchAttributeId"));
 
                     b.Property<string>("AttributeType")
                         .IsRequired()

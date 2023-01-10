@@ -528,11 +528,12 @@ namespace TeacherIdentity.AuthServer.Migrations
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.UserSearchAttribute", b =>
                 {
-                    b.Property<Guid>("UserSearchAttributeId")
+                    b.Property<long>("UserSearchAttributeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_search_attribute_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_search_attribute_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserSearchAttributeId"));
 
                     b.Property<string>("AttributeType")
                         .IsRequired()

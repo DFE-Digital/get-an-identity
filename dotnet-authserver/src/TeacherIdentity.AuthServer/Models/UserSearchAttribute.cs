@@ -6,7 +6,7 @@ public class UserSearchAttribute
 
     public const string AttributeTypeAndValueIndexName = "ix_user_search_attributes_attribute_type_and_value";
 
-    public required Guid UserSearchAttributeId { get; init; }
+    public required long UserSearchAttributeId { get; init; }
 
     public required Guid UserId { get; init; }
 
