@@ -41,7 +41,7 @@ jobs:
           inlineScript: |
            az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }}
            echo "if rule-name other than AllowAzure - Remove"
-           az postgres flexible-server firewall-rule update --rule-name AllowAzure --name s165t01-getanid-preprod-psql  --resource-group ${{ env.RESOURCE_GROUP_NAME }} --remove endIpAddress.[86.179.228.223]
+           az postgres flexible-server firewall-rule update --rule-name AllowAzure --name s165t01-getanid-preprod-psql  --resource-group ${{ env.RESOURCE_GROUP_NAME }} --remove 86.179.228.223
         #    az postgres flexible-server firewall-rule policy intrusion-detection remove --AllowAzure
                #    az postgres flexible-server firewall-rule delete --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name s165t01-getanid-preprod-psql --remove test --yes
 
