@@ -1,9 +1,11 @@
+using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using static Bogus.DataSets.Name;
 
 var configuration = new ConfigurationManager();
 
@@ -40,6 +42,12 @@ Console.WriteLine();
 await ConfigureAdminAccount();
 Console.WriteLine();
 await ConfigureClients();
+
+if (args.Contains("--generate-test-users"))
+{
+    Console.WriteLine();
+    await GenerateTestUsers();
+}
 
 async Task CreateDatabase()
 {
@@ -117,6 +125,35 @@ async Task ConfigureClients()
     await using var scope = serviceProvider.CreateAsyncScope();
     var helper = new ClientConfigurationHelper(scope.ServiceProvider);
     await helper.UpsertClients(clients);
+
+    Console.WriteLine("done.");
+}
+
+async Task GenerateTestUsers()
+{
+    const int TestUsersCount = 100;
+    Console.Write("Generating test users... ");
+
+    await WithDbContext(async dbContext =>
+    {
+        var userFaker = new Faker<User>("en")
+            .RuleFor(u => u.UserId, (f, u) => Guid.NewGuid())
+            .RuleFor(u => u.Created, (f, u) => DateTime.UtcNow)
+            .RuleFor(u => u.Updated, (f, u) => u.Created)
+            .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName(f.PickRandom<Gender>()))
+            .RuleFor(u => u.LastName, (f, u) => f.Name.LastName())
+            .RuleFor(u => u.EmailAddress, (f, u) => f.Internet.Email(u.FirstName, u.LastName))
+            .RuleFor(u => u.Trn, (f, u) => f.Random.Number(1000000, 9999999).ToString())
+            .RuleFor(u => u.DateOfBirth, (f, u) => DateOnly.FromDateTime(f.Date.Between(new DateTime(1950, 1, 1), new DateTime(2000, 1, 1))))
+            .RuleFor(u => u.UserType, (f, u) => UserType.Teacher);
+
+        foreach (var user in userFaker.GenerateLazy(TestUsersCount))
+        {
+            dbContext.Users.Add(user);
+        }
+
+        await dbContext.SaveChangesAsync();
+    });
 
     Console.WriteLine("done.");
 }
