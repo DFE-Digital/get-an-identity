@@ -33,22 +33,16 @@ jobs:
           echo "ENV=$(jq -r '.environment_name' ${tf_vars_file})" >> $GITHUB_ENV
           echo "RESOURCE_GROUP_NAME=$(jq -r '.resource_group_name' ${tf_vars_file})" >> $GITHUB_ENV
   
-      - name: List Firewall rules
-        shell: bash
-        run: |
-        az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output table
-   
+      - name: List firewall rule Preprod
+        if: always()
+        uses: azure/CLI@v1
+        with:
+        azcliversion: 2.30.0
+       inlineScript: |
+         az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }} | jq -r .value
+         echo "if rule-name other than AllowAzure - Remove"
 
-
-     # - name: List firewall rule Preprod
-      #  if: always()
-       # uses: azure/CLI@v1
-       # with:
-       #   azcliversion: 2.30.0
-       #   inlineScript: |
-        #    az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-         #   echo "if rule-name other than AllowAzure - Remove"
-          #  az postgres flexible-server firewall-rule delete --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name s165t01-getanid-preprod-psql --end-ip-address 51.148.145.41 --yes
+       #    az postgres flexible-server firewall-rule delete --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name s165t01-getanid-preprod-psql --end-ip-address 51.148.145.41 --yes
         #  az postgres flexible-server firewall-rule update --rule-name AllowAzure --name s165t01-getanid-preprod-psql  --resource-group ${{ env.RESOURCE_GROUP_NAME }} --remove property.list
         #    az postgres flexible-server firewall-rule policy intrusion-detection remove --AllowAzure
 
