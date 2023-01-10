@@ -38,7 +38,7 @@ jobs:
         uses: azure/CLI@v1
         with:
         azcliversion: 2.30.0
-       inlineScript: |
+        inlineScript: |
          az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }} | jq -r .value
          echo "if rule-name other than AllowAzure - Remove"
 
