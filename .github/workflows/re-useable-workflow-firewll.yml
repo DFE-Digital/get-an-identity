@@ -36,7 +36,7 @@ jobs:
       - name: List Firewall rules
         shell: bash
         run: |
-        list-firewall-rules = "$(az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }} | jq -r '[.0].name')"
+        az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output table
    
 
 
