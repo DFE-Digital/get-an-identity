@@ -3,6 +3,10 @@
     "TeacherIdentity.AuthServer.Clients": {
       "commandName": "Project",
       "commandLineArgs": "--environment Local"
+    },
+    "TeacherIdentity.DevBootstrap Generate Test Users": {
+      "commandName": "Project",
+      "commandLineArgs": "--environment Local --generate-test-users"
     }
   }
 }
