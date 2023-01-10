@@ -92,58 +92,17 @@ BEGIN
                 attribute_type,
                 attribute_value
             )
-        VALUES
-            (
-                NEW.user_id,
-                'first_name',
-                NEW.first_name
-            );
-        
-        INSERT INTO
-            user_search_attributes
-            (
-                user_id,
-                attribute_type,
-                attribute_value
-            )
-        VALUES
-            (
-                NEW.user_id,
-                'last_name',
-                NEW.last_name
-            );
-
-        IF (NEW.date_of_birth IS NOT NULL) THEN
-            INSERT INTO
-                user_search_attributes
-                (
-                    user_id,
-                    attribute_type,
-                    attribute_value
-                )
-            VALUES
-                (
-                    NEW.user_id,
-                    'date_of_birth',
-                    to_char(NEW.date_of_birth, 'yyyy-mm-dd')
-                );
-        END IF;
-
-        IF (NEW.trn IS NOT NULL) THEN
-            INSERT INTO
-                user_search_attributes
-                (
-                    user_id,
-                    attribute_type,
-                    attribute_value
-                )
-            VALUES
-                (
-                    NEW.user_id,
-                    'trn',
-                    NEW.trn
-                );
-        END IF;	
+        SELECT
+            NEW.user_id,
+            *
+        FROM
+            (VALUES 
+             ('first_name', NEW.first_name),
+             ('last_name', NEW.last_name),
+             ('date_of_birth', CASE WHEN NEW.date_of_birth IS NULL THEN NULL ELSE to_char(NEW.date_of_birth, 'yyyy-mm-dd') END),
+             ('trn', NEW.trn)) AS attribs (attribute_type, attribute_value)
+        WHERE
+            attribs.attribute_value IS NOT NULL;
     END IF;
     
     RETURN NULL; -- result is ignored since this is an AFTER trigger
