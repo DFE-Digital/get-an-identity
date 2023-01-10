@@ -39,7 +39,9 @@ jobs:
         with:
           azcliversion: 2.30.0
           inlineScript: |
-            az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output yaml
+            az postgres flexible-server firewall-rule list --name s165t01-getanid-preprod-psql --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+            echo "if rule-name other than AllowAzure - Remove"
+            az postgres flexible-server firewall-rule delete --resource-group ${{ env.RESOURCE_GROUP_NAME }} --name s165t01-getanid-preprod-psql --yes
         #  az postgres flexible-server firewall-rule update --rule-name AllowAzure --name s165t01-getanid-preprod-psql  --resource-group ${{ env.RESOURCE_GROUP_NAME }} --remove property.list
         #    az postgres flexible-server firewall-rule policy intrusion-detection remove --AllowAzure
 
