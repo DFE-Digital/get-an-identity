@@ -1,0 +1,21 @@
+@page "/sign-in/register"
+@{
+    ViewBag.Title = "Create a Teaching Services account";
+}
+
+<govuk-panel class="app-panel--interruption">
+    <govuk-panel-title>@ViewBag.Title</govuk-panel-title>
+
+    <govuk-panel-body>
+        <p>To create a Teaching Services account you’ll need to provide your:</p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>personal email address</li>
+            <li>name</li>
+            <li>date of birth</li>
+        </ul>
+
+        <p>Once you’ve created your account you can Apply for a QTS</p>
+
+        <govuk-button-link class="app-button--inverse" href="@LinkGenerator.RegisterEmail()">Continue</govuk-button-link>
+    </govuk-panel-body>
+</govuk-panel>
