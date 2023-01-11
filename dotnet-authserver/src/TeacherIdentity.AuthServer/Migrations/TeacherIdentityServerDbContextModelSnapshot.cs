@@ -443,8 +443,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnName("created");
 
                     b.Property<DateOnly?>("DateOfBirth")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("date")
-                        .HasColumnName("date_of_birth");
+                        .HasColumnName("date_of_birth")
+                        .HasDefaultValueSql("NULL");
 
                     b.Property<string>("EmailAddress")
                         .IsRequired()
