@@ -1,0 +1,33 @@
+name: Delete extra firewall rules
+
+inputs:
+  AzureCredentials:
+    description: Azure Credentials
+    required: true
+  ResourceGroupName:
+    description: Postgres resource group name
+    required: true
+  PostgresServerName:
+    description: Flexible Postgres server name
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+  - uses: Azure/login@v1
+    with:
+      creds: ${{ inputs.AzureCredentials }}
+      enable-AzPSSession: true
+
+  - name: Run script to delete extra firewall rules
+    uses: azure/powershell@v1
+    with:
+      inlineScript: |
+        $Rules = Get-AzPostgreSqlFlexibleServerFirewallRule -ResourceGroupName ${{ inputs.ResourceGroupName }} -ServerName ${{ inputs.PostgresServerName }}
+        $ExtraRules = $Rules | Where-Object { $_.Name -ne "AllowAzure" }
+
+        foreach ($Rule in $ExtraRules) {
+          Remove-AzPostgreSqlFlexibleServerFirewallRule -Name $Rule.Name -ResourceGroupName ${{ inputs.ResourceGroupName }} -ServerName ${{ inputs.PostgresServerName }}
+        }
+      azPSVersion: latest
