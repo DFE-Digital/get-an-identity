@@ -49,9 +49,13 @@ public class FindALostTrnIntegrationHelper
             { "journey_id", authenticationState.JourneyId.ToString() },
             { "client_id", clientId },
             { "client_url", clientServiceUrl },
-            { "previous_url", previousUrl },
-            { "session_id", sessionId ?? string.Empty }
+            { "previous_url", previousUrl }
         };
+
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            formValues.Add("session_id", sessionId);
+        }
 
         var sig = CalculateSignature(formValues);
         formValues.Add("sig", sig);
