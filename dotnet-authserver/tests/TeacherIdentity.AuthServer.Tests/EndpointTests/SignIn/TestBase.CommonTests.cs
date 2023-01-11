@@ -149,4 +149,20 @@ public partial class TestBase
             Assert.Null(doc.GetElementByTestId("JourneyExpiredError"));
         }
     }
+
+    public async Task ValidRequest_RendersContent(string url)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+
+        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
+        var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        await response.GetDocument();
+    }
 }
