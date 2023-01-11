@@ -1,0 +1,24 @@
+name: Delete extra firewall rules in production
+
+on:
+  schedule: # 01:00 UTC every day
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  firewall:
+    name: Delete extra firewall rules in production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Delete extra firewall rules
+        uses: ./.github/workflows/actions/delete-extra-firewall-rules
+        with:
+          AzureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+          ResourceGroupName: s165p01-getanid-pd-rg
+          PostgresServerName: s165p01-getanid-production-psql
