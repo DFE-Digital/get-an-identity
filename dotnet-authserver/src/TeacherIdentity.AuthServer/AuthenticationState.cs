@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Flurl;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -142,6 +143,11 @@ public class AuthenticationState
 
     public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
     {
+        if (ShouldRedirectToLandingPage())
+        {
+            return linkGenerator.Landing();
+        }
+
         // We need an email address
         if (EmailAddress is null)
         {
@@ -413,6 +419,17 @@ public class AuthenticationState
         ExistingTrnFound = 3,
         EmailOfExistingAccountForTrnVerified = 4
     }
+
+    private bool ShouldRedirectToLandingPage()
+    {
+        if (OAuthState == null) { return false; }
+
+        List<String> ignoredScopes = new List<string>();
+        ignoredScopes.AddRange(CustomScopes.StaffUserTypeScopes);
+        ignoredScopes.Add(CustomScopes.Trn);
+
+        return !OAuthState.HasAnyScope(ignoredScopes);
+    }
 }
 
 public class OAuthAuthorizationState
@@ -448,6 +465,8 @@ public class OAuthAuthorizationState
 
         return $"{new Uri(RedirectUri).GetLeftPart(UriPartial.Authority)}/{serviceUrl.ToString().TrimStart('/')}";
     }
+
+    public bool HasAnyScope(IEnumerable<string> scopes) => Scope.Split(' ').Any(scopes.Contains);
 
     public void SetAuthorizationResponse(
         IEnumerable<KeyValuePair<string, string>> responseParameters,

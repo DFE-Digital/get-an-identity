@@ -69,6 +69,10 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string TrnCallback(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
 
+    public static string Landing(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Landing");
+
+    public static string Register(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register");
+
     public static string UpdateEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)

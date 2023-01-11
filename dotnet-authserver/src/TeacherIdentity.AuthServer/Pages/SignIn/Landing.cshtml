@@ -1,0 +1,24 @@
+@page "/sign-in/landing"
+@{
+    ViewBag.Title = "You need a Teaching Services account to continue";
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">You need a Teaching Services account to continue</h1>
+
+        <p>A teaching services account lets you:</p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>access different teaching services with one login</li>
+            <li>update your details in one place</li>
+        </ul>
+
+        <govuk-button-link href="@LinkGenerator.Register()">Create an account</govuk-button-link>
+
+        <h1 class="govuk-heading-m">Already have an account?</h1>
+
+        <p>
+            <a href="@LinkGenerator.Email()">Sign in</a> to use your existing account details
+        </p>
+    </div>
+</div>

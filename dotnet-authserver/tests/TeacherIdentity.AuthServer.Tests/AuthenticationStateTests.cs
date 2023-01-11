@@ -257,6 +257,7 @@ public partial class AuthenticationStateTests
                 .Returns(returnsPath.SetQueryParam("asid", authenticationState.JourneyId.ToString()));
         }
 
+        ConfigureMockForPage("/SignIn/Landing", "/sign-in/landing");
         ConfigureMockForPage("/SignIn/Email", "/sign-in/email");
         ConfigureMockForPage("/SignIn/EmailConfirmation", "/sign-in/email-confirmation");
         ConfigureMockForPage("/SignIn/Trn", "/sign-in/trn");
@@ -644,6 +645,7 @@ public partial class AuthenticationStateTests
         get
         {
             var journeyId = Guid.NewGuid();
+            var clientId = "test";
             var postSignInUrl = "/callback";
 
             // Helper method for creating an AuthenticationState object and modifying it via its On* methods
@@ -773,6 +775,18 @@ public partial class AuthenticationStateTests
                         })
                     ),
                     postSignInUrl
+                },
+
+                // User requesting authorization with admin scopes or trn scope
+                {
+                    S(AuthenticationState.FromInternalClaims(journeyId, UserRequirements.DefaultUserType, new ClaimsPrincipal(), postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "user:read", null))),
+                    $"/sign-in/email?asid={journeyId}"
+                },
+
+                // User requesting authorization without admin scopes or trn scope
+                {
+                    S(AuthenticationState.FromInternalClaims(journeyId, UserRequirements.DefaultUserType, new ClaimsPrincipal(), postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "foo", null))),
+                    $"/sign-in/landing?asid={journeyId}"
                 },
             };
         }
