@@ -221,7 +221,7 @@ public class AuthenticationState
         EmailAddressVerified = false;
     }
 
-    public void OnEmailVerified(User? user)
+    public void OnEmailVerified()
     {
         if (EmailAddress is null)
         {
@@ -229,6 +229,12 @@ public class AuthenticationState
         }
 
         EmailAddressVerified = true;
+    }
+
+    public void OnEmailVerified(User? user)
+    {
+        OnEmailVerified();
+
         FirstTimeSignInForEmail = user is null;
 
         if (user is not null)

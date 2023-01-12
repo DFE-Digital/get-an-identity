@@ -1,37 +1,26 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-public class EmailConfirmationModel : PageModel
+public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IIdentityLinkGenerator _linkGenerator;
-    private readonly PinValidator _pinValidator;
-    private readonly IEmailVerificationService _emailVerificationService;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IEmailVerificationService emailConfirmationService,
         IIdentityLinkGenerator linkGenerator,
         PinValidator pinValidator)
+        : base(emailConfirmationService, pinValidator)
     {
         _dbContext = dbContext;
-        _emailVerificationService = emailConfirmationService;
         _linkGenerator = linkGenerator;
-        _pinValidator = pinValidator;
     }
-
-    public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
-
-    [BindProperty]
-    [Display(Name = "Enter your code")]
-    public string? Code { get; set; }
 
     public void OnGet()
     {
@@ -47,45 +36,11 @@ public class EmailConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        var verifyPinFailedReasons = await _emailVerificationService.VerifyPin(Email!, Code!);
+        var verifyPinFailedReasons = await EmailVerificationService.VerifyPin(Email!, Code!);
 
         if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            if (verifyPinFailedReasons == PinVerificationFailedReasons.RateLimitExceeded)
-            {
-                return new ViewResult()
-                {
-                    StatusCode = 429,
-                    ViewName = "TooManyPinVerificationRequests"
-                };
-            }
-
-            if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
-            {
-                var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
-
-                if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
-                {
-                    if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
-                    {
-                        return new ViewResult()
-                        {
-                            StatusCode = 429,
-                            ViewName = "TooManyRequests"
-                        };
-                    }
-
-                    throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
-                }
-
-                ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
-            }
-            else
-            {
-                ModelState.AddModelError(nameof(Code), "Enter a correct security code");
-            }
-
-            return this.PageWithErrors();
+            return await HandlePinVerificationFailed(verifyPinFailedReasons);
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
@@ -123,16 +78,6 @@ public class EmailConfirmationModel : PageModel
         if (authenticationState.EmailAddressVerified)
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
-        }
-    }
-
-    private void ValidateCode()
-    {
-        var validationError = _pinValidator.ValidateCode(Code);
-
-        if (validationError is not null)
-        {
-            ModelState.AddModelError(nameof(Code), validationError);
         }
     }
 }

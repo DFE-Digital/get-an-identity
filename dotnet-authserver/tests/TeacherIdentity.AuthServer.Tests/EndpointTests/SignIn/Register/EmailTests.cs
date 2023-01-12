@@ -129,7 +129,7 @@ public class EmailTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateGeneratesPin(bool emailIsKnown)
+    public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToRegisterEmailConfirmation(bool emailIsKnown)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
@@ -153,6 +153,8 @@ public class EmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/email-confirmation", response.Headers.Location?.OriginalString);
+
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Once);
