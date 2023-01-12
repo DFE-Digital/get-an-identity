@@ -32,16 +32,8 @@ public class LandingTests : TestBase
     }
 
     [Fact]
-    public async Task Get_ValidRequest_ReturnsOk()
+    public async Task Get_ValidRequest_RendersContent()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/landing?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        response.EnsureSuccessStatusCode();
+        await ValidRequest_RendersContent("/sign-in/landing");
     }
 }

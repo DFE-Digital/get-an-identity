@@ -1,0 +1,23 @@
+@page "/sign-in/register/email"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.EmailModel
+@{
+    ViewBag.Title = "Your email address";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.Register()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterEmail()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <govuk-input asp-for="Email" type="email" autocomplete="email">
+                <govuk-input-label class="govuk-label--s" />
+            </govuk-input>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
