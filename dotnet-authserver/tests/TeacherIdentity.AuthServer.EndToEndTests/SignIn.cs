@@ -392,6 +392,69 @@ public class SignIn : IClassFixture<HostFixture>
         _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId, expectOAuthProperties: false));
     }
 
+    [Fact]
+    public async Task TeacherUser_WithTrnAssignedViaApi_CanSignInSuccessfully()
+    {
+        var email = "joe.bloggs+existing-user-with-manually-assigned-trn@example.com";
+        var trn = "1234568";
+
+        var userId = Guid.NewGuid();
+
+        {
+            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
+
+            dbContext.Users.Add(new User()
+            {
+                Created = DateTime.UtcNow,
+                EmailAddress = email,
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                UserId = userId,
+                UserType = UserType.Default,
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                Trn = trn,
+                TrnLookupStatus = TrnLookupStatus.Found,
+                TrnAssociationSource = TrnAssociationSource.Api,
+                CompletedTrnLookup = null,
+                Updated = DateTime.UtcNow
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        // Start on the client app and try to access a protected area
+
+        await page.GotoAsync("/profile?scope=email+openid+profile+trn");
+
+        // Fill in the sign in form (email + PIN)
+
+        await page.FillAsync("text=Enter your email address", email);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        await page.FillAsync("text=Enter your code", pin);
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be on the confirmation page
+
+        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
+        await page.ClickAsync("button:has-text('Continue')");
+
+        // Should now be back at the client, signed in
+
+        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
+        var pageUrlHost = new Uri(page.Url).Host;
+        Assert.Equal(clientAppHost, pageUrlHost);
+
+        var signedInEmail = await page.InnerTextAsync("data-testid=email");
+        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(email, signedInEmail);
+    }
+
     private void AssertEventIsUserSignedIn(
         Events.EventBase @event,
         Guid userId,

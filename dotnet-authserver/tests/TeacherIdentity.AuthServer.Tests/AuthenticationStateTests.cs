@@ -421,6 +421,60 @@ public partial class AuthenticationStateTests
     }
 
     [Fact]
+    public void OnEmailVerified_WithUserWhoHasTrnAssignedViaApi()
+    {
+        // Arrange
+        var journeyId = Guid.NewGuid();
+        var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
+
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var trn = "2345678";
+        var userId = Guid.NewGuid();
+
+        var user = new User()
+        {
+            DateOfBirth = dateOfBirth,
+            CompletedTrnLookup = null,
+            Created = DateTime.UtcNow,
+            EmailAddress = email,
+            FirstName = firstName,
+            LastName = lastName,
+            Trn = trn,
+            TrnAssociationSource = TrnAssociationSource.Api,
+            TrnLookupStatus = TrnLookupStatus.Found,
+            Updated = DateTime.UtcNow,
+            UserId = userId,
+            UserType = UserType.Default
+        };
+
+        var authenticationState = new AuthenticationState(
+            journeyId,
+            userRequirements,
+            postSignInUrl: "/",
+            startedAt: DateTime.UtcNow);
+
+        authenticationState.OnEmailSet(email);
+
+        // Act
+        authenticationState.OnEmailVerified(user);
+
+        // Assert
+        Assert.True(authenticationState.EmailAddressVerified);
+        Assert.False(authenticationState.FirstTimeSignInForEmail);
+        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(trn, authenticationState.Trn);
+        Assert.Equal(userId, authenticationState.UserId);
+        Assert.False(authenticationState.HaveCompletedTrnLookup);
+        Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
+        Assert.Equal(UserType.Default, authenticationState.UserType);
+    }
+
+    [Fact]
     public void OnTrnLookupCompletedAndUserRegistered()
     {
         // Arrange
@@ -772,6 +826,30 @@ public partial class AuthenticationStateTests
                             Updated = DateTime.UtcNow,
                             UserId = Guid.NewGuid(),
                             UserType = UserType.Default
+                        })
+                    ),
+                    postSignInUrl
+                },
+
+                // Existing user who has had TRN assigned via API
+                {
+                    S(
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(new User()
+                        {
+                            CompletedTrnLookup = null,
+                            Created = DateTime.UtcNow,
+                            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                            FirstName = Faker.Name.First(),
+                            LastName = Faker.Name.Last(),
+                            EmailAddress = "john.doe@example.com",
+                            Updated = DateTime.UtcNow,
+                            UserId = Guid.NewGuid(),
+                            UserType = UserType.Default,
+                            Trn = "2345678",
+                            TrnAssociationSource = TrnAssociationSource.Api,
+                            TrnLookupStatus = TrnLookupStatus.Found
                         })
                     ),
                     postSignInUrl
