@@ -163,7 +163,7 @@ public class AuthenticationState
         if (UserRequirements.HasFlag(UserRequirements.TrnHolder))
         {
             // If it's not been done before, launch the journey to find the TRN
-            if (!HaveCompletedTrnLookup)
+            if (Trn is null && !HaveCompletedTrnLookup)
             {
                 return linkGenerator.Trn();
             }
@@ -251,7 +251,7 @@ public class AuthenticationState
             StaffRoles = user.StaffRoles;
             TrnLookupStatus = user.TrnLookupStatus;
 
-            if (HaveCompletedTrnLookup)
+            if (HaveCompletedTrnLookup || Trn is not null)
             {
                 TrnLookup = TrnLookupState.Complete;
             }
