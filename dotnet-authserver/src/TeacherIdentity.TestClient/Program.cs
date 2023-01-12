@@ -56,12 +56,10 @@ public class Program
                 options.Events.OnRedirectToIdentityProvider = ctx =>
                 {
                     var customScope = ctx.HttpContext.Request.Query["scope"].ToString();
-                    if (string.IsNullOrEmpty(customScope))
+                    if (!string.IsNullOrEmpty(customScope))
                     {
-                        customScope = "trn";
+                        ctx.ProtocolMessage.Scope = customScope;
                     }
-
-                    ctx.ProtocolMessage.Scope += " " + customScope;
 
                     return Task.CompletedTask;
                 };

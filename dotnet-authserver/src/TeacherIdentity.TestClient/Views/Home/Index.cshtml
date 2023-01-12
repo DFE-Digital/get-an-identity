@@ -1,1 +1,7 @@
-﻿<govuk-button-link asp-action="Profile">My profile</govuk-button-link>
+<form asp-action="Profile" method="get">
+    <govuk-input name="scope" value="email openid profile trn" input-class="govuk-input--width-20">
+        <govuk-input-label>Scope</govuk-input-label>
+    </govuk-input>
+
+    <govuk-button type="submit">My profile</govuk-button>
+</form>
