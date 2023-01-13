@@ -40,6 +40,7 @@ This request includes some additional context, specified as form values:
 | client_url | The home page of the calling service, used to generate the header link. |
 | previous_url | The URL of the page that POSTed to Find, used to generate a back link. |
 | journey_id | A unique ID for this authorization journey instance. |
+| session_id | An ID for the session used for analytics (if specified by the calling client). |
 | sig | This is a signed hash of the previous parameters using a pre-shared key in hexadecimal format. |
 
 ### Context signature parameter
@@ -74,6 +75,7 @@ redirect_url=https%3A%2F%2Fauthserveruri%2F&client_title=The%20Client%20Title&em
    | journey_id | 9ddccb62-ec13-4ea7-a163-c058a19b8222 |
    | previous_url | https://authserveruri/sign-in/trn |
    | redirect_url | https://authserveruri/ |
+   | session_id | somesessionid |
 2. Encode parameters and combine:\
     `client_title=The%20Client%20Title&client_url=https%3A%2F%2Fcalling.service.gov.uk&email=joe.bloggs%40example.com&journey_id=9ddccb62-ec13-4ea7-a163-c058a19b8222&previous_url=https%3A%2F%2Fauthserveruri%2Fsign-in%2Ftrn&redirect_url=https%3A%2F%2Fauthserveruri%2F`
 3. Sign the string with the PSK\

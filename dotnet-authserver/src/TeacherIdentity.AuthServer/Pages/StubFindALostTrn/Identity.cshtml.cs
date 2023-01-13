@@ -27,6 +27,9 @@ public class IdentityModel : PageModel
     [FromForm(Name = "redirect_url")]
     public string? RedirectUrl { get; set; }
 
+    [FromForm(Name = "session_id")]
+    public string? SessionId { get; set; }
+
     public IActionResult OnPost()
     {
         var handoverParameters = Request.Form.ToDictionary(k => k.Key, k => k.Value.ToString());

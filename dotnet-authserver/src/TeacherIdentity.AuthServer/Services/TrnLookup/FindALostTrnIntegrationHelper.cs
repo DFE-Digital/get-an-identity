@@ -32,6 +32,7 @@ public class FindALostTrnIntegrationHelper
         authenticationState.EnsureOAuthState();
 
         var clientId = authenticationState.OAuthState.ClientId;
+        var sessionId = authenticationState.SessionId;
         var client = (Application)(await _applicationManager.FindByClientIdAsync(clientId))!;
         var clientDisplayName = client.DisplayName;
         var clientServiceUrl = authenticationState.OAuthState.ResolveServiceUrl(client);
@@ -50,6 +51,11 @@ public class FindALostTrnIntegrationHelper
             { "client_url", clientServiceUrl },
             { "previous_url", previousUrl }
         };
+
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            formValues.Add("session_id", sessionId);
+        }
 
         var sig = CalculateSignature(formValues);
         formValues.Add("sig", sig);
