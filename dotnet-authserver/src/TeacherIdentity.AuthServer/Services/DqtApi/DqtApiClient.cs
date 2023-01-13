@@ -1,3 +1,5 @@
+using Flurl;
+
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public class DqtApiClient : IDqtApiClient
@@ -9,6 +11,25 @@ public class DqtApiClient : IDqtApiClient
         _client = httpClient;
     }
 
+    public async Task<FindTeachersResponse> FindTeachers(FindTeachersRequest request, CancellationToken cancellationToken)
+    {
+        var url = new Url("/v2/teachers/find")
+            .SetQueryParam("firstName", request.FirstName)
+            .SetQueryParam("lastName", request.LastName)
+            .SetQueryParam("previousFirstName", request.PreviousFirstName)
+            .SetQueryParam("previousLastName", request.PreviousLastName)
+            .SetQueryParam("dateOfBirth", request.DateOfBirth?.ToString("yyyy-MM-dd"))
+            .SetQueryParam("nationalInsuranceNumber", request.NationalInsuranceNumber)
+            .SetQueryParam("ittProviderName", request.IttProviderName)
+            .SetQueryParam("ittProviderUkprn", request.IttProviderUkprn)
+            .SetQueryParam("emailAddress", request.EmailAddress)
+            .SetQueryParam("trn", request.Trn);
+
+        var response = await _client.GetAsync(url, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<FindTeachersResponse>(cancellationToken: cancellationToken))!;
+    }
+
     public async Task<TeacherInfo?> GetTeacherByTrn(string trn, CancellationToken cancellationToken)
     {
         var response = await _client.GetAsync($"/v2/teachers/{trn}", cancellationToken);
@@ -18,6 +39,6 @@ public class DqtApiClient : IDqtApiClient
             return null;
         }
 
-        return await response.Content.ReadFromJsonAsync<TeacherInfo>();
+        return await response.Content.ReadFromJsonAsync<TeacherInfo>(cancellationToken: cancellationToken);
     }
 }
