@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
         IWebHostEnvironment environment,
         IConfiguration configuration)
     {
-        if (environment.IsProduction())
+        if (!environment.IsUnitTests() && !environment.IsEndToEndTests())
         {
             services.AddOptions<DqtApiOptions>()
                 .Bind(configuration.GetSection("DqtApi"))
@@ -25,10 +25,6 @@ public static class ServiceCollectionExtensions
                     httpClient.BaseAddress = new Uri(options.Value.BaseAddress);
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.ApiKey);
                 });
-        }
-        else
-        {
-            services.AddTransient<IDqtApiClient, FakeDqtApiClient>();
         }
 
         return services;

@@ -72,6 +72,8 @@ dotnet user-secrets --id TeacherIdentityServer set DeveloperEmail "your_email_ad
 ```
 Where `your_email_address` is an email address you can access.
 
+Ask a developer on the team for additional user secrets for integration with other services (e.g. DQT).
+
 Finally run the DevBootstrap project. This will create the database, add an admin user account and configure the OIDC clients for local development.
 
 #### Test client

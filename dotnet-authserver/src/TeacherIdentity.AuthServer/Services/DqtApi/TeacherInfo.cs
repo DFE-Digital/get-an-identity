@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
-public class TeacherInfo
+public record TeacherInfo
 {
     public required string Trn { get; init; }
     public required string FirstName { get; init; }

@@ -259,18 +259,6 @@ public sealed class AuthenticationStateHelper
                 {
                     s.OnHaveResumedCompletedJourney();
                 }
-
-                if (user.Trn is not null)
-                {
-                    HostFixture.DqtApiClient
-                        .Setup(mock => mock.GetTeacherByTrn(user.Trn))
-                        .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
-                        {
-                            Trn = user.Trn,
-                            FirstName = user.FirstName,
-                            LastName = user.LastName
-                        });
-                }
             };
     }
 }
