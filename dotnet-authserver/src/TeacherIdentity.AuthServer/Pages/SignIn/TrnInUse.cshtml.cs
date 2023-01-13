@@ -1,35 +1,23 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-public class TrnInUseModel : PageModel
+public class TrnInUseModel : BaseEmailConfirmationPageModel
 {
-    private readonly IEmailVerificationService _emailVerificationService;
-    private readonly PinValidator _pinValidator;
     private readonly IIdentityLinkGenerator _linkGenerator;
-    private readonly IRateLimitStore _rateLimiter;
 
     public TrnInUseModel(
         IEmailVerificationService emailVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator,
-        IRateLimitStore ratelimiter)
+        IIdentityLinkGenerator linkGenerator)
+        : base(emailVerificationService, pinValidator)
     {
-        _emailVerificationService = emailVerificationService;
-        _pinValidator = pinValidator;
         _linkGenerator = linkGenerator;
-        _rateLimiter = ratelimiter;
     }
 
-    public string Email => HttpContext.GetAuthenticationState().TrnOwnerEmailAddress!;
-
-    [BindProperty]
-    [Display(Name = "Enter your code")]
-    public string? Code { get; set; }
+    public override string Email => HttpContext.GetAuthenticationState().TrnOwnerEmailAddress!;
 
     public void OnGet()
     {
@@ -45,36 +33,11 @@ public class TrnInUseModel : PageModel
             return this.PageWithErrors();
         }
 
-        var verifyPinFailedReasons = await _emailVerificationService.VerifyPin(Email!, Code!);
+        var verifyPinFailedReasons = await EmailVerificationService.VerifyPin(Email!, Code!);
 
         if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
-            {
-                var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
-
-                if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
-                {
-                    if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
-                    {
-                        return new ViewResult()
-                        {
-                            StatusCode = 429,
-                            ViewName = "TooManyRequests"
-                        };
-                    }
-
-                    throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
-                }
-
-                ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
-            }
-            else
-            {
-                ModelState.AddModelError(nameof(Code), "Enter a correct security code");
-            }
-
-            return this.PageWithErrors();
+            return await HandlePinVerificationFailed(verifyPinFailedReasons);
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
@@ -92,16 +55,6 @@ public class TrnInUseModel : PageModel
             authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
         {
             context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-        }
-    }
-
-    private void ValidateCode()
-    {
-        var validationError = _pinValidator.ValidateCode(Code);
-
-        if (validationError is not null)
-        {
-            ModelState.AddModelError(nameof(Code), validationError);
         }
     }
 }

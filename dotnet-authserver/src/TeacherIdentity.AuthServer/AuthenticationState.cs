@@ -221,7 +221,7 @@ public class AuthenticationState
         EmailAddressVerified = false;
     }
 
-    public void OnEmailVerified(User? user)
+    public void OnEmailVerified(User? user = null)
     {
         if (EmailAddress is null)
         {
