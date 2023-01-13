@@ -67,8 +67,6 @@ public class IndexModel : PageModel
 
         await PersistLookupState();
 
-        PersistTeacherInfoInFakeDqtClient();
-
         var redirectUrl = HttpContext.Session.GetString("FindALostTrn:RedirectUrl")!;
         return Redirect(redirectUrl);
 
@@ -95,26 +93,6 @@ public class IndexModel : PageModel
                     PreferredLastName = PreferredLastName!,
                 });
             response.EnsureSuccessStatusCode();
-        }
-
-        void PersistTeacherInfoInFakeDqtClient()
-        {
-            if (_dqtApiClient is not FakeDqtApiClient fakeDqtApiClient)
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(Trn))
-            {
-                return;
-            }
-
-            fakeDqtApiClient.SetTeacherInfo(new TeacherInfo()
-            {
-                Trn = Trn!,
-                FirstName = OfficialFirstName!,
-                LastName = OfficialLastName!
-            });
         }
     }
 }
