@@ -5,7 +5,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-public class BaseEmailConfirmationPageModel : PageModel
+public abstract class BaseEmailConfirmationPageModel : PageModel
 {
     protected readonly PinValidator PinValidator;
     protected readonly IEmailVerificationService EmailVerificationService;
