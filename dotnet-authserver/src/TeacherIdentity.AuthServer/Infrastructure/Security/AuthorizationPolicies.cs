@@ -6,5 +6,6 @@ public static class AuthorizationPolicies
     public const string ApiUserWrite = "API:UserWrite";
     public const string Authenticated = "Authenticated";
     public const string GetAnIdentityAdmin = "GetAnIdentityAdmin";
+    public const string Staff = "Staff";
     public const string TrnLookupApi = "API:TrnLookup";
 }

@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
+[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
 public class StaffModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;

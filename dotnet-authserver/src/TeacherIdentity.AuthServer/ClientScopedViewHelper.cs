@@ -23,7 +23,12 @@ public class ClientScopedViewHelper
     public async Task<IView?> FindClientScopedView(string viewName)
     {
         var client = await _currentClientProvider.GetCurrentClient();
-        var actionContext = _actionContextAccessor.ActionContext ?? throw new InvalidOperationException("No current ActionContext.");
+        var actionContext = _actionContextAccessor.ActionContext;
+
+        if (actionContext is null)
+        {
+            return null;
+        }
 
         // By convention, pascal case the client ID to get the view suffix
         // e.g. register-for-npq -> RegisterForNpq
