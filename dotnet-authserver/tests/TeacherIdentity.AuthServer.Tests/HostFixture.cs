@@ -92,7 +92,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         var trnConfig = Configuration.GetSection("FindALostTrnIntegration:UseNewTrnLookupJourney");
         if (bool.TryParse(trnConfig.Value, out var useNewTrnLookupJourney))
         {
-            var trnOptions =Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
+            var trnOptions = Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
             trnOptions.UseNewTrnLookupJourney = useNewTrnLookupJourney;
         }
     }
