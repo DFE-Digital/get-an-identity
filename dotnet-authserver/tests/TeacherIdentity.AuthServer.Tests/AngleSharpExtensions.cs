@@ -39,7 +39,13 @@ public static class AngleSharpExtensions
     public static IElement? GetElementByTestId(this IHtmlDocument doc, string testId) =>
         doc.Body!.GetElementByTestId(testId);
 
-    public static string? GetSummaryListValueForKey(this IHtmlDocument doc, string key)
+    public static IReadOnlyList<IElement> GetSummaryListActionsForKey(this IHtmlDocument doc, string key)
+    {
+        var row = GetSummaryListRowForKey(doc, key);
+        return row?.QuerySelectorAll(".govuk-summary-list__actions>*").ToArray() ?? Array.Empty<IElement>();
+    }
+
+    public static IElement? GetSummaryListRowForKey(this IHtmlDocument doc, string key)
     {
         var allRows = doc.QuerySelectorAll(".govuk-summary-list__row");
 
@@ -49,11 +55,17 @@ public static class AngleSharpExtensions
 
             if (rowKey?.TextContent.Trim() == key)
             {
-                var rowValue = row.QuerySelector(".govuk-summary-list__value");
-                return rowValue?.TextContent.Trim();
+                return row;
             }
         }
 
         return null;
+    }
+
+    public static string? GetSummaryListValueForKey(this IHtmlDocument doc, string key)
+    {
+        var row = GetSummaryListRowForKey(doc, key);
+        var rowValue = row?.QuerySelector(".govuk-summary-list__value");
+        return rowValue?.TextContent.Trim();
     }
 }

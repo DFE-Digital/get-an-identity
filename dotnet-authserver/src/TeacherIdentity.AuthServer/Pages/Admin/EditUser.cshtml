@@ -1,0 +1,93 @@
+@page "/admin/users/{userId}"
+@model TeacherIdentity.AuthServer.Pages.Admin.EditUserModel
+@{
+    ViewBag.Title = Model.Name;
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="Users" />
+}
+
+<h1 class="govuk-heading-xl">
+    @Model.Name
+</h1>
+
+<section class="x-govuk-summary-card govuk-!-margin-bottom-6">
+    <header class="x-govuk-summary-card__header">
+        <h2 class="x-govuk-summary-card__title">
+            Get an identity details
+        </h2>
+    </header>
+
+    <div class="x-govuk-summary-card__body">
+        <govuk-summary-list>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>
+                    <p data-testid="Name">@Model.Name</p>
+
+                    <span class="govuk-!-font-size-16 govuk-hint">
+                        Name used in Get an identity<br>
+                        @if (!string.IsNullOrEmpty(Model.RegistrationClientDisplayName))
+                        {
+                            <text>From: @Model.RegistrationClientDisplayName<br></text>
+                        }
+                        Created: @Model.Created.ToString("dd MMMM yyyy") at @Model.Created.ToString("hh:mmtt")
+                    </span>
+                </govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="#" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@Model.EmailAddress</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="#" visually-hidden-text="email address">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>DQT record</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@(Model.HaveDqtRecord ? "Yes": "No")</govuk-summary-list-row-value>
+                @if (Model.CanChangeDqtRecord)
+                {
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="#">Change record</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                }
+            </govuk-summary-list-row>
+        </govuk-summary-list>
+    </div>
+</section>
+
+@if (Model.HaveDqtRecord)
+{
+    <section class="x-govuk-summary-card govuk-!-margin-bottom-6" data-testid="DqtSection">
+        <header class="x-govuk-summary-card__header">
+            <h2 class="x-govuk-summary-card__title">
+                DQT record
+            </h2>
+        </header>
+
+        <div class="x-govuk-summary-card__body">
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>DQT name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.DqtName</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.DqtDateOfBirth!.Value.ToString("d MMMM yyyy")</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>National insurance number</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@(!string.IsNullOrEmpty(Model.DqtNationalInsuranceNumber) ? "Given" : "Not given")</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+        </div>
+    </section>
+}

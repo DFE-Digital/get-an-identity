@@ -221,6 +221,13 @@ public class Program
                     .RequireRole(StaffRoles.GetAnIdentityAdmin));
 
             options.AddPolicy(
+                AuthorizationPolicies.GetAnIdentitySupport,
+                policy => policy
+                    .AddAuthenticationSchemes("Delegated")
+                    .RequireAuthenticatedUser()
+                    .RequireRole(StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport));
+
+            options.AddPolicy(
                 AuthorizationPolicies.Staff,
                 policy => policy
                     .AddAuthenticationSchemes("Delegated")
