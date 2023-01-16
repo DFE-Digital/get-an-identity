@@ -1,6 +1,7 @@
 @use '../lib/govuk-frontend/govuk/all.scss';
 @import '../lib/govuk-frontend/govuk/_base.scss';
 @import '../lib/govuk-frontend/govuk/settings/measurements.scss';
+@import './_summary-card.scss';
 
 a {
   @extend %govuk-link;
