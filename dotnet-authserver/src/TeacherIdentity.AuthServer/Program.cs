@@ -221,6 +221,13 @@ public class Program
                     .RequireRole(StaffRoles.GetAnIdentityAdmin));
 
             options.AddPolicy(
+                AuthorizationPolicies.Staff,
+                policy => policy
+                    .AddAuthenticationSchemes("Delegated")
+                    .RequireAuthenticatedUser()
+                    .RequireClaim(CustomClaims.UserType, UserClaimHelper.MapUserTypeToClaimValue(UserType.Staff)));
+
+            options.AddPolicy(
                 AuthorizationPolicies.TrnLookupApi,
                 policy => policy
                     .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
@@ -264,7 +271,7 @@ public class Program
                 "/Admin",
                 model =>
                 {
-                    model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.GetAnIdentityAdmin));
+                    model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.Staff));
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(

@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
+[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
 public class ClientsModel : PageModel
 {
     private readonly IOpenIddictApplicationManager _applicationManager;

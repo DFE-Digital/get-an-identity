@@ -107,6 +107,8 @@ public static class UserClaimHelper
             authenticationState.TrnLookupStatus);
     }
 
+    public static string MapUserTypeToClaimValue(UserType userType) => userType.ToString();
+
     private static string? GetClaim(ClaimsPrincipal principal, string claimType, bool throwIfMissing)
     {
         var value = principal.FindFirstValue(claimType);
@@ -165,7 +167,7 @@ public static class UserClaimHelper
         yield return new Claim(Claims.GivenName, firstName);
         yield return new Claim(Claims.FamilyName, lastName);
         yield return new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString());
-        yield return new Claim(CustomClaims.UserType, userType.ToString());
+        yield return new Claim(CustomClaims.UserType, MapUserTypeToClaimValue(userType));
 
         if (dateOfBirth.HasValue)
         {
