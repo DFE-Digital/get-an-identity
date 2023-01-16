@@ -3,6 +3,7 @@ using TeacherIdentity.AuthServer.Services.TrnLookup;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
+[Collection(nameof(DisableParallelization))]  // Modifies options
 public class TrnTests : TestBase
 {
     public TrnTests(HostFixture hostFixture)
