@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Services.TrnLookup;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 public class TrnTests : TestBase
@@ -76,5 +79,24 @@ public class TrnTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_WhenUseNewTrnLookupJourneyTrue_RedirectsToTrnOfficialName()
+    {
+        // Arrange
+        var trnConfig = HostFixture.Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
+        trnConfig.UseNewTrnLookupJourney = true;
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/official-name", response.Headers.Location?.OriginalString);
     }
 }

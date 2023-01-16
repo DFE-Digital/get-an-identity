@@ -32,6 +32,12 @@ public class TrnModel : PageModel
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
+        if (_findALostTrnIntegrationHelper.Options.UseNewTrnLookupJourney)
+        {
+            context.Result = new RedirectResult(_linkGenerator.TrnOfficialName());
+            return;
+        }
+
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
         // We expect to have a verified email at this point but we shouldn't have completed the TRN lookup
