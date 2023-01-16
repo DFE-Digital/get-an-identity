@@ -61,6 +61,14 @@ public class AuthenticationState
     [JsonInclude]
     public string? LastName { get; private set; }
     [JsonInclude]
+    public string? OfficialFirstName { get; private set; }
+    [JsonInclude]
+    public string? OfficialLastName { get; private set; }
+    [JsonInclude]
+    public string? PreviousOfficialFirstName { get; private set; }
+    [JsonInclude]
+    public string? PreviousOfficialLastName { get; private set; }
+    [JsonInclude]
     public DateOnly? DateOfBirth { get; private set; }
     [JsonInclude]
     public string? Trn { get; private set; }
@@ -387,6 +395,18 @@ public class AuthenticationState
     {
         FirstName = firstName;
         LastName = lastName;
+    }
+
+    public void OnOfficialNameSet(
+        string officialFirstName,
+        string officialLastName,
+        string? previousOfficialFirstName,
+        string? previousOfficiaLastName)
+    {
+        OfficialFirstName = officialFirstName;
+        OfficialLastName = officialLastName;
+        PreviousOfficialFirstName = previousOfficialFirstName;
+        PreviousOfficialLastName = previousOfficiaLastName;
     }
 
     public void OnHaveResumedCompletedJourney()
