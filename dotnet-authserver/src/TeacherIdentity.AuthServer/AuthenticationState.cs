@@ -414,6 +414,11 @@ public class AuthenticationState
         return !string.IsNullOrEmpty(OfficialFirstName) && !string.IsNullOrEmpty(OfficialLastName);
     }
 
+    public void OnDateOfBirthSet(DateOnly dateOfBirth)
+    {
+        DateOfBirth = dateOfBirth;
+    }
+
     public void OnHaveResumedCompletedJourney()
     {
         if (!IsComplete())
