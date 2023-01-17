@@ -110,6 +110,19 @@ public sealed class AuthenticationStateHelper
                 s.OnEmailVerified(user);
             };
 
+        public Func<AuthenticationState, Task> OfficialNameSet(string? email = null, User? user = null) =>
+            async s =>
+            {
+                if (email is not null && user is not null && email != user?.EmailAddress)
+                {
+                    throw new ArgumentException("Email does not match user's email.", nameof(email));
+                }
+
+                await EmailSet(email ?? user?.EmailAddress)(s);
+                s.OnEmailVerified(user);
+                s.OnOfficialNameSet("first", "last", null, null);
+            };
+
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(
             string email,
             string? trn,

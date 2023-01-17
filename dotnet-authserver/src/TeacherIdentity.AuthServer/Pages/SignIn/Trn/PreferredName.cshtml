@@ -1,0 +1,41 @@
+@page "/sign-in/trn/preferred-name"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Trn.PreferredName
+@{
+    ViewBag.Title = $"Is {Model.FirstName} {Model.LastName} your preferred name?";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.TrnOfficialName()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.TrnPreferredName()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>You can tell us what you prefer to be called if it’s different from the name on your official documents.</p>
+            <p>For example, if your name is Joanne and you preferred to be called Jo.</p>
+
+            <govuk-radios asp-for="HasPreferredName">
+                <govuk-radios-fieldset>
+                    <govuk-radios-item value="False">Yes</govuk-radios-item>
+                    <govuk-radios-item value="True">
+                        No, I prefer to be known by another name
+                        <govuk-radios-item-conditional>
+                            <h2 class="govuk-heading-m">What is your preferred name?</h2>
+                            <govuk-input asp-for="PreferredFirstName" spellcheck="false" autocomplete="given-name">
+                                <govuk-input-label class="govuk-label--s"/>
+                            </govuk-input>
+                            <govuk-input asp-for="PreferredLastName" spellcheck="false" autocomplete="family-name">
+                                <govuk-input-label class="govuk-label--s"/>
+                            </govuk-input>
+                        </govuk-radios-item-conditional>
+                    </govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

@@ -32,6 +32,38 @@ public class OfficialNameTests : TestBase
     }
 
     [Fact]
+    public async Task Get_NoEmail_RedirectsToEmailPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
     public async Task Post_EmptyOfficialFirstName_ReturnsError()
     {
         // Arrange
@@ -66,7 +98,7 @@ public class OfficialNameTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidOfficialName_SetsOfficialNameOnAuthenticationState()
+    public async Task Post_ValidOfficialName_SetsOfficialNameOnAuthenticationStateRedirectsToPreferredName()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
@@ -78,7 +110,7 @@ public class OfficialNameTests : TestBase
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "OfficialFirstName", firstName },
-                { "OfficialLastName", lastName }
+                { "OfficialLastName", lastName },
             }
         };
 
@@ -87,6 +119,7 @@ public class OfficialNameTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/preferred-name", response.Headers.Location?.OriginalString);
 
         Assert.Equal(firstName, authStateHelper.AuthenticationState.OfficialFirstName);
         Assert.Equal(lastName, authStateHelper.AuthenticationState.OfficialLastName);
@@ -110,7 +143,7 @@ public class OfficialNameTests : TestBase
                 { "OfficialLastName", "last" },
                 { "PreviousOfficialFirstName", previousFirstName },
                 { "PreviousOfficialLastName", previousLastName },
-                { "HasPreviousName", hasPreviousName}
+                { "HasPreviousName", hasPreviousName},
             }
         };
 
