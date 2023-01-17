@@ -25,8 +25,8 @@ public class RequiredIfTrueAttribute : RequiredAttribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class IsPastDateAttribute : RangeAttribute
 {
-    public IsPastDateAttribute()
-        : base(typeof(DateTime), "1/1/0001", DateTime.Now.ToShortDateString())
+    public IsPastDateAttribute(Type type)
+        : base(type, DateTime.MinValue.ToShortDateString(), DateTime.Now.ToShortDateString())
     {
     }
 }

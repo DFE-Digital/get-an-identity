@@ -17,8 +17,8 @@ public class DateOfBirthPage : PageModel
 
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
-    [IsPastDate(ErrorMessage = "Your date of birth must be in the past")]
-    public DateTime? DateOfBirth { get; set; }
+    [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
+    public DateOnly? DateOfBirth { get; set; }
 
     public void OnGet()
     {
@@ -31,7 +31,7 @@ public class DateOfBirthPage : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnDateOfBirthSet(DateOnly.FromDateTime((DateTime)DateOfBirth!));
+        HttpContext.GetAuthenticationState().OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
         return Redirect(_linkGenerator.TrnHaveNiNumber());
     }
