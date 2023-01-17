@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-
 public class OfficialName : PageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
@@ -30,7 +29,7 @@ public class OfficialName : PageModel
     [Display(Name = "Previous last name (optional)")]
     public string? PreviousOfficialLastName { get; set; }
 
-    public bool HasPreviousName { get; set; }
+    public PreviousName? HasPreviousName { get; set; }
 
     public void OnGet()
     {
@@ -46,8 +45,8 @@ public class OfficialName : PageModel
         HttpContext.GetAuthenticationState().OnOfficialNameSet(
             OfficialFirstName!,
             OfficialLastName!,
-            HasPreviousName ? PreviousOfficialFirstName : null,
-            HasPreviousName ? PreviousOfficialLastName : null);
+            HasPreviousName == PreviousName.True ? PreviousOfficialFirstName : null,
+            HasPreviousName == PreviousName.True ? PreviousOfficialLastName : null);
 
         return Redirect(_linkGenerator.TrnPreferredName());
     }
@@ -63,5 +62,12 @@ public class OfficialName : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+    }
+
+    public enum PreviousName
+    {
+        True,
+        False,
+        PreferNotToSay
     }
 }

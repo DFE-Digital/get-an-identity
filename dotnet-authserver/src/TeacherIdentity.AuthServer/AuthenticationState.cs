@@ -409,6 +409,11 @@ public class AuthenticationState
         PreviousOfficialLastName = previousOfficiaLastName;
     }
 
+    public bool HasOfficialName()
+    {
+        return !string.IsNullOrEmpty(OfficialFirstName) && !string.IsNullOrEmpty(OfficialLastName);
+    }
+
     public void OnHaveResumedCompletedJourney()
     {
         if (!IsComplete())
