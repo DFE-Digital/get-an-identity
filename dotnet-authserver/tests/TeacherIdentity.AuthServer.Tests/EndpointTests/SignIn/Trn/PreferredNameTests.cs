@@ -139,7 +139,7 @@ public class PreferredNameTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidForm_ReturnsStatus302Found()
+    public async Task Post_ValidForm_RedirectsToDateOfBirthPage()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
@@ -157,6 +157,7 @@ public class PreferredNameTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/date-of-birth", response.Headers.Location?.OriginalString);
     }
 
     [Theory]
