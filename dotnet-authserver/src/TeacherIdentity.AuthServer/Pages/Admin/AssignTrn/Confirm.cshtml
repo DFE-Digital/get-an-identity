@@ -1,0 +1,80 @@
+@page "/admin/users/{userId}/assign-trn/{trn}"
+@model TeacherIdentity.AuthServer.Pages.Admin.AssignTrn.ConfirmModel
+@{
+    ViewBag.Title = "We found a DQT record, is it the right one?";
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="Trn" asp-route-userId="@Model.UserId" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+        <form asp-page="Confirm" asp-route-userId="@Model.UserId" asp-route-trn="@Model.Trn">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <section class="x-govuk-summary-card govuk-!-margin-bottom-6 ">
+                <header class="x-govuk-summary-card__header">
+                    <h2 class="x-govuk-summary-card__title">
+                        Get an identity
+                    </h2>
+                </header>
+
+                <div class="x-govuk-summary-card__body">
+                    <govuk-summary-list>
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@Model.EmailAddress</govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                    </govuk-summary-list>
+                </div>
+            </section>
+
+            <section class="x-govuk-summary-card govuk-!-margin-bottom-6 ">
+                <header class="x-govuk-summary-card__header">
+                    <h2 class="x-govuk-summary-card__title">
+                        DQT record
+                    </h2>
+                </header>
+
+                <div class="x-govuk-summary-card__body">
+                    <dl class="govuk-summary-list">
+                        <govuk-summary-list>
+                            <govuk-summary-list-row>
+                                <govuk-summary-list-row-key>DQT name</govuk-summary-list-row-key>
+                                <govuk-summary-list-row-value>@Model.DqtName</govuk-summary-list-row-value>
+                            </govuk-summary-list-row>
+                            <govuk-summary-list-row>
+                                <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                                <govuk-summary-list-row-value>@Model.DqtDateOfBirth!.Value.ToString("d MMMM yyyy")</govuk-summary-list-row-value>
+                            </govuk-summary-list-row>
+                            <govuk-summary-list-row>
+                                <govuk-summary-list-row-key>National insurance number</govuk-summary-list-row-key>
+                                <govuk-summary-list-row-value>@(!string.IsNullOrEmpty(Model.DqtNationalInsuranceNumber) ? "Given" : "Not given")</govuk-summary-list-row-value>
+                            </govuk-summary-list-row>
+                            <govuk-summary-list-row>
+                                <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                                <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+                            </govuk-summary-list-row>
+                        </govuk-summary-list>
+                    </dl>
+                </div>
+            </section>
+
+            <govuk-radios asp-for="AddRecord">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m"/>
+                    <govuk-radios-item value="@true">Yes, add this record</govuk-radios-item>
+                    <govuk-radios-item value="@false">No, this is the wrong record</govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
