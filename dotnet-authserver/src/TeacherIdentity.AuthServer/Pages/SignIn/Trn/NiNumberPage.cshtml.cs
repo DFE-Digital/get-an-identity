@@ -37,7 +37,7 @@ public class NiNumberPage : PageModel
                 return this.PageWithErrors();
             }
 
-            HttpContext.GetAuthenticationState().NationalInsuranceNumber = NiNumber!.ToUpper().Replace(" ", string.Empty);
+            HttpContext.GetAuthenticationState().NationalInsuranceNumber = NiNumber!;
         }
 
         return Redirect(_linkGenerator.TrnAwardedQts());

@@ -155,10 +155,8 @@ public class NiNumberTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        var formattedNiNumber = niNumber.ToUpper().Replace(" ", string.Empty);
-
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(formattedNiNumber, authStateHelper.AuthenticationState.NationalInsuranceNumber);
+        Assert.Equal(niNumber, authStateHelper.AuthenticationState.NationalInsuranceNumber);
     }
 
     [Fact]
