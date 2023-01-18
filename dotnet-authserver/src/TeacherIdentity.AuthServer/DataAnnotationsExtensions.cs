@@ -21,3 +21,12 @@ public class RequiredIfTrueAttribute : RequiredAttribute
         return isRequired && !base.IsValid(value) ? new ValidationResult(ErrorMessage) : ValidationResult.Success!;
     }
 }
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class IsPastDateAttribute : RangeAttribute
+{
+    public IsPastDateAttribute(Type type)
+        : base(type, DateTime.MinValue.ToShortDateString(), DateTime.Now.ToShortDateString())
+    {
+    }
+}
