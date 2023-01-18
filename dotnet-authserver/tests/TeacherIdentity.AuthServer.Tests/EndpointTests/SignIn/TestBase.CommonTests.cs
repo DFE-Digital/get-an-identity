@@ -150,10 +150,11 @@ public partial class TestBase
         }
     }
 
-    public async Task ValidRequest_RendersContent(string url)
+    public async Task ValidRequest_RendersContent(string url,
+        Func<Configure, Func<AuthenticationState, Task>> configure)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(configure);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);

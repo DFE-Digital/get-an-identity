@@ -1,0 +1,27 @@
+@page "/sign-in/trn/have-nino"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Trn.HaveNiNumber
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.HasNiNumber);
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.TrnDateOfBirth()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.TrnHaveNiNumber()" method="post" asp-antiforgery="true">
+            <govuk-radios asp-for="HasNiNumber">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl"/>
+
+                    <govuk-radios-item value="True">Yes</govuk-radios-item>
+                    <govuk-radios-item value="False">No</govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

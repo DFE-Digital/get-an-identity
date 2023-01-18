@@ -34,6 +34,6 @@ public class IndexTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/register");
+        await ValidRequest_RendersContent("/sign-in/register", c => c.Start());
     }
 }
