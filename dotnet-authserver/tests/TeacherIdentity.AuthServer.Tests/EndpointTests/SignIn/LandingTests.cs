@@ -34,6 +34,6 @@ public class LandingTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/landing");
+        await ValidRequest_RendersContent("/sign-in/landing", c => c.Start());
     }
 }

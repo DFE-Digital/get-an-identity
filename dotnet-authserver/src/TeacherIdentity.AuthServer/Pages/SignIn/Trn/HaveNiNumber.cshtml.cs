@@ -6,19 +6,18 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class DateOfBirthPage : PageModel
+public class HaveNiNumber : PageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
 
-    public DateOfBirthPage(IIdentityLinkGenerator linkGenerator)
+    public HaveNiNumber(IIdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }
 
-    [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
-    [Required(ErrorMessage = "Enter your date of birth")]
-    [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
-    public DateOnly? DateOfBirth { get; set; }
+    [Display(Name = "Do you have a National Insurance number?")]
+    [Required(ErrorMessage = "Tell us if you have a National Insurance number")]
+    public bool? HasNiNumber { get; set; }
 
     public void OnGet()
     {
@@ -31,9 +30,11 @@ public class DateOfBirthPage : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnDateOfBirthSet((DateOnly)DateOfBirth!);
+        HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber = (bool)HasNiNumber!;
 
-        return Redirect(_linkGenerator.TrnHaveNiNumber());
+        return (bool)HasNiNumber!
+            ? Redirect(_linkGenerator.TrnHaveNiNumber())
+            : Redirect(_linkGenerator.TrnAwardedQts());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

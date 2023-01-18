@@ -37,7 +37,7 @@ public class EmailTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/email");
+        await ValidRequest_RendersContent("/sign-in/email", c => c.Start());
     }
 
     [Fact]

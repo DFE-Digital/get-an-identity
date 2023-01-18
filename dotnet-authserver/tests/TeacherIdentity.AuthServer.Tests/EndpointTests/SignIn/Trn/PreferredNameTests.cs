@@ -67,7 +67,7 @@ public class PreferredNameTests : TestBase
     public async Task Get_OfficialNameNotSet_RedirectsToNextHopUrl()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
