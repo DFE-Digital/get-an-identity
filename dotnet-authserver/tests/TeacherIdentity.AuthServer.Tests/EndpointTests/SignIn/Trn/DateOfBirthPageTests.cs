@@ -121,7 +121,7 @@ public class DateOfBirthPageTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidForm_SetsDateOfBirthOnAuthenticationState()
+    public async Task Post_ValidForm_SetsDateOfBirthOnAuthenticationStateRedirectsToTrnHaveNiNumber()
     {
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
@@ -142,6 +142,8 @@ public class DateOfBirthPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/have-nino", response.Headers.Location?.OriginalString);
+
         Assert.Equal(dateOfBirth, authStateHelper.AuthenticationState.DateOfBirth);
     }
 }
