@@ -147,4 +147,26 @@ public class HaveNiNumberTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/ni-number", response.Headers.Location?.OriginalString);
     }
+
+    [Fact]
+    public async Task Post_HasNiNumberFalse_RedirectsToAwardedQtsPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", false },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/awarded-qts", response.Headers.Location?.OriginalString);
+    }
 }
