@@ -1,8 +1,10 @@
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
-public class HaveNiNumberTests : TestBase
+public class NiNumberTests : TestBase
 {
-    public HaveNiNumberTests(HostFixture hostFixture)
+    public NiNumberTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -10,25 +12,25 @@ public class HaveNiNumberTests : TestBase
     [Fact]
     public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn/have-nino");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
-    public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
+    public async Task Get_MissingAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn/have-nino");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/have-nino");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/have-nino");
+        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
@@ -82,15 +84,18 @@ public class HaveNiNumberTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/have-nino", c => c.OfficialNameSet());
+        await ValidRequest_RendersContent("/sign-in/trn/ni-number", c => c.OfficialNameSet());
     }
 
     [Fact]
-    public async Task Post_NullHasNiNumber_ReturnsError()
+    public async Task Post_EmptyNiNumber_ReturnsError()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}")
+
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -99,22 +104,50 @@ public class HaveNiNumberTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasNiNumber", "Tell us if you have a National Insurance number");
+        await AssertEx.HtmlResponseHasError(response, "NiNumber", "Enter a National Insurance number");
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Post_ValidForm_SetsHaveNiNumberOnAuthenticationState(bool hasNiNumber)
+    [InlineData("QQ 123456C")]
+    [InlineData("123456")]
+    [InlineData("QQ12345C")]
+    public async Task Post_InvalidNiNumber_ReturnsError(string niNumber)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}")
+        HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "HasNiNumber", hasNiNumber },
+                { "NiNumber", niNumber },
+                { "submit", "submit" },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "NiNumber", "Enter a National Insurance number in the correct format");
+    }
+
+    [Theory]
+    [InlineData("QQ 12 34 56 C")]
+    [InlineData("QQ123456C")]
+    [InlineData("qQ123456c")]
+    public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationState(string niNumber)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "NiNumber", niNumber },
+                { "submit", "submit" },
             }
         };
 
@@ -123,20 +156,19 @@ public class HaveNiNumberTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(hasNiNumber, authStateHelper.AuthenticationState.HaveNationalInsuranceNumber);
+        Assert.Equal(niNumber, authStateHelper.AuthenticationState.NationalInsuranceNumber);
     }
 
     [Fact]
-    public async Task Post_HasNiNumberTrue_RedirectsToNiNumberPage()
+    public async Task Post_NiNumberNotKnown_Returns302Found()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "HasNiNumber", true },
+                { "submit", "ni_number_not_known" },
             }
         };
 
@@ -145,6 +177,5 @@ public class HaveNiNumberTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn/ni-number", response.Headers.Location?.OriginalString);
     }
 }

@@ -6,35 +6,41 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class HaveNiNumber : PageModel
+public class NiNumberPage : PageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
 
-    public HaveNiNumber(IIdentityLinkGenerator linkGenerator)
+    public NiNumberPage(IIdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }
 
-    [Display(Name = "Do you have a National Insurance number?")]
-    [Required(ErrorMessage = "Tell us if you have a National Insurance number")]
-    public bool? HasNiNumber { get; set; }
+    [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
+    [Required(ErrorMessage = "Enter a National Insurance number")]
+    [RegularExpression(@"(?i)\A[a-z]{2}(?: [0-9]{2}){3} [a-d]{1}|[a-z]{2}[0-9]{6}[a-d]{1}\Z", ErrorMessage = "Enter a National Insurance number in the correct format")]
+    public string? NiNumber { get; set; }
 
     public void OnGet()
     {
     }
 
-    public IActionResult OnPost()
+    public IActionResult OnPost(string submit)
     {
-        if (!ModelState.IsValid)
+        if (submit == "ni_number_not_known")
         {
-            return this.PageWithErrors();
+            HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber = false;
+        }
+        else
+        {
+            if (!ModelState.IsValid)
+            {
+                return this.PageWithErrors();
+            }
+
+            HttpContext.GetAuthenticationState().NationalInsuranceNumber = NiNumber!;
         }
 
-        HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber = (bool)HasNiNumber!;
-
-        return (bool)HasNiNumber!
-            ? Redirect(_linkGenerator.TrnNiNumber())
-            : Redirect(_linkGenerator.TrnAwardedQts());
+        return Redirect(_linkGenerator.TrnAwardedQts());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
