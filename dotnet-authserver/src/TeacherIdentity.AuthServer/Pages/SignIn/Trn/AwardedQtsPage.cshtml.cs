@@ -15,7 +15,7 @@ public class AwardedQtsPage : PageModel
         _linkGenerator = linkGenerator;
     }
 
-    public string? BackLink => HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber
+    public string? BackLink => (HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber == true)
         ? _linkGenerator.TrnNiNumber()
         : _linkGenerator.TrnHaveNiNumber();
 

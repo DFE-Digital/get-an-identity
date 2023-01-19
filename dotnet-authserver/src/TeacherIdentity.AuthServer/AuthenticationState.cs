@@ -84,9 +84,9 @@ public class AuthenticationState
     public string? TrnOwnerEmailAddress { get; private set; }
     [JsonInclude]
     public TrnLookupStatus? TrnLookupStatus { get; private set; }
-    public bool HaveNationalInsuranceNumber { get; set; }
+    public bool? HaveNationalInsuranceNumber { get; set; }
     public string? NationalInsuranceNumber { get; set; }
-    public bool AwardedQts { get; set; }
+    public bool? AwardedQts { get; set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
