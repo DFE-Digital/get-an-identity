@@ -1,0 +1,110 @@
+@page "/admin/users"
+@model TeacherIdentity.AuthServer.Pages.Admin.UsersModel
+@{
+    ViewBag.Title = "Users";
+}
+
+<h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+<govuk-tabs>
+    <govuk-tabs-item label="Open" id="open-tab">
+        <p class="govuk-heading-s ">These records need to be checked against the DQT.</p>
+
+        <p>Showing @Model.OpenTotal of @Model.OpenTotal total</p>
+
+        @if (Model.Open!.Length > 0)
+        {
+            <table class="govuk-table">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col" class="govuk-table__header">Name</th>
+                        <th scope="col" class="govuk-table__header">Email</th>
+                        <th scope="col" class="govuk-table__header"></th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    @foreach (var user in Model.Open!)
+                    {
+                        <tr class="govuk-table__row" data-testid="user-@user.UserId">
+                            <td class="govuk-table__cell"><a asp-page="EditUser" asp-route-userId="@user.UserId">@user.Name</a></td>
+                            <td class="govuk-table__cell">@user.EmailAddress</td>
+                            <td class="govuk-table__cell"><a asp-page="AssignTrn/Trn" asp-route-userId="@user.UserId">Add a DQT record</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </govuk-tabs-item>
+    <govuk-tabs-item label="Closed" id="closed-tab" is-open="@true">
+        <p class="govuk-heading-s ">These records have been checked against the DQT.</p>
+
+        <p>Showing @Model.Closed!.Length of @Model.ClosedTotal total</p>
+
+        @if (Model.TotalPages > 1)
+        {
+            <govuk-pagination>
+                @if (Model.PreviousPage.HasValue)
+                {
+                    <govuk-pagination-previous asp-page="Users" asp-route-pageNumber="@Model.PreviousPage" asp-fragment="closed-tab" />
+                }
+
+                @for (int i = 0; i < Model.PaginationPages!.Length; i++)
+                {
+                    var item = Model.PaginationPages[i];
+
+                    if (i > 0 && Model.PaginationPages[i - 1] != item - 1)
+                    {
+                        <govuk-pagination-ellipsis />
+                    }
+
+                    <govuk-pagination-item asp-page="Users" asp-route-pageNumber="@item" is-current="@(item == Model.PageNumber)" asp-fragment="closed-tab">@item</govuk-pagination-item>
+                }
+
+                @if (Model.NextPage.HasValue)
+                {
+                    <govuk-pagination-next asp-page="Users" asp-route-pageNumber="@Model.NextPage" asp-fragment="closed-tab" />
+                }
+            </govuk-pagination>
+        }
+
+        @if (Model.Closed.Length > 0)
+        {
+            <table class="govuk-table">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col" class="govuk-table__header">Name</th>
+                        <th scope="col" class="govuk-table__header">Email</th>
+                        <th scope="col" class="govuk-table__header">Status</th>
+                        <th scope="col" class="govuk-table__header">TRN</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    @foreach (var user in Model.Closed!)
+                    {
+                        <tr class="govuk-table__row" data-testid="user-@user.UserId">
+                            <td class="govuk-table__cell"><a asp-page="User" asp-route-userId="@user.UserId">@user.Name</a></td>
+                            <td class="govuk-table__cell">@user.EmailAddress</td>
+                            <td class="govuk-table__cell">@user.TrnLookupStatus</td>
+                            <td class="govuk-table__cell">@(user.Trn ?? "N/A")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        @if (Model.PreviousPage.HasValue || Model.NextPage.HasValue)
+        {
+            <govuk-pagination>
+                @if (Model.PreviousPage.HasValue)
+                {
+                    <govuk-pagination-previous asp-page="Users" asp-route-pageNumber="@Model.PreviousPage" asp-fragment="closed-tab" />
+                }
+
+                @if (Model.NextPage.HasValue)
+                {
+                    <govuk-pagination-next asp-page="Users" asp-route-pageNumber="@Model.NextPage" asp-fragment="closed-tab" />
+                }
+            </govuk-pagination>
+        }
+    </govuk-tabs-item>
+</govuk-tabs>
