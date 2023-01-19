@@ -52,7 +52,7 @@
                 @if (Model.CanChangeDqtRecord)
                 {
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="#">Change record</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action asp-page="AssignTrn/Trn" asp-route-userId="@Model.UserId">Change record</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 }
             </govuk-summary-list-row>
