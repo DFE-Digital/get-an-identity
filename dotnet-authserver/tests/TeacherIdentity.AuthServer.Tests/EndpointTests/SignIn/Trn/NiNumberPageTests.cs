@@ -2,9 +2,9 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
-public class NiNumberTests : TestBase
+public class NiNumberPageTests : TestBase
 {
-    public NiNumberTests(HostFixture hostFixture)
+    public NiNumberPageTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -138,7 +138,7 @@ public class NiNumberTests : TestBase
     [InlineData("QQ 12 34 56 C")]
     [InlineData("QQ123456C")]
     [InlineData("qQ123456c")]
-    public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationState(string niNumber)
+    public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationStateRedirectsToAwardedQtsPage(string niNumber)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
@@ -156,6 +156,8 @@ public class NiNumberTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/awarded-qts", response.Headers.Location?.OriginalString);
+
         Assert.Equal(niNumber, authStateHelper.AuthenticationState.NationalInsuranceNumber);
     }
 

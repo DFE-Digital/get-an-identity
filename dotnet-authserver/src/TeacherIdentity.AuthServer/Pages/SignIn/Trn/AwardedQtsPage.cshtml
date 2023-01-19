@@ -1,0 +1,27 @@
+@page "/sign-in/trn/awarded-qts"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Trn.AwardedQtsPage
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.AwardedQts);
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@Model.BackLink" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.TrnAwardedQts()" method="post" asp-antiforgery="true">
+            <govuk-radios asp-for="AwardedQts">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl"/>
+
+                    <govuk-radios-item value="True">Yes</govuk-radios-item>
+                    <govuk-radios-item value="False">No</govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+
