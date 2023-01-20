@@ -11,6 +11,8 @@ public static class ServiceCollectionExtensions
 
         services.AddValidatorsFromAssemblyContaining(typeof(Program));
 
+        services.AddScoped<ICurrentUserProvider, ClaimsPrincipalCurrentUserProvider>();
+
         return services;
     }
 }

@@ -89,7 +89,8 @@ public class UpdateNameModel : PageModel
                 Source = Events.UserUpdatedEventSource.ChangedByUser,
                 CreatedUtc = _clock.UtcNow,
                 Changes = changes,
-                User = Events.User.FromModel(user)
+                User = Events.User.FromModel(user),
+                UpdatedByUserId = User.GetUserId()!.Value
             });
 
             await _dbContext.SaveChangesAsync();
