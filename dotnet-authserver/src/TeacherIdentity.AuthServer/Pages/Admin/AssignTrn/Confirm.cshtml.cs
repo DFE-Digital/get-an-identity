@@ -59,7 +59,7 @@ public class ConfirmModel : PageModel
 
         if (AddRecord == false)
         {
-            return RedirectToPage("/Admin/EditUser", new { UserId });
+            return RedirectToPage("/Admin/User", new { UserId });
         }
 
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == UserId);
@@ -83,7 +83,7 @@ public class ConfirmModel : PageModel
         await _dbContext.SaveChangesAsync();
 
         TempData[TempDataKeys.FlashSuccess] = "DQT record added";
-        return RedirectToPage("/Admin/EditUser", new { UserId });
+        return RedirectToPage("/Admin/User", new { UserId });
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
