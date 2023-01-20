@@ -22,7 +22,7 @@ public class IttProvider : PageModel
 
     public string[]? IttProviderNames;
 
-    // Properties are set in the order that they are declared. Because the value of AwardedByTrainer
+    // Properties are set in the order that they are declared. Because the value of HasIttProvider
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
     [Display(Name = "Did a university, SCITT or school award your QTS?")]
     [Required(ErrorMessage = "Tell us how you were awarded qualified teacher status (QTS)")]
