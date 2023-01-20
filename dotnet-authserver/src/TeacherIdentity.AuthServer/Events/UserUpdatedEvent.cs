@@ -4,6 +4,7 @@ public record UserUpdatedEvent : EventBase
 {
     public required UserUpdatedEventSource Source { get; init; }
     public required User User { get; init; }
+    public required Guid? UpdatedByUserId { get; init; }
     public required UserUpdatedEventChanges Changes { get; init; }
 }
 

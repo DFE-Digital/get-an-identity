@@ -76,7 +76,8 @@ public class ConfirmModel : PageModel
             Source = Events.UserUpdatedEventSource.SupportUi,
             CreatedUtc = _clock.UtcNow,
             Changes = changes,
-            User = Events.User.FromModel(user)
+            User = Events.User.FromModel(user),
+            UpdatedByUserId = User.GetUserId()!.Value
         });
 
         await _dbContext.SaveChangesAsync();

@@ -10,13 +10,16 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
+    private readonly ICurrentUserProvider _currentUserProvider;
 
     public SetTeacherTrnHandler(
         TeacherIdentityServerDbContext dbContext,
-        IClock clock)
+        IClock clock,
+        ICurrentUserProvider currentUserProvider)
     {
         _dbContext = dbContext;
         _clock = clock;
+        _currentUserProvider = currentUserProvider;
     }
 
     public async Task<Unit> Handle(SetTeacherTrnRequest request, CancellationToken cancellationToken)
@@ -69,7 +72,8 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             Source = Events.UserUpdatedEventSource.Api,
             CreatedUtc = _clock.UtcNow,
             Changes = changes,
-            User = Events.User.FromModel(user)
+            User = Events.User.FromModel(user),
+            UpdatedByUserId = _currentUserProvider.CurrentUserId
         });
 
         try
