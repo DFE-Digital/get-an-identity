@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Caching.Memory;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
@@ -11,13 +12,16 @@ public class IttProvider : PageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
     private IDqtApiClient _dqtApiClient;
+    private IMemoryCache _cache;
 
     public IttProvider(
         IIdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient)
+        IDqtApiClient dqtApiClient,
+        IMemoryCache cache)
     {
         _linkGenerator = linkGenerator;
         _dqtApiClient = dqtApiClient;
+        _cache = cache;
     }
 
     public string[]? IttProviderNames;
@@ -67,14 +71,11 @@ public class IttProvider : PageModel
             return;
         }
 
-        if (HttpContext.Session.Get<string[]>("IttProviderNames") == null)
+        if (!_cache.TryGetValue("IttProviderNames", out IttProviderNames))
         {
-            IttProviderNames = (await _dqtApiClient.GetIttProviders())?.IttProviders.Select(result => result.ProviderName).ToArray();
-            if (IttProviderNames != null) { HttpContext.Session.Set("IttProviderNames", IttProviderNames); }
-        }
-        else
-        {
-            IttProviderNames = HttpContext.Session.Get<string[]>("IttProviderNames");
+            IttProviderNames = (await _dqtApiClient.GetIttProviders()).IttProviders.Select(result => result.ProviderName).ToArray();
+            var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
+            _cache.Set("IttProviderNames", IttProviderNames, cacheEntryOptions);
         }
 
         await next();
