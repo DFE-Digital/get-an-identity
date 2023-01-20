@@ -48,7 +48,7 @@
                             <govuk-select asp-for="IttProviderName">
                                 <govuk-select-label class="govuk-label--s"/>
                                 <govuk-select-item value=""></govuk-select-item>
-                                @foreach (var ittProviderName in Model.IttProviderNames)
+                                @foreach (var ittProviderName in Model.IttProviderNames ?? Enumerable.Empty<string>())
                                 {
                                     <govuk-select-item value="@ittProviderName">@ittProviderName</govuk-select-item>
                                 }
