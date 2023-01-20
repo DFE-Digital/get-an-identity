@@ -116,7 +116,8 @@ public class ConfirmationModel : PageModel
                 Source = Events.UserUpdatedEventSource.ChangedByUser,
                 CreatedUtc = _clock.UtcNow,
                 Changes = Events.UserUpdatedEventChanges.EmailAddress,
-                User = Events.User.FromModel(user)
+                User = Events.User.FromModel(user),
+                UpdatedByUserId = User.GetUserId()!.Value
             });
 
             await _dbContext.SaveChangesAsync();

@@ -174,6 +174,7 @@ public class UpdateUserTests : TestBase
                 Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.EmailAddress | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+                Assert.Equal(TestUsers.AdminUserWithAllRoles.UserId, userUpdatedEvent.UpdatedByUserId);
             });
     }
 
