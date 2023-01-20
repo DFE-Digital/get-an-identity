@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
@@ -9,7 +10,7 @@ public class IitProviderTests : TestBase
         : base(hostFixture)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetIttProviders(It.IsAny<CancellationToken>()))
-            .ReturnsAsync((GetIttProvidersResponse?)new GetIttProvidersResponse()
+            .ReturnsAsync(new GetIttProvidersResponse()
             {
                 IttProviders = new IttProvider[]
                 {
@@ -93,20 +94,20 @@ public class IitProviderTests : TestBase
     }
 
     [Fact]
-    public async Task Get_ValidRequest_CallsDqtApiRendersContent()
+    public async Task Get_ValidRequest_StoresIttProviderNamesInCache()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/itt-provider", c => c.OfficialNameSet());
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
 
-        HostFixture.DqtApiClient.Verify(mock => mock.GetIttProviders(It.IsAny<CancellationToken>()), Times.Once);
-    }
+        // Act
+        var response = await HttpClient.SendAsync(request);
 
-    [Fact]
-    public async Task Get_NullIttProvidersResponse_RendersContentSuccessfully()
-    {
-        HostFixture.DqtApiClient.Setup(mock => mock.GetIttProviders(It.IsAny<CancellationToken>()))
-            .ReturnsAsync((GetIttProvidersResponse?)null);
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-        await ValidRequest_RendersContent("/sign-in/trn/itt-provider", c => c.OfficialNameSet());
+        var ittProviderNames = HostFixture.Services.GetService<IMemoryCache>()?.Get<string[]>("IttProviderNames");
+        Assert.Equal(new[] { "provider 1", "provider 2" }, ittProviderNames);
     }
 
     [Fact]
