@@ -105,7 +105,7 @@ public class AwardedQtsPageTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Post_ValidForm_SetsAwardedQtsOnAuthenticationState(bool awardedQts)
+    public async Task Post_ValidForm_SetsAwardedQtsOnAuthenticationStateRedirectsToCorrectPage(bool awardedQts)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
@@ -124,5 +124,10 @@ public class AwardedQtsPageTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal(awardedQts, authStateHelper.AuthenticationState.AwardedQts);
+
+        if (awardedQts)
+        {
+            Assert.StartsWith("/sign-in/trn/itt-provider", response.Headers.Location?.OriginalString);
+        }
     }
 }
