@@ -1,9 +1,9 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
-public class EditUserTests : TestBase
+public class UserTests : TestBase
 {
-    public EditUserTests(HostFixture hostFixture)
+    public UserTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
