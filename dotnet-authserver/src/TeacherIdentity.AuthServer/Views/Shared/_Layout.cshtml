@@ -22,6 +22,8 @@
 
 @section Head {
     <link rel="stylesheet" asp-href-include="~/Styles/*.css">
+    @RenderSection("Styles", required: false)
+    @RenderSection("Scripts", required: false)
 }
 
 @section Header {

@@ -41,4 +41,11 @@ public class DqtApiClient : IDqtApiClient
 
         return await response.Content.ReadFromJsonAsync<TeacherInfo>(cancellationToken: cancellationToken);
     }
+
+    public async Task<GetIttProvidersResponse> GetIttProviders(CancellationToken cancellationToken)
+    {
+        var response = await _client.GetAsync($"/v2/itt-providers", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<GetIttProvidersResponse>(cancellationToken: cancellationToken))!;
+    }
 }
