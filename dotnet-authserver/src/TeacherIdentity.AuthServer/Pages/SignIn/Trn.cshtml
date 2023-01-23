@@ -12,7 +12,7 @@
     <govuk-panel-body>
         <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.{0}.Content" />
 
-        <form action="@Model.HandoverUrl" method="post" asp-antiforgery="false">
+        <form action="@Model.HandoverUrl" method="@Model.HandoverMethod" asp-antiforgery="false">
             @foreach (var p in Model.HandoverParameters!)
             {
                 <input type="hidden" name="@(p.Key)" value="@(p.Value)" />
