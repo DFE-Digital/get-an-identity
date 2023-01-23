@@ -129,5 +129,9 @@ public class AwardedQtsPageTests : TestBase
         {
             Assert.StartsWith("/sign-in/trn/itt-provider", response.Headers.Location?.OriginalString);
         }
+        else
+        {
+            Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
+        }
     }
 }

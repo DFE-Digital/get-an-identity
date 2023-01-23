@@ -15,8 +15,8 @@ public class PreferredName : PageModel
         _linkGenerator = linkGenerator;
     }
 
-    public string? FirstName => HttpContext.GetAuthenticationState().FirstName;
-    public string? LastName => HttpContext.GetAuthenticationState().LastName;
+    public string? OfficialFirstName => HttpContext.GetAuthenticationState().OfficialFirstName;
+    public string? OfficialLastName => HttpContext.GetAuthenticationState().OfficialLastName;
 
     // Properties are set in the order that they are declared. Because the value of HasPreferredName
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
@@ -34,6 +34,7 @@ public class PreferredName : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost()
@@ -63,5 +64,13 @@ public class PreferredName : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+    }
+
+    private void SetDefaultInputValues()
+    {
+        PreferredFirstName ??= HttpContext.GetAuthenticationState().FirstName;
+        PreferredLastName ??= HttpContext.GetAuthenticationState().LastName;
+
+        HasPreferredName ??= !string.IsNullOrEmpty(PreferredFirstName) && !string.IsNullOrEmpty(PreferredLastName) ? true : null;
     }
 }

@@ -22,6 +22,7 @@ public class DateOfBirthPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost()
@@ -48,5 +49,10 @@ public class DateOfBirthPage : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+    }
+
+    private void SetDefaultInputValues()
+    {
+        DateOfBirth ??= HttpContext.GetAuthenticationState().DateOfBirth;
     }
 }
