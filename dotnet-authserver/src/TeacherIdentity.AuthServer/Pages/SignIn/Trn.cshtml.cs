@@ -1,3 +1,5 @@
+using Flurl;
+using Flurl.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -22,22 +24,30 @@ public class TrnModel : PageModel
 
     public string? HandoverUrl { get; set; }
 
+    public string? HandoverMethod { get; set; }
+
     public async Task OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
-        var (url, parameters) = await _findALostTrnIntegrationHelper.GetHandoverRequest(authenticationState);
-        HandoverUrl = url;
-        HandoverParameters = parameters.ToDictionary(f => f.Key, f => f.Value.ToString());
+
+        if (_findALostTrnIntegrationHelper.Options.UseNewTrnLookupJourney)
+        {
+            var nextPage = _linkGenerator.TrnOfficialName();
+            HandoverUrl = new Url(nextPage).RemoveQuery();
+            HandoverParameters = new Url(nextPage).QueryParams.ToKeyValuePairs().ToDictionary(q => q.Key, q => q.Value.ToString()!);
+            HandoverMethod = HttpMethods.Get;
+        }
+        else
+        {
+            var (url, parameters) = await _findALostTrnIntegrationHelper.GetHandoverRequest(authenticationState);
+            HandoverUrl = url;
+            HandoverParameters = parameters.ToDictionary(f => f.Key, f => f.Value.ToString());
+            HandoverMethod = HttpMethods.Post;
+        }
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (_findALostTrnIntegrationHelper.Options.UseNewTrnLookupJourney)
-        {
-            context.Result = new RedirectResult(_linkGenerator.TrnOfficialName());
-            return;
-        }
-
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
         // We expect to have a verified email at this point but we shouldn't have completed the TRN lookup
