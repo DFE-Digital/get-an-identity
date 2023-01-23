@@ -9,12 +9,12 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
 [Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
-public class EditUserModel : PageModel
+public class UserModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
 
-    public EditUserModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient)
+    public UserModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient)
     {
         _dbContext = dbContext;
         _dqtApiClient = dqtApiClient;

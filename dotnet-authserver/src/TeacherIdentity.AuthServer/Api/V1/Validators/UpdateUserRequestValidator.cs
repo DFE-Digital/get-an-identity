@@ -18,14 +18,14 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
 
         RuleFor(r => r.Body.FirstName)
             .Cascade(CascadeMode.Stop)
-            .MaximumLength(User.FirstNameAddressMaxLength)
-                .WithMessage($"First name must be {User.FirstNameAddressMaxLength} characters or less.")
+            .MaximumLength(User.FirstNameMaxLength)
+                .WithMessage($"First name must be {User.FirstNameMaxLength} characters or less.")
             .When(r => r.Body.FirstNameSet);
 
         RuleFor(r => r.Body.LastName)
             .Cascade(CascadeMode.Stop)
-            .MaximumLength(User.LastNameAddressMaxLength)
-                .WithMessage($"Last name must be {User.LastNameAddressMaxLength} characters or less.")
+            .MaximumLength(User.LastNameMaxLength)
+                .WithMessage($"Last name must be {User.LastNameMaxLength} characters or less.")
             .When(r => r.Body.LastNameSet);
     }
 }
