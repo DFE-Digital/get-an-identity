@@ -1,15 +1,15 @@
 using System.Globalization;
 using Bogus;
-using CsvHelper.Configuration;
 using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using static Bogus.DataSets.Name;
 using WorkforceDataApi.DevUtils.Csv;
+using static Bogus.DataSets.Name;
 
 var configuration = new ConfigurationManager();
 
