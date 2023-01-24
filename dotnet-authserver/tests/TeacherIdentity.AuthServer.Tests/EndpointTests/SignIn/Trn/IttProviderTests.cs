@@ -150,7 +150,7 @@ public class IitProviderTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Post_ValidForm_UpdatesAuthenticationState(bool hasIttProvider)
+    public async Task Post_ValidForm_UpdatesAuthenticationStateRedirectsToCheckAnswers(bool hasIttProvider)
     {
         // Arrange
         var ittProviderName = "provider";
@@ -171,6 +171,7 @@ public class IitProviderTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
 
         Assert.Equal(hasIttProvider, authStateHelper.AuthenticationState.HaveIttProvider);
         Assert.Equal(hasIttProvider ? ittProviderName : null, authStateHelper.AuthenticationState.IttProviderName);

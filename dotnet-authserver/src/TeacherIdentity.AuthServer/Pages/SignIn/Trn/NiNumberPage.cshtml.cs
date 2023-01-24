@@ -22,13 +22,14 @@ public class NiNumberPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost(string submit)
     {
         if (submit == "ni_number_not_known")
         {
-            HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber = false;
+            HttpContext.GetAuthenticationState().OnHaveNationalInsuranceNumberSet(false);
         }
         else
         {
@@ -55,5 +56,10 @@ public class NiNumberPage : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+    }
+
+    private void SetDefaultInputValues()
+    {
+        NiNumber ??= HttpContext.GetAuthenticationState().NationalInsuranceNumber;
     }
 }

@@ -21,6 +21,7 @@ public class HaveNiNumber : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost()
@@ -30,7 +31,7 @@ public class HaveNiNumber : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber = (bool)HasNiNumber!;
+        HttpContext.GetAuthenticationState().OnHaveNationalInsuranceNumberSet((bool)HasNiNumber!);
 
         return (bool)HasNiNumber!
             ? Redirect(_linkGenerator.TrnNiNumber())
@@ -49,5 +50,10 @@ public class HaveNiNumber : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+    }
+
+    private void SetDefaultInputValues()
+    {
+        HasNiNumber ??= HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber;
     }
 }

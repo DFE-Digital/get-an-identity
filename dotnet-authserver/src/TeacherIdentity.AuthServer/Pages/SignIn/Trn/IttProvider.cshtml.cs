@@ -38,6 +38,7 @@ public class IttProvider : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost()
@@ -47,7 +48,7 @@ public class IttProvider : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().HaveIttProvider = HasIttProvider;
+        HttpContext.GetAuthenticationState().OnHaveIttProviderSet((bool)HasIttProvider!);
 
         if (HasIttProvider == true)
         {
@@ -79,5 +80,11 @@ public class IttProvider : PageModel
         }
 
         await next();
+    }
+
+    private void SetDefaultInputValues()
+    {
+        HasIttProvider ??= HttpContext.GetAuthenticationState().HaveIttProvider;
+        IttProviderName ??= HttpContext.GetAuthenticationState().IttProviderName;
     }
 }

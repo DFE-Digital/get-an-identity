@@ -120,7 +120,27 @@ public sealed class AuthenticationStateHelper
 
                 await EmailSet(email ?? user?.EmailAddress)(s);
                 s.OnEmailVerified(user);
-                s.OnOfficialNameSet("first", "last", null, null);
+                s.OnOfficialNameSet(Faker.Name.First(), Faker.Name.Last(), null, null);
+            };
+
+        public Func<AuthenticationState, Task> TrnIdentityJourneyComplete(string? email = null, User? user = null) =>
+            async s =>
+            {
+                if (email is not null && user is not null && email != user?.EmailAddress)
+                {
+                    throw new ArgumentException("Email does not match user's email.", nameof(email));
+                }
+
+                await EmailSet(email ?? user?.EmailAddress)(s);
+                s.OnEmailVerified(user);
+                s.OnOfficialNameSet(Faker.Name.First(), Faker.Name.Last(), Faker.Name.First(), Faker.Name.Last());
+                s.OnNameChanged(Faker.Name.First(), Faker.Name.Last());
+                s.OnDateOfBirthSet(DateOnly.Parse("1/1/2000"));
+                s.OnHaveNationalInsuranceNumberSet(true);
+                s.NationalInsuranceNumber = "QQ 12 34 56 C";
+                s.OnAwardedQtsSet(true);
+                s.OnHaveIttProviderSet(true);
+                s.IttProviderName = "provider";
             };
 
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(

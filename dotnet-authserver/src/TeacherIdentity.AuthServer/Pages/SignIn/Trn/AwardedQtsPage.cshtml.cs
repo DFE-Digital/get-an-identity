@@ -25,6 +25,7 @@ public class AwardedQtsPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost()
@@ -34,7 +35,7 @@ public class AwardedQtsPage : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().AwardedQts = (bool)AwardedQts!;
+        HttpContext.GetAuthenticationState().OnAwardedQtsSet((bool)AwardedQts!);
 
         return (bool)AwardedQts!
             ? Redirect(_linkGenerator.TrnIttProvider())
@@ -53,5 +54,10 @@ public class AwardedQtsPage : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+    }
+
+    private void SetDefaultInputValues()
+    {
+        AwardedQts ??= HttpContext.GetAuthenticationState().AwardedQts;
     }
 }

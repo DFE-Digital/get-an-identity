@@ -17,12 +17,14 @@
         window.onload = function () {
             const inputName = '@nameof(Model.IttProviderName)';
             const select = document.querySelector(`select[name=${inputName}`);
+            const value = select.value;
             const container = select.parentElement;
 
             accessibleAutocomplete({
                 element: container,
                 id: inputName,
-                source: @Html.Raw(Json.Serialize(Model.IttProviderNames))
+                source: @Html.Raw(Json.Serialize(Model.IttProviderNames)),
+                defaultValue: value
             })
 
             container.removeChild(select);

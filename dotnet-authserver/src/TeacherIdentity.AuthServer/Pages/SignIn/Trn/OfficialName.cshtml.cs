@@ -33,6 +33,7 @@ public class OfficialName : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public IActionResult OnPost()
@@ -69,5 +70,16 @@ public class OfficialName : PageModel
         True,
         False,
         PreferNotToSay
+    }
+
+    private void SetDefaultInputValues()
+    {
+        OfficialFirstName ??= HttpContext.GetAuthenticationState().OfficialFirstName;
+        OfficialLastName ??= HttpContext.GetAuthenticationState().OfficialLastName;
+        PreviousOfficialFirstName ??= HttpContext.GetAuthenticationState().PreviousOfficialFirstName;
+        PreviousOfficialLastName ??= HttpContext.GetAuthenticationState().PreviousOfficialLastName;
+
+        HasPreviousName ??= !string.IsNullOrEmpty(PreviousOfficialFirstName) ||
+                          !string.IsNullOrEmpty(PreviousOfficialLastName) ? PreviousName.True : null;
     }
 }

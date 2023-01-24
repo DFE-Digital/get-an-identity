@@ -84,10 +84,13 @@ public class AuthenticationState
     public string? TrnOwnerEmailAddress { get; private set; }
     [JsonInclude]
     public TrnLookupStatus? TrnLookupStatus { get; private set; }
-    public bool? HaveNationalInsuranceNumber { get; set; }
+    [JsonInclude]
+    public bool? HaveNationalInsuranceNumber { get; private set; }
     public string? NationalInsuranceNumber { get; set; }
-    public bool? AwardedQts { get; set; }
-    public bool? HaveIttProvider { get; set; }
+    [JsonInclude]
+    public bool? AwardedQts { get; private set; }
+    [JsonInclude]
+    public bool? HaveIttProvider { get; private set; }
     public string? IttProviderName { get; set; }
 
     /// <summary>
@@ -424,6 +427,37 @@ public class AuthenticationState
         DateOfBirth = dateOfBirth;
     }
 
+    public void OnHaveNationalInsuranceNumberSet(bool haveNationalInsuranceNumber)
+    {
+        if (!haveNationalInsuranceNumber)
+        {
+            NationalInsuranceNumber = null;
+        }
+
+        HaveNationalInsuranceNumber = haveNationalInsuranceNumber;
+    }
+
+    public void OnHaveIttProviderSet(bool haveIttProvider)
+    {
+        if (!haveIttProvider)
+        {
+            IttProviderName = null;
+        }
+
+        HaveIttProvider = haveIttProvider;
+    }
+
+    public void OnAwardedQtsSet(bool awardedQts)
+    {
+        if (!awardedQts)
+        {
+            HaveIttProvider = null;
+            IttProviderName = null;
+        }
+
+        AwardedQts = awardedQts;
+    }
+
     public void OnHaveResumedCompletedJourney()
     {
         if (!IsComplete())
@@ -432,6 +466,33 @@ public class AuthenticationState
         }
 
         HaveResumedCompletedJourney = true;
+    }
+
+    public string? GetOfficialName()
+    {
+        return GetFullName(OfficialFirstName, OfficialLastName);
+    }
+
+    public string? GetPreviousOfficialName()
+    {
+        if (string.IsNullOrEmpty(PreviousOfficialFirstName) && string.IsNullOrEmpty(PreviousOfficialLastName))
+        {
+            return null;
+        }
+
+        return GetFullName(PreviousOfficialFirstName ?? OfficialFirstName, PreviousOfficialLastName ?? OfficialLastName);
+    }
+
+    public string? GetPreferredName()
+    {
+        return GetFullName(FirstName, LastName);
+    }
+
+    private string? GetFullName(string? firstName, string? lastName)
+    {
+        return !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName)
+            ? $"{firstName} {lastName}"
+            : null;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
