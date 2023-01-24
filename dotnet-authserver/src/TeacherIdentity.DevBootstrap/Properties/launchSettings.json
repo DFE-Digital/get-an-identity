@@ -7,6 +7,10 @@
     "TeacherIdentity.DevBootstrap Generate Test Users": {
       "commandName": "Project",
       "commandLineArgs": "--environment Local --generate-test-users"
+    },
+    "TeacherIdentity.DevBootstrap Import Test Users": {
+      "commandName": "Project",
+      "commandLineArgs": "--environment Local --import-test-users"
     }
   }
 }

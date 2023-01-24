@@ -1,4 +1,7 @@
+using System.Globalization;
 using Bogus;
+using CsvHelper.Configuration;
+using CsvHelper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +9,7 @@ using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static Bogus.DataSets.Name;
+using WorkforceDataApi.DevUtils.Csv;
 
 var configuration = new ConfigurationManager();
 
@@ -47,6 +51,12 @@ if (args.Contains("--generate-test-users"))
 {
     Console.WriteLine();
     await GenerateTestUsers();
+}
+
+if (args.Contains("--import-test-users"))
+{
+    Console.WriteLine();
+    await ImportTestUsers();
 }
 
 async Task CreateDatabase()
@@ -153,6 +163,39 @@ async Task GenerateTestUsers()
         }
 
         await dbContext.SaveChangesAsync();
+    });
+
+    Console.WriteLine("done.");
+}
+
+async Task ImportTestUsers(string csvFileName = "test-users.csv")
+{
+    Console.Write("Importing test users... ");
+
+    using var reader = new StreamReader(csvFileName);
+    using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true });
+    csv.Context.RegisterClassMap<UserReaderMap>();
+
+    await WithDbContext(async dbContext =>
+    {
+        int i = 0;
+        await foreach (var item in csv.GetRecordsAsync<User>())
+        {
+            dbContext.Users.Add(item);
+            if (i != 0 && i % 10_000 == 0)
+            {
+                await dbContext.SaveChangesAsync();
+                Console.WriteLine($"Saved {i} users in teacher identity database.");
+            }
+
+            i++;
+        }
+
+        if (dbContext.ChangeTracker.HasChanges())
+        {
+            await dbContext.SaveChangesAsync();
+            Console.WriteLine($"Saved {i} users in teacher identity database.");
+        }
     });
 
     Console.WriteLine("done.");
