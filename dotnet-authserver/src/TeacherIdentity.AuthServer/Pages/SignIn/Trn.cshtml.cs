@@ -32,7 +32,7 @@ public class TrnModel : PageModel
 
         if (_findALostTrnIntegrationHelper.Options.UseNewTrnLookupJourney)
         {
-            var nextPage = _linkGenerator.TrnOfficialName();
+            var nextPage = _linkGenerator.TrnHasTrn();
             HandoverUrl = new Url(nextPage).RemoveQuery();
             HandoverParameters = new Url(nextPage).QueryParams.ToKeyValuePairs().ToDictionary(q => q.Key, q => q.Value.ToString()!);
             HandoverMethod = HttpMethods.Get;

@@ -83,7 +83,7 @@ public class TrnTests : TestBase
     }
 
     [Fact]
-    public async Task Get_WhenUseNewTrnLookupJourneyTrue_SubmitsToTrnOfficialName()
+    public async Task Get_WhenUseNewTrnLookupJourneyTrue_SubmitsToTrnHasTrn()
     {
         // Arrange
         var trnConfig = HostFixture.Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
@@ -101,7 +101,7 @@ public class TrnTests : TestBase
 
         var doc = await response.GetDocument();
         var form = doc.GetElementsByTagName("form").Single();
-        Assert.StartsWith("/sign-in/trn/official-name", form.GetAttribute("action"));
+        Assert.StartsWith("/sign-in/trn/has-trn", form.GetAttribute("action"));
         Assert.Equal("GET", form.GetAttribute("method"));
     }
 }
