@@ -491,7 +491,7 @@ public class AuthenticationState
     private string? GetFullName(string? firstName, string? lastName)
     {
         return !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName)
-            ? $"@{firstName} @{lastName}"
+            ? $"{firstName} {lastName}"
             : null;
     }
 
