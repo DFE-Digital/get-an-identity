@@ -468,6 +468,33 @@ public class AuthenticationState
         HaveResumedCompletedJourney = true;
     }
 
+    public string? GetOfficialName()
+    {
+        return GetFullName(OfficialFirstName, OfficialLastName);
+    }
+
+    public string? GetPreviousOfficialName()
+    {
+        if (string.IsNullOrEmpty(PreviousOfficialFirstName) && string.IsNullOrEmpty(PreviousOfficialLastName))
+        {
+            return null;
+        }
+
+        return GetFullName(PreviousOfficialFirstName ?? OfficialFirstName, PreviousOfficialLastName ?? OfficialLastName);
+    }
+
+    public string? GetPreferredName()
+    {
+        return GetFullName(FirstName, LastName);
+    }
+
+    private string? GetFullName(string? firstName, string? lastName)
+    {
+        return !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName)
+            ? $"@{firstName} @{lastName}"
+            : null;
+    }
+
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
 
     public async Task SignIn(HttpContext httpContext)

@@ -18,9 +18,9 @@ public class CheckAnswers : PageModel
         ? _linkGenerator.TrnIttProvider()
         : _linkGenerator.TrnAwardedQts();
     public string? EmailAddress => HttpContext.GetAuthenticationState().EmailAddress;
-    public string? OfficialName => GetFullName(HttpContext.GetAuthenticationState().OfficialFirstName, HttpContext.GetAuthenticationState().OfficialLastName);
-    public string? PreviousOfficialName => GetFullName(HttpContext.GetAuthenticationState().PreviousOfficialFirstName, HttpContext.GetAuthenticationState().PreviousOfficialLastName);
-    public string? PreferredName => GetFullName(HttpContext.GetAuthenticationState().FirstName, HttpContext.GetAuthenticationState().LastName);
+    public string? OfficialName => HttpContext.GetAuthenticationState().GetOfficialName();
+    public string? PreviousOfficialName => HttpContext.GetAuthenticationState().GetPreviousOfficialName();
+    public string? PreferredName => HttpContext.GetAuthenticationState().GetPreferredName();
     public DateOnly? DateOfBirth => HttpContext.GetAuthenticationState().DateOfBirth;
     public string? NationalInsuranceNumber => HttpContext.GetAuthenticationState().NationalInsuranceNumber;
     public bool? AwardedQts => HttpContext.GetAuthenticationState().AwardedQts;
@@ -47,14 +47,5 @@ public class CheckAnswers : PageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
         }
-    }
-
-    private string? GetFullName(string? firstName, string? lastName)
-    {
-        if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
-        {
-            return $"{firstName} {lastName}";
-        }
-        return firstName ?? (lastName ?? null);
     }
 }
