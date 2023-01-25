@@ -92,6 +92,10 @@ public class AuthenticationState
     [JsonInclude]
     public bool? HaveIttProvider { get; private set; }
     public string? IttProviderName { get; set; }
+    [JsonInclude]
+    public bool? HasTrn { get; private set; }
+    public string? StatedTrn { get; set; }
+
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -456,6 +460,16 @@ public class AuthenticationState
         }
 
         AwardedQts = awardedQts;
+    }
+
+    public void OnHasTrnSet(bool hasTrn)
+    {
+        if (!hasTrn)
+        {
+            StatedTrn = null;
+        }
+
+        HasTrn = hasTrn;
     }
 
     public void OnHaveResumedCompletedJourney()

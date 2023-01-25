@@ -69,6 +69,8 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string TrnCallback(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
 
+    public static string TrnHasTrn(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/HasTrnPage");
+
     public static string TrnOfficialName(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/OfficialName");
 
     public static string TrnPreferredName(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/PreferredName");
