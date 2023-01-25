@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
@@ -11,15 +12,18 @@ public class CheckAnswers : PageModel
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
+    private readonly IEmailVerificationService _emailVerificationService;
 
     public CheckAnswers(
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
-        IClock clock)
+        IClock clock,
+        IEmailVerificationService emailVerificationService)
     {
         _linkGenerator = linkGenerator;
         _dbContext = dbContext;
         _clock = clock;
+        _emailVerificationService = emailVerificationService;
     }
 
     public string BackLink => (HttpContext.GetAuthenticationState().HaveIttProvider == true)
@@ -56,7 +60,7 @@ public class CheckAnswers : PageModel
             Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Default,
-            Trn = authenticationState.StatedTrn,
+            Trn = authenticationState.Trn,
             TrnAssociationSource = !string.IsNullOrEmpty(authenticationState.Trn) ? TrnAssociationSource.Lookup : null,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
@@ -76,10 +80,36 @@ public class CheckAnswers : PageModel
         {
             await _dbContext.SaveChangesAsync();
         }
-        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_email_address"))
+        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
         {
-            return Redirect(_linkGenerator.TrnInUseChooseEmail());
+            // TRN is already linked to an existing account
+
+            var existingUser = await _dbContext.Users.SingleAsync(u => u.Trn == authenticationState.Trn);
+            var existingUserEmail = existingUser.EmailAddress;
+
+            authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
+
+            var pinGenerationResult = await _emailVerificationService.GeneratePin(existingUserEmail);
+
+            if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+            {
+                if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+                {
+                    return new ViewResult()
+                    {
+                        StatusCode = 429,
+                        ViewName = "TooManyRequests"
+                    };
+                }
+
+                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+            }
+
+            return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
+
+        authenticationState.OnTrnLookupCompletedAndUserRegistered(user);
+        await authenticationState.SignIn(HttpContext);
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }

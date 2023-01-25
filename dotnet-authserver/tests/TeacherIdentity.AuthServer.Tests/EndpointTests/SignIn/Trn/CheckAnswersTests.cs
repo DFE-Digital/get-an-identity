@@ -323,14 +323,13 @@ public class CheckAnswersTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidRequestEmailAlreadyAssigned_DoesNotCreateUserRedirectsToTrnChooseEmail()
+    public async Task Post_ValidRequestTrnIsAllocatedToAnExistingUser_DoesNotCreateUserRedirectsToTrnInUse()
     {
         // Arrange
-        var existingUserWithEmail = await TestData.CreateUser(email: Faker.Internet.Email());
+        var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet(
-            email: existingUserWithEmail.EmailAddress,
-            officialFirstName: existingUserWithEmail.FirstName + "new"));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(existingUserWithTrn.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
@@ -342,14 +341,12 @@ public class CheckAnswersTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn/choose-email", response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/different-email", response.Headers.Location?.OriginalString);
 
         await TestData.WithDbContext(async dbContext =>
         {
             var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
-            Assert.NotNull(user);
-            Assert.NotEqual(authStateHelper.AuthenticationState.OfficialFirstName, user.FirstName);
-            Assert.Equal(existingUserWithEmail.FirstName, user.FirstName);
+            Assert.Null(user);
         });
     }
 }
