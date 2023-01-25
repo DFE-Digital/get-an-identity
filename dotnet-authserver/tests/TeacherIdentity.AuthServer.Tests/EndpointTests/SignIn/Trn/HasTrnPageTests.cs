@@ -1,5 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class HasTrnPageTests : TestBase
 {
     public HasTrnPageTests(HostFixture hostFixture)
