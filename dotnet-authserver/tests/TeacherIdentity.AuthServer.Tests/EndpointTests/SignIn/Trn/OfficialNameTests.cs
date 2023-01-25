@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 public class OfficialNameTests : TestBase
@@ -111,6 +113,7 @@ public class OfficialNameTests : TestBase
             {
                 { "OfficialFirstName", firstName },
                 { "OfficialLastName", lastName },
+                { "HasPreviousName", OfficialName.HasPreviousNameOption.No },
             }
         };
 
@@ -143,7 +146,7 @@ public class OfficialNameTests : TestBase
                 { "OfficialLastName", "last" },
                 { "PreviousOfficialFirstName", previousFirstName },
                 { "PreviousOfficialLastName", previousLastName },
-                { "HasPreviousName", hasPreviousName},
+                { "HasPreviousName", hasPreviousName ? OfficialName.HasPreviousNameOption.Yes : OfficialName.HasPreviousNameOption.No },
             }
         };
 

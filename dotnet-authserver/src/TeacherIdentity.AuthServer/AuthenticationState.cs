@@ -7,6 +7,7 @@ using Flurl;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -95,6 +96,8 @@ public class AuthenticationState
     [JsonInclude]
     public bool? HasTrn { get; private set; }
     public string? StatedTrn { get; set; }
+    [JsonInclude]
+    public OfficialName.HasPreviousNameOption? HasPreviousName { get; private set; }
 
 
     /// <summary>
@@ -470,6 +473,17 @@ public class AuthenticationState
         }
 
         HasTrn = hasTrn;
+    }
+
+    public void OnHasPreviousNameSet(OfficialName.HasPreviousNameOption? hasPreviousName)
+    {
+        if (hasPreviousName == OfficialName.HasPreviousNameOption.No)
+        {
+            PreviousOfficialFirstName = null;
+            PreviousOfficialLastName = null;
+        }
+
+        HasPreviousName = hasPreviousName;
     }
 
     public void OnHaveResumedCompletedJourney()

@@ -29,7 +29,7 @@ public class OfficialName : PageModel
     [Display(Name = "Previous last name (optional)")]
     public string? PreviousOfficialLastName { get; set; }
 
-    public PreviousName? HasPreviousName { get; set; }
+    public HasPreviousNameOption? HasPreviousName { get; set; }
 
     public void OnGet()
     {
@@ -43,11 +43,13 @@ public class OfficialName : PageModel
             return this.PageWithErrors();
         }
 
+        HttpContext.GetAuthenticationState().OnHasPreviousNameSet((HasPreviousNameOption)HasPreviousName!);
+
         HttpContext.GetAuthenticationState().OnOfficialNameSet(
             OfficialFirstName!,
             OfficialLastName!,
-            HasPreviousName == PreviousName.True ? PreviousOfficialFirstName : null,
-            HasPreviousName == PreviousName.True ? PreviousOfficialLastName : null);
+            HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialFirstName : null,
+            HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialLastName : null);
 
         return Redirect(_linkGenerator.TrnPreferredName());
     }
@@ -65,10 +67,10 @@ public class OfficialName : PageModel
         }
     }
 
-    public enum PreviousName
+    public enum HasPreviousNameOption
     {
-        True,
-        False,
+        Yes,
+        No,
         PreferNotToSay
     }
 
@@ -78,8 +80,6 @@ public class OfficialName : PageModel
         OfficialLastName ??= HttpContext.GetAuthenticationState().OfficialLastName;
         PreviousOfficialFirstName ??= HttpContext.GetAuthenticationState().PreviousOfficialFirstName;
         PreviousOfficialLastName ??= HttpContext.GetAuthenticationState().PreviousOfficialLastName;
-
-        HasPreviousName ??= !string.IsNullOrEmpty(PreviousOfficialFirstName) ||
-                          !string.IsNullOrEmpty(PreviousOfficialLastName) ? PreviousName.True : null;
+        HasPreviousName ??= HttpContext.GetAuthenticationState().HasPreviousName;
     }
 }
