@@ -1,5 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class DateOfBirthPageTests : TestBase
 {
     public DateOfBirthPageTests(HostFixture hostFixture)
@@ -145,5 +146,32 @@ public class DateOfBirthPageTests : TestBase
         Assert.StartsWith("/sign-in/trn/have-nino", response.Headers.Location?.OriginalString);
 
         Assert.Equal(dateOfBirth, authStateHelper.AuthenticationState.DateOfBirth);
+    }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var dateOfBirth = new DateOnly(2000, 1, 1);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "DateOfBirth.Day", dateOfBirth.Day.ToString() },
+                { "DateOfBirth.Month", dateOfBirth.Month.ToString() },
+                { "DateOfBirth.Year", dateOfBirth.Year.ToString() },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
 }

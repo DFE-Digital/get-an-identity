@@ -53,20 +53,26 @@
                         <govuk-summary-list-row-action href="@LinkGenerator.TrnDateOfBirth()">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
-                <govuk-summary-list-row>
-                    <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@(Model.NationalInsuranceNumber ?? "Not given")</govuk-summary-list-row-value>
-                    <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.TrnHaveNiNumber()">Change</govuk-summary-list-row-action>
-                    </govuk-summary-list-row-actions>
-                </govuk-summary-list-row>
-                <govuk-summary-list-row>
-                    <govuk-summary-list-row-key>Have you been awarded QTS?</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@(Model.AwardedQts == true ? "Yes" : "No")</govuk-summary-list-row-value>
-                    <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.TrnAwardedQts()">Change</govuk-summary-list-row-action>
-                    </govuk-summary-list-row-actions>
-                </govuk-summary-list-row>
+                @if (Model.HaveNationalInsuranceNumber is not null)
+                {
+                    <govuk-summary-list-row>
+                        <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@(Model.NationalInsuranceNumber ?? "Not given")</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnHaveNiNumber()">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    </govuk-summary-list-row>
+                }
+                @if (Model.AwardedQts is not null)
+                {
+                    <govuk-summary-list-row>
+                        <govuk-summary-list-row-key>Have you been awarded QTS?</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@(Model.AwardedQts == true ? "Yes" : "No")</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnAwardedQts()">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    </govuk-summary-list-row>
+                }
                 @if (Model.AwardedQts == true)
                 {
                     <govuk-summary-list-row>

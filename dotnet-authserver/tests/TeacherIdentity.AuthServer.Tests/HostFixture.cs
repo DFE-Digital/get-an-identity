@@ -82,6 +82,9 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         EmailSender.Reset();
         EmailVerificationService.Reset();
         RateLimitStore.Reset();
+
+        DqtApiClient.Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse() { Results = Array.Empty<FindTeachersResponseResult>() });
     }
 
     // N.B. Don't call this from InitializeAsync - it won't work

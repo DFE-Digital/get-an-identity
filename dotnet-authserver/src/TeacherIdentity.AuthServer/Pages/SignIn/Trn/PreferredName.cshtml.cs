@@ -46,7 +46,7 @@ public class PreferredName : PageModel
 
         if (HasPreferredName == true)
         {
-            HttpContext.GetAuthenticationState().OnNameChanged(PreferredFirstName!, PreferredLastName!);
+            HttpContext.GetAuthenticationState().OnNameSet(PreferredFirstName!, PreferredLastName!);
         }
 
         return Redirect(_linkGenerator.TrnDateOfBirth());

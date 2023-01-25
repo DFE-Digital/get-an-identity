@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
-[BindProperties]
 public class CheckAnswers : PageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
@@ -14,18 +13,19 @@ public class CheckAnswers : PageModel
         _linkGenerator = linkGenerator;
     }
 
-    public string? BackLink => (HttpContext.GetAuthenticationState().HaveIttProvider == true)
+    public string BackLink => (HttpContext.GetAuthenticationState().HaveIttProvider == true)
         ? _linkGenerator.TrnIttProvider()
         : _linkGenerator.TrnAwardedQts();
+
     public string? EmailAddress => HttpContext.GetAuthenticationState().EmailAddress;
     public string? OfficialName => HttpContext.GetAuthenticationState().GetOfficialName();
     public string? PreviousOfficialName => HttpContext.GetAuthenticationState().GetPreviousOfficialName();
     public string? PreferredName => HttpContext.GetAuthenticationState().GetPreferredName();
     public DateOnly? DateOfBirth => HttpContext.GetAuthenticationState().DateOfBirth;
+    public bool? HaveNationalInsuranceNumber => HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber;
     public string? NationalInsuranceNumber => HttpContext.GetAuthenticationState().NationalInsuranceNumber;
     public bool? AwardedQts => HttpContext.GetAuthenticationState().AwardedQts;
     public string? IttProviderName => HttpContext.GetAuthenticationState().IttProviderName;
-
 
     public void OnGet()
     {

@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
@@ -31,4 +32,42 @@ public abstract partial class TestBase
 
     public Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(Func<Configure, Func<AuthenticationState, Task>> configure, string? additionalScopes = "trn") =>
         AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes);
+
+    public void ConfigureDqtApiClientToReturnSingleMatch(AuthenticationStateHelper authStateHelper)
+    {
+        var authState = authStateHelper.AuthenticationState;
+        var matchedTrn = TestData.GenerateTrn();
+
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.FindTeachers(It.Is<FindTeachersRequest>(req =>
+                    req.DateOfBirth == authState.DateOfBirth &&
+                    req.EmailAddress == authState.EmailAddress &&
+                    req.FirstName == authState.OfficialFirstName &&
+                    req.LastName == authState.OfficialLastName &&
+                    req.NationalInsuranceNumber == authState.NationalInsuranceNumber &&
+                    req.PreviousFirstName == authState.PreviousOfficialFirstName &&
+                    req.PreviousLastName == authState.PreviousOfficialLastName &&
+                    req.IttProviderName == authState.IttProviderName),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = new[]
+                {
+                    new FindTeachersResponseResult()
+                    {
+                        DateOfBirth = authState.DateOfBirth,
+                        EmailAddresses = new[] { authState.EmailAddress! },
+                        FirstName = authState.FirstName!,
+                        LastName = authState.LastName!,
+                        HasActiveSanctions = false,
+                        NationalInsuranceNumber = authState.NationalInsuranceNumber,
+                        Trn = matchedTrn,
+                        Uid = Guid.NewGuid().ToString()
+                    }
+                }
+            });
+    }
+
+    public void VerifyDqtApiFindTeachersNotCalled() =>
+        HostFixture.DqtApiClient.Verify(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()), Times.Never());
 }

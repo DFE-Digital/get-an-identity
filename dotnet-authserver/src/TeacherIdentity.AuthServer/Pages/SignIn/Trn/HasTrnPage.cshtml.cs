@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class HasTrnPage : PageModel
+public class HasTrnPage : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-
-    public HasTrnPage(IIdentityLinkGenerator linkGenerator)
+    public HasTrnPage(
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
     {
-        _linkGenerator = linkGenerator;
     }
 
     // Properties are set in the order that they are declared. Because the value of HasTrn
@@ -31,7 +32,7 @@ public class HasTrnPage : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -45,7 +46,7 @@ public class HasTrnPage : PageModel
             HttpContext.GetAuthenticationState().StatedTrn = StatedTrn;
         }
 
-        return Redirect(_linkGenerator.TrnOfficialName());
+        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnOfficialName());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -57,7 +58,7 @@ public class HasTrnPage : PageModel
             !authenticationState.EmailAddressVerified ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 

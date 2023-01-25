@@ -176,4 +176,30 @@ public class HasTrnPageTests : TestBase
         Assert.True(authStateHelper.AuthenticationState.HasTrn);
         Assert.Equal(statedTrn, authStateHelper.AuthenticationState.StatedTrn);
     }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var statedTrn = "4567814";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasTrn", true },
+                { "StatedTrn", statedTrn },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
+    }
 }

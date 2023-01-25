@@ -2,6 +2,7 @@ using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class OfficialNameTests : TestBase
 {
     public OfficialNameTests(HostFixture hostFixture)
@@ -166,5 +167,30 @@ public class OfficialNameTests : TestBase
             Assert.Null(authStateHelper.AuthenticationState.PreviousOfficialFirstName);
             Assert.Null(authStateHelper.AuthenticationState.PreviousOfficialLastName);
         }
+    }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "OfficialFirstName", "first" },
+                { "OfficialLastName", "last" },
+                { "HasPreviousName", OfficialName.HasPreviousNameOption.No },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
 }

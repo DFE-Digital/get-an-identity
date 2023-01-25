@@ -31,20 +31,12 @@ public class CheckAnswersTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
-    [Theory]
-    [MemberData(nameof(TrnIdentityData))]
-    public async Task Get_ValidRequest_RendersExpectedContent(
-        bool haveNiNumber = false,
-        bool awardedQts = false,
-        bool haveIttProvider = false)
+    [Fact]
+    public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnIdentityJourneyComplete());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
         var authState = authStateHelper.AuthenticationState;
-
-        authState.OnHaveNationalInsuranceNumberSet(haveNiNumber);
-        authState.OnAwardedQtsSet(awardedQts);
-        authState.OnHaveIttProviderSet(haveIttProvider);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -57,31 +49,246 @@ public class CheckAnswersTests : TestBase
         var doc = await response.GetDocument();
         Assert.Equal(authState.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
         Assert.Equal($"{authState.OfficialFirstName} {authState.OfficialLastName}", doc.GetSummaryListValueForKey("Name"));
-        Assert.Equal($"{authState.PreviousOfficialFirstName} {authState.PreviousOfficialLastName}", doc.GetSummaryListValueForKey("Previous name"));
-        Assert.Equal($"{authState.FirstName} {authState.LastName}", doc.GetSummaryListValueForKey("Preferred name"));
         Assert.Equal(authState.DateOfBirth?.ToString("dd MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
-        Assert.Equal(haveNiNumber ? authState.NationalInsuranceNumber : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
-        Assert.Equal(awardedQts ? "Yes" : "No", doc.GetSummaryListValueForKey("Have you been awarded QTS?"));
-
-        if (awardedQts)
-        {
-            Assert.Equal(haveIttProvider ? authState.IttProviderName : "No, I was awarded QTS another way", doc.GetSummaryListValueForKey("Did a university, SCITT or school award your QTS?"));
-        }
-        else
-        {
-            Assert.Null(doc.GetSummaryListRowForKey("Did a university, SCITT or school award your QTS?"));
-        }
     }
 
-    public static TheoryData<bool, bool, bool> TrnIdentityData { get; } = new()
+    [Fact]
+    public async Task Get_ValidRequestWithPreviousOfficialName_ShowsPreviousNameRow()
     {
-        { true, true, true },
-        { true, true, false },
-        { true, false, true },
-        { true, false, false },
-        { false, true, true },
-        { false, true, false },
-        { false, false, true },
-        { false, false, false },
-    };
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        var previousFirstName = Faker.Name.First();
+        var previousLastName = Faker.Name.Last();
+
+        authState.OnHasPreviousNameSet(Pages.SignIn.Trn.OfficialName.HasPreviousNameOption.Yes);
+        authState.OnOfficialNameSet(
+            authState.OfficialFirstName!,
+            authState.OfficialLastName!,
+            previousFirstName,
+            previousLastName);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal($"{previousFirstName} {previousLastName}", doc.GetSummaryListValueForKey("Previous name"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithoutPreviousOfficialName_DoesNotShowPreviousNameRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        var previousFirstName = Faker.Name.First();
+        var previousLastName = Faker.Name.Last();
+
+        authState.OnHasPreviousNameSet(Pages.SignIn.Trn.OfficialName.HasPreviousNameOption.Yes);
+        authState.OnOfficialNameSet(
+            authState.OfficialFirstName!,
+            authState.OfficialLastName!,
+            previousOfficialFirstName: null,
+            previousOfficialLastName: null);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetSummaryListRowForKey("Previous name"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithPreferredName_ShowsPreferredNameRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        var preferredFirstName = Faker.Name.First();
+        var preferredLastName = Faker.Name.Last();
+
+        authState.OnNameSet(preferredFirstName, preferredLastName);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal($"{preferredFirstName} {preferredLastName}", doc.GetSummaryListValueForKey("Preferred name"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithoutPreferredName_DoesNotShowPreferredNameRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+        Assert.Null(authState.FirstName);
+        Assert.Null(authState.LastName);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetSummaryListRowForKey("Preferred name"));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Get_ValidRequestWithHaveNinoAnswered_ShowsNationalInsuranceNumberRow(bool haveNino)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnHaveNationalInsuranceNumberSet(haveNino);
+        var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
+        authState.NationalInsuranceNumber = nino;
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal(haveNino ? nino : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithoutHaveNinoAnswered_DoesNotShowNationalInsuranceNumberRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+        Assert.Null(authState.HaveNationalInsuranceNumber);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetSummaryListRowForKey("National Insurance number"));
+    }
+
+    [Theory]
+    [InlineData(true, "Yes")]
+    [InlineData(false, "No")]
+    public async Task Get_ValidRequestWithAwardedQtsAnswered_ShowsAwardedQtsRow(bool haveQts, string expectedValue)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnAwardedQtsSet(haveQts);
+        authState.OnHaveIttProviderSet(false);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal(expectedValue, doc.GetSummaryListValueForKey("Have you been awarded QTS?"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderSpecified_ShowsIttProviderRowWithProviderName()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        var ittProviderName = "A Provider";
+
+        authState.OnAwardedQtsSet(true);
+        authState.OnHaveIttProviderSet(true);
+        authState.IttProviderName = ittProviderName;
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal(ittProviderName, doc.GetSummaryListValueForKey("Did a university, SCITT or school award your QTS?"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderNotSpecified_ShowsAwardedQtsAnotherWay()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnAwardedQtsSet(true);
+        authState.OnHaveIttProviderSet(false);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal("No, I was awarded QTS another way", doc.GetSummaryListValueForKey("Did a university, SCITT or school award your QTS?"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithAwardedQtsFalse_DoesNotShowProviderRow()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnAwardedQtsSet(false);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetSummaryListRowForKey("Did a university, SCITT or school award your QTS?"));
+    }
 }
