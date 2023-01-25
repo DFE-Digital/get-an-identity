@@ -475,7 +475,7 @@ public class AuthenticationState
         HasTrn = hasTrn;
     }
 
-    public void OnHasPreviousNameSet(OfficialName.HasPreviousNameOption hasPreviousName)
+    public void OnHasPreviousNameSet(OfficialName.HasPreviousNameOption? hasPreviousName)
     {
         if (hasPreviousName == OfficialName.HasPreviousNameOption.No)
         {
