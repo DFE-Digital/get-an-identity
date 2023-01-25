@@ -1,30 +1,27 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class IttProvider : PageModel
+public class IttProvider : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-    private IDqtApiClient _dqtApiClient;
-    private IMemoryCache _cache;
-
-    public IttProvider(
-        IIdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient,
-        IMemoryCache cache)
-    {
-        _linkGenerator = linkGenerator;
-        _dqtApiClient = dqtApiClient;
-        _cache = cache;
-    }
+    private readonly IMemoryCache _cache;
 
     public string[]? IttProviderNames;
+
+    public IttProvider(
+        IMemoryCache cache,
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
+    {
+        _cache = cache;
+    }
 
     // Properties are set in the order that they are declared. Because the value of HasIttProvider
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
@@ -41,7 +38,7 @@ public class IttProvider : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -55,7 +52,7 @@ public class IttProvider : PageModel
             HttpContext.GetAuthenticationState().IttProviderName = IttProviderName;
         }
 
-        return Redirect(_linkGenerator.TrnCheckAnswers());
+        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnCheckAnswers());
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
@@ -68,13 +65,13 @@ public class IttProvider : PageModel
             !authenticationState.HasOfficialName() ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
             return;
         }
 
         if (!_cache.TryGetValue("IttProviderNames", out IttProviderNames))
         {
-            IttProviderNames = (await _dqtApiClient.GetIttProviders()).IttProviders.Select(result => result.ProviderName).ToArray();
+            IttProviderNames = (await DqtApiClient.GetIttProviders()).IttProviders.Select(result => result.ProviderName).ToArray();
             var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
             _cache.Set("IttProviderNames", IttProviderNames, cacheEntryOptions);
         }

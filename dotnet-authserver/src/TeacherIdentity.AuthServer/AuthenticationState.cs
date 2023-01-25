@@ -406,7 +406,7 @@ public class AuthenticationState
         EmailAddress = email;
     }
 
-    public void OnNameChanged(string firstName, string lastName)
+    public void OnNameSet(string firstName, string lastName)
     {
         FirstName = firstName;
         LastName = lastName;
@@ -416,12 +416,12 @@ public class AuthenticationState
         string officialFirstName,
         string officialLastName,
         string? previousOfficialFirstName,
-        string? previousOfficiaLastName)
+        string? previousOfficialLastName)
     {
         OfficialFirstName = officialFirstName;
         OfficialLastName = officialLastName;
         PreviousOfficialFirstName = previousOfficialFirstName;
-        PreviousOfficialLastName = previousOfficiaLastName;
+        PreviousOfficialLastName = previousOfficialLastName;
     }
 
     public bool HasOfficialName()
@@ -521,6 +521,11 @@ public class AuthenticationState
         return !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName)
             ? $"{firstName} {lastName}"
             : null;
+    }
+
+    public void OnTrnLookupCompleted(string? trn)
+    {
+        Trn = trn;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

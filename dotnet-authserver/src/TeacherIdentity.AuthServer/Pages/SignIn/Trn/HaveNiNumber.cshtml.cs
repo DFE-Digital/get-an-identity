@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class HaveNiNumber : PageModel
+public class HaveNiNumber : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-
-    public HaveNiNumber(IIdentityLinkGenerator linkGenerator)
+    public HaveNiNumber(
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
     {
-        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Do you have a National Insurance number?")]
@@ -24,7 +25,7 @@ public class HaveNiNumber : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -34,8 +35,8 @@ public class HaveNiNumber : PageModel
         HttpContext.GetAuthenticationState().OnHaveNationalInsuranceNumberSet((bool)HasNiNumber!);
 
         return (bool)HasNiNumber!
-            ? Redirect(_linkGenerator.TrnNiNumber())
-            : Redirect(_linkGenerator.TrnAwardedQts());
+            ? Redirect(LinkGenerator.TrnNiNumber())
+            : await TryFindTrn() ?? Redirect(LinkGenerator.TrnAwardedQts());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -48,7 +49,7 @@ public class HaveNiNumber : PageModel
             !authenticationState.HasOfficialName() ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 

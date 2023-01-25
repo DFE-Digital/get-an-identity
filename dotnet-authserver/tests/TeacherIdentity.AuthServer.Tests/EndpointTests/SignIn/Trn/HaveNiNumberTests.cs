@@ -1,5 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class HaveNiNumberTests : TestBase
 {
     public HaveNiNumberTests(HostFixture hostFixture)
@@ -168,5 +169,50 @@ public class HaveNiNumberTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/awarded-qts", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResultAndHasNiNumberFalse_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", false },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_NiNumberTrue_DoesNotAttemptTrnLookup()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", true },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        VerifyDqtApiFindTeachersNotCalled();
     }
 }

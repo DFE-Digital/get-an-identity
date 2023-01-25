@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class DateOfBirthPage : PageModel
+public class DateOfBirthPage : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-
-    public DateOfBirthPage(IIdentityLinkGenerator linkGenerator)
+    public DateOfBirthPage(
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
     {
-        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
@@ -25,7 +26,7 @@ public class DateOfBirthPage : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -34,7 +35,7 @@ public class DateOfBirthPage : PageModel
 
         HttpContext.GetAuthenticationState().OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
-        return Redirect(_linkGenerator.TrnHaveNiNumber());
+        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnHaveNiNumber());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -47,7 +48,7 @@ public class DateOfBirthPage : PageModel
             !authenticationState.HasOfficialName() ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 

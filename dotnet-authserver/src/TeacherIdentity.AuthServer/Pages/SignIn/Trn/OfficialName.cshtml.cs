@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class OfficialName : PageModel
+public class OfficialName : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-
-    public OfficialName(IIdentityLinkGenerator linkGenerator)
+    public OfficialName(
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
     {
-        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "First name")]
@@ -36,7 +37,7 @@ public class OfficialName : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -51,7 +52,7 @@ public class OfficialName : PageModel
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialFirstName : null,
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialLastName : null);
 
-        return Redirect(_linkGenerator.TrnPreferredName());
+        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnPreferredName());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -63,7 +64,7 @@ public class OfficialName : PageModel
             !authenticationState.EmailAddressVerified ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 

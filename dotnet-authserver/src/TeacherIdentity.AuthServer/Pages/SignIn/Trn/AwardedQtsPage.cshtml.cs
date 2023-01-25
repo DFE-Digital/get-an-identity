@@ -1,23 +1,26 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class AwardedQtsPage : PageModel
+public class AwardedQtsPage : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-
-    public AwardedQtsPage(IIdentityLinkGenerator linkGenerator)
+    public AwardedQtsPage(
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
     {
-        _linkGenerator = linkGenerator;
     }
 
-    public string? BackLink => (HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber == true)
-        ? _linkGenerator.TrnNiNumber()
-        : _linkGenerator.TrnHaveNiNumber();
+    [BindNever]
+    public string BackLink => (HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber == true)
+        ? LinkGenerator.TrnNiNumber()
+        : LinkGenerator.TrnHaveNiNumber();
 
     [Display(Name = "Have you been awarded qualified teacher status (QTS)?")]
     [Required(ErrorMessage = "Tell us if you have been awarded qualified teacher status (QTS)")]
@@ -28,7 +31,7 @@ public class AwardedQtsPage : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -38,8 +41,8 @@ public class AwardedQtsPage : PageModel
         HttpContext.GetAuthenticationState().OnAwardedQtsSet((bool)AwardedQts!);
 
         return (bool)AwardedQts!
-            ? Redirect(_linkGenerator.TrnIttProvider())
-            : Redirect(_linkGenerator.TrnCheckAnswers());
+            ? Redirect(LinkGenerator.TrnIttProvider())
+            : await TryFindTrn() ?? Redirect(LinkGenerator.TrnCheckAnswers());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -52,7 +55,7 @@ public class AwardedQtsPage : PageModel
             !authenticationState.HasOfficialName() ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 

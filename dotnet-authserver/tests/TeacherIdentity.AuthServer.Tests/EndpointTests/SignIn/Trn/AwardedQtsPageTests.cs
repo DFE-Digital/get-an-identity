@@ -1,5 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class AwardedQtsPageTests : TestBase
 {
     public AwardedQtsPageTests(HostFixture hostFixture)
@@ -133,5 +134,50 @@ public class AwardedQtsPageTests : TestBase
         {
             Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
         }
+    }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResultAndAwardedQtsFalse_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "AwardedQts", bool.FalseString },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_AwardedQtsTrue_DoesNotAttemptTrnLookup()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "AwardedQts", bool.TrueString },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        VerifyDqtApiFindTeachersNotCalled();
     }
 }

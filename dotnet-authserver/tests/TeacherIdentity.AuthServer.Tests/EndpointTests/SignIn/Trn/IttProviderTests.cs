@@ -4,9 +4,9 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
-public class IitProviderTests : TestBase
+public class IttProviderTests : TestBase
 {
-    public IitProviderTests(HostFixture hostFixture)
+    public IttProviderTests(HostFixture hostFixture)
         : base(hostFixture)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetIttProviders(It.IsAny<CancellationToken>()))
@@ -175,5 +175,31 @@ public class IitProviderTests : TestBase
 
         Assert.Equal(hasIttProvider, authStateHelper.AuthenticationState.HaveIttProvider);
         Assert.Equal(hasIttProvider ? ittProviderName : null, authStateHelper.AuthenticationState.IttProviderName);
+    }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var ittProviderName = "provider";
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasIttProvider", true },
+                { "IttProviderName", ittProviderName },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
 }

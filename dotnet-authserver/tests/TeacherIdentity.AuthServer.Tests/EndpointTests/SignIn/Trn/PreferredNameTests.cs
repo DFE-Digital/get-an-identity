@@ -1,5 +1,6 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class PreferredNameTests : TestBase
 {
     public PreferredNameTests(HostFixture hostFixture)
@@ -172,7 +173,7 @@ public class PreferredNameTests : TestBase
         var preferredLastName = "preferred last";
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
-        authStateHelper.AuthenticationState.OnNameChanged(initialFirstName, initialLastName);
+        authStateHelper.AuthenticationState.OnNameSet(initialFirstName, initialLastName);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {

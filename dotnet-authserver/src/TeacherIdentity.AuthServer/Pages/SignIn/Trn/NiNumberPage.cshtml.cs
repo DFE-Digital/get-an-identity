@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class NiNumberPage : PageModel
+public class NiNumberPage : TrnLookupPageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
-
-    public NiNumberPage(IIdentityLinkGenerator linkGenerator)
+    public NiNumberPage(
+        IIdentityLinkGenerator linkGenerator,
+        IDqtApiClient dqtApiClient,
+        ILogger<TrnLookupPageModel> logger)
+        : base(linkGenerator, dqtApiClient, logger)
     {
-        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
@@ -25,7 +26,7 @@ public class NiNumberPage : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost(string submit)
+    public async Task<IActionResult> OnPost(string submit)
     {
         if (submit == "ni_number_not_known")
         {
@@ -41,7 +42,7 @@ public class NiNumberPage : PageModel
             HttpContext.GetAuthenticationState().NationalInsuranceNumber = NiNumber!;
         }
 
-        return Redirect(_linkGenerator.TrnAwardedQts());
+        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnAwardedQts());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -54,7 +55,7 @@ public class NiNumberPage : PageModel
             !authenticationState.HasOfficialName() ||
             authenticationState.HaveCompletedTrnLookup)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 
