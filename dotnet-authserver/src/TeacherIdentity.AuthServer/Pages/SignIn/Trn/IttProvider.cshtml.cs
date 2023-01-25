@@ -62,7 +62,7 @@ public class IttProvider : TrnLookupPageModel
         // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
         if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
             !authenticationState.EmailAddressVerified ||
-            !authenticationState.HasOfficialName() ||
+            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
             authenticationState.HaveCompletedTrnLookup)
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
