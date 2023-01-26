@@ -5,12 +5,8 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
-public class UserClaimHelperTests : TestBase
+public class UserClaimHelperTests
 {
-    public UserClaimHelperTests(HostFixture hostFixture) : base(hostFixture)
-    {
-    }
-
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -24,7 +20,7 @@ public class UserClaimHelperTests : TestBase
             FirstName = Faker.Name.First(),
             LastName = Faker.Name.Last(),
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-            Trn = TestData.GenerateTrn(),
+            Trn = "1234567",
             Created = DateTime.UtcNow,
             UserType = UserType.Default,
             Updated = DateTime.UtcNow,
@@ -70,7 +66,7 @@ public class UserClaimHelperTests : TestBase
             FirstName = Faker.Name.First(),
             LastName = Faker.Name.Last(),
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-            Trn = TestData.GenerateTrn(),
+            Trn = "1234567",
             CompletedTrnLookup = DateTime.UtcNow,
             Created = DateTime.UtcNow,
             UserType = UserType.Default,

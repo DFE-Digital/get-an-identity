@@ -6,12 +6,8 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
-public partial class AuthenticationStateTests : TestBase
+public partial class AuthenticationStateTests
 {
-    public AuthenticationStateTests(HostFixture hostFixture) : base(hostFixture)
-    {
-    }
-
     [Fact]
     public void FromInternalClaims_DefaultUser()
     {
@@ -23,7 +19,7 @@ public partial class AuthenticationStateTests : TestBase
         var lastName = Faker.Name.Last();
         var firstTimeSignInForEmail = true;
         var haveCompletedTrnLookup = true;
-        var trn = TestData.GenerateTrn();
+        var trn = "2345678";
         var userId = Guid.NewGuid();
         var userType = UserType.Default;
 
@@ -136,7 +132,7 @@ public partial class AuthenticationStateTests : TestBase
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
         var haveCompletedTrnLookup = true;
-        var trn = TestData.GenerateTrn();
+        var trn = "2345678";
         var userId = Guid.NewGuid();
         var userType = UserType.Default;
         var trnLookupStatus = TrnLookupStatus.Found;
@@ -383,7 +379,7 @@ public partial class AuthenticationStateTests : TestBase
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var trn = TestData.GenerateTrn();
+        var trn = "2345678";
         var userId = Guid.NewGuid();
 
         var user = new User()
@@ -435,7 +431,7 @@ public partial class AuthenticationStateTests : TestBase
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var trn = TestData.GenerateTrn();
+        var trn = "2345678";
         var userId = Guid.NewGuid();
 
         var user = new User()
@@ -489,7 +485,7 @@ public partial class AuthenticationStateTests : TestBase
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var trn = TestData.GenerateTrn();
+        var trn = "2345678";
         var userId = Guid.NewGuid();
 
         var user = new User()
@@ -597,7 +593,7 @@ public partial class AuthenticationStateTests : TestBase
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var trn = TestData.GenerateTrn();
+        var trn = "2345678";
         var userId = Guid.NewGuid();
         var existingTrnOwnerEmail = Faker.Internet.Email();
 
