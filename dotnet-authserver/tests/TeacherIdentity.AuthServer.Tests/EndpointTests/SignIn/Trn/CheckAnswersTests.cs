@@ -325,7 +325,7 @@ public class CheckAnswersTests : TestBase
     public async Task Post_ValidRequestWithTrn_CreatesUserRedirectsToNextHop()
     {
         // Arrange
-        var trn = "1234567";
+        var trn = TestData.GenerateTrn();
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn);
@@ -344,9 +344,8 @@ public class CheckAnswersTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
+            var user = await dbContext.Users.Where(u => u.Trn == trn).SingleOrDefaultAsync();
             Assert.NotNull(user);
-            Assert.Equal(trn, user.Trn);
         });
     }
 

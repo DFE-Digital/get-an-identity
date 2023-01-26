@@ -185,7 +185,7 @@ public class HasTrnPageTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
-        var statedTrn = "4567814";
+        var statedTrn = TestData.GenerateTrn();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
