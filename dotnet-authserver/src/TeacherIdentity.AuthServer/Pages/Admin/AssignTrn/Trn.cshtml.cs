@@ -25,7 +25,7 @@ public class TrnModel : PageModel
     [BindProperty]
     [Display(Name = "What is their teacher reference number (TRN)?")]
     [Required(ErrorMessage = "Enter a TRN")]
-    [RegularExpression(@"\A\D*(\d{1}\D*){7}\D*\Z", ErrorMessage = "TRN must be 7 digits")]
+    [RegularExpression(@"^\d{7}$", ErrorMessage = "TRN must be 7 digits")]
     public string? Trn { get; set; }
 
     [FromRoute]
