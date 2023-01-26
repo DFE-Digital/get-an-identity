@@ -87,6 +87,8 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string TrnCheckAnswers(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/CheckAnswers");
 
+    public static string TrnNoMatch(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/NoMatch");
+
     public static string Landing(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Landing");
 
     public static string Register(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/Index");

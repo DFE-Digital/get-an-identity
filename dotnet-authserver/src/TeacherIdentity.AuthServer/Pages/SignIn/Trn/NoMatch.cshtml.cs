@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using TeacherIdentity.AuthServer.Models;
@@ -5,9 +6,9 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
-public class CheckAnswers : TrnCreateUserPageModel
+public class NoMatch : TrnCreateUserPageModel
 {
-    public CheckAnswers(
+    public NoMatch(
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
@@ -15,10 +16,6 @@ public class CheckAnswers : TrnCreateUserPageModel
         : base(linkGenerator, dbContext, clock, emailVerificationService)
     {
     }
-
-    public string BackLink => (HttpContext.GetAuthenticationState().HaveIttProvider == true)
-        ? LinkGenerator.TrnIttProvider()
-        : LinkGenerator.TrnAwardedQts();
 
     public string? EmailAddress => HttpContext.GetAuthenticationState().EmailAddress;
     public string? OfficialName => HttpContext.GetAuthenticationState().GetOfficialName();
@@ -30,15 +27,25 @@ public class CheckAnswers : TrnCreateUserPageModel
     public bool? AwardedQts => HttpContext.GetAuthenticationState().AwardedQts;
     public string? IttProviderName => HttpContext.GetAuthenticationState().IttProviderName;
 
+    [BindProperty]
+    [Display(Name = "Do you want to change something and try again?")]
+    [Required(ErrorMessage = "Do you want to change something and try again?")]
+    public bool? HasChangesToMake { get; set; }
+
     public void OnGet()
     {
     }
 
     public async Task<IActionResult> OnPost()
     {
-        if (string.IsNullOrEmpty(HttpContext.GetAuthenticationState().Trn))
+        if (!ModelState.IsValid)
         {
-            return Redirect(LinkGenerator.TrnNoMatch());
+            return this.PageWithErrors();
+        }
+
+        if (HasChangesToMake == true)
+        {
+            return Redirect(LinkGenerator.TrnCheckAnswers());
         }
 
         return await TryCreateUser();
