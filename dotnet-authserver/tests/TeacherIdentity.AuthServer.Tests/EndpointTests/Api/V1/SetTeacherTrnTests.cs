@@ -20,7 +20,7 @@ public class SetTeacherTrnTests : TestBase
         var httpClient = await CreateHttpClientWithToken(scope);
 
         var user = await TestData.CreateUser(hasTrn: false);
-        var trn = "1234567";
+        var trn = TestData.GenerateTrn();
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
@@ -44,7 +44,7 @@ public class SetTeacherTrnTests : TestBase
         var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
 
         var userId = Guid.NewGuid();
-        var trn = "1234567";
+        var trn = TestData.GenerateTrn();
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{userId}/trn")
         {
@@ -68,7 +68,7 @@ public class SetTeacherTrnTests : TestBase
         var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
 
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
-        var trn = "1234567";
+        var trn = TestData.GenerateTrn();
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {
@@ -166,7 +166,7 @@ public class SetTeacherTrnTests : TestBase
         var httpClient = await CreateHttpClientWithToken(scope);
 
         var user = await TestData.CreateUser(hasTrn: false);
-        var trn = "1234567";
+        var trn = TestData.GenerateTrn();
 
         var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.UserId}/trn")
         {

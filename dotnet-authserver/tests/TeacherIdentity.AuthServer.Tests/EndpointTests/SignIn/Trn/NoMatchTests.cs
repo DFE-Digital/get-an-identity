@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
-public class CheckAnswersTests : TestBase
+public class NoMatchTests : TestBase
 {
-    public CheckAnswersTests(HostFixture hostFixture)
+    public NoMatchTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -12,25 +12,25 @@ public class CheckAnswersTests : TestBase
     [Fact]
     public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/check-answers");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Get_MissingAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/check-answers");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class CheckAnswersTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
         var authState = authStateHelper.AuthenticationState;
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -71,7 +71,7 @@ public class CheckAnswersTests : TestBase
             previousFirstName,
             previousLastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -100,7 +100,7 @@ public class CheckAnswersTests : TestBase
             previousOfficialFirstName: null,
             previousOfficialLastName: null);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -124,7 +124,7 @@ public class CheckAnswersTests : TestBase
 
         authState.OnNameSet(preferredFirstName, preferredLastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -145,7 +145,7 @@ public class CheckAnswersTests : TestBase
         Assert.Null(authState.FirstName);
         Assert.Null(authState.LastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -170,7 +170,7 @@ public class CheckAnswersTests : TestBase
         var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
         authState.NationalInsuranceNumber = nino;
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -190,7 +190,7 @@ public class CheckAnswersTests : TestBase
         var authState = authStateHelper.AuthenticationState;
         Assert.Null(authState.HaveNationalInsuranceNumber);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -214,7 +214,7 @@ public class CheckAnswersTests : TestBase
         authState.OnAwardedQtsSet(haveQts);
         authState.OnHaveIttProviderSet(false);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -239,7 +239,7 @@ public class CheckAnswersTests : TestBase
         authState.OnHaveIttProviderSet(true);
         authState.IttProviderName = ittProviderName;
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -261,7 +261,7 @@ public class CheckAnswersTests : TestBase
         authState.OnAwardedQtsSet(true);
         authState.OnHaveIttProviderSet(false);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -282,7 +282,7 @@ public class CheckAnswersTests : TestBase
 
         authState.OnAwardedQtsSet(false);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -295,14 +295,11 @@ public class CheckAnswersTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidRequestNullTrn_DoesNotCreateUserRedirectsToNoMatch()
+    public async Task Post_NullHasChangesToMake_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-
-        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -311,8 +308,31 @@ public class CheckAnswersTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
+        await AssertEx.HtmlResponseHasError(response, "HasChangesToMake", "Do you want to change something and try again?");
+    }
+
+    [Fact]
+    public async Task Post_TrueHasChangesToMake_DoesNotCreateUserRedirectsToCheckAnswers()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+
+        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasChangesToMake", true }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn/no-match", response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -322,17 +342,19 @@ public class CheckAnswersTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidRequestWithTrn_CreatesUserRedirectsToNextHop()
+    public async Task Post_FalseHasChangesToMake_CreatesUserRedirectsToNextHopUrl()
     {
         // Arrange
-        var trn = TestData.GenerateTrn();
-
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
+        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasChangesToMake", false }
+            }
         };
 
         // Act
@@ -344,36 +366,9 @@ public class CheckAnswersTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            var user = await dbContext.Users.Where(u => u.Trn == trn).SingleOrDefaultAsync();
-            Assert.NotNull(user);
-        });
-    }
-
-    [Fact]
-    public async Task Post_ValidRequestTrnIsAllocatedToAnExistingUser_DoesNotCreateUserRedirectsToTrnInUse()
-    {
-        // Arrange
-        var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
-
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(existingUserWithTrn.Trn);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn/different-email", response.Headers.Location?.OriginalString);
-
-        await TestData.WithDbContext(async dbContext =>
-        {
             var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
-            Assert.Null(user);
+            Assert.NotNull(user);
+            Assert.Null(user.Trn);
         });
     }
 }
