@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 public class CheckAnswersTests : TestBase
@@ -290,5 +292,61 @@ public class CheckAnswersTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.Null(doc.GetSummaryListRowForKey("Did a university, SCITT or school award your QTS?"));
+    }
+
+    [Fact]
+    public async Task Post_ValidRequest_CreatesUserRedirectsToNextHop()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+
+        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
+            Assert.NotNull(user);
+            Assert.Equal(authStateHelper.AuthenticationState.OfficialFirstName, user.FirstName);
+        });
+    }
+
+    [Fact]
+    public async Task Post_ValidRequestTrnIsAllocatedToAnExistingUser_DoesNotCreateUserRedirectsToTrnInUse()
+    {
+        // Arrange
+        var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(existingUserWithTrn.Trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/different-email", response.Headers.Location?.OriginalString);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
+            Assert.Null(user);
+        });
     }
 }
