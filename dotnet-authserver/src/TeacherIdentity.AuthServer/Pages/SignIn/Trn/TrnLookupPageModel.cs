@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Services.DqtApi;
-using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
