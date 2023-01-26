@@ -6,27 +6,26 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin.AssignTrn;
 
 [Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
-public class TrnModel : PageModel
+public class NoTrn : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IDqtApiClient _dqtApiClient;
+    private readonly IClock _clock;
 
-    public TrnModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient)
+    public NoTrn(
+        TeacherIdentityServerDbContext dbContext,
+        IClock clock)
     {
         _dbContext = dbContext;
-        _dqtApiClient = dqtApiClient;
+        _clock = clock;
     }
 
     [BindProperty]
-    [Display(Name = "What is their teacher reference number (TRN)?")]
-    [Required(ErrorMessage = "Enter a TRN")]
-    [RegularExpression(@"\A\D*(\d{1}\D*){7}\D*\Z", ErrorMessage = "TRN must be 7 digits")]
-    public string? Trn { get; set; }
+    [Display(Name = "Confirm user is not in DQT")]
+    public bool? HasNoTrn { get; set; }
 
     [FromRoute]
     public Guid UserId { get; set; }
@@ -37,28 +36,31 @@ public class TrnModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        if (!ModelState.IsValid)
+        if (HasNoTrn != true)
         {
-            return this.PageWithErrors();
+            return RedirectToPage("/Admin/User", new { UserId });
         }
 
-        var dqtTeacher = await _dqtApiClient.GetTeacherByTrn(Trn!);
+        var user = await _dbContext.Users.SingleAsync(u => u.UserId == UserId);
 
-        if (dqtTeacher is null)
+        user.TrnLookupStatus = TrnLookupStatus.Failed;
+        user.TrnAssociationSource = TrnAssociationSource.SupportUi;
+        user.Updated = _clock.UtcNow;
+
+        _dbContext.AddEvent(new Events.UserUpdatedEvent()
         {
-            ModelState.AddModelError(nameof(Trn), "TRN does not exist");
-            return this.PageWithErrors();
-        }
+            Source = Events.UserUpdatedEventSource.SupportUi,
+            CreatedUtc = _clock.UtcNow,
+            Changes = Events.UserUpdatedEventChanges.TrnLookupStatus,
+            User = Events.User.FromModel(user),
+            UpdatedByUserId = User.GetUserId()!.Value
+        });
 
-        var otherOtherWithTrn = await _dbContext.Users.SingleOrDefaultAsync(u => u.Trn == Trn);
+        await _dbContext.SaveChangesAsync();
 
-        if (otherOtherWithTrn is not null)
-        {
-            ModelState.AddModelError(nameof(Trn), "TRN is assigned to another user");
-            return this.PageWithErrors();
-        }
+        TempData[TempDataKeys.FlashSuccess] = "User marked as non DQT";
 
-        return RedirectToPage("Confirm", new { UserId, Trn });
+        return RedirectToPage("/Admin/User", new { UserId });
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
