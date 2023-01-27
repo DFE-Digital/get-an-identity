@@ -1,0 +1,26 @@
+@page "/admin/users/{userId}/merge/{UserIdToMerge}/choose-trn"
+@model TeacherIdentity.AuthServer.Pages.Admin.MergeUser.ChooseTrn
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.Trn);
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="Confirm" asp-route-userId="@Model.UserId" asp-route-userIdToMerge="@Model.UserIdToMerge"/>
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form asp-page="ChooseTrn" method="post">
+            <govuk-radios asp-for="Trn">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl"/>
+
+                    <govuk-radios-item value="@(Model.User!.Trn ?? "None")">@(Model.User!.Trn ?? "None")</govuk-radios-item>
+                    <govuk-radios-item value="@(Model.UserToMerge!.Trn ?? "None")">@(Model.UserToMerge!.Trn ?? "None")</govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>

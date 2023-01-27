@@ -1,0 +1,41 @@
+@page "/admin/users/{userId}/merge/{UserIdToMerge}/confirm"
+@model TeacherIdentity.AuthServer.Pages.Admin.MergeUser.Confirm
+@{
+    ViewBag.Title = "Confirm the result of the merge";
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="SelectUser" asp-route-userId="@Model.UserId"/>
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form asp-page="Confirm" method="post">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.User!.EmailAddress</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@Model.User!.FirstName @Model.User!.LastName</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Trn</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.GetMergeTrn()</govuk-summary-list-row-value>
+                    @if (Model.User!.Trn != Model.UserToMerge!.Trn)
+                    {
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action asp-page="ChooseTrn" asp-route-userId="@Model.UserId" asp-route-userIdToMerge="@Model.UserIdToMerge">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    }
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

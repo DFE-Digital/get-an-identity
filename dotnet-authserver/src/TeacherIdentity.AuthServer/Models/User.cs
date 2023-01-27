@@ -24,4 +24,8 @@ public class User
     public Application? RegisteredWithClient { get; set; }
     public string? RegisteredWithClientId { get; set; }
     public TrnLookupStatus? TrnLookupStatus { get; set; }
+    public bool IsDeleted { get; set; }
+    public User? MergedWithUser { get; set; }
+    public virtual ICollection<User>? MergedUsers { get; set; }
+    public Guid? MergedWithUserId { get; set; }
 }

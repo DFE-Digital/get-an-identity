@@ -1,0 +1,60 @@
+@page "/admin/users/{userId}/merge"
+@model TeacherIdentity.AuthServer.Pages.Admin.MergeUser.Merge
+@addTagHelper *, Joonasw.AspNetCore.SecurityHeaders
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.UserIdToMerge);
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/Styles/Components/accessible-autocomplete.min.css" asp-append-version="true" />
+}
+
+@section Scripts
+{
+    <script src="~/Scripts/Components/accessible-autocomplete.min.js"></script>
+    <script asp-add-nonce="true">
+        window.onload = function () {
+            const inputName = '@nameof(Model.UserIdToMerge)';
+            const select = document.querySelector(`select[name=${inputName}`);
+            const value = select.value;
+            const container = select.parentElement;
+
+            accessibleAutocomplete({
+                element: container,
+                id: inputName,
+                source: @Html.Raw(Json.Serialize(Model.UserIds)),
+                defaultValue: value
+            })
+
+            container.removeChild(select);
+            const input = container.querySelector('input');
+            input.name = inputName;
+        }
+    </script>
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="/Admin/User" asp-route-userId="@Model.UserId" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form asp-page="MergeUser" asp-route-userId="@Model.UserId">
+            <govuk-select asp-for="UserIdToMerge">
+                <govuk-select-label is-page-heading="true" class="govuk-label--xl">
+                    <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+                    <p>Which user do you want to merge with <b>@Model.UserId</b>.</p>
+                </govuk-select-label>
+                <govuk-select-item value=""></govuk-select-item>
+                @foreach (var userId in Model.UserIds ?? Enumerable.Empty<Guid>())
+                {
+                    <govuk-select-item value="@userId">@userId</govuk-select-item>
+                }
+            </govuk-select>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
