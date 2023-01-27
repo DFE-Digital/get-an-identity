@@ -3,6 +3,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
+using TeacherIdentity.AuthServer.Services.Zendesk;
 
 namespace TeacherIdentity.AuthServer.Services;
 
@@ -20,6 +21,7 @@ public static class ServiceCollectionExtensions
             .AddEmail(environment, configuration)
             .AddEmailVerification(environment, configuration)
             .AddTrnLookup(configuration)
-            .AddSingleton<Redactor>();
+            .AddSingleton<Redactor>()
+            .AddZendesk(configuration);
     }
 }
