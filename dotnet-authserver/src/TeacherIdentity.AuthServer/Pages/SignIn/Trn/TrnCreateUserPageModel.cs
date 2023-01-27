@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,8 @@ public class TrnCreateUserPageModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
+        Debug.Assert(authenticationState.TrnLookupStatus.HasValue);
+
         var userId = Guid.NewGuid();
         var user = new User()
         {
@@ -43,10 +46,10 @@ public class TrnCreateUserPageModel : PageModel
             UserId = userId,
             UserType = UserType.Default,
             Trn = authenticationState.Trn,
-            TrnAssociationSource = !string.IsNullOrEmpty(authenticationState.Trn) ? TrnAssociationSource.Lookup : null,
+            TrnAssociationSource = authenticationState.Trn is not null ? TrnAssociationSource.Lookup : null,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-            TrnLookupStatus = !string.IsNullOrEmpty(authenticationState.Trn) ? TrnLookupStatus.Found : TrnLookupStatus.None
+            TrnLookupStatus = authenticationState.TrnLookupStatus
         };
 
         _dbContext.Users.Add(user);

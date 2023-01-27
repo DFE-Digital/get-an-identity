@@ -299,8 +299,10 @@ public class CheckAnswersTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
 
-        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
+        authState.OnAwardedQtsSet(false);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
@@ -328,7 +330,9 @@ public class CheckAnswersTests : TestBase
         var trn = TestData.GenerateTrn();
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn);
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
@@ -356,7 +360,9 @@ public class CheckAnswersTests : TestBase
         var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(existingUserWithTrn.Trn);
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnTrnLookupCompleted(existingUserWithTrn.Trn, TrnLookupStatus.Found);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
