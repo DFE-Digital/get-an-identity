@@ -171,12 +171,10 @@ public class Program
                         }
                     }
 
-                    if (user is null)
+                    if (user is not null)
                     {
-                        throw new InvalidOperationException("Cannot identify current user.");
+                        await ctx.HttpContext.SaveUserSignedOutEvent(user, clientId);
                     }
-
-                    await ctx.HttpContext.SaveUserSignedOutEvent(user, clientId);
                 };
             })
             .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.AuthenticationScheme, _ => { })
