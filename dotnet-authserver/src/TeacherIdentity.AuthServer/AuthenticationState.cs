@@ -523,9 +523,20 @@ public class AuthenticationState
             : null;
     }
 
-    public void OnTrnLookupCompleted(string? trn)
+    public void OnTrnLookupCompleted(string? trn, TrnLookupStatus trnLookupStatus)
     {
+        if (trn is not null && trnLookupStatus != AuthServer.TrnLookupStatus.Found)
+        {
+            throw new ArgumentException($"{nameof(trnLookupStatus)} must be '{AuthServer.TrnLookupStatus.Found} when {nameof(trn)} is not null.");
+        }
+
+        if (trn is null && trnLookupStatus == AuthServer.TrnLookupStatus.Found)
+        {
+            throw new ArgumentException($"{nameof(trnLookupStatus)} cannot be '{AuthServer.TrnLookupStatus.Found} when {nameof(trn)} is null.");
+        }
+
         Trn = trn;
+        TrnLookupStatus = trnLookupStatus;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

@@ -40,6 +40,8 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
         var authState = authStateHelper.AuthenticationState;
 
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -70,6 +72,7 @@ public class NoMatchTests : TestBase
             authState.OfficialLastName!,
             previousFirstName,
             previousLastName);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -99,6 +102,7 @@ public class NoMatchTests : TestBase
             authState.OfficialLastName!,
             previousOfficialFirstName: null,
             previousOfficialLastName: null);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -123,6 +127,7 @@ public class NoMatchTests : TestBase
         var preferredLastName = Faker.Name.Last();
 
         authState.OnNameSet(preferredFirstName, preferredLastName);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -144,6 +149,8 @@ public class NoMatchTests : TestBase
         var authState = authStateHelper.AuthenticationState;
         Assert.Null(authState.FirstName);
         Assert.Null(authState.LastName);
+
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -169,6 +176,7 @@ public class NoMatchTests : TestBase
         authState.OnHaveNationalInsuranceNumberSet(haveNino);
         var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
         authState.NationalInsuranceNumber = nino;
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -189,6 +197,8 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
         var authState = authStateHelper.AuthenticationState;
         Assert.Null(authState.HaveNationalInsuranceNumber);
+
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -213,6 +223,7 @@ public class NoMatchTests : TestBase
 
         authState.OnAwardedQtsSet(haveQts);
         authState.OnHaveIttProviderSet(false);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -238,6 +249,7 @@ public class NoMatchTests : TestBase
         authState.OnAwardedQtsSet(true);
         authState.OnHaveIttProviderSet(true);
         authState.IttProviderName = ittProviderName;
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -260,6 +272,7 @@ public class NoMatchTests : TestBase
 
         authState.OnAwardedQtsSet(true);
         authState.OnHaveIttProviderSet(false);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -281,6 +294,7 @@ public class NoMatchTests : TestBase
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -299,6 +313,10 @@ public class NoMatchTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -316,8 +334,10 @@ public class NoMatchTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
 
-        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
+        authState.OnAwardedQtsSet(false);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
@@ -346,8 +366,10 @@ public class NoMatchTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
 
-        authStateHelper.AuthenticationState.OnAwardedQtsSet(false);
+        authState.OnAwardedQtsSet(false);
+        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {

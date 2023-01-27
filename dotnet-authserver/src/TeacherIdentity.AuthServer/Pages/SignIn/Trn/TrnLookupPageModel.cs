@@ -61,9 +61,16 @@ public abstract class TrnLookupPageModel : PageModel
         {
             // We're deliberately setting the result here, even on failure to ensure we don't hold onto a
             // previously-found TRN that may now be invalid.
-            authenticationState.OnTrnLookupCompleted(lookupResult);
+
+            var trnLookupStatus = GetTrnLookupStatus(lookupResult, authenticationState);
+            authenticationState.OnTrnLookupCompleted(lookupResult, trnLookupStatus);
         }
 
         return lookupResult is not null ? new RedirectResult(LinkGenerator.TrnCheckAnswers()) : null;
     }
+
+    public static TrnLookupStatus GetTrnLookupStatus(string? trnLookupResult, AuthenticationState authenticationState) =>
+        trnLookupResult is not null ? TrnLookupStatus.Found :
+            authenticationState.StatedTrn is not null || authenticationState.AwardedQts == true ? TrnLookupStatus.Pending :
+            TrnLookupStatus.None;
 }
