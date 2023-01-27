@@ -22,6 +22,6 @@ public static class ServiceCollectionExtensions
             .AddEmailVerification(environment, configuration)
             .AddTrnLookup(configuration)
             .AddSingleton<Redactor>()
-            .AddZendesk(configuration);
+            .AddZendesk(environment, configuration);
     }
 }

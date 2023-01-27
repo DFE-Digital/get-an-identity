@@ -15,6 +15,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
+using TeacherIdentity.AuthServer.Services.Zendesk;
 using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -46,6 +47,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public Spy<IEmailVerificationService> EmailVerificationService => Spy.Get<IEmailVerificationService>();
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
+
+    public Mock<IZendeskApiWrapper> ZendeskApiWrapper { get; } = new Mock<IZendeskApiWrapper>();
 
     public async Task Initialize()
     {
@@ -82,6 +85,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         EmailSender.Reset();
         EmailVerificationService.Reset();
         RateLimitStore.Reset();
+        ZendeskApiWrapper.Reset();
 
         DqtApiClient.Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FindTeachersResponse() { Results = Array.Empty<FindTeachersResponseResult>() });
@@ -150,6 +154,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton(RateLimitStore.Object);
             services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
             services.Decorate<IEmailVerificationService>(inner => Spy.Get<IEmailVerificationService>().Wrap(inner));
+            services.AddSingleton(ZendeskApiWrapper.Object);
         });
     }
 

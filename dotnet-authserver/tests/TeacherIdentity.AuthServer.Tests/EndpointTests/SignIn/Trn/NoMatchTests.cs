@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using ZendeskApi.Client.Requests;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class NoMatchTests : TestBase
 {
     public NoMatchTests(HostFixture hostFixture)
@@ -361,15 +363,19 @@ public class NoMatchTests : TestBase
         });
     }
 
-    [Fact]
-    public async Task Post_FalseHasChangesToMake_CreatesUserRedirectsToNextHopUrl()
+    [Theory]
+    [InlineData(TrnLookupStatus.Pending, true)]
+    [InlineData(TrnLookupStatus.None, false)]
+    public async Task Post_FalseHasChangesToMake_CreatesUserRedirectsToNextHopUrl(
+        TrnLookupStatus trnLookupStatus,
+        bool expectZendeskTicketCreated)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authState.OnTrnLookupCompleted(trn: null, trnLookupStatus);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
@@ -392,5 +398,9 @@ public class NoMatchTests : TestBase
             Assert.NotNull(user);
             Assert.Null(user.Trn);
         });
+
+        HostFixture.ZendeskApiWrapper.Verify(
+            mock => mock.CreateTicketAsync(It.Is<TicketCreateRequest>(t => t.Requester.Email == authState.EmailAddress), It.IsAny<CancellationToken>()),
+            expectZendeskTicketCreated ? Times.Once() : Times.Never());
     }
 }
