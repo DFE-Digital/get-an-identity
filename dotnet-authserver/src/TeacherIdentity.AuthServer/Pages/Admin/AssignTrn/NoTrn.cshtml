@@ -1,0 +1,24 @@
+@page "/admin/users/{userId}/no-trn"
+@model TeacherIdentity.AuthServer.Pages.Admin.AssignTrn.NoTrn
+@{
+    ViewBag.Title = @Html.DisplayNameFor(m => m.HasNoTrn);
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="/Admin/User" asp-route-userId="@Model.UserId" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <form asp-page="NoTrn" asp-route-userId="@Model.UserId">
+            <govuk-checkboxes asp-for="HasNoTrn">
+                <govuk-checkboxes-fieldset>
+                    <govuk-checkboxes-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl"/>
+                    <govuk-checkboxes-item value="@true">User is not in DQT</govuk-checkboxes-item>
+                </govuk-checkboxes-fieldset>
+            </govuk-checkboxes>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
