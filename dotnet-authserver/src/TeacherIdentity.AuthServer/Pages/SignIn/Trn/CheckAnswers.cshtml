@@ -23,7 +23,7 @@
                     <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value>@Model.OfficialName</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.TrnOfficialName()">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.TrnOfficialName()" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
                 @if (!string.IsNullOrEmpty(Model.PreviousOfficialName))
@@ -32,7 +32,7 @@
                         <govuk-summary-list-row-key>Previous name</govuk-summary-list-row-key>
                         <govuk-summary-list-row-value>@Model.PreviousOfficialName</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="@LinkGenerator.TrnOfficialName()">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnOfficialName()" visually-hidden-text="previous name">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
                 }
@@ -42,7 +42,7 @@
                         <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
                         <govuk-summary-list-row-value>@Model.PreferredName</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="@LinkGenerator.TrnPreferredName()">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnPreferredName()" visually-hidden-text="preferred name">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
                 }
@@ -50,7 +50,7 @@
                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString("dd MMMM yyyy")</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.TrnDateOfBirth()">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.TrnDateOfBirth()" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
                 @if (Model.HaveNationalInsuranceNumber is not null)
@@ -59,7 +59,7 @@
                         <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
                         <govuk-summary-list-row-value>@(Model.NationalInsuranceNumber ?? "Not given")</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="@LinkGenerator.TrnHaveNiNumber()">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnHaveNiNumber()" visually-hidden-text="national insurance number">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
                 }
@@ -69,7 +69,7 @@
                         <govuk-summary-list-row-key>Have you been awarded QTS?</govuk-summary-list-row-key>
                         <govuk-summary-list-row-value>@(Model.AwardedQts == true ? "Yes" : "No")</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="@LinkGenerator.TrnAwardedQts()">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnAwardedQts()" visually-hidden-text="awarded QTS">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
                 }
@@ -79,7 +79,7 @@
                         <govuk-summary-list-row-key>Did a university, SCITT or school award your QTS?</govuk-summary-list-row-key>
                         <govuk-summary-list-row-value>@(Model.IttProviderName ?? "No, I was awarded QTS another way")</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="@LinkGenerator.TrnIttProvider()">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.TrnIttProvider()" visually-hidden-text="teacher training provider">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     </govuk-summary-list-row>
                 }
