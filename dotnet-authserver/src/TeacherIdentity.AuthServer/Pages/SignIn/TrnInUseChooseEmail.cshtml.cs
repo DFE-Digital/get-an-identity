@@ -72,7 +72,8 @@ public class TrnInUseChooseEmailModel : PageModel
                 Changes = Events.UserUpdatedEventChanges.EmailAddress,
                 CreatedUtc = _clock.UtcNow,
                 User = user,
-                UpdatedByUserId = user.UserId
+                UpdatedByUserId = user.UserId,
+                UpdatedByClientId = null
             });
         }
 

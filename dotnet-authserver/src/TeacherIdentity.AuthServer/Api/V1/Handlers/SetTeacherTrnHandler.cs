@@ -73,6 +73,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             CreatedUtc = _clock.UtcNow,
             Changes = changes,
             User = Events.User.FromModel(user),
+            UpdatedByClientId = _currentUserProvider.CurrentClientId,
             UpdatedByUserId = _currentUserProvider.CurrentUserId
         });
 

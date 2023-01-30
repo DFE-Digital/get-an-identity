@@ -32,8 +32,35 @@ public static class UserClaimHelper
     public static string? GetTrn(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, CustomClaims.Trn, throwIfMissing);
 
-    public static Guid? GetUserId(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
-        GetClaim(principal, Claims.Subject, throwIfMissing, value => Guid.Parse(value));
+    public static Guid? GetUserId(this ClaimsPrincipal principal, bool throwIfMissing = true)
+    {
+        // Subject here can either be a GUID (which is our User ID) or it could be the client ID
+        // (in cases where client credentials grant is being used)
+
+        var value = principal.FindFirstValue(Claims.Subject);
+
+        if (string.IsNullOrEmpty(value))
+        {
+            if (throwIfMissing)
+            {
+                ThrowClaimMissingException(Claims.Subject);
+            }
+
+            return null;
+        }
+
+        if (!Guid.TryParse(value, out var userId))
+        {
+            if (throwIfMissing)
+            {
+                throw new InvalidOperationException($"The '{Claims.Subject}' claim does not contain a user ID.");
+            }
+
+            return null;
+        }
+
+        return userId;
+    }
 
     public static UserType? GetUserType(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
         GetClaim(principal, CustomClaims.UserType, throwIfMissing, value => Enum.Parse<UserType>(value));

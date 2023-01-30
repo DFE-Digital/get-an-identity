@@ -53,6 +53,7 @@ public class EditUserEmailModel : PageModel
             _dbContext.AddEvent(new UserUpdatedEvent()
             {
                 Source = UserUpdatedEventSource.SupportUi,
+                UpdatedByClientId = null,
                 UpdatedByUserId = User.GetUserId()!.Value,
                 CreatedUtc = _clock.UtcNow,
                 User = Events.User.FromModel(user),

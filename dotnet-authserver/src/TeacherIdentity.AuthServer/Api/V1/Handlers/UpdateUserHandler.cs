@@ -62,12 +62,13 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, UserInfo>
         {
             user.Updated = _clock.UtcNow;
 
-            _dbContext.AddEvent(new Events.UserUpdatedEvent()
+            _dbContext.AddEvent(new UserUpdatedEvent()
             {
-                Source = Events.UserUpdatedEventSource.Api,
+                Source = UserUpdatedEventSource.Api,
                 CreatedUtc = _clock.UtcNow,
                 Changes = changes,
                 User = Events.User.FromModel(user),
+                UpdatedByClientId = _currentUserProvider.CurrentClientId,
                 UpdatedByUserId = _currentUserProvider.CurrentUserId
             });
 

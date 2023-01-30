@@ -96,6 +96,8 @@ public class AddClientModel : PageModel
             ClientSecret!,
             DisplayName!,
             ServiceUrl!,
+            enableAuthorizationCodeGrant: true,
+            enableClientCredentialsGrant: false,
             RedirectUris,
             PostLogoutRedirectUris,
             cleansedScopes);

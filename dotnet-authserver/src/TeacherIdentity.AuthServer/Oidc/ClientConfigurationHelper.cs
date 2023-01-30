@@ -25,6 +25,8 @@ public class ClientConfigurationHelper
                 clientConfig.ClientSecret,
                 clientConfig.DisplayName,
                 clientConfig.ServiceUrl,
+                clientConfig.EnableAuthorizationCodeGrant,
+                clientConfig.EnableClientCredentialsGrant,
                 clientConfig.RedirectUris ?? Array.Empty<string>(),
                 clientConfig.PostLogoutRedirectUris ?? Array.Empty<string>(),
                 clientConfig.Scopes ?? Array.Empty<string>());

@@ -29,6 +29,8 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
         string clientSecret,
         string? displayName,
         string? serviceUrl,
+        bool enableAuthorizationCodeGrant,
+        bool enableClientCredentialsGrant,
         IEnumerable<string> redirectUris,
         IEnumerable<string> postLogoutRedirectUris,
         IEnumerable<string> scopes)
@@ -47,26 +49,34 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
             }
         };
 
-        foreach (var redirectUri in redirectUris)
+        var permissions = new HashSet<string>();
+
+        if (enableAuthorizationCodeGrant)
         {
-            descriptor.RedirectUris.Add(new Uri(redirectUri));
+            permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+            permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
+            permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+            permissions.Add(OpenIddictConstants.Permissions.Endpoints.Logout);
+            permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+            permissions.Add(OpenIddictConstants.Permissions.Scopes.Email);
+            permissions.Add(OpenIddictConstants.Permissions.Scopes.Profile);
+
+            foreach (var redirectUri in redirectUris)
+            {
+                descriptor.RedirectUris.Add(new Uri(redirectUri));
+            }
+
+            foreach (var redirectUri in postLogoutRedirectUris)
+            {
+                descriptor.PostLogoutRedirectUris.Add(new Uri(redirectUri));
+            }
         }
 
-        foreach (var redirectUri in postLogoutRedirectUris)
+        if (enableClientCredentialsGrant)
         {
-            descriptor.PostLogoutRedirectUris.Add(new Uri(redirectUri));
+            permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+            permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
         }
-
-        var permissions = new[]
-        {
-            OpenIddictConstants.Permissions.Endpoints.Authorization,
-            OpenIddictConstants.Permissions.Endpoints.Token,
-            OpenIddictConstants.Permissions.Endpoints.Logout,
-            OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
-            OpenIddictConstants.Permissions.ResponseTypes.Code,
-            OpenIddictConstants.Permissions.Scopes.Email,
-            OpenIddictConstants.Permissions.Scopes.Profile
-        };
 
         foreach (var permission in permissions)
         {
