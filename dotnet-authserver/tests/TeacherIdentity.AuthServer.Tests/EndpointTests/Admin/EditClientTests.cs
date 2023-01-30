@@ -195,6 +195,8 @@ public class EditClientTests : TestBase
                 clientSecret,
                 displayName,
                 serviceUrl,
+                enableAuthorizationCodeGrant: true,
+                enableClientCredentialsGrant: false,
                 new[] { redirectUri1 },
                 new[] { postLogoutRedirectUri1 },
                 new[] { scope1 }));

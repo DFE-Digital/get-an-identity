@@ -53,6 +53,7 @@ public class NoTrn : PageModel
             CreatedUtc = _clock.UtcNow,
             Changes = Events.UserUpdatedEventChanges.TrnLookupStatus,
             User = Events.User.FromModel(user),
+            UpdatedByClientId = null,
             UpdatedByUserId = User.GetUserId()!.Value
         });
 

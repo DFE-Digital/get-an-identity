@@ -65,6 +65,7 @@ public class EditUserNameModel : PageModel
             {
                 Source = UserUpdatedEventSource.SupportUi,
                 UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByClientId = null,
                 CreatedUtc = _clock.UtcNow,
                 User = Events.User.FromModel(user),
                 Changes = changes
