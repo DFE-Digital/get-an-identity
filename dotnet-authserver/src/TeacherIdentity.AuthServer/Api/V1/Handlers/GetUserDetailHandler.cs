@@ -21,28 +21,40 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailRequest, GetUse
         // N.B. The UserType predicate is here to prevent GetAnIdentitySupport users being able to 'see' admins.
         // In future when use of this endpoint is expanded (for admins, say) then this predicate should be dynamic
         // based on the current scope.
-
         var user = await _dbContext.Users
-            .Where(u => u.UserType == UserType.Default && u.UserId == request.UserId)
-            .Select(u => new GetUserDetailResponse()
-            {
-                UserId = u.UserId,
-                Email = u.EmailAddress,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                DateOfBirth = u.DateOfBirth,
-                Trn = u.Trn,
-                Created = u.Created,
-                RegisteredWithClientId = u.RegisteredWithClientId,
-                RegisteredWithClientDisplayName = u.RegisteredWithClient != null ? u.RegisteredWithClient.DisplayName : null
-            })
-            .SingleOrDefaultAsync();
+            .IgnoreQueryFilters()
+            .Include(u => u.MergedUsers)
+            .Include(u => u.RegisteredWithClient)
+            .Where(u => u.UserType == UserType.Default)
+            .SingleOrDefaultAsync(u => u.UserId == request.UserId);
+
+        if (user?.IsDeleted == true)
+        {
+            user = await _dbContext.Users
+                .IgnoreQueryFilters()
+                .Include(u => u.MergedUsers)
+                .Include(u => u.RegisteredWithClient)
+                .Where(u => u.UserType == UserType.Default && u.IsDeleted == false)
+                .SingleOrDefaultAsync(u => u.UserId == user.MergedWithUserId);
+        }
 
         if (user is null)
         {
             throw new ErrorException(ErrorRegistry.UserNotFound());
         }
 
-        return user;
+        return new GetUserDetailResponse
+        {
+            Created = user.Created,
+            RegisteredWithClientId = user.RegisteredWithClientId,
+            RegisteredWithClientDisplayName = user.RegisteredWithClient?.DisplayName,
+            UserId = user.UserId,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Trn = user.Trn,
+            MergedUserIds = user.MergedUsers?.Select(mu => mu.UserId)
+        };
     }
 }
