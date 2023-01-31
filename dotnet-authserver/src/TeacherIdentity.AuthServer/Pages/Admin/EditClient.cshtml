@@ -15,14 +15,6 @@
     <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20" />
     <govuk-input asp-for="ServiceUrl" type="url" />
 
-    <govuk-textarea asp-for="RedirectUris">
-        <govuk-textarea-value>@string.Join("\n", Model.RedirectUris!)</govuk-textarea-value>
-    </govuk-textarea>
-
-    <govuk-textarea asp-for="PostLogoutRedirectUris">
-        <govuk-textarea-value>@string.Join("\n", Model.PostLogoutRedirectUris!)</govuk-textarea-value>
-    </govuk-textarea>
-
     <govuk-checkboxes asp-for="ResetClientSecret">
         <govuk-checkboxes-item value="@true">
             @Html.DisplayNameFor(m => m.ResetClientSecret)
@@ -32,9 +24,32 @@
         </govuk-checkboxes-item>
     </govuk-checkboxes>
 
+    <h3 class="govuk-heading-m">Grants</h3>
+
+    <govuk-checkboxes asp-for="EnableAuthorizationCodeFlow">
+        <govuk-checkboxes-item value="@true">
+            Authorization code
+            <govuk-checkboxes-item-conditional>
+                <govuk-textarea asp-for="RedirectUris">
+                    <govuk-textarea-value>@string.Join("\n", Model.RedirectUris!)</govuk-textarea-value>
+                </govuk-textarea>
+
+                <govuk-textarea asp-for="PostLogoutRedirectUris">
+                    <govuk-textarea-value>@string.Join("\n", Model.PostLogoutRedirectUris!)</govuk-textarea-value>
+                </govuk-textarea>
+            </govuk-checkboxes-item-conditional>
+        </govuk-checkboxes-item>
+    </govuk-checkboxes>
+
+    <govuk-checkboxes asp-for="EnableClientCredentialsFlow">
+        <govuk-checkboxes-item value="@true">
+            Client credentials
+        </govuk-checkboxes-item>
+    </govuk-checkboxes>
+
     <govuk-checkboxes asp-for="Scopes">
         <govuk-checkboxes-fieldset>
-            <govuk-checkboxes-fieldset-legend>Scopes</govuk-checkboxes-fieldset-legend>
+            <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m">Scopes</govuk-checkboxes-fieldset-legend>
             @foreach (var scope in CustomScopes.All)
             {
                 <govuk-checkboxes-item value="@scope">@scope</govuk-checkboxes-item>

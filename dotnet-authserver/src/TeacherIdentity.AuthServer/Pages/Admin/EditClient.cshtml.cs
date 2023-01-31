@@ -12,6 +12,7 @@ using TeacherIdentity.AuthServer.Oidc;
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
 [Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
+[BindProperties]
 public class EditClientModel : PageModel
 {
     private readonly TeacherIdentityApplicationStore _applicationStore;
@@ -26,34 +27,31 @@ public class EditClientModel : PageModel
     [FromRoute]
     public string ClientId { get; set; } = null!;
 
-    [BindProperty]
     [Display(Name = "Reset client secret")]
     public bool ResetClientSecret { get; set; }
 
-    [BindProperty]
     [Display(Name = "Client secret", Description = "This secret is hashed before it is stored and cannot be retrieved later")]
     public string? ClientSecret { get; set; }
 
-    [BindProperty]
     [Display(Name = "Display name", Description = "The service name used in the header during the sign in process")]
     [Required(ErrorMessage = "Enter a display name")]
     public string? DisplayName { get; set; }
 
-    [BindProperty]
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
 
-    [BindProperty]
+    public bool EnableAuthorizationCodeFlow { get; set; }
+
+    public bool EnableClientCredentialsFlow { get; set; }
+
     [Display(Name = "Redirect URIs", Description = "Enter one per line")]
     [ModelBinder(BinderType = typeof(MultiLineStringModelBinder))]
     public string[]? RedirectUris { get; set; }
 
-    [BindProperty]
     [Display(Name = "Post logout redirect URIs", Description = "Enter one per line")]
     [ModelBinder(BinderType = typeof(MultiLineStringModelBinder))]
     public string[]? PostLogoutRedirectUris { get; set; }
 
-    [BindProperty]
     public string[]? Scopes { get; set; }
 
     public async Task<IActionResult> OnGet()
@@ -66,6 +64,8 @@ public class EditClientModel : PageModel
 
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
+        EnableAuthorizationCodeFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+        EnableClientCredentialsFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
         RedirectUris = client.GetRedirectUris();
         PostLogoutRedirectUris = client.GetPostLogoutRedirectUris();
         Scopes = client.GetScopes();
@@ -79,6 +79,12 @@ public class EditClientModel : PageModel
         if (client is null)
         {
             return NotFound();
+        }
+
+        if (!EnableAuthorizationCodeFlow)
+        {
+            RedirectUris = Array.Empty<string>();
+            PostLogoutRedirectUris = Array.Empty<string>();
         }
 
         foreach (var redirectUri in RedirectUris!)
@@ -113,8 +119,21 @@ public class EditClientModel : PageModel
 
         var allScopes = Scopes!.Where(sc => CustomScopes.All.Contains(sc))
             .Concat(TeacherIdentityApplicationDescriptor.StandardScopes);
-        var permissions = client.GetPermissions().Where(p => !p.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope))
+
+        var grantTypes = new[]
+        {
+            (GrantType: OpenIddictConstants.GrantTypes.AuthorizationCode, Enabled: EnableAuthorizationCodeFlow),
+            (GrantType: OpenIddictConstants.GrantTypes.ClientCredentials, Enabled: EnableClientCredentialsFlow),
+        }
+            .Where(t => t.Enabled)
+            .Select(t => t.GrantType)
+            .ToArray();
+
+        var permissions = client.GetPermissions()
+            .Where(p => !p.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope))
+            .Where(p => !p.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType))
             .Concat(allScopes.Select(s => OpenIddictConstants.Permissions.Prefixes.Scope + s))
+            .Concat(grantTypes.Select(t => OpenIddictConstants.Permissions.Prefixes.GrantType + t))
             .ToImmutableArray();
 
         var changes = ClientUpdatedEventChanges.None |
@@ -123,7 +142,8 @@ public class EditClientModel : PageModel
             (ServiceUrl != client.ServiceUrl ? ClientUpdatedEventChanges.ServiceUrl : ClientUpdatedEventChanges.None) |
             (!RedirectUris.SequenceEqualIgnoringOrder(client.GetRedirectUris()) ? ClientUpdatedEventChanges.RedirectUris : ClientUpdatedEventChanges.None) |
             (!PostLogoutRedirectUris.SequenceEqualIgnoringOrder(client.GetPostLogoutRedirectUris()) ? ClientUpdatedEventChanges.PostLogoutRedirectUris : ClientUpdatedEventChanges.None) |
-            (!allScopes.SequenceEqualIgnoringOrder(client.GetScopes()) ? ClientUpdatedEventChanges.Scopes : ClientUpdatedEventChanges.None);
+            (!allScopes.SequenceEqualIgnoringOrder(client.GetScopes()) ? ClientUpdatedEventChanges.Scopes : ClientUpdatedEventChanges.None) |
+            (!grantTypes.SequenceEqualIgnoringOrder(client.GetGrantTypes()) ? ClientUpdatedEventChanges.GrantTypes : ClientUpdatedEventChanges.None);
 
         await _applicationStore.SetDisplayNameAsync(client, DisplayName, CancellationToken.None);
         await _applicationStore.SetServiceUrlAsync(client, ServiceUrl);
