@@ -102,13 +102,14 @@ public class Confirm : PageModel
         {
             user.Trn = trn;
 
-            _dbContext.AddEvent(new Events.UserUpdatedEvent()
+            _dbContext.AddEvent(new Events.UserUpdatedEvent
             {
                 Source = Events.UserUpdatedEventSource.SupportUi,
                 CreatedUtc = _clock.UtcNow,
                 Changes = Events.UserUpdatedEventChanges.Trn,
                 User = user,
-                UpdatedByUserId = HttpContext.User.GetUserId()!.Value
+                UpdatedByUserId = HttpContext.User.GetUserId()!.Value,
+                UpdatedByClientId = null
             });
         }
     }
