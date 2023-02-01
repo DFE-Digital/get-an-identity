@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using WorkforceDataApi.DevUtils.Csv;
+using TeacherIdentity.DevBootstrap.Csv;
 using static Bogus.DataSets.Name;
 
 var configuration = new ConfigurationManager();

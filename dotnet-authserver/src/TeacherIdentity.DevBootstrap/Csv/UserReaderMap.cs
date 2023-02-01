@@ -1,7 +1,7 @@
 using CsvHelper.Configuration;
 using TeacherIdentity.AuthServer.Models;
 
-namespace WorkforceDataApi.DevUtils.Csv;
+namespace TeacherIdentity.DevBootstrap.Csv;
 
 internal class UserReaderMap : ClassMap<User>
 {
@@ -12,7 +12,7 @@ internal class UserReaderMap : ClassMap<User>
         Map(i => i.FirstName).Index(2);
         Map(i => i.LastName).Index(3);
         Map(i => i.DateOfBirth).Index(4).TypeConverterOption.Format("ddMMyyyy");
-        Map(i => i.UserType).Index(5);
+        Map(i => i.UserType).Constant(UserType.Teacher);
         Map(i => i.Trn).Index(6);
         Map(i => i.Created).Convert(row => DateTime.UtcNow);
         Map(i => i.Updated).Convert(row => DateTime.UtcNow);
