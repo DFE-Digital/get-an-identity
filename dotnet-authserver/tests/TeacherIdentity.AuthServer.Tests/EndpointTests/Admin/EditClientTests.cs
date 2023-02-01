@@ -113,6 +113,7 @@ public class EditClientTests : TestBase
                 { "ClientSecret", newClientSecret },
                 { "DisplayName", newDisplayName },
                 { "ServiceUrl", newServiceUrl },
+                { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { newRedirectUri1, newRedirectUri2 }) },
                 { "PostLogoutRedirectUris", string.Join("\n", new[] { newPostLogoutRedirectUri1, newPostLogoutRedirectUri2 }) },
                 { "Scopes", newScope },

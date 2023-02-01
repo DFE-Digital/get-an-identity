@@ -10,6 +10,7 @@ using TeacherIdentity.AuthServer.Oidc;
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
 [Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
+[BindProperties]
 public class AddClientModel : PageModel
 {
     private readonly TeacherIdentityApplicationManager _applicationManager;
@@ -23,36 +24,33 @@ public class AddClientModel : PageModel
         _clock = clock;
     }
 
-    [BindProperty]
     [Display(Name = "Client ID")]
     [Required(ErrorMessage = "Enter a client ID")]
     public string? ClientId { get; set; }
 
-    [BindProperty]
     [Display(Name = "Client secret", Description = "This secret is hashed before it is stored and cannot be retrieved later")]
     [Required(ErrorMessage = "Enter a client secret")]
     public string? ClientSecret { get; set; }
 
-    [BindProperty]
     [Display(Name = "Display name", Description = "The service name used in the header during the sign in process")]
     [Required(ErrorMessage = "Enter a display name")]
     public string? DisplayName { get; set; }
 
-    [BindProperty]
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
 
-    [BindProperty]
+    public bool EnableAuthorizationCodeFlow { get; set; }
+
+    public bool EnableClientCredentialsFlow { get; set; }
+
     [Display(Name = "Redirect URIs", Description = "Enter one per line")]
     [ModelBinder(BinderType = typeof(MultiLineStringModelBinder))]
     public string[]? RedirectUris { get; set; }
 
-    [BindProperty]
     [Display(Name = "Post logout redirect URIs", Description = "Enter one per line")]
     [ModelBinder(BinderType = typeof(MultiLineStringModelBinder))]
     public string[]? PostLogoutRedirectUris { get; set; }
 
-    [BindProperty]
     public string[]? Scopes { get; set; }
 
     public void OnGet()
@@ -64,6 +62,12 @@ public class AddClientModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
+        if (!EnableAuthorizationCodeFlow)
+        {
+            RedirectUris = Array.Empty<string>();
+            PostLogoutRedirectUris = Array.Empty<string>();
+        }
+
         foreach (var redirectUri in RedirectUris!)
         {
             if (!Uri.TryCreate(redirectUri, UriKind.Absolute, out var uri) ||
@@ -96,8 +100,8 @@ public class AddClientModel : PageModel
             ClientSecret!,
             DisplayName!,
             ServiceUrl!,
-            enableAuthorizationCodeGrant: true,
-            enableClientCredentialsGrant: false,
+            EnableAuthorizationCodeFlow,
+            EnableClientCredentialsFlow,
             RedirectUris,
             PostLogoutRedirectUris,
             cleansedScopes);

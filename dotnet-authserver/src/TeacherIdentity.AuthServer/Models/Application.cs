@@ -10,6 +10,11 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
 
     public string? ServiceUrl { get; set; }
 
+    public string[] GetGrantTypes() => GetPermissions()
+        .Where(p => p.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType))
+        .Select(p => p[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..])
+        .ToArray();
+
     public string[] GetPermissions() => DeserializeJsonStringArray(Permissions ?? EmptyJsonArray).ToArray();
 
     public string[] GetScopes() => GetPermissions()
