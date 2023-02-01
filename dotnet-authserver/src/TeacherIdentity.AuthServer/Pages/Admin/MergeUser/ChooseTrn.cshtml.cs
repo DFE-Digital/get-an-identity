@@ -9,9 +9,6 @@ namespace TeacherIdentity.AuthServer.Pages.Admin.MergeUser;
 
 public class ChooseTrn : PageModel
 {
-    public new User? User { get; set; }
-    public User? UserToMerge { get; set; }
-
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public ChooseTrn(TeacherIdentityServerDbContext dbContext)
@@ -27,9 +24,12 @@ public class ChooseTrn : PageModel
     [FromRoute]
     public Guid UserId { get; set; }
 
+    public string? UserTrn { get; set; }
+
     [FromRoute]
     public Guid UserIdToMerge { get; set; }
 
+    public string? UserToMergeTrn { get; set; }
 
     public void OnGet()
     {
@@ -42,21 +42,24 @@ public class ChooseTrn : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.Session.SetString(Confirm.MergeTrnKey, Trn!);
+        HttpContext.Session.SetString(Confirm.ChosenTrnKey, Trn!);
 
         return RedirectToPage("Confirm", new { UserId, UserIdToMerge });
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        User = await GetUser(UserId);
-        UserToMerge = await GetUser(UserIdToMerge);
+        var user = await GetUser(UserId);
+        var userToMerge = await GetUser(UserIdToMerge);
 
-        if (User == null || UserToMerge == null)
+        if (user == null || userToMerge == null)
         {
             context.Result = NotFound();
             return;
         }
+
+        UserTrn = user.Trn;
+        UserToMergeTrn = userToMerge.Trn;
 
         await next();
     }

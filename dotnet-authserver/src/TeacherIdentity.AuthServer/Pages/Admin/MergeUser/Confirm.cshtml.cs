@@ -8,9 +8,8 @@ namespace TeacherIdentity.AuthServer.Pages.Admin.MergeUser;
 
 public class Confirm : PageModel
 {
-    public static string MergeTrnKey = "MergeTrn";
-    public new User? User { get; set; }
-    public User? UserToMerge { get; set; }
+    public static string ChosenTrnKey = "ChosenTrn";
+    public string? ChosenTrn;
 
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
@@ -24,8 +23,12 @@ public class Confirm : PageModel
     [FromRoute]
     public Guid UserId { get; set; }
 
+    public new User? User { get; set; }
+
     [FromRoute]
     public Guid UserIdToMerge { get; set; }
+
+    public User? UserToMerge { get; set; }
 
     public void OnGet()
     {
@@ -39,10 +42,11 @@ public class Confirm : PageModel
         }
 
         MergeUsers(User!, UserToMerge!);
+        UpdateMergedUser(User!);
 
         await _dbContext.SaveChangesAsync();
 
-        HttpContext.Session.Remove(MergeTrnKey);
+        HttpContext.Session.Remove(ChosenTrnKey);
 
         TempData[TempDataKeys.FlashSuccess] = "User merged";
 
@@ -60,12 +64,13 @@ public class Confirm : PageModel
             return;
         }
 
-        await next();
-    }
+        if (!TryGetValidChosenTrn(out ChosenTrn))
+        {
+            context.Result = BadRequest();
+            return;
+        }
 
-    public string GetMergeTrn()
-    {
-        return HttpContext.Session.GetString(MergeTrnKey) ?? User!.Trn ?? "None";
+        await next();
     }
 
     private async Task<User?> GetUser(Guid userId)
@@ -92,37 +97,33 @@ public class Confirm : PageModel
             MergedWithUserId = user.UserId,
             CreatedUtc = _clock.UtcNow,
         });
-
-        UpdateMergedUser(user, userToMerge);
     }
 
-    private void UpdateMergedUser(User user, User userToMerge)
+    private void UpdateMergedUser(User user)
     {
-        if (TryGetTrnForUpdate(userToMerge, out var trn))
+        if (user.Trn == ChosenTrn)
         {
-            user.Trn = trn;
-
-            _dbContext.AddEvent(new Events.UserUpdatedEvent
-            {
-                Source = Events.UserUpdatedEventSource.SupportUi,
-                CreatedUtc = _clock.UtcNow,
-                Changes = Events.UserUpdatedEventChanges.Trn,
-                User = user,
-                UpdatedByUserId = HttpContext.User.GetUserId()!.Value,
-                UpdatedByClientId = null
-            });
+            return;
         }
+
+        user.Trn = ChosenTrn;
+
+        _dbContext.AddEvent(new Events.UserUpdatedEvent
+        {
+            Source = Events.UserUpdatedEventSource.SupportUi,
+            CreatedUtc = _clock.UtcNow,
+            Changes = Events.UserUpdatedEventChanges.Trn,
+            User = user,
+            UpdatedByUserId = HttpContext.User.GetUserId()!.Value,
+            UpdatedByClientId = null
+        });
     }
 
-    private bool TryGetTrnForUpdate(User userToMerge, out string? trn)
+    private bool TryGetValidChosenTrn(out string? trn)
     {
-        trn = HttpContext.Session.GetString(MergeTrnKey);
-        if (trn is null)
-        {
-            return false;
-        }
+        trn = HttpContext.Session.GetString(ChosenTrnKey);
+        trn = trn == "None" ? null : trn ?? User!.Trn;
 
-        trn = trn == "None" ? null : trn;
-        return trn == userToMerge.Trn;
+        return trn == User!.Trn || trn == UserToMerge!.Trn;
     }
 }

@@ -23,8 +23,8 @@
                 <govuk-summary-list-row-value>@Model.User!.FirstName @Model.User!.LastName</govuk-summary-list-row-value>
                 </govuk-summary-list-row>
                 <govuk-summary-list-row>
-                    <govuk-summary-list-row-key>Trn</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.GetMergeTrn()</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@(Model.ChosenTrn ?? "None")</govuk-summary-list-row-value>
                     @if (Model.User!.Trn != Model.UserToMerge!.Trn)
                     {
                         <govuk-summary-list-row-actions>

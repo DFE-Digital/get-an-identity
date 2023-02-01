@@ -37,7 +37,7 @@ public class Merge : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.Session.Remove(Confirm.MergeTrnKey);
+        HttpContext.Session.Remove(Confirm.ChosenTrnKey);
 
         return RedirectToPage("Confirm", new { UserId, UserIdToMerge });
     }
