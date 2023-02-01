@@ -64,7 +64,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Confirm your details page
 
         await page.WaitForSelectorAsync("h1:has-text('Your details')");
-        await page.ClickAsync($"a:right-of(:text('{firstName} {lastName}'))");
+        await page.Locator("*:has(> dt:text('Name'))").GetByText("Change").ClickAsync();
 
         // Update your name page
 
@@ -140,7 +140,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Confirm your details page
 
         await page.WaitForSelectorAsync("h1:has-text('Your details')");
-        await page.ClickAsync("a:right-of(:text('Email address'))");
+        await page.Locator("*:has(> dt:text('Email address'))").GetByText("Change").ClickAsync();
 
         // Update your email page
 
