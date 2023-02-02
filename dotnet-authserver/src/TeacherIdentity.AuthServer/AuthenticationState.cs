@@ -99,7 +99,6 @@ public class AuthenticationState
     public string? StatedTrn { get; private set; }
     [JsonInclude]
     public HasPreviousNameOption? HasPreviousName { get; private set; }
-
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
     /// </summary>
@@ -228,6 +227,10 @@ public class AuthenticationState
         EmailAddressVerified = default;
         FirstName = default;
         LastName = default;
+        OfficialFirstName = default;
+        OfficialLastName = default;
+        PreviousOfficialFirstName = default;
+        PreviousOfficialLastName = default;
         DateOfBirth = default;
         Trn = default;
         UserType = default;
@@ -236,6 +239,13 @@ public class AuthenticationState
         TrnLookup = default;
         TrnOwnerEmailAddress = default;
         TrnLookupStatus = default;
+        HaveNationalInsuranceNumber = default;
+        NationalInsuranceNumber = default;
+        AwardedQts = default;
+        HaveIttProvider = default;
+        HasTrn = default;
+        StatedTrn = default;
+        HasPreviousName = default;
     }
 
     public void OnEmailSet(string email)
