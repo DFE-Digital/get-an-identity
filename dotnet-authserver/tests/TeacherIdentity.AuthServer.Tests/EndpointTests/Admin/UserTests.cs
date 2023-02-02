@@ -70,6 +70,7 @@ public class UserTests : TestBase
         Assert.Equal($"{user.FirstName} {user.LastName}", doc.GetElementByTestId("Name")?.TextContent);
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
         Assert.Equal("No", doc.GetSummaryListValueForKey("DQT record"));
+        Assert.Equal("None", doc.GetSummaryListValueForKey("Merged user IDs"));
         Assert.NotEmpty(doc.GetSummaryListActionsForKey("DQT record"));
         Assert.Null(doc.GetElementByTestId("DqtSection"));
     }
@@ -110,5 +111,24 @@ public class UserTests : TestBase
         Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
         Assert.Equal("Given", doc.GetSummaryListValueForKey("National insurance number"));
         Assert.Equal(user.Trn, doc.GetSummaryListValueForKey("TRN"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithMergedUsers_RendersExpectedContent()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: false, userType: Models.UserType.Default);
+        var mergedUser = await TestData.CreateUser(hasTrn: false, userType: Models.UserType.Default, mergedWithUserId: user.UserId);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal(mergedUser.UserId.ToString(), doc.GetSummaryListValueForKey("Merged user IDs"));
     }
 }

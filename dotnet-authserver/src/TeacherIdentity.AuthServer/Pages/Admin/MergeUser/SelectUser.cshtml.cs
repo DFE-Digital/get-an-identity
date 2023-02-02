@@ -1,24 +1,29 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin.MergeUser;
 
-[BindProperties]
+[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
 public class Merge : PageModel
 {
-    public Guid[]? UserIds;
-
     private readonly TeacherIdentityServerDbContext _dbContext;
 
-    public Merge(TeacherIdentityServerDbContext dbContext, IClock clock)
+    public Merge(
+        TeacherIdentityServerDbContext dbContext,
+        IClock clock)
     {
         _dbContext = dbContext;
     }
 
+    public ICollection<Guid>? UserIds { get; set; }
+
+    [BindProperty]
     [Display(Name = "Select which user to merge")]
     [Required(ErrorMessage = "Tell us which user you want to merge")]
     public Guid? UserIdToMerge { get; set; }
@@ -34,6 +39,12 @@ public class Merge : PageModel
     {
         if (!ModelState.IsValid)
         {
+            return this.PageWithErrors();
+        }
+
+        if (UserIds == null || !UserIds.Contains((Guid)UserIdToMerge!))
+        {
+            ModelState.AddModelError(nameof(UserIdToMerge), "You must select a user ID from the given list");
             return this.PageWithErrors();
         }
 
@@ -53,8 +64,9 @@ public class Merge : PageModel
         }
 
         UserIds = _dbContext.Users
-            .Where(u => u.UserId != UserId && u.IsDeleted == false && u.UserType == UserType.Default)
-            .Select(u => u.UserId).ToArray();
+            .Where(u => u.UserId != UserId && u.UserType == UserType.Default)
+            .Select(u => u.UserId)
+            .ToArray();
 
         await next();
     }
