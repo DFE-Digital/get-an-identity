@@ -78,7 +78,7 @@ public class ConfirmTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
-        Assert.Equal($"{user.FirstName} {user.LastName}" , doc.GetSummaryListValueForKey("Name"));
+        Assert.Equal($"{user.FirstName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
         Assert.Equal("None", doc.GetSummaryListValueForKey("TRN"));
         Assert.Empty(doc.GetSummaryListActionsForKey("TRN"));
     }
