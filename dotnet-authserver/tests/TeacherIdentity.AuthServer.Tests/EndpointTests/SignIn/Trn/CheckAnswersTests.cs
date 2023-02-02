@@ -168,7 +168,10 @@ public class CheckAnswersTests : TestBase
 
         authState.OnHaveNationalInsuranceNumberSet(haveNino);
         var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
-        authState.NationalInsuranceNumber = nino;
+        if (haveNino)
+        {
+            authState.OnNationalInsuranceNumberSet(nino!);
+        }
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 

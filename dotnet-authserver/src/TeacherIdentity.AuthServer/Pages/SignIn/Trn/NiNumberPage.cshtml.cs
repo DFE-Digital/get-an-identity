@@ -35,7 +35,7 @@ public class NiNumberPage : TrnLookupPageModel
                 return this.PageWithErrors();
             }
 
-            HttpContext.GetAuthenticationState().NationalInsuranceNumber = NiNumber!;
+            HttpContext.GetAuthenticationState().OnNationalInsuranceNumberSet(NiNumber!);
         }
 
         return await TryFindTrn() ?? Redirect(LinkGenerator.TrnAwardedQts());

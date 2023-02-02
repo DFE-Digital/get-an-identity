@@ -177,7 +177,10 @@ public class NoMatchTests : TestBase
 
         authState.OnHaveNationalInsuranceNumberSet(haveNino);
         var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
-        authState.NationalInsuranceNumber = nino;
+        if (haveNino)
+        {
+            authState.OnNationalInsuranceNumberSet(nino!);
+        }
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");

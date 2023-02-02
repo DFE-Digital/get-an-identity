@@ -34,10 +34,10 @@ public class TrnLookupHelper
                     FirstName = authenticationState.OfficialFirstName,
                     LastName = authenticationState.OfficialLastName,
                     IttProviderName = authenticationState.IttProviderName,
-                    NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
+                    NationalInsuranceNumber = NormalizeNino(authenticationState.NationalInsuranceNumber),
                     PreviousFirstName = authenticationState.PreviousOfficialFirstName,
                     PreviousLastName = authenticationState.PreviousOfficialLastName,
-                    Trn = authenticationState.StatedTrn
+                    Trn = NormalizeTrn(authenticationState.StatedTrn)
                 },
                 cts.Token);
 
@@ -64,4 +64,24 @@ public class TrnLookupHelper
         trnLookupResult is not null ? TrnLookupStatus.Found :
             authenticationState.StatedTrn is not null || authenticationState.AwardedQts == true ? TrnLookupStatus.Pending :
             TrnLookupStatus.None;
+
+    private static string? NormalizeNino(string? nino)
+    {
+        if (string.IsNullOrEmpty(nino))
+        {
+            return null;
+        }
+
+        return new string(nino.Where(Char.IsAsciiLetterOrDigit).ToArray()).ToUpper();
+    }
+
+    private static string? NormalizeTrn(string? trn)
+    {
+        if (string.IsNullOrEmpty(trn))
+        {
+            return null;
+        }
+
+        return new string(trn.Where(Char.IsAsciiDigit).ToArray());
+    }
 }

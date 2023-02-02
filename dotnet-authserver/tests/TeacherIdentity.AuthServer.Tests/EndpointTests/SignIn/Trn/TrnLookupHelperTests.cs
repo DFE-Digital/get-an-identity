@@ -162,6 +162,60 @@ public class TrnLookupHelperTests
         Assert.Equal(TrnLookupStatus.Found, authenticationState.TrnLookupStatus);
     }
 
+    [Fact]
+    public async Task LookupTrn_NormalizesTrn_BeforeCallingDqtApi()
+    {
+        // Arrange
+        var authenticationState = CreateAuthenticationState();
+        authenticationState.OnHasTrnSet("RP99/12345");
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock
+            .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = Array.Empty<FindTeachersResponseResult>()
+            });
+
+        var logger = new NullLogger<TrnLookupHelper>();
+
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+
+        // Act
+        await helper.LookupTrn(authenticationState);
+
+        // Assert
+        var expectedNormalizedTrn = "9912345";
+        dqtApiClientMock.Verify(mock => mock.FindTeachers(It.Is<FindTeachersRequest>(r => r.Trn == expectedNormalizedTrn), It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task LookupTrn_NormalizesNino_BeforeCallingDqtApi()
+    {
+        // Arrange
+        var authenticationState = CreateAuthenticationState();
+        authenticationState.OnNationalInsuranceNumberSet("qq 12 34 56 c");
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock
+            .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = Array.Empty<FindTeachersResponseResult>()
+            });
+
+        var logger = new NullLogger<TrnLookupHelper>();
+
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+
+        // Act
+        await helper.LookupTrn(authenticationState);
+
+        // Assert
+        var expectedNormalizedNino = "QQ123456C";
+        dqtApiClientMock.Verify(mock => mock.FindTeachers(It.Is<FindTeachersRequest>(r => r.NationalInsuranceNumber == expectedNormalizedNino), It.IsAny<CancellationToken>()));
+    }
+
     [Theory]
     [InlineData("2345678", false)]  // Stated TRN matches found TRN and user said they don't have QTS
     [InlineData("2345678", true)]  // Stated TRN matches found TRN and user said they do have QTS
@@ -258,8 +312,7 @@ public class TrnLookupHelperTests
 
         authState.OnEmailSet(Faker.Internet.Email());
         authState.OnEmailVerified();
-        authState.OnHasTrnSet(hasTrn: statedTrn is not null);
-        authState.StatedTrn = statedTrn;
+        authState.OnHasTrnSet(statedTrn);
         authState.OnOfficialNameSet(Faker.Name.First(), Faker.Name.Last(), previousOfficialFirstName: null, previousOfficialLastName: null);
         authState.OnDateOfBirthSet(DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
         authState.OnAwardedQtsSet(awardedQts);

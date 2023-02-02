@@ -35,12 +35,7 @@ public class HasTrnPage : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnHasTrnSet((bool)HasTrn!);
-
-        if (HasTrn == true)
-        {
-            HttpContext.GetAuthenticationState().StatedTrn = StatedTrn;
-        }
+        HttpContext.GetAuthenticationState().OnHasTrnSet(StatedTrn);
 
         return await TryFindTrn() ?? Redirect(LinkGenerator.TrnOfficialName());
     }
