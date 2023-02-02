@@ -1,5 +1,3 @@
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
-
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
@@ -114,7 +112,7 @@ public class OfficialNameTests : TestBase
             {
                 { "OfficialFirstName", firstName },
                 { "OfficialLastName", lastName },
-                { "HasPreviousName", OfficialName.HasPreviousNameOption.No },
+                { "HasPreviousName", AuthenticationState.HasPreviousNameOption.No },
             }
         };
 
@@ -147,7 +145,7 @@ public class OfficialNameTests : TestBase
                 { "OfficialLastName", "last" },
                 { "PreviousOfficialFirstName", previousFirstName },
                 { "PreviousOfficialLastName", previousLastName },
-                { "HasPreviousName", hasPreviousName ? OfficialName.HasPreviousNameOption.Yes : OfficialName.HasPreviousNameOption.No },
+                { "HasPreviousName", hasPreviousName ? AuthenticationState.HasPreviousNameOption.Yes : AuthenticationState.HasPreviousNameOption.No },
             }
         };
 
@@ -182,7 +180,7 @@ public class OfficialNameTests : TestBase
             {
                 { "OfficialFirstName", "first" },
                 { "OfficialLastName", "last" },
-                { "HasPreviousName", OfficialName.HasPreviousNameOption.No },
+                { "HasPreviousName", AuthenticationState.HasPreviousNameOption.No },
             }
         };
 

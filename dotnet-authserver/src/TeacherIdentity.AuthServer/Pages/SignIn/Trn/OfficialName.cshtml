@@ -1,5 +1,5 @@
 @page "/sign-in/trn/official-name"
-@using TeacherIdentity.AuthServer.Pages.SignIn.Trn
+@using static TeacherIdentity.AuthServer.AuthenticationState
 @model TeacherIdentity.AuthServer.Pages.SignIn.Trn.OfficialName
 @{
     ViewBag.Title = "What’s your name?";
@@ -30,8 +30,8 @@
                         Have you ever changed your name?
                     </govuk-radios-fieldset-legend>
 
-                    <govuk-radios-item value="@OfficialName.HasPreviousNameOption.No">No</govuk-radios-item>
-                    <govuk-radios-item value="@OfficialName.HasPreviousNameOption.Yes">Yes
+                    <govuk-radios-item value="@HasPreviousNameOption.No">No</govuk-radios-item>
+                    <govuk-radios-item value="@HasPreviousNameOption.Yes">Yes
                         <govuk-radios-item-conditional>
                             <h2 class="govuk-heading-m">What was your previous name?</h2>
                             <p>You do not have to tell us your previous name, but it will help us identify you.</p>
@@ -45,7 +45,7 @@
                             </govuk-input>
                         </govuk-radios-item-conditional>
                     </govuk-radios-item>
-                    <govuk-radios-item value="@OfficialName.HasPreviousNameOption.PreferNotToSay">Prefer not to say</govuk-radios-item>
+                    <govuk-radios-item value="@HasPreviousNameOption.PreferNotToSay">Prefer not to say</govuk-radios-item>
                 </govuk-radios-fieldset>
             </govuk-radios>
 

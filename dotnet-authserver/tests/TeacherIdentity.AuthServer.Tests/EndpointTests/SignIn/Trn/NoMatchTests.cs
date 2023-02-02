@@ -68,10 +68,10 @@ public class NoMatchTests : TestBase
         var previousFirstName = Faker.Name.First();
         var previousLastName = Faker.Name.Last();
 
-        authState.OnHasPreviousNameSet(Pages.SignIn.Trn.OfficialName.HasPreviousNameOption.Yes);
         authState.OnOfficialNameSet(
             authState.OfficialFirstName!,
             authState.OfficialLastName!,
+            AuthenticationState.HasPreviousNameOption.Yes,
             previousFirstName,
             previousLastName);
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -98,10 +98,10 @@ public class NoMatchTests : TestBase
         var previousFirstName = Faker.Name.First();
         var previousLastName = Faker.Name.Last();
 
-        authState.OnHasPreviousNameSet(Pages.SignIn.Trn.OfficialName.HasPreviousNameOption.Yes);
         authState.OnOfficialNameSet(
             authState.OfficialFirstName!,
             authState.OfficialLastName!,
+            AuthenticationState.HasPreviousNameOption.No,
             previousOfficialFirstName: null,
             previousOfficialLastName: null);
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
