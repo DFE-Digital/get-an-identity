@@ -1,3 +1,4 @@
+using Dfe.Analytics.AspNetCore;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
@@ -42,5 +43,7 @@ public class CompleteModel : PageModel
         Trn = authenticationState.Trn;
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
         UserType = authenticationState.UserType!.Value;
+
+        HttpContext.Features.Get<WebRequestEventFeature>()?.Event.AddTag(FirstTimeSignInForEmail ? "FirstTimeUser" : "ReturningUser");
     }
 }
