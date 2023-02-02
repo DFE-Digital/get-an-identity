@@ -1,18 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
 public class NiNumberPage : TrnLookupPageModel
 {
-    public NiNumberPage(
-        IIdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient,
-        ILogger<TrnLookupPageModel> logger)
-        : base(linkGenerator, dqtApiClient, logger)
+    public NiNumberPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+        : base(linkGenerator, trnLookupHelper)
     {
     }
 

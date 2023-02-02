@@ -2,18 +2,14 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
 public class AwardedQtsPage : TrnLookupPageModel
 {
-    public AwardedQtsPage(
-        IIdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient,
-        ILogger<TrnLookupPageModel> logger)
-        : base(linkGenerator, dqtApiClient, logger)
+    public AwardedQtsPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+        : base(linkGenerator, trnLookupHelper)
     {
     }
 
