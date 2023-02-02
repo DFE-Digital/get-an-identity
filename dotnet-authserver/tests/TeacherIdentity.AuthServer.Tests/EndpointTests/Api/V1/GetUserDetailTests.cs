@@ -100,7 +100,8 @@ public class GetUserDetailTests : TestBase
                 trn = user.Trn,
                 created = user.Created,
                 registeredWithClientId = registeredWithClient.ClientId,
-                registeredWithClientDisplayName = registeredWithClient.DisplayName
+                registeredWithClientDisplayName = registeredWithClient.DisplayName,
+                mergedUserIds = Array.Empty<object>()
             });
     }
 
