@@ -10,6 +10,7 @@ public partial class TestData
             bool? haveCompletedTrnLookup = null,
             UserType userType = UserType.Default,
             string? registeredWithClientId = null,
+            Guid? mergedWithUserId = null,
             TrnLookupStatus? trnLookupStatus = null) =>
         WithDbContext(async dbContext =>
         {
@@ -60,7 +61,8 @@ public partial class TestData
                 TrnAssociationSource = hasTrn == true ? TrnAssociationSource.Lookup : null,
                 TrnLookupStatus = trnLookupStatus ?? (userType == UserType.Default ? (hasTrn == true ? TrnLookupStatus.Found : TrnLookupStatus.None) : null),
                 Updated = _clock.UtcNow,
-                RegisteredWithClientId = registeredWithClientId
+                RegisteredWithClientId = registeredWithClientId,
+                MergedWithUserId = mergedWithUserId,
             };
 
             dbContext.Users.Add(user);

@@ -40,12 +40,16 @@ public class UserModel : PageModel
 
     public string? Trn { get; set; }
 
+    public IEnumerable<Guid>? MergedUserIds { get; set; }
+
     [FromRoute]
     public Guid UserId { get; set; }
 
     public async Task<IActionResult> OnGet()
     {
         var user = await _dbContext.Users
+            .IgnoreQueryFilters()
+            .Include(u => u.MergedUsers)
             .Where(u => u.UserId == UserId)
             .Select(u => new
             {
@@ -57,6 +61,7 @@ public class UserModel : PageModel
                 u.Trn,
                 u.Created,
                 u.UserType,
+                MergedUserIds = u.MergedUsers!.Select(mu => mu.UserId),
                 RegisteredWithClientDisplayName = u.RegisteredWithClient != null ? u.RegisteredWithClient.DisplayName : null
             })
             .SingleOrDefaultAsync();
@@ -78,6 +83,7 @@ public class UserModel : PageModel
         Trn = user.Trn;
         HaveDqtRecord = user.Trn is not null;
         CanChangeDqtRecord = !HaveDqtRecord;
+        MergedUserIds = user.MergedUserIds;
 
         if (user.Trn is not null)
         {

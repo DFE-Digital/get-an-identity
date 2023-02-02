@@ -1,4 +1,5 @@
 @page "/admin/users/{userId}"
+@using Microsoft.IdentityModel.Tokens
 @model TeacherIdentity.AuthServer.Pages.Admin.UserModel
 @{
     ViewBag.Title = Model.Name;
@@ -55,6 +56,25 @@
                         <govuk-summary-list-row-action asp-page="AssignTrn/Trn" asp-route-userId="@Model.UserId">Change record</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 }
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Merged user IDs</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>
+                    @if (Model.MergedUserIds.IsNullOrEmpty())
+                    {
+                        <p>None</p>
+                    }
+                    else
+                    {
+                        foreach (var userId in Model.MergedUserIds!)
+                        {
+                            <p>@userId</p>
+                        }
+                    }
+                </govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action asp-page="MergeUser/SelectUser" asp-route-userId="@Model.UserId">Merge user</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
         </govuk-summary-list>
     </div>

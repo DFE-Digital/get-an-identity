@@ -113,7 +113,7 @@ public class TeacherIdentityServerDbContext : DbContext
         {
             if (entry.Entity is User && entry.State == EntityState.Deleted)
             {
-                entry.CurrentValues["is_deleted"] = true;
+                entry.CurrentValues["IsDeleted"] = true;
             }
         }
     }
