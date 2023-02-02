@@ -1,18 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
 public class HasTrnPage : TrnLookupPageModel
 {
-    public HasTrnPage(
-        IIdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient,
-        ILogger<TrnLookupPageModel> logger)
-        : base(linkGenerator, dqtApiClient, logger)
+    public HasTrnPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+        : base(linkGenerator, trnLookupHelper)
     {
     }
 
@@ -39,12 +35,7 @@ public class HasTrnPage : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnHasTrnSet((bool)HasTrn!);
-
-        if (HasTrn == true)
-        {
-            HttpContext.GetAuthenticationState().StatedTrn = StatedTrn;
-        }
+        HttpContext.GetAuthenticationState().OnHasTrnSet(StatedTrn);
 
         return await TryFindTrn() ?? Redirect(LinkGenerator.TrnOfficialName());
     }

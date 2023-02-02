@@ -87,7 +87,8 @@ public class AuthenticationState
     public TrnLookupStatus? TrnLookupStatus { get; private set; }
     [JsonInclude]
     public bool? HaveNationalInsuranceNumber { get; private set; }
-    public string? NationalInsuranceNumber { get; set; }
+    [JsonInclude]
+    public string? NationalInsuranceNumber { get; private set; }
     [JsonInclude]
     public bool? AwardedQts { get; private set; }
     [JsonInclude]
@@ -95,7 +96,8 @@ public class AuthenticationState
     public string? IttProviderName { get; set; }
     [JsonInclude]
     public bool? HasTrn { get; private set; }
-    public string? StatedTrn { get; set; }
+    [JsonInclude]
+    public string? StatedTrn { get; private set; }
     [JsonInclude]
     public OfficialName.HasPreviousNameOption? HasPreviousName { get; private set; }
 
@@ -444,6 +446,12 @@ public class AuthenticationState
         HaveNationalInsuranceNumber = haveNationalInsuranceNumber;
     }
 
+    public void OnNationalInsuranceNumberSet(string nationalInsuranceNumber)
+    {
+        HaveNationalInsuranceNumber = true;
+        NationalInsuranceNumber = nationalInsuranceNumber;
+    }
+
     public void OnHaveIttProviderSet(bool haveIttProvider)
     {
         if (!haveIttProvider)
@@ -465,14 +473,10 @@ public class AuthenticationState
         AwardedQts = awardedQts;
     }
 
-    public void OnHasTrnSet(bool hasTrn)
+    public void OnHasTrnSet(string? trn)
     {
-        if (!hasTrn)
-        {
-            StatedTrn = null;
-        }
-
-        HasTrn = hasTrn;
+        HasTrn = trn is not null;
+        StatedTrn = trn;
     }
 
     public void OnHasPreviousNameSet(OfficialName.HasPreviousNameOption? hasPreviousName)

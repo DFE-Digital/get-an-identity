@@ -35,6 +35,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -448,7 +449,8 @@ public class Program
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
             .AddSingleton<ProtectedStringFactory>()
             .AddTransient<ClientScopedViewHelper>()
-            .AddTransient<IActionContextAccessor, ActionContextAccessor>();
+            .AddTransient<IActionContextAccessor, ActionContextAccessor>()
+            .AddTransient<TrnLookupHelper>();
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 

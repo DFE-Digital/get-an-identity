@@ -10,6 +10,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 public class IttProvider : TrnLookupPageModel
 {
     private readonly IMemoryCache _cache;
+    private readonly IDqtApiClient _dqtApiClient;
 
     public string[]? IttProviderNames;
 
@@ -17,10 +18,11 @@ public class IttProvider : TrnLookupPageModel
         IMemoryCache cache,
         IIdentityLinkGenerator linkGenerator,
         IDqtApiClient dqtApiClient,
-        ILogger<TrnLookupPageModel> logger)
-        : base(linkGenerator, dqtApiClient, logger)
+        TrnLookupHelper trnLookupHelper)
+        : base(linkGenerator, trnLookupHelper)
     {
         _cache = cache;
+        _dqtApiClient = dqtApiClient;
     }
 
     // Properties are set in the order that they are declared. Because the value of HasIttProvider
@@ -71,7 +73,7 @@ public class IttProvider : TrnLookupPageModel
 
         if (!_cache.TryGetValue("IttProviderNames", out IttProviderNames))
         {
-            IttProviderNames = (await DqtApiClient.GetIttProviders()).IttProviders.Select(result => result.ProviderName).ToArray();
+            IttProviderNames = (await _dqtApiClient.GetIttProviders()).IttProviders.Select(result => result.ProviderName).ToArray();
             var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
             _cache.Set("IttProviderNames", IttProviderNames, cacheEntryOptions);
         }
