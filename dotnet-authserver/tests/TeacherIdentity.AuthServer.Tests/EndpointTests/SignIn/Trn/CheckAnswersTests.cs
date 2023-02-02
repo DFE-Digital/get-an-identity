@@ -64,10 +64,10 @@ public class CheckAnswersTests : TestBase
         var previousFirstName = Faker.Name.First();
         var previousLastName = Faker.Name.Last();
 
-        authState.OnHasPreviousNameSet(Pages.SignIn.Trn.OfficialName.HasPreviousNameOption.Yes);
         authState.OnOfficialNameSet(
             authState.OfficialFirstName!,
             authState.OfficialLastName!,
+            AuthenticationState.HasPreviousNameOption.Yes,
             previousFirstName,
             previousLastName);
 
@@ -93,10 +93,10 @@ public class CheckAnswersTests : TestBase
         var previousFirstName = Faker.Name.First();
         var previousLastName = Faker.Name.Last();
 
-        authState.OnHasPreviousNameSet(Pages.SignIn.Trn.OfficialName.HasPreviousNameOption.Yes);
         authState.OnOfficialNameSet(
             authState.OfficialFirstName!,
             authState.OfficialLastName!,
+            AuthenticationState.HasPreviousNameOption.Yes,
             previousOfficialFirstName: null,
             previousOfficialLastName: null);
 

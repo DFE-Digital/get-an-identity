@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using static TeacherIdentity.AuthServer.AuthenticationState;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
@@ -40,11 +41,10 @@ public class OfficialName : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnHasPreviousNameSet((HasPreviousNameOption)HasPreviousName!);
-
         HttpContext.GetAuthenticationState().OnOfficialNameSet(
             OfficialFirstName!,
             OfficialLastName!,
+            (HasPreviousNameOption)HasPreviousName!,
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialFirstName : null,
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialLastName : null);
 
@@ -62,13 +62,6 @@ public class OfficialName : TrnLookupPageModel
         {
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
         }
-    }
-
-    public enum HasPreviousNameOption
-    {
-        Yes,
-        No,
-        PreferNotToSay
     }
 
     private void SetDefaultInputValues()

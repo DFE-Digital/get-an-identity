@@ -7,7 +7,6 @@ using Flurl;
 using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -99,8 +98,7 @@ public class AuthenticationState
     [JsonInclude]
     public string? StatedTrn { get; private set; }
     [JsonInclude]
-    public OfficialName.HasPreviousNameOption? HasPreviousName { get; private set; }
-
+    public HasPreviousNameOption? HasPreviousName { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -417,11 +415,13 @@ public class AuthenticationState
     public void OnOfficialNameSet(
         string officialFirstName,
         string officialLastName,
+        HasPreviousNameOption hasPreviousName,
         string? previousOfficialFirstName,
         string? previousOfficialLastName)
     {
         OfficialFirstName = officialFirstName;
         OfficialLastName = officialLastName;
+        HasPreviousName = hasPreviousName;
         PreviousOfficialFirstName = previousOfficialFirstName;
         PreviousOfficialLastName = previousOfficialLastName;
     }
@@ -477,17 +477,6 @@ public class AuthenticationState
     {
         HasTrn = trn is not null;
         StatedTrn = trn;
-    }
-
-    public void OnHasPreviousNameSet(OfficialName.HasPreviousNameOption? hasPreviousName)
-    {
-        if (hasPreviousName == OfficialName.HasPreviousNameOption.No)
-        {
-            PreviousOfficialFirstName = null;
-            PreviousOfficialLastName = null;
-        }
-
-        HasPreviousName = hasPreviousName;
     }
 
     public void OnHaveResumedCompletedJourney()
@@ -554,6 +543,13 @@ public class AuthenticationState
 
         var claims = GetInternalClaims();
         await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
+    }
+
+    public enum HasPreviousNameOption
+    {
+        Yes,
+        No,
+        PreferNotToSay
     }
 
     public enum TrnLookupState

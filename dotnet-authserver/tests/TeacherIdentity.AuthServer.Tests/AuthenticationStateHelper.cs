@@ -125,6 +125,7 @@ public sealed class AuthenticationStateHelper
                 s.OnOfficialNameSet(
                     officialFirstName ?? Faker.Name.First(),
                     officialLastName ?? Faker.Name.Last(),
+                    previousOfficialFirstName is not null ? AuthenticationState.HasPreviousNameOption.Yes : AuthenticationState.HasPreviousNameOption.No,
                     previousOfficialFirstName,
                     previousOfficialLastName);
             };
