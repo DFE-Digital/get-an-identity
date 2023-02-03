@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
+using TeacherIdentity.AuthServer.Services.Csv;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddBackgroundJobs(environment, postgresConnectionString)
+            .AddCsv()
             .AddDqtApi(environment, configuration)
             .AddEmail(environment, configuration)
             .AddEmailVerification(environment, configuration)

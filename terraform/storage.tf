@@ -23,7 +23,6 @@ resource "azurerm_storage_account" "data-protection" {
   }
 }
 
-
 resource "azurerm_storage_encryption_scope" "data-protection-encryption" {
   name                               = "microsoftmanaged"
   storage_account_id                 = azurerm_storage_account.data-protection.id
@@ -31,9 +30,14 @@ resource "azurerm_storage_encryption_scope" "data-protection-encryption" {
   infrastructure_encryption_required = true
 }
 
-
 resource "azurerm_storage_container" "keys" {
   name                  = "keys"
+  storage_account_name  = azurerm_storage_account.data-protection.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "user_imports" {
+  name                  = "user-imports"
   storage_account_name  = azurerm_storage_account.data-protection.name
   container_access_type = "private"
 }

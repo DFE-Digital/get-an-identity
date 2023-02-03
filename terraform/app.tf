@@ -26,6 +26,7 @@ locals {
       ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
       ConnectionStrings__ServiceBus                = azurerm_servicebus_namespace.sb_namespace.default_primary_connection_string
       DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
+      UserImportsContainerName              = azurerm_storage_container.user_imports.name,
       DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
       DfeAnalytics__CredentialsJson                = local.infrastructure_secrets.ANALYTICS_CREDENTIALS
       DfeAnalytics__DatasetId                      = local.infrastructure_secrets.ANALYTICS_DATASETID

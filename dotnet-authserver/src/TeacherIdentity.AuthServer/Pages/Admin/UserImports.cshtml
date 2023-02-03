@@ -1,0 +1,13 @@
+@page "/admin/user-imports"
+@model TeacherIdentity.AuthServer.Pages.Admin.UserImportsModel
+@{
+    ViewBag.Title = "User Imports";
+}
+
+<h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+@*<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--xl">@ViewBag.Title</caption>    
+</table>*@
+
+<p><a asp-page="AddUserImport">Import Users</a></p>
