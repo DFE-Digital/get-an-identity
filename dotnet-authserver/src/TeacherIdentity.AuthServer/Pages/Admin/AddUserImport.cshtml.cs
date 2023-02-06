@@ -2,13 +2,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.Csv;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
+[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
 public class AddUserImportModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;

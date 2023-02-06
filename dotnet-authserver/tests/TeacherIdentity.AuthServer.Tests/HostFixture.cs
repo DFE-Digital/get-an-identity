@@ -11,6 +11,7 @@ using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.Csv;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
@@ -49,6 +50,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
 
     public Mock<IZendeskApiWrapper> ZendeskApiWrapper { get; } = new Mock<IZendeskApiWrapper>();
+
+    public Mock<IUserImportCsvStorageService> UserImportCsvStorageService { get; } = new Mock<IUserImportCsvStorageService>();
 
     public async Task Initialize()
     {
@@ -155,6 +158,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
             services.Decorate<IEmailVerificationService>(inner => Spy.Get<IEmailVerificationService>().Wrap(inner));
             services.AddSingleton(ZendeskApiWrapper.Object);
+            services.AddSingleton(UserImportCsvStorageService.Object);
         });
     }
 

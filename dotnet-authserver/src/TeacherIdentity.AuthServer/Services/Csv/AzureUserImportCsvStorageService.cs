@@ -5,7 +5,6 @@ namespace TeacherIdentity.AuthServer.Services.Csv;
 public class AzureUserImportCsvStorageService : IUserImportCsvStorageService
 {
     private const string PendingFolderName = "pending";
-    private const string ProcessedFolderName = "processed";
     private readonly string _connectionString;
     private readonly string _userImportsContainerName;
 
