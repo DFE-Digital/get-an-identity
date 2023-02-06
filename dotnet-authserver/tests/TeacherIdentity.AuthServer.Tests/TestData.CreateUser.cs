@@ -63,6 +63,7 @@ public partial class TestData
                 Updated = _clock.UtcNow,
                 RegisteredWithClientId = registeredWithClientId,
                 MergedWithUserId = mergedWithUserId,
+                IsDeleted = mergedWithUserId != null
             };
 
             dbContext.Users.Add(user);

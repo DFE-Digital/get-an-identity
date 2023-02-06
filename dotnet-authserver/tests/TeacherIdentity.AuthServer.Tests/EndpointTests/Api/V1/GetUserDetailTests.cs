@@ -40,6 +40,40 @@ public class GetUserDetailTests : TestBase
 
     [Theory]
     [MemberData(nameof(PermittedScopes))]
+    public async Task Get_MergedUser_ReturnsUserMergedInto(string scope)
+    {
+        // Arrange
+        var httpClient = await CreateHttpClientWithToken(scope);
+
+        var registeredWithClient = TestClients.Client1;
+        var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);
+        var mergedUser = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId, mergedWithUserId: user.UserId);
+
+        // Act
+        var response = await httpClient.GetAsync($"/api/v1/users/{mergedUser.UserId}");
+
+        // Assert
+        var responseObj = await AssertEx.JsonResponse(response);
+
+        AssertEx.JsonObjectEquals(
+            responseObj,
+            new
+            {
+                userId = user.UserId,
+                email = user.EmailAddress,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                dateOfBirth = user.DateOfBirth,
+                trn = user.Trn,
+                created = user.Created,
+                registeredWithClientId = registeredWithClient.ClientId,
+                registeredWithClientDisplayName = registeredWithClient.DisplayName,
+                mergedUserIds = new[] { mergedUser.UserId }
+            });
+    }
+
+    [Theory]
+    [MemberData(nameof(PermittedScopes))]
     public async Task Get_ValidRequest_ReturnsUser(string scope)
     {
         // Arrange
@@ -66,7 +100,8 @@ public class GetUserDetailTests : TestBase
                 trn = user.Trn,
                 created = user.Created,
                 registeredWithClientId = registeredWithClient.ClientId,
-                registeredWithClientDisplayName = registeredWithClient.DisplayName
+                registeredWithClientDisplayName = registeredWithClient.DisplayName,
+                mergedUserIds = Array.Empty<object>()
             });
     }
 

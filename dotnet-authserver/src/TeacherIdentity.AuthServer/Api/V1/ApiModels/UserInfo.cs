@@ -8,4 +8,5 @@ public record UserInfo
     public required string LastName { get; init; }
     public required DateOnly? DateOfBirth { get; init; }
     public required string? Trn { get; init; }
+    public IEnumerable<Guid>? MergedUserIds { get; init; }
 }

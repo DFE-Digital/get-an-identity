@@ -22,7 +22,7 @@ public class UsersController : ControllerBase
     }
 
     [Authorize(AuthorizationPolicies.ApiUserRead)]
-    [HttpGet("{userId}")]
+    [HttpGet("{UserId}")]
     [SwaggerOperation(summary: "Get a user's details by their user ID")]
     [ProducesResponseType(typeof(GetUserDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
