@@ -16,10 +16,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     {
         await TestData.WithDbContext(async dbContext =>
         {
-            var nonTestUsers = dbContext.Users.IgnoreQueryFilters().Where(u => !TestUsers.All.Select(u => u.UserId).Contains(u.UserId));
-            dbContext.JourneyTrnLookupStates.RemoveRange(dbContext.JourneyTrnLookupStates);
-            dbContext.Users.RemoveRange(nonTestUsers);
-            await dbContext.SaveChangesAsync();
+            await TestUsers.DeleteNonTestUsers(dbContext);
         });
     }
 
