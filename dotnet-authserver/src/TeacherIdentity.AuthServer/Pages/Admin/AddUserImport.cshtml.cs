@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.Csv;
+using TeacherIdentity.AuthServer.Services.UserImport;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
@@ -15,11 +15,11 @@ namespace TeacherIdentity.AuthServer.Pages.Admin;
 public class AddUserImportModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IUserImportCsvStorageService _userImportCsvStorageService;
+    private readonly IUserImportStorageService _userImportCsvStorageService;
 
     public AddUserImportModel(
         TeacherIdentityServerDbContext dbContext,
-        IUserImportCsvStorageService userImportCsvStorageService)
+        IUserImportStorageService userImportCsvStorageService)
     {
         _dbContext = dbContext;
         _userImportCsvStorageService = userImportCsvStorageService;
@@ -40,14 +40,8 @@ public class AddUserImportModel : PageModel
             return this.PageWithErrors();
         }
 
-        if (Upload == null)
-        {
-            ModelState.AddModelError(nameof(Upload), "Select a file");
-            return this.PageWithErrors();
-        }
-
         // Validate that it is a CSV file (although should be blocked by accept=".csv" on modern browsers).
-        if (!Upload.FileName.EndsWith(".csv"))
+        if (!Upload!.FileName.EndsWith(".csv"))
         {
             ModelState.AddModelError(nameof(Upload), "The selected file must be a CSV");
             return this.PageWithErrors();
@@ -64,25 +58,20 @@ public class AddUserImportModel : PageModel
         using var stream = Upload.OpenReadStream();
         using var reader = new StreamReader(stream);
         using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true });
-        csv.Read();
+        csv!.Read();
         csv.ReadHeader();
-        var hasInvalidHeaders = false;
         try
         {
             csv.ValidateHeader<UserImportRow>();
 
             // Need to also check we don't have extra columns (ValidateHeader doesn't check this unfortunately)
-            if (csv?.HeaderRecord?.Length != 5)
+            if (csv.HeaderRecord!.Length != 5)
             {
-                hasInvalidHeaders = true;
+                ModelState.AddModelError(nameof(Upload), "The selected file contains invalid headers");
+                return this.PageWithErrors();
             }
         }
         catch (HeaderValidationException)
-        {
-            hasInvalidHeaders = true;
-        }
-
-        if (hasInvalidHeaders)
         {
             ModelState.AddModelError(nameof(Upload), "The selected file contains invalid headers");
             return this.PageWithErrors();

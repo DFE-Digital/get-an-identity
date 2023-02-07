@@ -20,15 +20,14 @@ locals {
     local.auth_server_notify_domain_allow_list_env_vars,
     {
       EnvironmentName                              = local.hosting_environment,
-      ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string
-      ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;"
+      ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string,
+      ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;",
       ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
-      ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}"
-      ConnectionStrings__ServiceBus                = azurerm_servicebus_namespace.sb_namespace.default_primary_connection_string
+      ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}",
+      ConnectionStrings__ServiceBus                = azurerm_servicebus_namespace.sb_namespace.default_primary_connection_string,
       DataProtectionKeysContainerName              = azurerm_storage_container.keys.name,
-      UserImportsContainerName              = azurerm_storage_container.user_imports.name,
       DOCKER_REGISTRY_SERVER_URL                   = "https://ghcr.io",
-      DfeAnalytics__CredentialsJson                = local.infrastructure_secrets.ANALYTICS_CREDENTIALS
+      DfeAnalytics__CredentialsJson                = local.infrastructure_secrets.ANALYTICS_CREDENTIALS,
       DfeAnalytics__DatasetId                      = local.infrastructure_secrets.ANALYTICS_DATASETID
       EncryptionKeys__0                            = local.infrastructure_secrets.ENCRYPTION_KEY0,
       EncryptionKeys__1                            = local.infrastructure_secrets.ENCRYPTION_KEY1,
@@ -45,10 +44,12 @@ locals {
       FindALostTrnIntegration__SharedKey           = local.infrastructure_secrets.FIND_SHARED_KEY,
       DqtApi__ApiKey                               = local.infrastructure_secrets.DQT_API_KEY,
       DqtApi__BaseAddress                          = local.infrastructure_secrets.DQT_API_BASE_ADDRESS,
-      WebHooks__QueueName                          = azurerm_servicebus_queue.webhooks.name
-      Serilog__WriteTo__2__Args__uri               = local.infrastructure_secrets.LOGSTASH_ENDPOINT
-      WEBSITE_SWAP_WARMUP_PING_PATH                = "/status"
-      WEBSITE_SWAP_WARMUP_PING_STATUSES            = "200"
+      UserImport__StorageConnectionString          = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}",
+      UserImport__StorageContainerName             = azurerm_storage_container.user_imports.name,
+      WebHooks__QueueName                          = azurerm_servicebus_queue.webhooks.name,
+      Serilog__WriteTo__2__Args__uri               = local.infrastructure_secrets.LOGSTASH_ENDPOINT,
+      WEBSITE_SWAP_WARMUP_PING_PATH                = "/status",
+      WEBSITE_SWAP_WARMUP_PING_STATUSES            = "200",
       BaseAddress                                  = local.infrastructure_secrets.BASE_ADDRESS
     }
   )

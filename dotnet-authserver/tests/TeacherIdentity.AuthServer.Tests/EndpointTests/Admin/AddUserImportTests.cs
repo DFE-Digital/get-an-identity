@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
+[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class AddUserImportTests : TestBase
 {
     public AddUserImportTests(HostFixture hostFixture)
@@ -49,7 +50,7 @@ public class AddUserImportTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoneCSVFileUploaded_RendersError()
+    public async Task Post_NoneCsvFileUploaded_RendersError()
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
