@@ -3,13 +3,13 @@ using Microsoft.Extensions.Options;
 
 namespace TeacherIdentity.AuthServer.Services.UserImport;
 
-public class AzureUserImportStorageService : IUserImportStorageService
+public class BlobStorageUserImportStorageService : IUserImportStorageService
 {
     private const string PendingFolderName = "pending";
     private readonly string _userImportsContainerName;
     private readonly BlobServiceClient _blobServiceClient;
 
-    public AzureUserImportStorageService(
+    public BlobStorageUserImportStorageService(
         BlobServiceClient blobServiceClient,
         IOptions<UserImportOptions> userImportOptions)
     {

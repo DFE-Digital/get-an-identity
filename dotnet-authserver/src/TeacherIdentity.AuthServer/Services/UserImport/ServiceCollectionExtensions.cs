@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
                 });
             });
 
-            services.AddSingleton<IUserImportStorageService, AzureUserImportStorageService>();
+            services.AddSingleton<IUserImportStorageService, BlobStorageUserImportStorageService>();
         }
 
         return services;
