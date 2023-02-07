@@ -43,6 +43,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<UserImportJob> UserImportJobs => Set<UserImportJob>();
+
     public DbSet<UserSearchAttribute> UserSearchAttributes => Set<UserSearchAttribute>();
 
     public DbSet<WebHook> WebHooks => Set<WebHook>();

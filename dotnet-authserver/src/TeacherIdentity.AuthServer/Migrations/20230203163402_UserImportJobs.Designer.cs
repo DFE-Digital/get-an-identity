@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -11,9 +12,11 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230203163402_UserImportJobs")]
+    partial class UserImportJobs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -461,12 +464,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("first_name");
 
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -476,10 +473,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                     b.Property<DateTime?>("LastSignedIn")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_signed_in");
-
-                    b.Property<Guid?>("MergedWithUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("merged_with_user_id");
 
                     b.Property<string>("RegisteredWithClientId")
                         .HasMaxLength(100)
@@ -513,6 +506,12 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("user_type");
 
+                    b.Property<bool>("is_deleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
                     b.HasKey("UserId")
                         .HasName("pk_users");
 
@@ -520,9 +519,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_users_email_address")
                         .HasFilter("is_deleted = false");
-
-                    b.HasIndex("MergedWithUserId")
-                        .HasDatabaseName("ix_users_merged_with_user_id");
 
                     b.HasIndex("RegisteredWithClientId")
                         .HasDatabaseName("ix_users_registered_with_client_id");
@@ -674,18 +670,11 @@ namespace TeacherIdentity.AuthServer.Migrations
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.User", b =>
                 {
-                    b.HasOne("TeacherIdentity.AuthServer.Models.User", "MergedWithUser")
-                        .WithMany("MergedUsers")
-                        .HasForeignKey("MergedWithUserId")
-                        .HasConstraintName("fk_users_users_merged_with_user_id");
-
                     b.HasOne("TeacherIdentity.AuthServer.Models.Application", "RegisteredWithClient")
                         .WithMany()
                         .HasForeignKey("RegisteredWithClientId")
                         .HasPrincipalKey("ClientId")
                         .HasConstraintName("fk_users_application_registered_with_client_id");
-
-                    b.Navigation("MergedWithUser");
 
                     b.Navigation("RegisteredWithClient");
                 });
@@ -700,11 +689,6 @@ namespace TeacherIdentity.AuthServer.Migrations
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.Authorization", b =>
                 {
                     b.Navigation("Tokens");
-                });
-
-            modelBuilder.Entity("TeacherIdentity.AuthServer.Models.User", b =>
-                {
-                    b.Navigation("MergedUsers");
                 });
 #pragma warning restore 612, 618
         }

@@ -23,6 +23,9 @@
                 <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/webhooks") ? "govuk-header__navigation-item--active" : "")">
                     <a class="govuk-header__link" asp-page="WebHooks">Web hooks</a>
                 </li>
+                <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/user-imports") ? "govuk-header__navigation-item--active" : "")">
+                    <a class="govuk-header__link" asp-page="UserImports">User Imports</a>
+                </li>
             }
         </ul>
     </nav>

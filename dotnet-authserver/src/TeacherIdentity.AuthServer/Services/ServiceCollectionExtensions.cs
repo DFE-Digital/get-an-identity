@@ -3,6 +3,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
+using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 
 namespace TeacherIdentity.AuthServer.Services;
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddBackgroundJobs(environment, postgresConnectionString)
+            .AddUserImport(environment, configuration)
             .AddDqtApi(environment, configuration)
             .AddEmail(environment, configuration)
             .AddEmailVerification(environment, configuration)
