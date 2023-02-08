@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Oidc;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
@@ -23,13 +25,13 @@ public class HasTrnPageTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/has-trn");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/has-trn");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Get, "/sign-in/trn/has-trn");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/has-trn");
     }
 
     [Theory]
@@ -43,7 +45,7 @@ public class HasTrnPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/has-trn", ConfigureValidAuthenticationState);
+        await ValidRequest_RendersContent("/sign-in/trn/has-trn", ConfigureValidAuthenticationState, CustomScopes.DqtRead);
     }
 
     [Fact]
@@ -61,13 +63,13 @@ public class HasTrnPageTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/has-trn");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/has-trn");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Post, "/sign-in/trn/has-trn");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/has-trn");
     }
 
     [Theory]
@@ -82,7 +84,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_NullHasTrn_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -99,7 +101,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_EmptyStatedTrn_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -122,7 +124,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_InvalidStatedTrn_ReturnsError(string statedTrn)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
@@ -144,7 +146,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_FalseHasTrn_UpdatesAuthenticationStateRedirectsToTrnOfficialName()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
@@ -170,7 +172,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_ValidStatedTrn_UpdatesAuthenticationStateRedirectsToTrnOfficialName(string statedTrn)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
@@ -196,7 +198,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var statedTrn = TestData.GenerateTrn();

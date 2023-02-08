@@ -25,20 +25,20 @@ public class ResendEmailConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/resend-email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, HttpMethod.Get, "/sign-in/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Get_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -53,7 +53,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -69,7 +69,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -97,20 +97,20 @@ public class ResendEmailConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Post, "/sign-in/resend-email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, HttpMethod.Post, "/sign-in/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Post_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var differentEmail = Faker.Internet.Email();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -134,7 +134,7 @@ public class ResendEmailConfirmationTests : TestBase
     {
         // Arrange
         var email = Faker.Internet.Email();
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -156,7 +156,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var differentEmail = "";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -178,7 +178,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_InvalidEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var differentEmail = "xx";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -200,7 +200,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var differentEmail = "valid@email.com";
 
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
@@ -224,7 +224,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_ValidRequest_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToConfirmation()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var differentEmail = Faker.Internet.Email();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")

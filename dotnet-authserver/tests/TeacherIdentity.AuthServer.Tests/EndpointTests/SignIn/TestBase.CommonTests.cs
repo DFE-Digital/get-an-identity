@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Flurl;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
 using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
@@ -43,11 +44,15 @@ public partial class TestBase
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
-    public async Task JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod method, string url, HttpContent? content = null)
+    public async Task JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(
+        string? additionalScopes,
+        HttpMethod method,
+        string url,
+        HttpContent? content = null)
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(method, fullUrl);
@@ -65,11 +70,15 @@ public partial class TestBase
         Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
     }
 
-    public async Task JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(HttpMethod method, string url, HttpContent? content = null)
+    public async Task JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(
+        string? additionalScopes,
+        HttpMethod method,
+        string url,
+        HttpContent? content = null)
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(method, fullUrl);
@@ -88,17 +97,20 @@ public partial class TestBase
 
     public async Task JourneyHasExpired_RendersErrorPage(
         Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
+        string? additionalScopes,
         HttpMethod method,
         string url,
         HttpContent? content = null)
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => async s =>
-        {
-            s.Reset(Clock.UtcNow.Subtract(TimeSpan.FromMinutes(20)));
-            await configureAuthenticationHelper(c)(s);
-        });
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => async s =>
+            {
+                s.Reset(Clock.UtcNow.Subtract(TimeSpan.FromMinutes(20)));
+                await configureAuthenticationHelper(c)(s);
+            },
+            additionalScopes);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(method, fullUrl);
@@ -120,17 +132,20 @@ public partial class TestBase
 
     public async Task JourneyHasExpired_DoesNotRenderErrorPage(
         Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
+        string? additionalScopes,
         HttpMethod method,
         string url,
         HttpContent? content = null)
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => async s =>
-        {
-            s.Reset(Clock.UtcNow.Subtract(TimeSpan.FromMinutes(20)));
-            await configureAuthenticationHelper(c)(s);
-        });
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => async s =>
+            {
+                s.Reset(Clock.UtcNow.Subtract(TimeSpan.FromMinutes(20)));
+                await configureAuthenticationHelper(c)(s);
+            },
+            additionalScopes);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(method, fullUrl);
@@ -153,10 +168,11 @@ public partial class TestBase
 
     public async Task ValidRequest_RendersContent(
         string url,
-        Func<Configure, Func<AuthenticationState, Task>> configure)
+        Func<Configure, Func<AuthenticationState, Task>> configure,
+        string? additionalScopes)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configure);
+        var authStateHelper = await CreateAuthenticationStateHelper(configure, additionalScopes);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
@@ -181,16 +197,18 @@ public partial class TestBase
         switch (milestone)
         {
             case AuthenticationState.AuthenticationMilestone.None:
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), CustomScopes.DqtRead);
                 break;
 
             case AuthenticationState.AuthenticationMilestone.EmailVerified:
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
                 break;
 
             case AuthenticationState.AuthenticationMilestone.TrnLookupCompleted:
                 var user = await TestData.CreateUser(hasTrn: true);
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(newEmail: Faker.Internet.Email(), trnOwner: user));
+                authStateHelper = await CreateAuthenticationStateHelper(
+                    c => c.TrnLookupCompletedForExistingTrn(newEmail: Faker.Internet.Email(), trnOwner: user),
+                    CustomScopes.DqtRead);
                 break;
 
             default:

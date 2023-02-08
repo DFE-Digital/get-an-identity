@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Oidc;
 using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
@@ -25,13 +26,13 @@ public class CheckAnswersTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Theory]
@@ -49,7 +50,7 @@ public class CheckAnswersTests : TestBase
         string expectedRedirect)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -65,7 +66,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.DqtRead);
         var authState = authStateHelper.AuthenticationState;
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
@@ -88,7 +89,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var trn = TestData.GenerateTrn();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
@@ -110,7 +111,8 @@ public class CheckAnswersTests : TestBase
         var previousLastName = Faker.Name.Last();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName));
+            c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -129,7 +131,8 @@ public class CheckAnswersTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null));
+            c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -151,7 +154,8 @@ public class CheckAnswersTests : TestBase
         var preferredLastName = Faker.Name.Last();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName));
+            c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -170,7 +174,8 @@ public class CheckAnswersTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null));
+            c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -192,7 +197,8 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var nino = hasNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino));
+            c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -210,7 +216,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithoutHasNinoAnswered_DoesNotShowNationalInsuranceNumberRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: TestData.GenerateTrn(), trnLookupStatus: TrnLookupStatus.Found);
         Assert.Null(authStateHelper.AuthenticationState.HasNationalInsuranceNumber);
 
@@ -232,9 +238,9 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsAnswered_ShowsAwardedQtsRow(bool haveQts, string expectedValue)
     {
         // Arrange
-        var authStateHelper = haveQts ?
-            await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet()) :
-            await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => haveQts ? c.Trn.IttProviderSet() : c.Trn.AwardedQtsSet(awardedQts: false),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -254,7 +260,9 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var ittProviderName = "A Provider";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(ittProviderName: ittProviderName));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(ittProviderName: ittProviderName),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -272,7 +280,9 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderNotSpecified_ShowsAwardedQtsAnotherWay()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(ittProviderName: null));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(ittProviderName: null),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -290,7 +300,9 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsFalse_DoesNotShowProviderRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.AwardedQtsSet(awardedQts: false),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -308,7 +320,7 @@ public class CheckAnswersTests : TestBase
     public async Task Post_ValidRequestNullTrn_DoesNotCreateUserRedirectsToNoMatch()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false), CustomScopes.DqtRead);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -338,7 +350,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var trn = TestData.GenerateTrn();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.DqtRead);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
@@ -368,7 +380,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.DqtRead);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(existingUserWithTrn.Trn, TrnLookupStatus.Found);

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -27,7 +28,7 @@ public class TrnCallbackTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/callback");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/callback");
     }
 
     [Fact]
@@ -41,6 +42,7 @@ public class TrnCallbackTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName),
+            CustomScopes.DqtRead,
             HttpMethod.Get,
             "/sign-in/trn/callback");
     }
@@ -54,7 +56,7 @@ public class TrnCallbackTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, user));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, user), CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -69,7 +71,7 @@ public class TrnCallbackTests : TestBase
     public async Task Get_MissingStateInDb_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
@@ -94,7 +96,8 @@ public class TrnCallbackTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCallbackCompleted(
-                email, trn, dateOfBirth, firstName, lastName, preferredFirstName: preferredFirstName, preferredLastName: preferredLastName));
+                email, trn, dateOfBirth, firstName, lastName, preferredFirstName: preferredFirstName, preferredLastName: preferredLastName),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
@@ -132,7 +135,8 @@ public class TrnCallbackTests : TestBase
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, supportTicketCreated));
+            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, supportTicketCreated),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 
@@ -200,7 +204,8 @@ public class TrnCallbackTests : TestBase
         var trn = existingUserWithTrn.Trn;
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName));
+            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
 

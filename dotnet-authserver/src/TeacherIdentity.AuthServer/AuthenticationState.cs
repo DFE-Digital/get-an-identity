@@ -649,10 +649,12 @@ public class AuthenticationState
 
         List<String> ignoredScopes = new List<string>();
         ignoredScopes.AddRange(CustomScopes.StaffUserTypeScopes);
+#pragma warning disable CS0618 // Type or member is obsolete
         ignoredScopes.Add(CustomScopes.Trn);
+#pragma warning restore CS0618 // Type or member is obsolete
         ignoredScopes.Add(CustomScopes.DqtRead);
 
-        return !OAuthState.HasAnyScope(ignoredScopes);
+        return !OAuthState.HasAnyScope(ignoredScopes) && !UserId.HasValue;
     }
 }
 

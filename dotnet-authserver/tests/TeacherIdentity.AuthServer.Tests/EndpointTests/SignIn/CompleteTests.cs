@@ -23,14 +23,14 @@ public class CompleteTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(HttpMethod.Get, "/sign-in/complete");
+        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/complete");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
         var user = await TestData.CreateUser(hasTrn: true);
-        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), HttpMethod.Get, "/sign-in/complete");
+        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), additionalScopes: null, HttpMethod.Get, "/sign-in/complete");
     }
 
     [Theory]
@@ -46,7 +46,7 @@ public class CompleteTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -66,7 +66,7 @@ public class CompleteTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: false);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -84,7 +84,7 @@ public class CompleteTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser();
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false));
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: false), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act

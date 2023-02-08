@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -27,7 +28,7 @@ public class TrnInUseTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/different-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/different-email");
     }
 
     [Fact]
@@ -38,6 +39,7 @@ public class TrnInUseTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead,
             HttpMethod.Get,
             "/sign-in/trn/different-email");
     }
@@ -51,7 +53,10 @@ public class TrnInUseTests : TestBase
         // Arrange
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookup(trnLookupState, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -69,7 +74,10 @@ public class TrnInUseTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -97,7 +105,7 @@ public class TrnInUseTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/different-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/different-email");
     }
 
     [Fact]
@@ -108,6 +116,7 @@ public class TrnInUseTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead,
             HttpMethod.Post,
             "/sign-in/trn/different-email");
     }
@@ -124,7 +133,10 @@ public class TrnInUseTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookup(trnLookupState, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -151,7 +163,10 @@ public class TrnInUseTests : TestBase
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -175,7 +190,10 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var pin = "0";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -199,7 +217,10 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var pin = "0123345678";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -223,7 +244,10 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var pin = "abc";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -250,7 +274,10 @@ public class TrnInUseTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         Spy.Get<IEmailVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -281,7 +308,10 @@ public class TrnInUseTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
         Spy.Get<IEmailVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -308,7 +338,10 @@ public class TrnInUseTests : TestBase
         var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
         var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()

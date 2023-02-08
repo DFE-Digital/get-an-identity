@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -26,13 +27,13 @@ public class TrnTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/trn");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Theory]
@@ -47,7 +48,7 @@ public class TrnTests : TestBase
     public async Task Get_ValidRequest_ReturnsOk()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -65,7 +66,7 @@ public class TrnTests : TestBase
         var trnConfig = HostFixture.Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
         trnConfig.UseNewTrnLookupJourney = true;
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 

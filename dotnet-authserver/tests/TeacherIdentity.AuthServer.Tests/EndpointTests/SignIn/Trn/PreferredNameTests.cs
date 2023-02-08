@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Oidc;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
@@ -23,13 +25,13 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Theory]
@@ -44,7 +46,7 @@ public class PreferredNameTests : TestBase
     public async Task Get_OfficialNameNotSet_RedirectsToOfficialNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
@@ -59,7 +61,7 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/preferred-name", ConfigureValidAuthenticationState);
+        await ValidRequest_RendersContent("/sign-in/trn/preferred-name", ConfigureValidAuthenticationState, CustomScopes.DqtRead);
     }
 
     [Fact]
@@ -77,13 +79,13 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Theory]
@@ -98,7 +100,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_OfficialNameNotSet_RedirectsToOfficialNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
@@ -114,7 +116,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_NullHasPreferredName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -131,7 +133,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_EmptyPreferredFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -152,7 +154,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_EmptyPreferredLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -173,7 +175,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_ValidForm_RedirectsToDateOfBirthPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
@@ -202,7 +204,7 @@ public class PreferredNameTests : TestBase
         var preferredFirstName = "preferred first";
         var preferredLastName = "preferred last";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         authStateHelper.AuthenticationState.OnNameSet(initialFirstName, initialLastName);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
