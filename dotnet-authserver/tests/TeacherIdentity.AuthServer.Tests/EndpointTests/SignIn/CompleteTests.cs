@@ -33,6 +33,14 @@ public class CompleteTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), HttpMethod.Get, "/sign-in/complete");
     }
 
+    [Theory]
+    [IncompleteAuthenticationMilestonesData()]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/complete");
+    }
+
     [Fact]
     public async Task Get_FirstTimeSignInForEmailWithTrn_RendersExpectedContent()
     {

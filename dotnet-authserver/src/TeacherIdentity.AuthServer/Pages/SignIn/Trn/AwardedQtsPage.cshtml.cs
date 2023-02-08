@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class AwardedQtsPage : TrnLookupPageModel
 {
     public AwardedQtsPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
@@ -14,9 +15,9 @@ public class AwardedQtsPage : TrnLookupPageModel
     }
 
     [BindNever]
-    public string BackLink => (HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber == true)
+    public string BackLink => (HttpContext.GetAuthenticationState().HasNationalInsuranceNumber == true)
         ? LinkGenerator.TrnNiNumber()
-        : LinkGenerator.TrnHaveNiNumber();
+        : LinkGenerator.TrnHasNiNumber();
 
     [Display(Name = "Have you been awarded qualified teacher status (QTS)?")]
     [Required(ErrorMessage = "Tell us if you have been awarded qualified teacher status (QTS)")]
@@ -45,13 +46,13 @@ public class AwardedQtsPage : TrnLookupPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.HasNationalInsuranceNumberSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = new RedirectResult(LinkGenerator.TrnHasNiNumber());
+        }
+        else if (authenticationState.HasNationalInsuranceNumber == true && !authenticationState.NationalInsuranceNumberSet)
+        {
+            context.Result = new RedirectResult(LinkGenerator.TrnNiNumber());
         }
     }
 

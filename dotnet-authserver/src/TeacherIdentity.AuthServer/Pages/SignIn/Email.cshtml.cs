@@ -6,6 +6,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
 public class EmailModel : PageModel
 {
     private readonly IEmailVerificationService _emailVerificationService;

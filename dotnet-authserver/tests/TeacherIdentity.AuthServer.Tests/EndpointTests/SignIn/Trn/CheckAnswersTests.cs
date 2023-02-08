@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
@@ -30,14 +31,41 @@ public class CheckAnswersTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/check-answers");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/check-answers");
+    }
+
+    [Theory]
+    [MemberData(nameof(MissingAnswersData))]
+    public async Task Get_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
+        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        string expectedRedirect)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith(expectedRedirect, response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet());
         var authState = authStateHelper.AuthenticationState;
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
@@ -55,21 +83,34 @@ public class CheckAnswersTests : TestBase
     }
 
     [Fact]
+    public async Task Get_ValidRequestWithMinimalAnswersButFoundTrn_ReturnsOk()
+    {
+        // Arrange
+        var trn = TestData.GenerateTrn();
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet());
+        var authState = authStateHelper.AuthenticationState;
+
+        authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Fact]
     public async Task Get_ValidRequestWithPreviousOfficialName_ShowsPreviousNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
         var previousFirstName = Faker.Name.First();
         var previousLastName = Faker.Name.Last();
 
-        authState.OnOfficialNameSet(
-            authState.OfficialFirstName!,
-            authState.OfficialLastName!,
-            AuthenticationState.HasPreviousNameOption.Yes,
-            previousFirstName,
-            previousLastName);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -87,18 +128,8 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithoutPreviousOfficialName_DoesNotShowPreviousNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        var previousFirstName = Faker.Name.First();
-        var previousLastName = Faker.Name.Last();
-
-        authState.OnOfficialNameSet(
-            authState.OfficialFirstName!,
-            authState.OfficialLastName!,
-            AuthenticationState.HasPreviousNameOption.Yes,
-            previousOfficialFirstName: null,
-            previousOfficialLastName: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -116,13 +147,11 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithPreferredName_ShowsPreferredNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
         var preferredFirstName = Faker.Name.First();
         var preferredLastName = Faker.Name.Last();
 
-        authState.OnNameSet(preferredFirstName, preferredLastName);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -140,10 +169,8 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithoutPreferredName_DoesNotShowPreferredNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-        Assert.Null(authState.FirstName);
-        Assert.Null(authState.LastName);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -160,18 +187,12 @@ public class CheckAnswersTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Get_ValidRequestWithHaveNinoAnswered_ShowsNationalInsuranceNumberRow(bool haveNino)
+    public async Task Get_ValidRequestWithHasNiNumberAnswered_ShowsNationalInsuranceNumberRow(bool hasNino)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnHaveNationalInsuranceNumberSet(haveNino);
-        var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
-        if (haveNino)
-        {
-            authState.OnNationalInsuranceNumberSet(nino!);
-        }
+        var nino = hasNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -182,16 +203,16 @@ public class CheckAnswersTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal(haveNino ? nino : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
+        Assert.Equal(hasNino ? nino : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
     }
 
     [Fact]
-    public async Task Get_ValidRequestWithoutHaveNinoAnswered_DoesNotShowNationalInsuranceNumberRow()
+    public async Task Get_ValidRequestWithoutHasNinoAnswered_DoesNotShowNationalInsuranceNumberRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-        Assert.Null(authState.HaveNationalInsuranceNumber);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet());
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: TestData.GenerateTrn(), trnLookupStatus: TrnLookupStatus.Found);
+        Assert.Null(authStateHelper.AuthenticationState.HasNationalInsuranceNumber);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -211,11 +232,9 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsAnswered_ShowsAwardedQtsRow(bool haveQts, string expectedValue)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnAwardedQtsSet(haveQts);
-        authState.OnHaveIttProviderSet(false);
+        var authStateHelper = haveQts ?
+            await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet()) :
+            await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -233,14 +252,9 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderSpecified_ShowsIttProviderRowWithProviderName()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
         var ittProviderName = "A Provider";
 
-        authState.OnAwardedQtsSet(true);
-        authState.OnHaveIttProviderSet(true);
-        authState.IttProviderName = ittProviderName;
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(ittProviderName: ittProviderName));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -258,11 +272,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderNotSpecified_ShowsAwardedQtsAnotherWay()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnAwardedQtsSet(true);
-        authState.OnHaveIttProviderSet(false);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(ittProviderName: null));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -280,10 +290,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsFalse_DoesNotShowProviderRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnAwardedQtsSet(false);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -301,10 +308,9 @@ public class CheckAnswersTests : TestBase
     public async Task Post_ValidRequestNullTrn_DoesNotCreateUserRedirectsToNoMatch()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnAwardedQtsSet(false);
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
@@ -332,7 +338,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var trn = TestData.GenerateTrn();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet());
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
@@ -362,7 +368,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet());
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(existingUserWithTrn.Trn, TrnLookupStatus.Found);
@@ -384,5 +390,47 @@ public class CheckAnswersTests : TestBase
             var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
             Assert.Null(user);
         });
+    }
+
+    public static TheoryData<Func<Configure, Func<AuthenticationState, Task>>, string> MissingAnswersData
+    {
+        get
+        {
+            return new()
+            {
+                {
+                    c => c.EmailVerified(),
+                    "/sign-in/trn/has-trn"
+                },
+                {
+                    c => c.Trn.HasTrnSet(),
+                    "/sign-in/trn/official-name"
+                },
+                {
+                    c => c.Trn.OfficialNameSet(),
+                    "/sign-in/trn/preferred-name"
+                },
+                {
+                    c => c.Trn.PreferredNameSet(),
+                    "/sign-in/trn/date-of-birth"
+                },
+                {
+                    c => c.Trn.DateOfBirthSet(),
+                    "/sign-in/trn/has-nino"
+                },
+                {
+                    c => c.Trn.HasNationalInsuranceNumberSet(hasNationalInsuranceNumber: true),
+                    "/sign-in/trn/ni-number"
+                },
+                {
+                    c => c.Trn.NationalInsuranceNumberSet(),
+                    "/sign-in/trn/awarded-qts"
+                },
+                {
+                    c => c.Trn.AwardedQtsSet(awardedQts: true),
+                    "/sign-in/trn/itt-provider"
+                }
+            };
+        }
     }
 }

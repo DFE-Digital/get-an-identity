@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class NiNumberPage : TrnLookupPageModel
 {
     public NiNumberPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
@@ -26,7 +27,7 @@ public class NiNumberPage : TrnLookupPageModel
     {
         if (submit == "ni_number_not_known")
         {
-            HttpContext.GetAuthenticationState().OnHaveNationalInsuranceNumberSet(false);
+            HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet(false);
         }
         else
         {
@@ -45,13 +46,9 @@ public class NiNumberPage : TrnLookupPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.HasNationalInsuranceNumberSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = new RedirectResult(LinkGenerator.TrnHasNiNumber());
         }
     }
 

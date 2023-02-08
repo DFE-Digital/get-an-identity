@@ -29,14 +29,22 @@ public class OfficialNameTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/trn/official-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Get, "/sign-in/trn/official-name");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/official-name");
     }
 
     [Fact]
-    public async Task Get_NoEmail_RedirectsToEmailPage()
+    public async Task Get_HasTrnNotSet_RedirectsToHasTrnPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
 
@@ -45,30 +53,68 @@ public class OfficialNameTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/has-trn", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
-    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
+    public async Task Get_ValidRequest_RendersContent()
+    {
+        await ValidRequest_RendersContent("/sign-in/trn/official-name", ConfigureValidAuthenticationState);
+    }
+
+    [Fact]
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/official-name");
+    }
+
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/official-name");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/official-name");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Post, "/sign-in/trn/official-name");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/official-name");
+    }
+
+    [Fact]
+    public async Task Post_HasTrnNotSet_RedirectsToHasTrnPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/has-trn", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Post_EmptyOfficialFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -85,7 +131,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_EmptyOfficialLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -102,7 +148,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_ValidOfficialName_SetsOfficialNameOnAuthenticationStateRedirectsToPreferredName()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var firstName = "first";
         var lastName = "last";
 
@@ -133,7 +179,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_HasPreviousOfficialNames_SetsPreviousOfficialNameOnAuthenticationState(bool hasPreviousName)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var previousFirstName = "previous first";
         var previousLastName = "previous last";
 
@@ -171,7 +217,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
@@ -191,4 +237,7 @@ public class OfficialNameTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
+
+    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
+        configure.Trn.HasTrnSet();
 }

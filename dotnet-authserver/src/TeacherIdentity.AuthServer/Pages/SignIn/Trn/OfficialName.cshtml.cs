@@ -6,6 +6,7 @@ using static TeacherIdentity.AuthServer.AuthenticationState;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationMilestone.EmailVerified)]
 public class OfficialName : TrnLookupPageModel
 {
     public OfficialName(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
@@ -55,12 +56,9 @@ public class OfficialName : TrnLookupPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.HasTrnSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = Redirect(LinkGenerator.TrnHasTrn());
         }
     }
 

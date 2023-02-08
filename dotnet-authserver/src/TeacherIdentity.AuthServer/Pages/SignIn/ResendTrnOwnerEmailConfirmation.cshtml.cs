@@ -5,6 +5,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.TrnLookupCompleted)]
 public class ResendTrnOwnerEmailConfirmationModel : PageModel
 {
     private readonly IEmailVerificationService _emailVerificationService;
@@ -49,9 +50,7 @@ public class ResendTrnOwnerEmailConfirmationModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
+        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
         {
             context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
