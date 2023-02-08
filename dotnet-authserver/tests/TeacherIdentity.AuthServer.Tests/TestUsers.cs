@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests;
@@ -56,6 +57,14 @@ public static class TestUsers
             dbContext.Add(user);
         }
 
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task DeleteNonTestUsers(TeacherIdentityServerDbContext dbContext)
+    {
+        var nonTestUsers = dbContext.Users.IgnoreQueryFilters().Where(u => !All.Select(u => u.UserId).Contains(u.UserId));
+        dbContext.JourneyTrnLookupStates.RemoveRange(dbContext.JourneyTrnLookupStates);
+        dbContext.Users.RemoveRange(nonTestUsers);
         await dbContext.SaveChangesAsync();
     }
 }
