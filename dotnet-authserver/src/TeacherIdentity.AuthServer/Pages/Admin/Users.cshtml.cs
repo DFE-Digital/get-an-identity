@@ -72,6 +72,12 @@ public class UsersModel : PageModel
         TotalUsers = await sortedUsers.Where(filterPredicate).CountAsync();
         TotalPages = (int)Math.Ceiling((decimal)TotalUsers / pageSize);
 
+        if (PageNumber > TotalPages)
+        {
+            // Page is out of range
+            return BadRequest();
+        }
+
         // In the pagination control, show the first page, last page, current page and two pages either side of the current page
         PaginationPages = Enumerable.Range(-2, 5).Select(offset => PageNumber.Value + offset)
             .Append(1)
