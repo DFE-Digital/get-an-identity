@@ -21,7 +21,7 @@ public class UsersModel : PageModel
 
     [Display(Name = "TRN lookup status")]
     [FromQuery(Name = "LookupStatus")]
-    public TrnLookupStatus?[] LookupStatus { get; set; }
+    public TrnLookupStatus?[]? LookupStatus { get; set; }
 
     public UserInfo[]? FilteredUsers { get; set; }
 
@@ -48,7 +48,7 @@ public class UsersModel : PageModel
         PageNumber ??= 1;
         var pageSize = 100;
 
-        Expression<Func<User, bool>> filterPredicate = LookupStatus.Length == 0
+        Expression<Func<User, bool>> filterPredicate = LookupStatus!.Length == 0
             ? user => user.UserType == UserType.Default
             : user => user.UserType == UserType.Default && LookupStatus.Contains(user.TrnLookupStatus);
 
@@ -101,7 +101,7 @@ public class UsersModel : PageModel
             { "PageNumber", pageNumber.ToString() },
         };
 
-        for (var i = 0; i < LookupStatus.Length; i++)
+        for (var i = 0; i < LookupStatus!.Length; i++)
         {
             pageData.Add($"LookupStatus[{i}]", LookupStatus[i].ToString()!);
         }
