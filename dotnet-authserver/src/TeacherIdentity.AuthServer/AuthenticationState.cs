@@ -649,9 +649,12 @@ public class AuthenticationState
 
         List<String> ignoredScopes = new List<string>();
         ignoredScopes.AddRange(CustomScopes.StaffUserTypeScopes);
+#pragma warning disable CS0618 // Type or member is obsolete
         ignoredScopes.Add(CustomScopes.Trn);
+#pragma warning restore CS0618 // Type or member is obsolete
+        ignoredScopes.Add(CustomScopes.DqtRead);
 
-        return !OAuthState.HasAnyScope(ignoredScopes);
+        return !OAuthState.HasAnyScope(ignoredScopes) && !UserId.HasValue;
     }
 }
 
@@ -689,7 +692,9 @@ public class OAuthAuthorizationState
         return $"{new Uri(RedirectUri).GetLeftPart(UriPartial.Authority)}/{serviceUrl.ToString().TrimStart('/')}";
     }
 
-    public bool HasAnyScope(IEnumerable<string> scopes) => Scope.Split(' ').Any(scopes.Contains);
+    public bool HasScope(string scope) => GetScopes().Contains(scope);
+
+    public bool HasAnyScope(IEnumerable<string> scopes) => GetScopes().Any(scopes.Contains);
 
     public void SetAuthorizationResponse(
         IEnumerable<KeyValuePair<string, string>> responseParameters,
@@ -698,4 +703,6 @@ public class OAuthAuthorizationState
         AuthorizationResponseParameters = responseParameters;
         AuthorizationResponseMode = responseMode;
     }
+
+    private HashSet<string> GetScopes() => new(Scope.Split(' '), StringComparer.OrdinalIgnoreCase);
 }

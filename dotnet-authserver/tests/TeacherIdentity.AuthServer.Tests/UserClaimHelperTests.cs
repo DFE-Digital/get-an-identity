@@ -28,9 +28,11 @@ public class UserClaimHelperTests
         };
 
         // Act
+#pragma warning disable CS0618 // Type or member is obsolete
         var result = UserClaimHelper.GetPublicClaims(
             user,
             hasScope: scope => scope == CustomScopes.Trn && haveTrnScope);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         // Assert
         var expectedClaims = new List<Claim>()
@@ -74,7 +76,9 @@ public class UserClaimHelperTests
             TrnLookupStatus = TrnLookupStatus.Found
         };
 
+#pragma warning disable CS0618 // Type or member is obsolete
         Func<string, bool> hasScope = s => s == CustomScopes.Trn && haveTrnScope;
+#pragma warning restore CS0618 // Type or member is obsolete
 
         var userRequirements = UserRequirementsExtensions.GetUserRequirementsForScopes(hasScope);
 

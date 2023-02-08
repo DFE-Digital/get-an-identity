@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -25,7 +26,7 @@ public class TrnInUseChooseEmailTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/choose-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/choose-email");
     }
 
     [Fact]
@@ -36,6 +37,7 @@ public class TrnInUseChooseEmailTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner),
+            CustomScopes.DqtRead,
             HttpMethod.Get,
             "/sign-in/trn/choose-email");
     }
@@ -49,7 +51,10 @@ public class TrnInUseChooseEmailTests : TestBase
         // Arrange
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookup(trnLookupState, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -67,7 +72,10 @@ public class TrnInUseChooseEmailTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -95,7 +103,7 @@ public class TrnInUseChooseEmailTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/choose-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/choose-email");
     }
 
     [Fact]
@@ -106,6 +114,7 @@ public class TrnInUseChooseEmailTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner),
+            CustomScopes.DqtRead,
             HttpMethod.Post,
             "/sign-in/trn/choose-email");
     }
@@ -120,7 +129,10 @@ public class TrnInUseChooseEmailTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookup(trnLookupState, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookup(trnLookupState, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -144,7 +156,10 @@ public class TrnInUseChooseEmailTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -165,7 +180,10 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var submittedEmail = Faker.Internet.Email();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -191,7 +209,10 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
         var chosenEmail = newEmailChosen ? email : existingTrnOwner.EmailAddress;
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(email, existingTrnOwner),
+            CustomScopes.DqtRead);
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()

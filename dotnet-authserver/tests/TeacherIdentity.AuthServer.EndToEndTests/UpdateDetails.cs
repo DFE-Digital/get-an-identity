@@ -55,28 +55,28 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Fill in the sign in form (email + PIN)
 
         await page.FillAsync("text=Enter your email address", email);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
         await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Confirm your details page
 
-        await page.WaitForSelectorAsync("h1:has-text('Your details')");
+        await page.WaitForSelectorAsync("h1:text-is('Your details')");
         await page.Locator("*:has(> dt:text('Name'))").GetByText("Change").ClickAsync();
 
         // Update your name page
 
-        await page.WaitForSelectorAsync("h1:has-text('Update your name')");
+        await page.WaitForSelectorAsync("h1:text-is('Update your name')");
         await page.FillAsync("text=First name", newFirstName);
         await page.FillAsync("text=Last name", newLastName);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Confirm your details
 
-        await page.WaitForSelectorAsync("h1:has-text('Your details')");
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.WaitForSelectorAsync("h1:text-is('Your details')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Test Client app
 
@@ -131,34 +131,34 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Fill in the sign in form (email + PIN)
 
         await page.FillAsync("text=Enter your email address", email);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
         await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Confirm your details page
 
-        await page.WaitForSelectorAsync("h1:has-text('Your details')");
+        await page.WaitForSelectorAsync("h1:text-is('Your details')");
         await page.Locator("*:has(> dt:text('Email address'))").GetByText("Change").ClickAsync();
 
         // Update your email page
 
-        await page.WaitForSelectorAsync("h1:has-text('Change your email address')");
+        await page.WaitForSelectorAsync("h1:text-is('Change your email address')");
         await page.FillAsync("text=Enter your new email address", newEmail);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Confirm your email address page
 
-        await page.WaitForSelectorAsync("h1:has-text('Confirm your email address')");
+        await page.WaitForSelectorAsync("h1:text-is('Confirm your email address')");
         pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
         await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Confirm your details page
 
-        await page.WaitForSelectorAsync("h1:has-text('Your details')");
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.WaitForSelectorAsync("h1:text-is('Your details')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Test Client app
 

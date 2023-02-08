@@ -52,16 +52,16 @@ public class SignOut : IClassFixture<HostFixture>
         // Fill in the sign in form (email + PIN)
 
         await page.FillAsync("text=Enter your email address", email);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
         await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Should now be on the confirmation page
 
         Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
-        await page.ClickAsync("button:has-text('Continue')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Should now be back at the client, signed in
 

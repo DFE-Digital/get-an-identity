@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EventProcessing;
@@ -14,7 +13,6 @@ using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Email;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
-using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using TeacherIdentity.AuthServer.State;
@@ -98,15 +96,6 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     // N.B. Don't call this from InitializeAsync - it won't work
     public void SetUserId(Guid? userId) => Services.GetRequiredService<CurrentUserIdContainer>().CurrentUserId.Value = userId;
 
-    public void ResetUseNewTrnLookupJourney()
-    {
-        var trnConfig = Configuration.GetSection("FindALostTrnIntegration:UseNewTrnLookupJourney");
-        if (bool.TryParse(trnConfig.Value, out var useNewTrnLookupJourney))
-        {
-            var trnOptions = Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
-            trnOptions.UseNewTrnLookupJourney = useNewTrnLookupJourney;
-        }
-    }
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("UnitTests");

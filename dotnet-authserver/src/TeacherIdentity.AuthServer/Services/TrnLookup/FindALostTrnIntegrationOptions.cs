@@ -12,7 +12,4 @@ public class FindALostTrnIntegrationOptions
 
     [Required]
     public required bool EnableStubEndpoints { get; set; }
-
-    [Required]
-    public bool UseNewTrnLookupJourney { get; set; }
 }

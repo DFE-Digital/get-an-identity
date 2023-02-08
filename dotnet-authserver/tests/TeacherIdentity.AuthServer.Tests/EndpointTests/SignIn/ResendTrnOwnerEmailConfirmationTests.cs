@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Oidc;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks
@@ -23,7 +25,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
     }
 
     [Fact]
@@ -34,6 +36,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead,
             HttpMethod.Get,
             "/sign-in/trn/resend-email-confirmation");
     }
@@ -45,7 +48,9 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -71,7 +76,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
     }
 
     [Fact]
@@ -82,6 +87,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
 
         await JourneyHasExpired_RendersErrorPage(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead,
             HttpMethod.Post,
             "/sign-in/trn/resend-email-confirmation");
     }
@@ -93,7 +99,9 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner));
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
+            CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 

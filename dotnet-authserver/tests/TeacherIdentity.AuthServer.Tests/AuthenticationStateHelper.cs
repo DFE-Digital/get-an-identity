@@ -33,7 +33,7 @@ public sealed class AuthenticationStateHelper
         var journeyId = Guid.NewGuid();
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));
         var client = TestClients.Client1;
-        var fullScope = $"email profile {additionalScopes}";
+        var fullScope = $"email profile {additionalScopes}".Trim();
         var redirectUri = client.RedirectUris.First().ToString();
 
         var splitScopes = new HashSet<string>(fullScope.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);

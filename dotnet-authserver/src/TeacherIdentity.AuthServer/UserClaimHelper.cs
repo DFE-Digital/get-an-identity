@@ -239,7 +239,8 @@ public static class UserClaimHelper
             yield return new Claim(Claims.Birthdate, dateOfBirth!.Value.ToString(CustomClaims.DateFormat));
         }
 
-        if (hasScope(CustomScopes.Trn))
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
             yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus!.Value.ToString());
 
@@ -248,5 +249,6 @@ public static class UserClaimHelper
                 yield return new Claim(CustomClaims.Trn, trn);
             }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

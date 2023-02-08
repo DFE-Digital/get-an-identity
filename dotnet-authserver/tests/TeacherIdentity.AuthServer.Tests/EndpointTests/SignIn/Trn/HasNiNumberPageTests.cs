@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Oidc;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
@@ -23,7 +25,7 @@ public class HasNiNumberPageTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/has-nino");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/has-nino");
     }
 
     [Theory]
@@ -38,7 +40,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Get_DateOfBirthNotSet_RedirectsToDateOfBirthPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.PreferredNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.PreferredNameSet(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}");
 
@@ -53,7 +55,7 @@ public class HasNiNumberPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/has-nino", ConfigureValidAuthenticationState);
+        await ValidRequest_RendersContent("/sign-in/trn/has-nino", ConfigureValidAuthenticationState, CustomScopes.DqtRead);
     }
 
     [Fact]
@@ -71,7 +73,7 @@ public class HasNiNumberPageTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/has-nino");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/has-nino");
     }
 
     [Theory]
@@ -86,7 +88,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_DateOfBirthNotSet_RedirectsToDateOfBirthPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.PreferredNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.PreferredNameSet(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}");
 
@@ -102,7 +104,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_NullHasNiNumber_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -121,7 +123,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_ValidForm_SetsHasNiNumberOnAuthenticationState(bool hasNiNumber)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}")
         {
@@ -143,7 +145,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_HasNiNumberTrue_RedirectsToNiNumberPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}")
         {
@@ -165,7 +167,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_HasNiNumberFalse_RedirectsToAwardedQtsPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}")
         {
@@ -187,7 +189,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResultAndHasNiNumberFalse_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}")
@@ -210,7 +212,7 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_NiNumberTrue_DoesNotAttemptTrnLookup()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-nino?{authStateHelper.ToQueryParam()}")

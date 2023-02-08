@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
-[Collection(nameof(DisableParallelization))]  // Modifies options
 public class TrnTests : TestBase
 {
     public TrnTests(HostFixture hostFixture)
@@ -26,13 +26,13 @@ public class TrnTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/trn");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Theory]
@@ -47,7 +47,7 @@ public class TrnTests : TestBase
     public async Task Get_ValidRequest_ReturnsOk()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -59,13 +59,10 @@ public class TrnTests : TestBase
     }
 
     [Fact]
-    public async Task Get_WhenUseNewTrnLookupJourneyTrue_SubmitsToTrnHasTrn()
+    public async Task Get_WhenDqtReadScopeSpecified_SubmitsToTrnHasTrn()
     {
         // Arrange
-        var trnConfig = HostFixture.Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value;
-        trnConfig.UseNewTrnLookupJourney = true;
-
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -79,5 +76,29 @@ public class TrnTests : TestBase
         var form = doc.GetElementsByTagName("form").Single();
         Assert.StartsWith("/sign-in/trn/has-trn", form.GetAttribute("action"));
         Assert.Equal("GET", form.GetAttribute("method"));
+    }
+
+    [Fact]
+    public async Task Get_WhenDqtReadScopeNotSpecified_SubmitsToHandoverEndpoint()
+    {
+        // Arrange
+#pragma warning disable CS0618 // Type or member is obsolete
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        var handoverEndpoint = HostFixture.Services.GetRequiredService<IOptions<FindALostTrnIntegrationOptions>>().Value.HandoverEndpoint;
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        var form = doc.GetElementsByTagName("form").Single();
+        Assert.Equal(handoverEndpoint, form.GetAttribute("action"));
+        Assert.Equal("POST", form.GetAttribute("method"));
     }
 }
