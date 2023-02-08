@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
+using LinqKit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -12,6 +14,17 @@ namespace TeacherIdentity.AuthServer.Pages.Admin;
 [Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
 public class UsersModel : PageModel
 {
+    private const int PageSize = 100;
+
+    private Expression<Func<User, UserInfo>> _mapUserInfo = user => new UserInfo()
+    {
+        UserId = user.UserId,
+        EmailAddress = user.EmailAddress,
+        Name = user.FirstName + " " + user.LastName,
+        Trn = user.Trn,
+        TrnLookupStatus = user.TrnLookupStatus
+    };
+
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public UsersModel(TeacherIdentityServerDbContext dbContext)
@@ -22,6 +35,10 @@ public class UsersModel : PageModel
     [Display(Name = "TRN lookup status")]
     [FromQuery(Name = "LookupStatus")]
     public TrnLookupStatus?[]? LookupStatus { get; set; }
+
+    [Display(Name = "Search")]
+    [FromQuery(Name = "UserSearch")]
+    public string? UserSearch { get; set; }
 
     public UserInfo[]? FilteredUsers { get; set; }
 
@@ -46,31 +63,19 @@ public class UsersModel : PageModel
         }
 
         PageNumber ??= 1;
-        var pageSize = 100;
 
-        Expression<Func<User, bool>> filterPredicate = LookupStatus!.Length == 0
-            ? user => user.UserType == UserType.Default
-            : user => user.UserType == UserType.Default && LookupStatus.Contains(user.TrnLookupStatus);
-
-        Expression<Func<User, UserInfo>> mapUserInfo = user => new UserInfo()
-        {
-            UserId = user.UserId,
-            EmailAddress = user.EmailAddress,
-            Name = user.FirstName + " " + user.LastName,
-            Trn = user.Trn,
-            TrnLookupStatus = user.TrnLookupStatus
-        };
+        Expression<Func<User, bool>> filterPredicate = await GetFilterPredicate(LookupStatus!, UserSearch);
 
         var sortedUsers = _dbContext.Users.OrderBy(u => u.LastName).ThenBy(u => u.FirstName);
 
         FilteredUsers = await sortedUsers.Where(filterPredicate)
-            .Skip((PageNumber.Value - 1) * pageSize)
-            .Take(pageSize)
-            .Select(mapUserInfo)
+            .Skip((PageNumber.Value - 1) * PageSize)
+            .Take(PageSize)
+            .Select(_mapUserInfo)
             .ToArrayAsync();
 
         TotalUsers = await sortedUsers.Where(filterPredicate).CountAsync();
-        TotalPages = (int)Math.Ceiling((decimal)TotalUsers / pageSize);
+        TotalPages = Math.Max((int)Math.Ceiling((decimal)TotalUsers / PageSize), 1);
 
         if (PageNumber > TotalPages)
         {
@@ -116,5 +121,58 @@ public class UsersModel : PageModel
         public required string Name { get; init; }
         public required string? Trn { get; init; }
         public required TrnLookupStatus? TrnLookupStatus { get; init; }
+    }
+
+    private async Task<Expression<Func<User, bool>>> GetFilterPredicate(TrnLookupStatus?[] lookupStatus, string? userSearch)
+    {
+        var filterPredicate = PredicateBuilder.New<User>(user => user.UserType == UserType.Default);
+
+        if (lookupStatus.Length > 0)
+        {
+            filterPredicate.And(user => lookupStatus.Contains(user.TrnLookupStatus));
+        }
+
+        if (!string.IsNullOrEmpty(userSearch))
+        {
+            switch (userSearch)
+            {
+                case var searchString when new Regex(@"^\d{7}$").IsMatch(searchString):
+                    filterPredicate.And(user => user.Trn == searchString);
+                    break;
+                case var searchString when new Regex(@".*@.*").IsMatch(searchString):
+                    filterPredicate.And(user => user.EmailAddress == searchString);
+                    break;
+                default:
+                    var userIds = await GetUsersByName(userSearch);
+                    filterPredicate.And(user => userIds.Contains(user.UserId));
+                    break;
+            }
+        }
+
+        return filterPredicate;
+    }
+
+    private async Task<Guid[]> GetUsersByName(string searchString)
+    {
+        var names = searchString.Split(' ').Take(2).ToArray();
+
+        var searchPredicate = PredicateBuilder.New<UserSearchAttribute>(
+            a => a.AttributeType == "first_name" && a.AttributeValue == names[0]);
+
+        if (names.Length == 2)
+        {
+            searchPredicate.Or(a => a.AttributeType == "last_name" && a.AttributeValue == names[1]);
+        }
+        else
+        {
+            searchPredicate.Or(a => a.AttributeType == "last_name" && a.AttributeValue == names[0]);
+        }
+
+        return await _dbContext.UserSearchAttributes
+            .Where(searchPredicate)
+            .GroupBy(a => a.UserId)
+            .Where(g => g.Count() >= names.Length)
+            .Select(g => g.Key)
+            .ToArrayAsync();
     }
 }

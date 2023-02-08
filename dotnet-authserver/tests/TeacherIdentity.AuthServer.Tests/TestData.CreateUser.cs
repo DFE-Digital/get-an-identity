@@ -11,7 +11,8 @@ public partial class TestData
             UserType userType = UserType.Default,
             string? registeredWithClientId = null,
             Guid? mergedWithUserId = null,
-            TrnLookupStatus? trnLookupStatus = null) =>
+            TrnLookupStatus? trnLookupStatus = null,
+            string? firstName = null) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn == true && userType != UserType.Default)
@@ -51,7 +52,7 @@ public partial class TestData
             {
                 UserId = Guid.NewGuid(),
                 EmailAddress = email ?? Faker.Internet.Email(),
-                FirstName = Faker.Name.First(),
+                FirstName = firstName ?? Faker.Name.First(),
                 LastName = Faker.Name.Last(),
                 Created = _clock.UtcNow,
                 CompletedTrnLookup = userType is UserType.Default && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
