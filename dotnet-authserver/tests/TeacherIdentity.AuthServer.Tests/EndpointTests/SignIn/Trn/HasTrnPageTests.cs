@@ -29,46 +29,60 @@ public class HasTrnPageTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/trn/has-trn");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Get, "/sign-in/trn/has-trn");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/has-trn");
     }
 
     [Fact]
-    public async Task Get_NoEmail_RedirectsToEmailPage()
+    public async Task Get_ValidRequest_RendersContent()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
+        await ValidRequest_RendersContent("/sign-in/trn/has-trn", ConfigureValidAuthenticationState);
     }
 
     [Fact]
-    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/has-trn");
+    }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}");
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/has-trn");
+    }
 
-        // Act
-        var response = await HttpClient.SendAsync(request);
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/has-trn");
+    }
 
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Post, "/sign-in/trn/has-trn");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/has-trn");
     }
 
     [Fact]
     public async Task Post_NullHasTrn_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -85,7 +99,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_EmptyStatedTrn_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -108,7 +122,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_InvalidStatedTrn_ReturnsError(string statedTrn)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
@@ -130,7 +144,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_FalseHasTrn_UpdatesAuthenticationStateRedirectsToTrnOfficialName()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
@@ -156,7 +170,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_ValidStatedTrn_UpdatesAuthenticationStateRedirectsToTrnOfficialName(string statedTrn)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/has-trn?{authStateHelper.ToQueryParam()}")
         {
@@ -182,7 +196,7 @@ public class HasTrnPageTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var statedTrn = TestData.GenerateTrn();
@@ -203,4 +217,7 @@ public class HasTrnPageTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
+
+    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
+        configure.EmailVerified();
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class DateOfBirthPage : TrnLookupPageModel
 {
     public DateOfBirthPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
@@ -31,20 +32,16 @@ public class DateOfBirthPage : TrnLookupPageModel
 
         HttpContext.GetAuthenticationState().OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
-        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnHaveNiNumber());
+        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnHasNiNumber());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.PreferredNameSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = new RedirectResult(LinkGenerator.TrnPreferredName());
         }
     }
 

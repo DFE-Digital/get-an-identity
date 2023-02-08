@@ -38,11 +38,19 @@ public class EmailConfirmationTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), HttpMethod.Get, "/sign-in/email-confirmation");
     }
 
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/email-confirmation");
+    }
+
     [Fact]
-    public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
+    public async Task Get_EmailNotKnown_RedirectsToEmailPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -50,7 +58,7 @@ public class EmailConfirmationTests : TestBase
 
         // Act
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -92,6 +100,29 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
         await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), HttpMethod.Post, "/sign-in/email-confirmation");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_EmailNotKnown_RedirectsToEmailPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
     }
 
     [Fact]

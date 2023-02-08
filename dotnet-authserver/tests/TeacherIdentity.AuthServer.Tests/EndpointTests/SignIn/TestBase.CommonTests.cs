@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Flurl;
 using TeacherIdentity.AuthServer.State;
 using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
@@ -150,7 +151,8 @@ public partial class TestBase
         }
     }
 
-    public async Task ValidRequest_RendersContent(string url,
+    public async Task ValidRequest_RendersContent(
+        string url,
         Func<Configure, Func<AuthenticationState, Task>> configure)
     {
         // Arrange
@@ -165,5 +167,51 @@ public partial class TestBase
         // Assert
         response.EnsureSuccessStatusCode();
         await response.GetDocument();
+    }
+
+    public async Task JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone,
+        HttpMethod method,
+        string url,
+        HttpContent? content = null)
+    {
+        // Arrange
+        AuthenticationStateHelper authStateHelper;
+
+        switch (milestone)
+        {
+            case AuthenticationState.AuthenticationMilestone.None:
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+                break;
+
+            case AuthenticationState.AuthenticationMilestone.EmailVerified:
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
+                break;
+
+            case AuthenticationState.AuthenticationMilestone.TrnLookupCompleted:
+                var user = await TestData.CreateUser(hasTrn: true);
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.TrnLookupCompletedForExistingTrn(newEmail: Faker.Internet.Email(), trnOwner: user));
+                break;
+
+            default:
+                throw new NotImplementedException($"Unknown {nameof(AuthenticationState.AuthenticationMilestone)}: '{milestone}'.");
+        };
+
+        Debug.Assert(authStateHelper.AuthenticationState.GetLastMilestone() == milestone);
+
+        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
+        var request = new HttpRequestMessage(method, fullUrl);
+
+        if (content is not null)
+        {
+            request.Content = content;
+        }
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
     }
 }

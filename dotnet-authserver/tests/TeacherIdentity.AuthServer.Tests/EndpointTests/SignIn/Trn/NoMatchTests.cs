@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ZendeskApi.Client.Requests;
+using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
@@ -32,14 +33,41 @@ public class NoMatchTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/no-match");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/no-match");
+    }
+
+    [Theory]
+    [MemberData(nameof(MissingAnswersData))]
+    public async Task Get_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
+        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        string expectedRedirect)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith(expectedRedirect, response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -62,19 +90,12 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithPreviousOfficialName_ShowsPreviousNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
         var previousFirstName = Faker.Name.First();
         var previousLastName = Faker.Name.Last();
 
-        authState.OnOfficialNameSet(
-            authState.OfficialFirstName!,
-            authState.OfficialLastName!,
-            AuthenticationState.HasPreviousNameOption.Yes,
-            previousFirstName,
-            previousLastName);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -92,19 +113,9 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithoutPreviousOfficialName_DoesNotShowPreviousNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        var previousFirstName = Faker.Name.First();
-        var previousLastName = Faker.Name.Last();
-
-        authState.OnOfficialNameSet(
-            authState.OfficialFirstName!,
-            authState.OfficialLastName!,
-            AuthenticationState.HasPreviousNameOption.No,
-            previousOfficialFirstName: null,
-            previousOfficialLastName: null);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -122,14 +133,12 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithPreferredName_ShowsPreferredNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
         var preferredFirstName = Faker.Name.First();
         var preferredLastName = Faker.Name.Last();
 
-        authState.OnNameSet(preferredFirstName, preferredLastName);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -147,12 +156,9 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithoutPreferredName_DoesNotShowPreferredNameRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-        Assert.Null(authState.FirstName);
-        Assert.Null(authState.LastName);
-
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -169,19 +175,13 @@ public class NoMatchTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Get_ValidRequestWithHaveNinoAnswered_ShowsNationalInsuranceNumberRow(bool haveNino)
+    public async Task Get_ValidRequestWithHasNiNumberAnswered_ShowsNationalInsuranceNumberRow(bool hasNino)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnHaveNationalInsuranceNumberSet(haveNino);
-        var nino = haveNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
-        if (haveNino)
-        {
-            authState.OnNationalInsuranceNumberSet(nino!);
-        }
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var nino = hasNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -192,29 +192,7 @@ public class NoMatchTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal(haveNino ? nino : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestWithoutHaveNinoAnswered_DoesNotShowNationalInsuranceNumberRow()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-        Assert.Null(authState.HaveNationalInsuranceNumber);
-
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-        var doc = await response.GetDocument();
-        Assert.Null(doc.GetSummaryListRowForKey("National Insurance number"));
+        Assert.Equal(hasNino ? nino : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
     }
 
     [Theory]
@@ -223,12 +201,10 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsAnswered_ShowsAwardedQtsRow(bool haveQts, string expectedValue)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnAwardedQtsSet(haveQts);
-        authState.OnHaveIttProviderSet(false);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = haveQts ?
+            await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet()) :
+            await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -246,15 +222,10 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderSpecified_ShowsIttProviderRowWithProviderName()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
         var ittProviderName = "A Provider";
 
-        authState.OnAwardedQtsSet(true);
-        authState.OnHaveIttProviderSet(true);
-        authState.IttProviderName = ittProviderName;
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(ittProviderName: ittProviderName));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -272,12 +243,8 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsTrueAndIttProviderNotSpecified_ShowsAwardedQtsAnotherWay()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnAwardedQtsSet(true);
-        authState.OnHaveIttProviderSet(false);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(ittProviderName: null));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -295,11 +262,8 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequestWithAwardedQtsFalse_DoesNotShowProviderRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
-        var authState = authStateHelper.AuthenticationState;
-
-        authState.OnAwardedQtsSet(false);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false));
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -314,10 +278,61 @@ public class NoMatchTests : TestBase
     }
 
     [Fact]
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/trn/no-match");
+    }
+
+    [Fact]
+    public async Task Post_MissingAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/trn/no-match");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/no-match");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), HttpMethod.Post, "/sign-in/trn/no-match");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/no-match");
+    }
+
+    [Theory]
+    [MemberData(nameof(MissingAnswersData))]
+    public async Task Post_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
+        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        string expectedRedirect)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith(expectedRedirect, response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
     public async Task Post_NullHasChangesToMake_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -338,7 +353,7 @@ public class NoMatchTests : TestBase
     public async Task Post_TrueHasChangesToMake_DoesNotCreateUserRedirectsToCheckAnswers()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
@@ -374,7 +389,7 @@ public class NoMatchTests : TestBase
         bool expectZendeskTicketCreated)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.DateOfBirthSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
@@ -405,5 +420,53 @@ public class NoMatchTests : TestBase
         HostFixture.ZendeskApiWrapper.Verify(
             mock => mock.CreateTicketAsync(It.Is<TicketCreateRequest>(t => t.Requester.Email == authState.EmailAddress), It.IsAny<CancellationToken>()),
             expectZendeskTicketCreated ? Times.Once() : Times.Never());
+    }
+
+    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(Configure configure) => async s =>
+    {
+        await configure.Trn.IttProviderSet()(s);
+        s.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
+    };
+
+    public static TheoryData<Func<Configure, Func<AuthenticationState, Task>>, string> MissingAnswersData
+    {
+        get
+        {
+            return new()
+            {
+                {
+                    c => c.EmailVerified(),
+                    "/sign-in/trn/has-trn"
+                },
+                {
+                    c => c.Trn.HasTrnSet(),
+                    "/sign-in/trn/official-name"
+                },
+                {
+                    c => c.Trn.OfficialNameSet(),
+                    "/sign-in/trn/preferred-name"
+                },
+                {
+                    c => c.Trn.PreferredNameSet(),
+                    "/sign-in/trn/date-of-birth"
+                },
+                {
+                    c => c.Trn.DateOfBirthSet(),
+                    "/sign-in/trn/has-nino"
+                },
+                {
+                    c => c.Trn.HasNationalInsuranceNumberSet(hasNationalInsuranceNumber: true),
+                    "/sign-in/trn/ni-number"
+                },
+                {
+                    c => c.Trn.NationalInsuranceNumberSet(),
+                    "/sign-in/trn/awarded-qts"
+                },
+                {
+                    c => c.Trn.AwardedQtsSet(awardedQts: true),
+                    "/sign-in/trn/itt-provider"
+                }
+            };
+        }
     }
 }

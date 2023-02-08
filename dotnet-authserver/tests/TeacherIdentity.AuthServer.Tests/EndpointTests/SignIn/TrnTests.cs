@@ -35,36 +35,12 @@ public class TrnTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), HttpMethod.Get, "/sign-in/trn");
     }
 
-    [Fact]
-    public async Task Get_NoEmail_RedirectsToEmailPage()
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]

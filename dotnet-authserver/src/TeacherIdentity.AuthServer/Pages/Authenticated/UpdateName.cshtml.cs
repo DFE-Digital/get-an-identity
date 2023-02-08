@@ -100,7 +100,7 @@ public class UpdateNameModel : PageModel
 
             if (HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
-                authenticationState.OnNameSet(FirstName!, LastName!);
+                authenticationState.OnNameChanged(FirstName!, LastName!);
 
                 // If we're inside an OAuth journey we need to redirect back to the authorize endpoint so the
                 // OpenIddict auth handler can SignIn again with the revised user details

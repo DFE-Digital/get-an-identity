@@ -61,6 +61,8 @@ public class AuthenticationState
     [JsonInclude]
     public string? LastName { get; private set; }
     [JsonInclude]
+    public bool? HasPreferredName { get; private set; }
+    [JsonInclude]
     public string? OfficialFirstName { get; private set; }
     [JsonInclude]
     public string? OfficialLastName { get; private set; }
@@ -85,14 +87,15 @@ public class AuthenticationState
     [JsonInclude]
     public TrnLookupStatus? TrnLookupStatus { get; private set; }
     [JsonInclude]
-    public bool? HaveNationalInsuranceNumber { get; private set; }
+    public bool? HasNationalInsuranceNumber { get; private set; }
     [JsonInclude]
     public string? NationalInsuranceNumber { get; private set; }
     [JsonInclude]
     public bool? AwardedQts { get; private set; }
     [JsonInclude]
-    public bool? HaveIttProvider { get; private set; }
-    public string? IttProviderName { get; set; }
+    public bool? HasIttProvider { get; private set; }
+    [JsonInclude]
+    public string? IttProviderName { get; private set; }
     [JsonInclude]
     public bool? HasTrn { get; private set; }
     [JsonInclude]
@@ -104,6 +107,16 @@ public class AuthenticationState
     /// </summary>
     [JsonInclude]
     public bool HaveResumedCompletedJourney { get; private set; }
+
+    public bool EmailAddressSet => EmailAddress is not null;
+    public bool HasTrnSet => HasTrn.HasValue;
+    public bool PreferredNameSet => HasPreferredName.HasValue;
+    public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
+    public bool DateOfBirthSet => DateOfBirth.HasValue;
+    public bool HasNationalInsuranceNumberSet => HasNationalInsuranceNumber.HasValue;
+    public bool NationalInsuranceNumberSet => NationalInsuranceNumber is not null;
+    public bool AwardedQtsSet => AwardedQts.HasValue;
+    public bool HasIttProviderSet => HasIttProvider.HasValue;
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {
@@ -163,6 +176,26 @@ public class AuthenticationState
         return UserClaimHelper.GetInternalClaims(this);
     }
 
+    public AuthenticationMilestone GetLastMilestone()
+    {
+        if (UserId.HasValue)
+        {
+            return AuthenticationMilestone.Complete;
+        }
+
+        if (UserRequirements.HasFlag(UserRequirements.TrnHolder) && TrnLookup != TrnLookupState.None)
+        {
+            return AuthenticationMilestone.TrnLookupCompleted;
+        }
+
+        if (EmailAddressVerified)
+        {
+            return AuthenticationMilestone.EmailVerified;
+        }
+
+        return AuthenticationMilestone.None;
+    }
+
     public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
     {
         if (ShouldRedirectToLandingPage())
@@ -170,43 +203,36 @@ public class AuthenticationState
             return linkGenerator.Landing();
         }
 
-        // We need an email address
-        if (EmailAddress is null)
+        var milestone = GetLastMilestone();
+
+        if (milestone == AuthenticationMilestone.None)
         {
-            return linkGenerator.Email();
+            return !EmailAddressSet ? linkGenerator.Email() : linkGenerator.EmailConfirmation();
         }
 
-        // Email needs to be confirmed with a PIN
-        if (!EmailAddressVerified)
+        if (milestone == AuthenticationMilestone.EmailVerified)
         {
-            return linkGenerator.EmailConfirmation();
-        }
-
-        if (UserRequirements.HasFlag(UserRequirements.TrnHolder))
-        {
-            // If it's not been done before, launch the journey to find the TRN
-            if (Trn is null && !HaveCompletedTrnLookup)
+            if (UserRequirements.HasFlag(UserRequirements.TrnHolder))
             {
                 return linkGenerator.Trn();
             }
-
-            // TRN is found but another account owns it
-            if (TrnLookup == TrnLookupState.ExistingTrnFound)
+            else
             {
-                return linkGenerator.TrnInUse();
-            }
-
-            // TRN is found but another account owns it and user has verified they can access that account
-            // Choose which email address to use with the existing account going forward
-            if (TrnLookup == TrnLookupState.EmailOfExistingAccountForTrnVerified)
-            {
-                return linkGenerator.TrnInUseChooseEmail();
+                throw new NotImplementedException();
             }
         }
 
-        // We should have a known user at this point
-        Debug.Assert(IsComplete());
+        if (milestone == AuthenticationMilestone.TrnLookupCompleted)
+        {
+            Debug.Assert(TrnLookup != TrnLookupState.None);
 
+            return TrnLookup == TrnLookupState.Complete ? linkGenerator.TrnCheckAnswers() :
+                TrnLookup == TrnLookupState.ExistingTrnFound ? linkGenerator.TrnInUse() :
+                linkGenerator.TrnInUseChooseEmail();
+        }
+
+        Debug.Assert(milestone == AuthenticationMilestone.Complete);
+        Debug.Assert(IsComplete());
         return PostSignInUrl;
     }
 
@@ -239,10 +265,10 @@ public class AuthenticationState
         TrnLookup = default;
         TrnOwnerEmailAddress = default;
         TrnLookupStatus = default;
-        HaveNationalInsuranceNumber = default;
+        HasNationalInsuranceNumber = default;
         NationalInsuranceNumber = default;
         AwardedQts = default;
-        HaveIttProvider = default;
+        HasIttProvider = default;
         HasTrn = default;
         StatedTrn = default;
         HasPreviousName = default;
@@ -250,12 +276,16 @@ public class AuthenticationState
 
     public void OnEmailSet(string email)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.None);
+
         EmailAddress = email;
         EmailAddressVerified = false;
     }
 
     public void OnEmailVerified(User? user = null)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.None);
+
         if (EmailAddress is null)
         {
             throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
@@ -293,6 +323,8 @@ public class AuthenticationState
 
     public void OnTrnLookupCompletedForTrnAlreadyInUse(string existingTrnOwnerEmail)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
         if (EmailAddress is null)
         {
             throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
@@ -315,6 +347,8 @@ public class AuthenticationState
 
     public void OnTrnLookupCompletedAndUserRegistered(User user)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
         if (EmailAddress is null)
         {
             throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
@@ -354,6 +388,8 @@ public class AuthenticationState
 
     public void OnEmailVerifiedOfExistingAccountForTrn()
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.TrnLookupCompleted);
+
         if (EmailAddress is null)
         {
             throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
@@ -374,6 +410,8 @@ public class AuthenticationState
 
     public void OnEmailAddressChosen(User user)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.TrnLookupCompleted);
+
         if (EmailAddress is null)
         {
             throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
@@ -416,8 +454,19 @@ public class AuthenticationState
         EmailAddress = email;
     }
 
-    public void OnNameSet(string firstName, string lastName)
+    public void OnNameSet(string? firstName, string? lastName)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
+        HasPreferredName = firstName is not null && lastName is not null;
+        FirstName = firstName;
+        LastName = lastName;
+    }
+
+    public void OnNameChanged(string firstName, string lastName)
+    {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.Complete);
+
         FirstName = firstName;
         LastName = lastName;
     }
@@ -429,6 +478,8 @@ public class AuthenticationState
         string? previousOfficialFirstName,
         string? previousOfficialLastName)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
         OfficialFirstName = officialFirstName;
         OfficialLastName = officialLastName;
         HasPreviousName = hasPreviousName;
@@ -436,47 +487,51 @@ public class AuthenticationState
         PreviousOfficialLastName = previousOfficialLastName;
     }
 
-    public bool HasOfficialName()
-    {
-        return !string.IsNullOrEmpty(OfficialFirstName) && !string.IsNullOrEmpty(OfficialLastName);
-    }
-
     public void OnDateOfBirthSet(DateOnly dateOfBirth)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
         DateOfBirth = dateOfBirth;
     }
 
-    public void OnHaveNationalInsuranceNumberSet(bool haveNationalInsuranceNumber)
+    public void OnHasNationalInsuranceNumberSet(bool hasNationalInsuranceNumber)
     {
-        if (!haveNationalInsuranceNumber)
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
+        if (!hasNationalInsuranceNumber)
         {
             NationalInsuranceNumber = null;
         }
 
-        HaveNationalInsuranceNumber = haveNationalInsuranceNumber;
+        HasNationalInsuranceNumber = hasNationalInsuranceNumber;
     }
 
     public void OnNationalInsuranceNumberSet(string nationalInsuranceNumber)
     {
-        HaveNationalInsuranceNumber = true;
+        HasNationalInsuranceNumber = true;
         NationalInsuranceNumber = nationalInsuranceNumber;
     }
 
-    public void OnHaveIttProviderSet(bool haveIttProvider)
+    public void OnHasIttProviderSet(bool hasIttProvider, string? ittProviderName)
     {
-        if (!haveIttProvider)
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
+        if (hasIttProvider && ittProviderName is null)
         {
-            IttProviderName = null;
+            throw new ArgumentException($"{nameof(ittProviderName)} must be specified when {nameof(hasIttProvider)} is {true}.");
         }
 
-        HaveIttProvider = haveIttProvider;
+        HasIttProvider = hasIttProvider;
+        IttProviderName = hasIttProvider ? ittProviderName : null;
     }
 
     public void OnAwardedQtsSet(bool awardedQts)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
         if (!awardedQts)
         {
-            HaveIttProvider = null;
+            HasIttProvider = null;
             IttProviderName = null;
         }
 
@@ -485,16 +540,15 @@ public class AuthenticationState
 
     public void OnHasTrnSet(string? trn)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
         HasTrn = trn is not null;
         StatedTrn = trn;
     }
 
     public void OnHaveResumedCompletedJourney()
     {
-        if (!IsComplete())
-        {
-            throw new InvalidOperationException("Journey is not complete.");
-        }
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.Complete);
 
         HaveResumedCompletedJourney = true;
     }
@@ -506,12 +560,7 @@ public class AuthenticationState
 
     public string? GetPreviousOfficialName()
     {
-        if (string.IsNullOrEmpty(PreviousOfficialFirstName) && string.IsNullOrEmpty(PreviousOfficialLastName))
-        {
-            return null;
-        }
-
-        return GetFullName(PreviousOfficialFirstName ?? OfficialFirstName, PreviousOfficialLastName ?? OfficialLastName);
+        return GetFullName(PreviousOfficialFirstName, PreviousOfficialLastName);
     }
 
     public string? GetPreferredName()
@@ -528,6 +577,8 @@ public class AuthenticationState
 
     public void OnTrnLookupCompleted(string? trn, TrnLookupStatus trnLookupStatus)
     {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified, AuthenticationMilestone.TrnLookupCompleted);
+
         if (trn is not null && trnLookupStatus != AuthServer.TrnLookupStatus.Found)
         {
             throw new ArgumentException($"{nameof(trnLookupStatus)} must be '{AuthServer.TrnLookupStatus.Found} when {nameof(trn)} is not null.");
@@ -553,6 +604,28 @@ public class AuthenticationState
 
         var claims = GetInternalClaims();
         await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
+    }
+
+    private void ThrowOnInvalidAuthenticationMilestone(params AuthenticationMilestone[] permittedMilestonse)
+    {
+        var milestone = GetLastMilestone();
+
+        if (!permittedMilestonse.Contains(milestone))
+        {
+            throw new InvalidOperationException(
+                $"Current milestone '{milestone}' is not permitted (expecting {string.Join(", ", permittedMilestonse.Select(m => $"'{m}'"))}.");
+        }
+    }
+
+    /// <summary>
+    /// Represents a point in the authentication journey that, once completed, cannot be redone.
+    /// </summary>
+    public enum AuthenticationMilestone
+    {
+        None = 0,
+        EmailVerified = 1,
+        TrnLookupCompleted = 100,
+        Complete = int.MaxValue
     }
 
     public enum HasPreviousNameOption

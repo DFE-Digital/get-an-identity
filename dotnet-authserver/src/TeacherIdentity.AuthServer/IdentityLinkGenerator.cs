@@ -77,7 +77,7 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string TrnDateOfBirth(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/DateOfBirthPage");
 
-    public static string TrnHaveNiNumber(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/HaveNiNumber");
+    public static string TrnHasNiNumber(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/HasNiNumberPage");
 
     public static string TrnNiNumber(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/NiNumberPage");
 
