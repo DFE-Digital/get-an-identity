@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using FakeItEasy;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Playwright;
+using Moq;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EndToEndTests.Infrastructure;
 using TeacherIdentity.AuthServer.EventProcessing;
@@ -41,7 +41,7 @@ public class HostFixture : IAsyncLifetime
 
     public DbHelper? DbHelper { get; private set; }
 
-    public IDqtApiClient DqtApiClient = A.Fake<IDqtApiClient>();
+    public Mock<IDqtApiClient> DqtApiClient { get; } = new();
 
     public IEmailVerificationService? EmailConfirmationService { get; private set; }
 
@@ -116,7 +116,7 @@ public class HostFixture : IAsyncLifetime
 
     public void OnTestStarting()
     {
-        Fake.ClearRecordedCalls(DqtApiClient);
+        DqtApiClient.Reset();
         EventObserver.Clear();
     }
 
@@ -130,7 +130,7 @@ public class HostFixture : IAsyncLifetime
                 builder.ConfigureServices(services =>
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
-                    services.AddSingleton<IDqtApiClient>(DqtApiClient);
+                    services.AddSingleton<IDqtApiClient>(DqtApiClient.Object);
                     services.Decorate<IEmailVerificationService>(inner =>
                         new CapturePinsEmailVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
