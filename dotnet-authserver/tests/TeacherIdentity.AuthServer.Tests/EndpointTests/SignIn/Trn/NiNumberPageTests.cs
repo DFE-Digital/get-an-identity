@@ -26,71 +26,83 @@ public class NiNumberPageTests : TestBase
         await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
-    [Fact]
-    public async Task Get_JourneyHasExpired_RendersErrorPage()
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/ni-number");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
-    public async Task Get_NoEmail_RedirectsToEmailPage()
+    public async Task Get_HaveNationalInsuranceNumberNotSet_RedirectsToHasNiNumberPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet());
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task Get_OfficialNameNotSet_RedirectsToNextHopUrl()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/have-nino?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/has-nino", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/ni-number", c => c.OfficialNameSet());
+        await ValidRequest_RendersContent("/sign-in/trn/ni-number", ConfigureValidAuthenticationState);
+    }
+
+    [Fact]
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/trn/ni-number");
+    }
+
+    [Fact]
+    public async Task Post_MissingAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/trn/ni-number");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/ni-number");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/ni-number");
+    }
+
+    [Fact]
+    public async Task Post_HaveNationalInsuranceNumberNotSet_RedirectsToHasNiNumberPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet());
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/has-nino", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Post_EmptyNiNumber_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
@@ -111,7 +123,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_InvalidNiNumber_ReturnsError(string niNumber)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
@@ -136,7 +148,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationStateRedirectsToAwardedQtsPage(string niNumber)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -160,7 +172,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_NiNumberNotKnown_Returns302Found()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -180,7 +192,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
@@ -199,4 +211,7 @@ public class NiNumberPageTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
+
+    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
+        configure.Trn.HasNationalInsuranceNumberSet(hasNationalInsuranceNumber: true);
 }

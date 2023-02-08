@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-public class HaveNiNumber : TrnLookupPageModel
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+public class HasNiNumberPage : TrnLookupPageModel
 {
-    public HaveNiNumber(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+    public HasNiNumberPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
         : base(linkGenerator, trnLookupHelper)
     {
     }
@@ -28,7 +29,7 @@ public class HaveNiNumber : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnHaveNationalInsuranceNumberSet((bool)HasNiNumber!);
+        HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet((bool)HasNiNumber!);
 
         return (bool)HasNiNumber!
             ? Redirect(LinkGenerator.TrnNiNumber())
@@ -39,18 +40,14 @@ public class HaveNiNumber : TrnLookupPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.DateOfBirthSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = new RedirectResult(LinkGenerator.TrnDateOfBirth());
         }
     }
 
     private void SetDefaultInputValues()
     {
-        HasNiNumber ??= HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber;
+        HasNiNumber ??= HttpContext.GetAuthenticationState().HasNationalInsuranceNumber;
     }
 }

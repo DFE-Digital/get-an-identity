@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class PreferredName : PageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
     public PreferredName(IIdentityLinkGenerator linkGenerator)
     {
@@ -44,10 +45,9 @@ public class PreferredName : PageModel
             return this.PageWithErrors();
         }
 
-        if (HasPreferredName == true)
-        {
-            HttpContext.GetAuthenticationState().OnNameSet(PreferredFirstName!, PreferredLastName!);
-        }
+        HttpContext.GetAuthenticationState().OnNameSet(
+            HasPreferredName == true ? PreferredFirstName : null,
+            HasPreferredName == true ? PreferredLastName : null);
 
         return Redirect(_linkGenerator.TrnDateOfBirth());
     }
@@ -56,13 +56,9 @@ public class PreferredName : PageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.OfficialNameSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(_linkGenerator.TrnOfficialName());
         }
     }
 

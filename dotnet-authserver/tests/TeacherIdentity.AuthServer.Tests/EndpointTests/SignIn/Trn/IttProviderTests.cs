@@ -23,7 +23,6 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-
         await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, $"/sign-in/trn/itt-provider");
     }
 
@@ -42,14 +41,22 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.OfficialNameSet(), HttpMethod.Get, "/sign-in/trn/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Get, "/sign-in/trn/itt-provider");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
-    public async Task Get_NoEmail_RedirectsToEmailPage()
+    public async Task Get_AwardedQtsNotSet_RedirectsToAwardedQtsPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.NationalInsuranceNumberSet());
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
 
@@ -58,46 +65,14 @@ public class IttProviderTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email", response.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmationPage()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task Get_OfficialNameNotSet_RedirectsToNextHopUrl()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/awarded-qts", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Get_ValidRequest_StoresIttProviderNamesInCache()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -111,10 +86,58 @@ public class IttProviderTests : TestBase
     }
 
     [Fact]
+    public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/itt-provider");
+    }
+
+    [Fact]
+    public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
+    {
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/trn/itt-provider");
+    }
+
+    [Fact]
+    public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
+    {
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(HttpMethod.Post, "/sign-in/trn/itt-provider");
+    }
+
+    [Fact]
+    public async Task Post_JourneyHasExpired_RendersErrorPage()
+    {
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, HttpMethod.Post, "/sign-in/trn/itt-provider");
+    }
+
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/itt-provider");
+    }
+
+    [Fact]
+    public async Task Post_AwardedQtsNotSet_RedirectsToAwardedQtsPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.NationalInsuranceNumberSet());
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/awarded-qts", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
     public async Task Post_NullHasIttProvider_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -131,7 +154,7 @@ public class IttProviderTests : TestBase
     public async Task Post_EmptyIttProviderName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -155,7 +178,7 @@ public class IttProviderTests : TestBase
         // Arrange
         var ittProviderName = "provider";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
         {
@@ -173,7 +196,7 @@ public class IttProviderTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
 
-        Assert.Equal(hasIttProvider, authStateHelper.AuthenticationState.HaveIttProvider);
+        Assert.Equal(hasIttProvider, authStateHelper.AuthenticationState.HasIttProvider);
         Assert.Equal(hasIttProvider ? ittProviderName : null, authStateHelper.AuthenticationState.IttProviderName);
     }
 
@@ -183,7 +206,7 @@ public class IttProviderTests : TestBase
         // Arrange
         var ittProviderName = "provider";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.OfficialNameSet());
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
@@ -202,4 +225,7 @@ public class IttProviderTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/trn/check-answers", response.Headers.Location?.OriginalString);
     }
+
+    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
+        configure.Trn.AwardedQtsSet(awardedQts: true);
 }

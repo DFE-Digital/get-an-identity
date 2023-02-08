@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class HasTrnPage : TrnLookupPageModel
 {
     public HasTrnPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
@@ -38,19 +38,6 @@ public class HasTrnPage : TrnLookupPageModel
         HttpContext.GetAuthenticationState().OnHasTrnSet(StatedTrn);
 
         return await TryFindTrn() ?? Redirect(LinkGenerator.TrnOfficialName());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        // We expect to have a verified email at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            authenticationState.HaveCompletedTrnLookup)
-        {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
-        }
     }
 
     private void SetDefaultInputValues()

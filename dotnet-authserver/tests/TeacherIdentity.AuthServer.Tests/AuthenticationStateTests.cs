@@ -245,8 +245,11 @@ public partial class AuthenticationStateTests
     }
 
     [Theory]
-    [MemberData(nameof(GetNextHopUrlData))]
-    public void GetNextHopUrl(AuthenticationState authenticationState, string expectedResult)
+    [MemberData(nameof(GetNextHopUrlAndLastMilestoneData))]
+    public void GetNextHopUrlAndLastMilestone(
+        AuthenticationState authenticationState,
+        string expectedNextHopUrl,
+        AuthenticationState.AuthenticationMilestone expectedMilestone)
     {
         // Arrange
         var linkGenerator = new Mock<IIdentityLinkGenerator>();
@@ -266,10 +269,12 @@ public partial class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/TrnInUseChooseEmail", "/sign-in/trn/choose-email");
 
         // Act
-        var result = authenticationState.GetNextHopUrl(linkGenerator.Object);
+        var nextHopUrl = authenticationState.GetNextHopUrl(linkGenerator.Object);
+        var lastMilestone = authenticationState.GetLastMilestone();
 
         // Assert
-        Assert.Equal(expectedResult, result);
+        Assert.Equal(expectedNextHopUrl, nextHopUrl);
+        Assert.Equal(expectedMilestone, lastMilestone);
     }
 
     [Fact]
@@ -694,7 +699,7 @@ public partial class AuthenticationStateTests
         Assert.Equal("http://client.com/start", result);
     }
 
-    public static TheoryData<AuthenticationState, string> GetNextHopUrlData
+    public static TheoryData<AuthenticationState, string, AuthenticationState.AuthenticationMilestone> GetNextHopUrlAndLastMilestoneData
     {
         get
         {
@@ -713,12 +718,13 @@ public partial class AuthenticationStateTests
                 return state;
             }
 
-            return new TheoryData<AuthenticationState, string>()
+            return new TheoryData<AuthenticationState, string, AuthenticationState.AuthenticationMilestone>()
             {
                 // No email address
                 {
                     S(new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow)),
-                    $"/sign-in/email?asid={journeyId}"
+                    $"/sign-in/email?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.None
                 },
 
                 // Got an email but not yet verified
@@ -727,7 +733,8 @@ public partial class AuthenticationStateTests
                         new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow),
                         s => s.OnEmailSet("john.doe@example.com")
                     ),
-                    $"/sign-in/email-confirmation?asid={journeyId}"
+                    $"/sign-in/email-confirmation?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.None
                 },
 
                 // Verified email, not completed TRN lookup yet
@@ -737,7 +744,8 @@ public partial class AuthenticationStateTests
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null)
                     ),
-                    $"/sign-in/trn?asid={journeyId}"
+                    $"/sign-in/trn?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.EmailVerified
                 },
 
                 // New user who has completed TRN lookup
@@ -759,7 +767,8 @@ public partial class AuthenticationStateTests
                             UserType = UserType.Default
                         })
                     ),
-                    postSignInUrl
+                    postSignInUrl,
+                    AuthenticationState.AuthenticationMilestone.Complete
                 },
 
                 // New user who has completed TRN lookup with an already-assigned TRN
@@ -770,7 +779,8 @@ public partial class AuthenticationStateTests
                         s => s.OnEmailVerified(user: null),
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email())
                     ),
-                    $"/sign-in/trn/different-email?asid={journeyId}"
+                    $"/sign-in/trn/different-email?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.TrnLookupCompleted
                 },
 
                 // New user who has completed TRN lookup with an already-assigned TRN and they've verified that account's email
@@ -782,7 +792,8 @@ public partial class AuthenticationStateTests
                         s => s.OnTrnLookupCompletedForTrnAlreadyInUse(existingTrnOwnerEmail: Faker.Internet.Email()),
                         s => s.OnEmailVerifiedOfExistingAccountForTrn()
                     ),
-                    $"/sign-in/trn/choose-email?asid={journeyId}"
+                    $"/sign-in/trn/choose-email?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.TrnLookupCompleted
                 },
 
                 // New user who has completed TRN lookup with an already-assigned TRN and they've choosen the email to use
@@ -807,7 +818,8 @@ public partial class AuthenticationStateTests
                             Trn = "2345678"
                         })
                     ),
-                    postSignInUrl
+                    postSignInUrl,
+                    AuthenticationState.AuthenticationMilestone.Complete
                 },
 
                 // Existing user
@@ -828,7 +840,8 @@ public partial class AuthenticationStateTests
                             UserType = UserType.Default
                         })
                     ),
-                    postSignInUrl
+                    postSignInUrl,
+                    AuthenticationState.AuthenticationMilestone.Complete
                 },
 
                 // Existing user who has had TRN assigned via API
@@ -852,19 +865,22 @@ public partial class AuthenticationStateTests
                             TrnLookupStatus = TrnLookupStatus.Found
                         })
                     ),
-                    postSignInUrl
+                    postSignInUrl,
+                    AuthenticationState.AuthenticationMilestone.Complete
                 },
 
                 // User requesting authorization with admin scopes or trn scope
                 {
                     S(AuthenticationState.FromInternalClaims(journeyId, UserRequirements.DefaultUserType, new ClaimsPrincipal(), postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "user:read", null))),
-                    $"/sign-in/email?asid={journeyId}"
+                    $"/sign-in/email?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.None
                 },
 
                 // User requesting authorization without admin scopes or trn scope
                 {
                     S(AuthenticationState.FromInternalClaims(journeyId, UserRequirements.DefaultUserType, new ClaimsPrincipal(), postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "foo", null))),
-                    $"/sign-in/landing?asid={journeyId}"
+                    $"/sign-in/landing?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.None
                 },
             };
         }

@@ -80,7 +80,10 @@ public sealed class AuthenticationStateHelper
             HostFixture = hostFixture;
             TestData = hostFixture.Services.GetRequiredService<TestData>();
             Clock = hostFixture.Services.GetRequiredService<IClock>();
+            Trn = new(this);
         }
+
+        public ConfigureTrn Trn { get; }
 
         public HostFixture HostFixture { get; }
 
@@ -108,39 +111,6 @@ public sealed class AuthenticationStateHelper
 
                 await EmailSet(email ?? user?.EmailAddress)(s);
                 s.OnEmailVerified(user);
-            };
-
-        public Func<AuthenticationState, Task> OfficialNameSet(
-            string? email = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null) =>
-            async s =>
-            {
-                email ??= Faker.Internet.Email();
-
-                await EmailSet(email)(s);
-                s.OnEmailVerified();
-                s.OnOfficialNameSet(
-                    officialFirstName ?? Faker.Name.First(),
-                    officialLastName ?? Faker.Name.Last(),
-                    previousOfficialFirstName is not null ? AuthenticationState.HasPreviousNameOption.Yes : AuthenticationState.HasPreviousNameOption.No,
-                    previousOfficialFirstName,
-                    previousOfficialLastName);
-            };
-
-        public Func<AuthenticationState, Task> DateOfBirthSet(
-            DateOnly? dateOfBirth = null,
-            string? email = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null) =>
-            async s =>
-            {
-                await OfficialNameSet(email, officialFirstName, officialLastName, previousOfficialFirstName, previousOfficialLastName)(s);
-                s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
             };
 
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(
@@ -292,6 +262,207 @@ public sealed class AuthenticationStateHelper
                 {
                     s.OnHaveResumedCompletedJourney();
                 }
+            };
+    }
+
+    public class ConfigureTrn
+    {
+        private readonly Configure _configure;
+
+        public ConfigureTrn(Configure configure)
+        {
+            _configure = configure;
+        }
+
+        public Func<AuthenticationState, Task> HasTrnSet(
+            string? email = null,
+            string? statedTrn = null) =>
+            async s =>
+            {
+                await _configure.EmailVerified(email)(s);
+                s.OnHasTrnSet(statedTrn);
+            };
+
+        public Func<AuthenticationState, Task> OfficialNameSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null) =>
+            async s =>
+            {
+                await HasTrnSet(email, statedTrn)(s);
+                s.OnOfficialNameSet(
+                    officialFirstName ?? Faker.Name.First(),
+                    officialLastName ?? Faker.Name.Last(),
+                    previousOfficialFirstName is not null ? AuthenticationState.HasPreviousNameOption.Yes : AuthenticationState.HasPreviousNameOption.No,
+                    previousOfficialFirstName,
+                    previousOfficialLastName);
+            };
+
+        public Func<AuthenticationState, Task> PreferredNameSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null) =>
+            async s =>
+            {
+                await OfficialNameSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName)(s);
+                s.OnNameSet(preferredFirstName, preferredLastName);
+            };
+
+        public Func<AuthenticationState, Task> DateOfBirthSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null) =>
+            async s =>
+            {
+                await PreferredNameSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName)(s);
+                s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
+            };
+
+        public Func<AuthenticationState, Task> HasNationalInsuranceNumberSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null,
+            bool hasNationalInsuranceNumber = true) =>
+            async s =>
+            {
+                await DateOfBirthSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    dateOfBirth)(s);
+                s.OnHasNationalInsuranceNumberSet(hasNationalInsuranceNumber);
+            };
+
+        public Func<AuthenticationState, Task> NationalInsuranceNumberSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null,
+            string? nationalInsuranceNumber = null) =>
+            async s =>
+            {
+                await HasNationalInsuranceNumberSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    dateOfBirth,
+                    hasNationalInsuranceNumber: true)(s);
+                s.OnNationalInsuranceNumberSet(nationalInsuranceNumber ?? Faker.Identification.UkNationalInsuranceNumber());
+            };
+
+        public Func<AuthenticationState, Task> AwardedQtsSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null,
+            string? nationalInsuranceNumber = null,
+            bool awardedQts = true) =>
+            async s =>
+            {
+                var haveNationalInsuranceNumber = nationalInsuranceNumber is not null;
+
+                await HasNationalInsuranceNumberSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    dateOfBirth,
+                    hasNationalInsuranceNumber: haveNationalInsuranceNumber)(s);
+
+                if (haveNationalInsuranceNumber)
+                {
+                    s.OnNationalInsuranceNumberSet(nationalInsuranceNumber!);
+                }
+
+                s.OnAwardedQtsSet(awardedQts);
+            };
+
+        public Func<AuthenticationState, Task> IttProviderSet(
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null,
+            string? nationalInsuranceNumber = null,
+            string? ittProviderName = null) =>
+            async s =>
+            {
+                await AwardedQtsSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    dateOfBirth,
+                    nationalInsuranceNumber,
+                    awardedQts: true)(s);
+
+                s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
             };
     }
 }

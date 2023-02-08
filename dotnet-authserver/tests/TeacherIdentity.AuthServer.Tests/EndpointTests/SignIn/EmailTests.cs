@@ -34,6 +34,14 @@ public class EmailTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.Start(), HttpMethod.Get, "/sign-in/email");
     }
 
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
+    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/email");
+    }
+
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
@@ -64,6 +72,14 @@ public class EmailTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.Start(), HttpMethod.Post, "/sign-in/email");
     }
 
+    [Theory]
+    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
+    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
+        AuthenticationState.AuthenticationMilestone milestone)
+    {
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/email");
+    }
+
     [Fact]
     public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
@@ -87,7 +103,6 @@ public class EmailTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
     }
-
 
     [Fact]
     public async Task Post_EmptyEmail_ReturnsError()
@@ -153,7 +168,7 @@ public class EmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/email-confirmation", response.Headers.Location?.OriginalString);
 
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 

@@ -7,6 +7,7 @@ using TeacherIdentity.AuthServer.Services.Zendesk;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class NoMatch : TrnCreateUserPageModel
 {
     public NoMatch(
@@ -24,7 +25,7 @@ public class NoMatch : TrnCreateUserPageModel
     public string? PreviousOfficialName => HttpContext.GetAuthenticationState().GetPreviousOfficialName();
     public string? PreferredName => HttpContext.GetAuthenticationState().GetPreferredName();
     public DateOnly? DateOfBirth => HttpContext.GetAuthenticationState().DateOfBirth;
-    public bool? HaveNationalInsuranceNumber => HttpContext.GetAuthenticationState().HaveNationalInsuranceNumber;
+    public bool? HaveNationalInsuranceNumber => HttpContext.GetAuthenticationState().HasNationalInsuranceNumber;
     public string? NationalInsuranceNumber => HttpContext.GetAuthenticationState().NationalInsuranceNumber;
     public bool? AwardedQts => HttpContext.GetAuthenticationState().AwardedQts;
     public string? IttProviderName => HttpContext.GetAuthenticationState().IttProviderName;
@@ -57,13 +58,19 @@ public class NoMatch : TrnCreateUserPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        // We require all questions to have been answered and to have failed to find a TRN
+        context.Result = authenticationState switch
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
-        }
+            { HasTrnSet: false } => Redirect(LinkGenerator.TrnHasTrn()),
+            { OfficialNameSet: false } => Redirect(LinkGenerator.TrnOfficialName()),
+            { PreferredNameSet: false } => Redirect(LinkGenerator.TrnPreferredName()),
+            { DateOfBirthSet: false } => Redirect(LinkGenerator.TrnDateOfBirth()),
+            { HasNationalInsuranceNumberSet: false } => Redirect(LinkGenerator.TrnHasNiNumber()),
+            { HasNationalInsuranceNumber: true } and { NationalInsuranceNumberSet: false } => Redirect(LinkGenerator.TrnNiNumber()),
+            { AwardedQtsSet: false } => Redirect(LinkGenerator.TrnAwardedQts()),
+            { AwardedQts: true } and { HasIttProviderSet: false } => Redirect(LinkGenerator.TrnIttProvider()),
+            not { TrnLookupStatus: TrnLookupStatus.Pending or TrnLookupStatus.None } => Redirect(LinkGenerator.TrnCheckAnswers()),
+            _ => null
+        };
     }
 }

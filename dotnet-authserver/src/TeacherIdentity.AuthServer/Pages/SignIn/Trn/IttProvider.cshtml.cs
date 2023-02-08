@@ -7,6 +7,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class IttProvider : TrnLookupPageModel
 {
     private readonly IMemoryCache _cache;
@@ -47,12 +48,7 @@ public class IttProvider : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnHaveIttProviderSet((bool)HasIttProvider!);
-
-        if (HasIttProvider == true)
-        {
-            HttpContext.GetAuthenticationState().IttProviderName = IttProviderName;
-        }
+        HttpContext.GetAuthenticationState().OnHasIttProviderSet((bool)HasIttProvider!, IttProviderName);
 
         return await TryFindTrn() ?? Redirect(LinkGenerator.TrnCheckAnswers());
     }
@@ -61,13 +57,9 @@ public class IttProvider : TrnLookupPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // We expect to have a verified email and official names at this point but we shouldn't have completed the TRN lookup
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            string.IsNullOrEmpty(authenticationState.GetOfficialName()) ||
-            authenticationState.HaveCompletedTrnLookup)
+        if (!authenticationState.AwardedQtsSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = new RedirectResult(LinkGenerator.TrnAwardedQts());
             return;
         }
 
@@ -83,7 +75,7 @@ public class IttProvider : TrnLookupPageModel
 
     private void SetDefaultInputValues()
     {
-        HasIttProvider ??= HttpContext.GetAuthenticationState().HaveIttProvider;
+        HasIttProvider ??= HttpContext.GetAuthenticationState().HasIttProvider;
         IttProviderName ??= HttpContext.GetAuthenticationState().IttProviderName;
     }
 }

@@ -7,6 +7,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.TrnLookupCompleted)]
 public class TrnInUseChooseEmailModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -89,9 +90,7 @@ public class TrnInUseChooseEmailModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        if (string.IsNullOrEmpty(authenticationState.EmailAddress) ||
-            !authenticationState.EmailAddressVerified ||
-            authenticationState.TrnLookup != AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
+        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
         {
             context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }

@@ -6,6 +6,7 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -74,10 +75,9 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        // If email is already verified then move to the next page
-        if (authenticationState.EmailAddressVerified)
+        if (!authenticationState.EmailAddressSet)
         {
-            context.Result = new RedirectResult(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = new RedirectResult(_linkGenerator.Email());
         }
     }
 }

@@ -6,6 +6,7 @@ using TeacherIdentity.AuthServer.State;
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [AllowCompletedAuthenticationJourney]
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.Complete)]
 public class CompleteModel : PageModel
 {
     public string? Email { get; set; }
