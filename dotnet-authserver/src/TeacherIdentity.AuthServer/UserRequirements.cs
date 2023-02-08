@@ -58,7 +58,7 @@ public static class UserRequirementsExtensions
     {
         userRequirements = UserRequirements.DefaultUserType;
 
-        if (hasScope(CustomScopes.Trn))
+        if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
             userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
         }

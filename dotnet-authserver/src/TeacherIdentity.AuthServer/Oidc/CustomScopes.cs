@@ -5,6 +5,7 @@ public static class CustomScopes
     public const string GetAnIdentitySupport = "get-an-identity:support";
     public const string UserRead = "user:read";
     public const string UserWrite = "user:write";
+    public const string DqtRead = "dqt:read";
     public const string Trn = "trn";
 
     public static string[] All => StaffUserTypeScopes.Concat(DefaultUserTypesScopes).ToArray();
@@ -18,6 +19,7 @@ public static class CustomScopes
 
     public static string[] DefaultUserTypesScopes { get; } = new[]
     {
+        DqtRead,
         Trn
     };
 }

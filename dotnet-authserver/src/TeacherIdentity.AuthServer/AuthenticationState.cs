@@ -650,6 +650,7 @@ public class AuthenticationState
         List<String> ignoredScopes = new List<string>();
         ignoredScopes.AddRange(CustomScopes.StaffUserTypeScopes);
         ignoredScopes.Add(CustomScopes.Trn);
+        ignoredScopes.Add(CustomScopes.DqtRead);
 
         return !OAuthState.HasAnyScope(ignoredScopes);
     }

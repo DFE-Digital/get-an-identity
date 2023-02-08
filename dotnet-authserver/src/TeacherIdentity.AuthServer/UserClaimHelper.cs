@@ -239,7 +239,7 @@ public static class UserClaimHelper
             yield return new Claim(Claims.Birthdate, dateOfBirth!.Value.ToString(CustomClaims.DateFormat));
         }
 
-        if (hasScope(CustomScopes.Trn))
+        if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
             yield return new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus!.Value.ToString());
 
