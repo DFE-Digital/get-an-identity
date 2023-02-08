@@ -18,6 +18,11 @@
                 <div class="moj-filter__content">
                     <div class="moj-filter__options">
                         <govuk-button type="submit">Apply filters</govuk-button>
+
+                        <govuk-input asp-for="UserSearch">
+                            <govuk-input-label class="govuk-label--m"/>
+                        </govuk-input>
+
                         <govuk-checkboxes asp-for="LookupStatus">
                             <govuk-checkboxes-fieldset>
                                 <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m"/>
@@ -34,14 +39,21 @@
         </div>
         <div class="moj-filter-layout__content">
             <div class="moj-scrollable-pane" data-testid="moj-scrollable-pane">
-                <p>Showing @Model.FilteredUsers!.Length of @Model.TotalUsers total</p>
+                @if (Model.TotalUsers > 0)
+                {
+                    <p>Showing @Model.FilteredUsers!.Length of @Model.TotalUsers total</p>
+                }
+                else
+                {
+                    <p>No users found</p>
+                }
 
                 @if (Model.TotalPages > 1)
                 {
                     <govuk-pagination>
                         @if (Model.PreviousPage.HasValue)
                         {
-                            <govuk-pagination-previous asp-page="Users" asp-all-route-data="@Model.GetPage((int)Model.PreviousPage!)" />
+                            <govuk-pagination-previous asp-page="Users" asp-all-route-data="@Model.GetPage((int)Model.PreviousPage!)"/>
                         }
 
                         @for (int i = 0; i < Model.PaginationPages!.Length; i++)
@@ -50,7 +62,7 @@
 
                             if (i > 0 && Model.PaginationPages[i - 1] != item - 1)
                             {
-                                <govuk-pagination-ellipsis />
+                                <govuk-pagination-ellipsis/>
                             }
 
                             <govuk-pagination-item asp-page="Users" asp-all-route-data=@Model.GetPage(item) is-current="@(item == Model.PageNumber)">@item</govuk-pagination-item>
@@ -58,7 +70,7 @@
 
                         @if (Model.NextPage.HasValue)
                         {
-                            <govuk-pagination-next asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.NextPage!) />
+                            <govuk-pagination-next asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.NextPage!)/>
                         }
                     </govuk-pagination>
                 }
@@ -93,12 +105,12 @@
                     <govuk-pagination>
                         @if (Model.PreviousPage.HasValue)
                         {
-                            <govuk-pagination-previous asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.PreviousPage!) />
+                            <govuk-pagination-previous asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.PreviousPage!)/>
                         }
 
                         @if (Model.NextPage.HasValue)
                         {
-                            <govuk-pagination-next asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.NextPage!) />
+                            <govuk-pagination-next asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.NextPage!)/>
                         }
                     </govuk-pagination>
                 }

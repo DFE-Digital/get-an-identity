@@ -1,4 +1,6 @@
+using System.Reflection;
 using AngleSharp.Dom;
+using TeacherIdentity.AuthServer.Models;
 using Url = Flurl.Url;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
@@ -34,8 +36,84 @@ public class UsersTests : TestBase, IAsyncLifetime
     }
 
     [Theory]
-    [MemberData(nameof(FilterCombinations))]
-    public async Task Get_ValidRequest_ReturnsExpectedContent((bool active, TrnLookupStatus status)[] filters)
+    [MemberData(nameof(UserSearchProperty))]
+    public async Task Get_ValidRequestByUserPropertySearch_ReturnsExpectedContent(PropertyInfo property)
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+        var otherUser = await TestData.CreateUser(hasTrn: true);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users?userSearch={property.GetValue(user)}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+
+        var userIds = GetUserIdsFromPane(doc.GetElementByTestId("moj-scrollable-pane")!)
+            .Where(id => !TestUsers.All.Select(testUser => testUser.UserId).Contains(id))
+            .ToList();
+
+        Assert.Contains(user.UserId, userIds);
+        Assert.DoesNotContain(otherUser.UserId, userIds);
+    }
+
+    public static TheoryData<PropertyInfo> UserSearchProperty { get; } = new()
+    {
+        typeof(User).GetProperty("FirstName")!,
+        typeof(User).GetProperty("LastName")!,
+        typeof(User).GetProperty("Trn")!,
+        typeof(User).GetProperty("EmailAddress")!,
+    };
+
+    [Fact]
+    public async Task Get_ValidRequestByUserFirstAndLastNameSearch_ReturnsExpectedContent()
+    {
+        // Arrange
+        var user = await TestData.CreateUser();
+        var otherUser = await TestData.CreateUser(firstName: user.FirstName);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users?userSearch={user.FirstName} {user.LastName}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+
+        var userIds = GetUserIdsFromPane(doc.GetElementByTestId("moj-scrollable-pane")!)
+            .Where(id => !TestUsers.All.Select(testUser => testUser.UserId).Contains(id))
+            .ToList();
+
+        Assert.Contains(user.UserId, userIds);
+        Assert.DoesNotContain(otherUser.UserId, userIds);
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestAndNoUsersFound_RendersNoUsersFound()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users?userSearch=abc&&LookupStatus=Found");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+
+        Assert.Contains("No users found", doc.GetElementByTestId("moj-scrollable-pane")!.InnerHtml);
+    }
+
+    [Theory]
+    [MemberData(nameof(FilterCombination))]
+    public async Task Get_ValidRequestWithLookupStatusFilter_ReturnsExpectedContent((bool active, TrnLookupStatus status)[] filters)
     {
         // Arrange
         var createdUserIds = new Dictionary<TrnLookupStatus, Guid>();
@@ -72,15 +150,9 @@ public class UsersTests : TestBase, IAsyncLifetime
         userIds.Sort();
 
         Assert.Equal(expectedUserIds, userIds);
-
-        static Guid[] GetUserIdsFromPane(IElement pane) =>
-            pane.QuerySelectorAll("[data-testid^='user-']")
-                .Select(e => e.GetAttribute("data-testid")!["user-".Length..])
-                .Select(Guid.Parse)
-                .ToArray();
     }
 
-    public static IEnumerable<object[]> FilterCombinations
+    public static IEnumerable<object[]> FilterCombination
     {
         get
         {
@@ -118,6 +190,12 @@ public class UsersTests : TestBase, IAsyncLifetime
 
         return filterParams;
     }
+
+    private static Guid[] GetUserIdsFromPane(IElement pane) =>
+        pane.QuerySelectorAll("[data-testid^='user-']")
+            .Select(e => e.GetAttribute("data-testid")!["user-".Length..])
+            .Select(Guid.Parse)
+            .ToArray();
 
     private async Task ClearNonTestUsers()
     {
