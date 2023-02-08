@@ -36,6 +36,12 @@ public class EmailModel : PageModel
             return this.PageWithErrors();
         }
 
+        if (_invalidEmailPrefixes.Contains(Email!.Split("@")[0]))
+        {
+            ModelState.AddModelError(nameof(Email), "Enter a personal email address. It cannot be one that other people may get access to.");
+            return this.PageWithErrors();
+        }
+
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
         var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
@@ -56,4 +62,48 @@ public class EmailModel : PageModel
 
         return Redirect(_linkGenerator.EmailConfirmation());
     }
+
+    private static readonly string[] _invalidEmailPrefixes = new[]
+    {
+        "headteacher",
+        "head.teacher",
+        "head",
+        "ht",
+        "principal",
+        "headofschool",
+        "headmistress",
+        "info",
+        "office",
+        "office1",
+        "reception",
+        "secretary",
+        "admin",
+        "admin1",
+        "admin2",
+        "administration",
+        "adminoffice",
+        "schooloffice",
+        "schoolmanager",
+        "enquiries",
+        "enquiry",
+        "generalenquiries",
+        "post",
+        "pa",
+        "headspa",
+        "headteacherpa",
+        "contact",
+        "school",
+        "academy",
+        "bursar",
+        "finance",
+        "hr",
+        "secretary",
+        "businessmanager",
+        "deputy",
+        "deputyhead",
+        "exechead",
+        "ceo",
+        "cfo",
+        "coo"
+    };
 }

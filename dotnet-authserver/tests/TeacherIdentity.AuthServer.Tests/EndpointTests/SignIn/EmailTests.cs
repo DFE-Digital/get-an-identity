@@ -142,6 +142,28 @@ public class EmailTests : TestBase
     }
 
     [Theory]
+    [InlineData("admin")]
+    [InlineData("academy")]
+    public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", $"{emailPrefix}@foo.com" }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address. It cannot be one that other people may get access to.");
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToConfirmation(bool emailIsKnown)
