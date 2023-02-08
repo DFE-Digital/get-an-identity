@@ -483,8 +483,7 @@ public class SignIn : IClassFixture<HostFixture>
     {
         // Start on the client app and try to access a protected area
 
-        await page.GotoAsync("/");
-        await page.ClickAsync("text=Profile");
+        await page.GotoAsync("/profile?scope=email+openid+profile+trn");
 
         // Fill in the sign in form (email + PIN)
 

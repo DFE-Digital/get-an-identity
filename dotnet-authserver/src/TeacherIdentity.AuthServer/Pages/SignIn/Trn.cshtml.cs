@@ -1,6 +1,7 @@
 using Flurl;
 using Flurl.Util;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -29,7 +30,7 @@ public class TrnModel : PageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        if (_findALostTrnIntegrationHelper.Options.UseNewTrnLookupJourney)
+        if (authenticationState.OAuthState?.HasScope(CustomScopes.DqtRead) == true)
         {
             var nextPage = _linkGenerator.TrnHasTrn();
             HandoverUrl = new Url(nextPage).RemoveQuery();

@@ -15,7 +15,6 @@ public abstract partial class TestBase
         });
 
         HostFixture.ResetMocks();
-        HostFixture.ResetUseNewTrnLookupJourney();
         HostFixture.InitEventObserver();
     }
 
