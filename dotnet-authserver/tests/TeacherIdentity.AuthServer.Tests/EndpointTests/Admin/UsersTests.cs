@@ -1,9 +1,4 @@
-using System.Collections.ObjectModel;
-using AngleSharp.Common;
 using AngleSharp.Dom;
-using Microsoft.Azure.Amqp.Serialization;
-using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Models;
 using Url = Flurl.Url;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
