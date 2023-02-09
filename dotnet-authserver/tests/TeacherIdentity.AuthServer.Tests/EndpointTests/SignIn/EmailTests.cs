@@ -163,6 +163,29 @@ public class EmailTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address. It cannot be one that other people may get access to.");
     }
 
+    [Fact]
+    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoNotReturnError()
+    {
+        // Arrange
+        var invalidPrefix = "headteacher";
+        var user = await TestData.CreateUser(email: $"{invalidPrefix}@foo.com");
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", user.EmailAddress }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

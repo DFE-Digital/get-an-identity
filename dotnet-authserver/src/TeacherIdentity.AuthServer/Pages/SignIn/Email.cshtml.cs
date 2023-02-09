@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -11,13 +13,16 @@ public class EmailModel : PageModel
 {
     private readonly IEmailVerificationService _emailVerificationService;
     private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
     public EmailModel(
         IEmailVerificationService emailVerificationService,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext)
     {
         _emailVerificationService = emailVerificationService;
         _linkGenerator = linkGenerator;
+        _dbContext = dbContext;
     }
 
     [Display(Name = "Enter your email address", Description = "Use your personal email address. This is so you can keep these sign in details should you change jobs.")]
@@ -38,8 +43,12 @@ public class EmailModel : PageModel
 
         if (_invalidEmailPrefixes.Contains(Email!.Split("@")[0]))
         {
-            ModelState.AddModelError(nameof(Email), "Enter a personal email address. It cannot be one that other people may get access to.");
-            return this.PageWithErrors();
+            var existingUser = await _dbContext.Users.Where(user => user.EmailAddress == Email).SingleOrDefaultAsync();
+            if (existingUser is null)
+            {
+                ModelState.AddModelError(nameof(Email), "Enter a personal email address. It cannot be one that other people may get access to.");
+                return this.PageWithErrors();
+            }
         }
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
@@ -63,47 +72,12 @@ public class EmailModel : PageModel
         return Redirect(_linkGenerator.EmailConfirmation());
     }
 
-    private static readonly string[] _invalidEmailPrefixes = new[]
+    private static readonly string[] _invalidEmailPrefixes =
     {
-        "headteacher",
-        "head.teacher",
-        "head",
-        "ht",
-        "principal",
-        "headofschool",
-        "headmistress",
-        "info",
-        "office",
-        "office1",
-        "reception",
-        "secretary",
-        "admin",
-        "admin1",
-        "admin2",
-        "administration",
-        "adminoffice",
-        "schooloffice",
-        "schoolmanager",
-        "enquiries",
-        "enquiry",
-        "generalenquiries",
-        "post",
-        "pa",
-        "headspa",
-        "headteacherpa",
-        "contact",
-        "school",
-        "academy",
-        "bursar",
-        "finance",
-        "hr",
-        "secretary",
-        "businessmanager",
-        "deputy",
-        "deputyhead",
-        "exechead",
-        "ceo",
-        "cfo",
-        "coo"
+        "headteacher", "head.teacher", "head", "ht", "principal", "headofschool", "headmistress", "info", "office",
+        "office1", "reception", "secretary", "admin", "admin1", "admin2", "administration", "adminoffice",
+        "schooloffice", "schoolmanager", "enquiries", "enquiry", "generalenquiries", "post", "pa", "headspa",
+        "headteacherpa", "contact", "school", "academy", "bursar", "finance", "hr", "secretary", "businessmanager",
+        "deputy", "deputyhead", "exechead", "ceo", "cfo", "coo"
     };
 }
