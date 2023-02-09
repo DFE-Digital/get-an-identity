@@ -26,7 +26,7 @@ Notifications are sent as JSON and have a common outer schema called the envelop
 
 ## Message types
 
-Currently the only implemented notification is when a user is changed (name, email address etc.).
+The are two notification messages types currently; one is for when a user is changed (name, email address etc.) and the other is for when two users are merged.
 
 ### `UserUpdated`
 
@@ -56,6 +56,28 @@ Currently the only implemented notification is when a user is changed (name, ema
 
 The `user` object contains the complete set of user information. `dateOfBirth` and `trn` may be `null`.
 The `changes` object contains only those properties that were changed and their updated values.
+
+### `UserMerged`
+
+`UserMerged` is generated when two user accounts are merged. When accounts are merged, one is chosen as the master and is retained while the second account is deleted.
+
+The message contains both the user details for the master account and ID of the deleted account. Upon receipt of this webhook, any references to `mergedUserId` (the deleted account)
+should be replaced with the ID of the `masterUser`.
+
+```json
+{
+  "masterUser": {
+    "userId": "",
+    "emailAddress": "",
+    "firstName": "",
+    "lastName": "",
+    "dateOfBirth": "",
+    "trn": "",
+    "trnLookupStatus": "None|Pending|Found|Failed"
+  },
+  "mergedUserId": ""
+}
+```
 
 
 ## Receiving webhooks
