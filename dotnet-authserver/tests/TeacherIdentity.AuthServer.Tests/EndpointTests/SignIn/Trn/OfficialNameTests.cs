@@ -117,9 +117,15 @@ public class OfficialNameTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var lastName = "last";
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
+            {
+                { "OfficialLastName", lastName },
+                { "HasPreviousName", AuthenticationState.HasPreviousNameOption.No },
+            }
         };
 
         // Act
@@ -134,9 +140,15 @@ public class OfficialNameTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var firstName = "first";
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
+            {
+                { "OfficialFirstName", firstName },
+                { "HasPreviousName", AuthenticationState.HasPreviousNameOption.No },
+            }
         };
 
         // Act
@@ -144,6 +156,30 @@ public class OfficialNameTests : TestBase
 
         // Assert
         await AssertEx.HtmlResponseHasError(response, "OfficialLastName", "Enter your last name");
+    }
+
+    [Fact]
+    public async Task Post_HasPreviousNameNotSpecified_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var firstName = "first";
+        var lastName = "last";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "OfficialFirstName", firstName },
+                { "OfficialLastName", lastName }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "HasPreviousName", "Tell us if you have changed your name");
     }
 
     [Fact]
