@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.UserImport;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
@@ -16,13 +17,16 @@ public class AddUserImportModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserImportStorageService _userImportCsvStorageService;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
 
     public AddUserImportModel(
         TeacherIdentityServerDbContext dbContext,
-        IUserImportStorageService userImportCsvStorageService)
+        IUserImportStorageService userImportCsvStorageService,
+        IBackgroundJobScheduler backgroundJobScheduler)
     {
         _dbContext = dbContext;
         _userImportCsvStorageService = userImportCsvStorageService;
+        _backgroundJobScheduler = backgroundJobScheduler;
     }
 
     [Required(ErrorMessage = "Select a file")]
@@ -101,6 +105,8 @@ public class AddUserImportModel : PageModel
 
         _dbContext.UserImportJobs.Add(userImportJob);
         await _dbContext.SaveChangesAsync();
+
+        await _backgroundJobScheduler.Enqueue<IUserImportProcessor>(p => p.Process(userImportJobId));
 
         TempData.SetFlashSuccess($"CSV {Upload?.FileName} uploaded");
         return RedirectToPage("UserImports");

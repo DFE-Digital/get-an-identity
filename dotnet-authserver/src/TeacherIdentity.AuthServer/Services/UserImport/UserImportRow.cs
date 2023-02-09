@@ -4,6 +4,7 @@ namespace TeacherIdentity.AuthServer.Services.UserImport;
 
 public class UserImportRow
 {
+    public const int ColumnCount = 5;
     public const string IdHeader = "ID";
     public const string EmailAddressHeader = "EMAIL_ADDRESS";
     public const string FirstNameHeader = "FIRST_NAME";
