@@ -147,7 +147,7 @@ public class EmailTests : TestBase
     public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -170,7 +170,7 @@ public class EmailTests : TestBase
         var invalidPrefix = "headteacher";
         var user = await TestData.CreateUser(email: $"{invalidPrefix}@foo.com");
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start());
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
