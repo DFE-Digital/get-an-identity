@@ -20,12 +20,12 @@
                         <govuk-button type="submit">Apply filters</govuk-button>
 
                         <govuk-input asp-for="UserSearch">
-                            <govuk-input-label class="govuk-label--m"/>
+                            <govuk-input-label class="govuk-label--s"/>
                         </govuk-input>
 
-                        <govuk-checkboxes asp-for="LookupStatus">
+                        <govuk-checkboxes asp-for="LookupStatus" class="govuk-checkboxes--small">
                             <govuk-checkboxes-fieldset>
-                                <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m"/>
+                                <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--s"/>
                                 @foreach (var status in Enum.GetValues(typeof(TrnLookupStatus)))
                                 {
                                     <govuk-checkboxes-item value="@status">@status</govuk-checkboxes-item>
