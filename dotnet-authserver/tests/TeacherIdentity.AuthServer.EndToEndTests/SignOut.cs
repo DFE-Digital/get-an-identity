@@ -14,32 +14,7 @@ public class SignOut : IClassFixture<HostFixture>
     [Fact]
     public async Task User_CanSignOut()
     {
-        var email = "joe.bloggs+existing-user@example.com";
-        var trn = "1234567";
-
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Default,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                Trn = trn,
-                TrnLookupStatus = TrnLookupStatus.Found,
-                CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -51,7 +26,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -88,7 +63,7 @@ public class SignOut : IClassFixture<HostFixture>
             {
                 var userSignedOut = Assert.IsType<Events.UserSignedOutEvent>(e);
                 Assert.Equal(DateTime.UtcNow, userSignedOut.CreatedUtc, TimeSpan.FromSeconds(10));
-                Assert.Equal(userId, userSignedOut.User.UserId);
+                Assert.Equal(user.UserId, userSignedOut.User.UserId);
                 Assert.Equal(_hostFixture.TestClientId, userSignedOut.ClientId);
             });
     }

@@ -10,7 +10,6 @@ using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
-using TeacherIdentity.AuthServer.TestCommon;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -47,10 +46,12 @@ public class HostFixture : IAsyncLifetime
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
+    public string TestClientId => GetTestConfiguration()["Client:ClientId"]!;
+
+    public TestData TestData => AuthServerServices.GetRequiredService<TestData>();
+
     public Task<IBrowserContext> CreateBrowserContext() =>
         Browser!.NewContextAsync(new BrowserNewContextOptions() { BaseURL = ClientBaseUrl });
-
-    public string TestClientId => GetTestConfiguration()["Client:ClientId"]!;
 
     public async Task DisposeAsync()
     {
@@ -134,6 +135,7 @@ public class HostFixture : IAsyncLifetime
                     services.Decorate<IEmailVerificationService>(inner =>
                         new CapturePinsEmailVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
+                    services.AddSingleton<TestData>();
                 });
             });
 

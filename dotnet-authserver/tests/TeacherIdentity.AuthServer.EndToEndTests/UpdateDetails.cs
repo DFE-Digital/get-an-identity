@@ -14,35 +14,10 @@ public class UpdateDetails : IClassFixture<HostFixture>
     [Fact]
     public async Task UpdateNameWithinOAuthFlow()
     {
-        var email = Faker.Internet.Email();
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         var newFirstName = Faker.Name.First();
         var newLastName = Faker.Name.Last();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = firstName,
-                LastName = lastName,
-                UserId = userId,
-                UserType = UserType.Default,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow,
-                TrnLookupStatus = TrnLookupStatus.None
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -54,7 +29,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -91,34 +66,9 @@ public class UpdateDetails : IClassFixture<HostFixture>
     [Fact]
     public async Task UpdateEmailWithinOAuthFlow()
     {
-        var email = Faker.Internet.Email();
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         var newEmail = Faker.Internet.Email();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = firstName,
-                LastName = lastName,
-                UserId = userId,
-                UserType = UserType.Default,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow,
-                TrnLookupStatus = TrnLookupStatus.None
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -130,7 +80,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
