@@ -50,7 +50,11 @@ locals {
       Serilog__WriteTo__2__Args__uri               = local.infrastructure_secrets.LOGSTASH_ENDPOINT,
       WEBSITE_SWAP_WARMUP_PING_PATH                = "/status",
       WEBSITE_SWAP_WARMUP_PING_STATUSES            = "200",
-      BaseAddress                                  = local.infrastructure_secrets.BASE_ADDRESS
+      BaseAddress                                  = local.infrastructure_secrets.BASE_ADDRESS,
+      Zendesk__EndpointUri                         = lookup(local.infrastructure_secrets, "ZENDESK_ENDPOINT", ""),
+      Zendesk__Token                               = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", ""),
+      Zendesk__Username                            = lookup(local.infrastructure_secrets, "ZENDESK_USERNAME", ""),
+      Zendesk__UseFakeClient                       = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", "") == "" ? "true" : "false"
     }
   )
 

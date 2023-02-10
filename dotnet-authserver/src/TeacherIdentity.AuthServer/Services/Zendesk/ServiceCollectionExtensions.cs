@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ZendeskApi.Client;
 using ZendeskApi.Client.Options;
 
@@ -23,6 +24,14 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IZendeskClient, ZendeskClient>();
                 services.AddScoped<IZendeskApiClient, ZendeskApiClientFactory>();
                 services.AddScoped<IZendeskApiWrapper, ZendeskApiWrapper>();
+                services.AddTransient<ZendeskHealthCheck>();
+
+                services.AddHealthChecks().Add(
+                    new HealthCheckRegistration(
+                        "Zendesk",
+                        sp => sp.GetRequiredService<ZendeskHealthCheck>(),
+                        HealthStatus.Unhealthy,
+                        tags: null));
             }
         }
 
