@@ -1,19 +1,20 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Tests;
+namespace TeacherIdentity.AuthServer.TestCommon;
 
 public partial class TestData
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly TestClock _clock;
+    private readonly IClock _clock;
     private readonly Random _random = new();
     private readonly ConcurrentBag<string> _trns = new();
 
     public TestData(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _clock = (TestClock)serviceProvider.GetRequiredService<IClock>();
+        _clock = serviceProvider.GetRequiredService<IClock>();
     }
 
     public string GenerateTrn()

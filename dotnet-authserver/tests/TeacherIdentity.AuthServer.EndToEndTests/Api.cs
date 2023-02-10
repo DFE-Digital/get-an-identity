@@ -16,26 +16,7 @@ public class Api : IClassFixture<HostFixture>
     [Fact]
     public async Task SignInWithUserReadScope_CanCallReadSupportEndpointSuccessfully()
     {
-        var email = Faker.Internet.Email();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = Guid.NewGuid(),
-                UserType = UserType.Staff,
-                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var adminUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: new[] { StaffRoles.GetAnIdentityAdmin });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -46,7 +27,7 @@ public class Api : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", adminUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -96,38 +77,8 @@ public class Api : IClassFixture<HostFixture>
     [Fact]
     public async Task SignInWithUserWriteScope_CanCallWriteSupportEndpointSuccessfully()
     {
-        var email = Faker.Internet.Email();
-        var editingUserId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = Guid.NewGuid(),
-                UserType = UserType.Staff,
-                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
-                Updated = DateTime.UtcNow
-            });
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = Faker.Internet.Email(),
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
-                UserId = editingUserId,
-                UserType = UserType.Default,
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var adminUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: new[] { StaffRoles.GetAnIdentityAdmin });
+        var teacherUser = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -138,7 +89,7 @@ public class Api : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", adminUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -161,7 +112,7 @@ public class Api : IClassFixture<HostFixture>
         {
             BaseAddress = new Uri(HostFixture.AuthServerBaseUrl)
         };
-        var apiRequest = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/users/{editingUserId}")
+        var apiRequest = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/users/{teacherUser.UserId}")
         {
             Content = JsonContent.Create(new { })
         };
@@ -172,25 +123,7 @@ public class Api : IClassFixture<HostFixture>
     [Fact]
     public async Task GetTokenViaClientCredentialsWithWriteScope_CanCallWriteSupportEndpointSuccessfully()
     {
-        var editingUserId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = Faker.Internet.Email(),
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
-                UserId = editingUserId,
-                UserType = UserType.Default,
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var teacherUser = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         using var httpClient = new HttpClient()
         {
@@ -201,7 +134,7 @@ public class Api : IClassFixture<HostFixture>
         var token = await GetTokenViaClientCredentials(httpClient, "user:read");
 
         // Call API endpoint that requires user:read scope
-        var apiRequest = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/users/{editingUserId}")
+        var apiRequest = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/users/{teacherUser.UserId}")
         {
             Content = JsonContent.Create(new { })
         };

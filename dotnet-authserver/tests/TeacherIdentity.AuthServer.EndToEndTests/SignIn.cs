@@ -23,32 +23,7 @@ public class SignIn : IClassFixture<HostFixture>
 #pragma warning restore CS0618 // Type or member is obsolete
     public async Task ExistingTeacherUser_CanSignInSuccessfullyWithEmailAndPin(string additionalScope)
     {
-        var email = Faker.Internet.Email();
-        var trn = (1234000 + additionalScope.Length).ToString();  // Hack to prevent each iteration trying to create a user with the same TRN
-
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Default,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                Trn = trn,
-                TrnLookupStatus = TrnLookupStatus.Found,
-                CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -59,7 +34,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -78,50 +53,27 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(clientAppHost, pageUrlHost);
 
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
-        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
-        Assert.Equal(email, signedInEmail);
+        Assert.Equal(user.Trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(user.EmailAddress, signedInEmail);
 
         // Check events have been emitted
 
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId));
     }
 
     [Fact]
     public async Task StaffUser_CanSignInSuccessfullyWithEmailAndPin()
     {
-        var email = "admin.user@example.com";
-
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInExistingStaffUserWithTestClient(page, email);
+        await SignInExistingStaffUserWithTestClient(page);
     }
 
     [Fact]
     public async Task StaffUser_CanSignInToAdminPageSuccessfullyWithEmailAndPin()
     {
-        var email = "admin.user3@example.com";
-
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Staff,
-                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var staffUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: StaffRoles.All);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -132,7 +84,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", staffUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -146,7 +98,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Check events have been emitted
 
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId, expectOAuthProperties: false));
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, staffUser.UserId, expectOAuthProperties: false));
     }
 
     [Theory]
@@ -154,10 +106,10 @@ public class SignIn : IClassFixture<HostFixture>
     [InlineData(false)]
     public async Task NewTeacherUser_IsRedirectedToFindAndRegistersAnAccountOnCallback(bool hasTrn)
     {
-        var email = $"joe.bloggs+new-user-{(hasTrn ? "with-trn" : "without-trn")}@example.com";
-        var firstName = "Joe";
-        var lastName = "Bloggs";
-        var trn = hasTrn ? "2345678" : null;
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var trn = hasTrn ? _hostFixture.TestData.GenerateTrn() : null;
         var dateOfBirth = new DateOnly(1990, 1, 2);
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -173,7 +125,7 @@ public class SignIn : IClassFixture<HostFixture>
         var officialFirstName = Faker.Name.First();
         var officialLastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var trn = "5678901";
+        var trn = _hostFixture.TestData.GenerateTrn();
 
         _hostFixture.DqtApiClient
             .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
@@ -409,11 +361,11 @@ public class SignIn : IClassFixture<HostFixture>
     [Fact]
     public async Task ExistingTeacherUser_SignsInWithinSameSessionTheyRegisteredWith_SkipsEmailAndPinAndShowsCorrectConfirmationPage()
     {
-        var email = $"joe.bloggs+existing-subsequent-sign-in@example.com";
-        var firstName = "Joe";
-        var lastName = "Bloggs";
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
         var trn = (string?)null;
-        var dateOfBirth = new DateOnly(1990, 1, 2);
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -468,36 +420,14 @@ public class SignIn : IClassFixture<HostFixture>
     [Fact]
     public async Task NewTeacherUser_WithTrnMatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully()
     {
-        var email = $"joe.bloggs+new-user-with-existing-trn@example.com";
-        var firstName = "Joe";
-        var lastName = "Bloggs";
-        var trn = "3456789";
-        var dateOfBirth = new DateOnly(1990, 1, 2);
-        var trnOwnerEmailAddress = Faker.Internet.Email();
+        var existingTrnOwner = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = trnOwnerEmailAddress,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Default,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                Trn = trn,
-                TrnLookupStatus = TrnLookupStatus.Found,
-                CompletedTrnLookup = DateTime.UtcNow,
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var trn = existingTrnOwner.Trn!;
+        var trnOwnerEmailAddress = existingTrnOwner.EmailAddress;
+        var email = Faker.Internet.Email();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -532,7 +462,7 @@ public class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
         await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
         await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
-        await page.FillAsync("#Trn", trn ?? string.Empty);
+        await page.FillAsync("#Trn", trn);
 
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -559,41 +489,20 @@ public class SignIn : IClassFixture<HostFixture>
         var pageUrlHost = new Uri(page.Url).Host;
         Assert.Equal(clientAppHost, pageUrlHost);
 
-        Assert.Equal(firstName, await page.InnerTextAsync("data-testid=first-name"));
-        Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
-        Assert.Equal(trnOwnerEmailAddress, await page.InnerTextAsync("data-testid=email"));
-        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(existingTrnOwner.FirstName, await page.InnerTextAsync("data-testid=first-name"));
+        Assert.Equal(existingTrnOwner.LastName, await page.InnerTextAsync("data-testid=last-name"));
+        Assert.Equal(existingTrnOwner.EmailAddress, await page.InnerTextAsync("data-testid=email"));
+        Assert.Equal(trn, await page.InnerTextAsync("data-testid=trn"));
 
         // Check events have been emitted
 
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, existingTrnOwner.UserId));
     }
 
     [Fact]
     public async Task StaffUser_MissingPermission_GetsForbiddenError()
     {
-        var email = "admin.user2@example.com";
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            var userId = Guid.NewGuid();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Staff,
-                StaffRoles = Array.Empty<string>(),
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var staffUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: Array.Empty<string>());
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -604,7 +513,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", staffUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -619,12 +528,10 @@ public class SignIn : IClassFixture<HostFixture>
     [Fact]
     public async Task FirstRequestToProtectedAreaOfSiteForUserAlreadySignedInViaOAuth_IssuesUserSignedInEvent()
     {
-        var email = "admin.user4@example.com";
-
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        var userId = await SignInExistingStaffUserWithTestClient(page, email);
+        var userId = await SignInExistingStaffUserWithTestClient(page);
         _hostFixture.EventObserver.Clear();
 
         // Try to access protected admin area on auth server, should be authenticated already
@@ -640,33 +547,7 @@ public class SignIn : IClassFixture<HostFixture>
     [Fact]
     public async Task TeacherUser_WithTrnAssignedViaApi_CanSignInSuccessfully()
     {
-        var email = "joe.bloggs+existing-user-with-manually-assigned-trn@example.com";
-        var trn = "1234568";
-
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Default,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                Trn = trn,
-                TrnLookupStatus = TrnLookupStatus.Found,
-                TrnAssociationSource = TrnAssociationSource.Api,
-                CompletedTrnLookup = null,
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var user = await _hostFixture.TestData.CreateUser(hasTrn: true, haveCompletedTrnLookup: false);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -677,7 +558,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -696,8 +577,8 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(clientAppHost, pageUrlHost);
 
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
-        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
-        Assert.Equal(email, signedInEmail);
+        Assert.Equal(user.Trn, await page.InnerTextAsync("data-testid=trn"));
+        Assert.Equal(user.EmailAddress, signedInEmail);
     }
 
     private void AssertEventIsUserSignedIn(
@@ -779,28 +660,9 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
     }
 
-    private async Task<Guid> SignInExistingStaffUserWithTestClient(IPage page, string email)
+    private async Task<Guid> SignInExistingStaffUserWithTestClient(IPage page)
     {
-        var userId = Guid.NewGuid();
-
-        {
-            using var scope = _hostFixture.AuthServerServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
-
-            dbContext.Users.Add(new User()
-            {
-                Created = DateTime.UtcNow,
-                EmailAddress = email,
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                UserId = userId,
-                UserType = UserType.Staff,
-                StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin },
-                Updated = DateTime.UtcNow
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: StaffRoles.All);
 
         // Start on the client app and try to access a protected area with admin scope
 
@@ -808,7 +670,7 @@ public class SignIn : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", email);
+        await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -828,12 +690,12 @@ public class SignIn : IClassFixture<HostFixture>
 
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
         Assert.Equal(string.Empty, await page.InnerTextAsync("data-testid=trn"));
-        Assert.Equal(email, signedInEmail);
+        Assert.Equal(user.EmailAddress, signedInEmail);
 
         // Check events have been emitted
 
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, userId));
+        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId));
 
-        return userId;
+        return user.UserId;
     }
 }
