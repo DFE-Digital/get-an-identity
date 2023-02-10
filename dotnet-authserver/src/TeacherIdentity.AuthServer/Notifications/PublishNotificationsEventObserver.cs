@@ -41,7 +41,7 @@ public class PublishNotificationsEventObserver : IEventObserver
         return Task.CompletedTask;
     }
 
-    private IEnumerable<NotificationEnvelope> GetNotificationsForEvent(EventBase @event)
+    private static IEnumerable<NotificationEnvelope> GetNotificationsForEvent(EventBase @event)
     {
         if (@event is UserUpdatedEvent userUpdated)
         {
@@ -67,6 +67,20 @@ public class PublishNotificationsEventObserver : IEventObserver
                 },
                 MessageType = UserUpdatedMessage.MessageTypeName,
                 TimeUtc = userUpdated.CreatedUtc
+            };
+        }
+        else if (@event is UserMergedEvent userMerged)
+        {
+            yield return new NotificationEnvelope()
+            {
+                NotificationId = Guid.NewGuid(),
+                Message = new UserMergedMessage()
+                {
+                    MasterUser = userMerged.User,
+                    MergedUserId = userMerged.MergedWithUserId
+                },
+                MessageType = UserMergedMessage.MessageTypeName,
+                TimeUtc = userMerged.CreatedUtc
             };
         }
     }
