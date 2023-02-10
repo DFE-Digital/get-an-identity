@@ -10,21 +10,21 @@
         <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu" hidden>Menu</button>
         <ul id="navigation" class="govuk-header__navigation-list">
             <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/users") ? "govuk-header__navigation-item--active" : "")">
-                <a class="govuk-header__link" asp-page="Users">Users</a>
+                <a class="govuk-header__link" asp-page="/Admin/Users">Users</a>
             </li>
             @if (User.IsInRole(StaffRoles.GetAnIdentityAdmin))
             {
                 <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/clients") ? "govuk-header__navigation-item--active" : "")">
-                    <a class="govuk-header__link" asp-page="Clients">Clients</a>
+                    <a class="govuk-header__link" asp-page="/Admin/Clients">Clients</a>
                 </li>
                 <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/staff") ? "govuk-header__navigation-item--active" : "")">
-                    <a class="govuk-header__link" asp-page="Staff">Staff</a>
+                    <a class="govuk-header__link" asp-page="/Admin/Staff">Staff</a>
                 </li>
                 <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/webhooks") ? "govuk-header__navigation-item--active" : "")">
-                    <a class="govuk-header__link" asp-page="WebHooks">Web hooks</a>
+                    <a class="govuk-header__link" asp-page="/Admin/WebHooks">Web hooks</a>
                 </li>
                 <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/admin/user-imports") ? "govuk-header__navigation-item--active" : "")">
-                    <a class="govuk-header__link" asp-page="UserImports">User Imports</a>
+                    <a class="govuk-header__link" asp-page="/Admin/UserImports">User Imports</a>
                 </li>
             }
         </ul>
