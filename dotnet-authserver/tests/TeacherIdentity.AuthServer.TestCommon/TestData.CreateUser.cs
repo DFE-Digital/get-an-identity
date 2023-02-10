@@ -1,6 +1,6 @@
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Tests;
+namespace TeacherIdentity.AuthServer.TestCommon;
 
 public partial class TestData
 {

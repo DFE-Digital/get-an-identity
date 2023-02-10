@@ -1,6 +1,5 @@
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests;

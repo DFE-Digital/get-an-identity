@@ -16,7 +16,6 @@ using TeacherIdentity.AuthServer.Services.EmailVerification;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using TeacherIdentity.AuthServer.State;
-using TeacherIdentity.AuthServer.TestCommon;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests;
