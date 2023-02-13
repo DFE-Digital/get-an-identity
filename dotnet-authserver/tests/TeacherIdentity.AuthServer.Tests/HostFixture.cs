@@ -50,6 +50,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public Mock<IUserImportStorageService> UserImportCsvStorageService { get; } = new Mock<IUserImportStorageService>();
 
+    public Mock<IUserImportProcessor> UserImportProcessor { get; } = new Mock<IUserImportProcessor>();
+
     public async Task Initialize()
     {
         await DbHelper.EnsureSchema();
@@ -87,6 +89,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         RateLimitStore.Reset();
         ZendeskApiWrapper.Reset();
         UserImportCsvStorageService.Reset();
+        UserImportProcessor.Reset();
 
         DqtApiClient.Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FindTeachersResponse() { Results = Array.Empty<FindTeachersResponseResult>() });
@@ -148,6 +151,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.Decorate<IEmailVerificationService>(inner => Spy.Get<IEmailVerificationService>().Wrap(inner));
             services.AddSingleton(ZendeskApiWrapper.Object);
             services.AddSingleton(UserImportCsvStorageService.Object);
+            services.AddSingleton(UserImportProcessor.Object);
         });
     }
 

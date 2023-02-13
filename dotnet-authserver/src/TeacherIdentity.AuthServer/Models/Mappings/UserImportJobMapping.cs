@@ -8,11 +8,11 @@ public class UserImportJobMapping : IEntityTypeConfiguration<UserImportJob>
     public void Configure(EntityTypeBuilder<UserImportJob> builder)
     {
         builder.ToTable("user_import_jobs");
-        builder.Property(a => a.UserImportJobId).IsRequired();
-        builder.HasKey(a => a.UserImportJobId);
-        builder.Property(a => a.StoredFilename).IsRequired();
-        builder.Property(a => a.OriginalFilename).IsRequired();
-        builder.Property(a => a.UserImportJobStatus).IsRequired();
-        builder.Property(a => a.Uploaded).IsRequired();
+        builder.Property(j => j.UserImportJobId).IsRequired();
+        builder.HasKey(j => j.UserImportJobId);
+        builder.Property(j => j.StoredFilename).IsRequired();
+        builder.Property(j => j.OriginalFilename).IsRequired();
+        builder.Property(j => j.UserImportJobStatus).IsRequired();
+        builder.Property(j => j.Uploaded).IsRequired();
     }
 }
