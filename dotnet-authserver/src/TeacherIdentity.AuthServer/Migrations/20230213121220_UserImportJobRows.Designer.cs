@@ -13,7 +13,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    [Migration("20230208161210_UserImportJobRows")]
+    [Migration("20230213121220_UserImportJobRows")]
     partial class UserImportJobRows
     {
         /// <inheritdoc />
@@ -727,6 +727,18 @@ namespace TeacherIdentity.AuthServer.Migrations
                     b.Navigation("RegisteredWithClient");
                 });
 
+            modelBuilder.Entity("TeacherIdentity.AuthServer.Models.UserImportJobRow", b =>
+                {
+                    b.HasOne("TeacherIdentity.AuthServer.Models.UserImportJob", "UserImportJob")
+                        .WithMany("UserImportJobRows")
+                        .HasForeignKey("UserImportJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_import_job_rows_user_import_jobs_user_import_job_id");
+
+                    b.Navigation("UserImportJob");
+                });
+
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.Application", b =>
                 {
                     b.Navigation("Authorizations");
@@ -742,6 +754,11 @@ namespace TeacherIdentity.AuthServer.Migrations
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.User", b =>
                 {
                     b.Navigation("MergedUsers");
+                });
+
+            modelBuilder.Entity("TeacherIdentity.AuthServer.Models.UserImportJob", b =>
+                {
+                    b.Navigation("UserImportJobRows");
                 });
 #pragma warning restore 612, 618
         }

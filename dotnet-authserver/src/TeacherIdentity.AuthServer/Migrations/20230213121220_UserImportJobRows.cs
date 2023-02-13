@@ -26,6 +26,12 @@ namespace TeacherIdentity.AuthServer.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_user_import_job_rows", x => new { x.userimportjobid, x.rownumber });
+                    table.ForeignKey(
+                        name: "fk_user_import_job_rows_user_import_jobs_user_import_job_id",
+                        column: x => x.userimportjobid,
+                        principalTable: "user_import_jobs",
+                        principalColumn: "user_import_job_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
         }
 

@@ -5,6 +5,7 @@ public class UserImportJobRow
     public const int IdMaxLength = 100;
 
     public required Guid UserImportJobId { get; set; }
+    public UserImportJob? UserImportJob { get; set; }
     public required int RowNumber { get; set; }
     public string? Id { get; set; }
     public string? RawData { get; set; }

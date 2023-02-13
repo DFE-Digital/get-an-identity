@@ -8,4 +8,5 @@ public class UserImportJob
     public required UserImportJobStatus UserImportJobStatus { get; set; }
     public required DateTime Uploaded { get; set; }
     public DateTime? Imported { get; set; }
+    public List<UserImportJobRow>? UserImportJobRows { get; set; }
 }

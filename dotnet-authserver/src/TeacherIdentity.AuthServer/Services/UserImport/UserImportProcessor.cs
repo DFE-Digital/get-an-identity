@@ -166,7 +166,12 @@ public class UserImportProcessor : IUserImportProcessor
                         });
                     }
 
-                    _dbContext.UserImportJobRows.Add(userImportJobRow);
+                    if (userImportJob!.UserImportJobRows == null)
+                    {
+                        userImportJob.UserImportJobRows = new List<UserImportJobRow>();
+                    }
+
+                    userImportJob.UserImportJobRows.Add(userImportJobRow);
 
                     await _dbContext.SaveChangesAsync();
                     await txn.CommitAsync();
@@ -175,10 +180,17 @@ public class UserImportProcessor : IUserImportProcessor
                 {
                     await txn.RollbackAsync();
                     _dbContext.ChangeTracker.Clear();
+                    // Refresh the user import job in memory so we can start tracking changes again
+                    userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
                     errors.Add("A user already exists with the specified email address");
                     userImportJobRow.UserId = null;
                     userImportJobRow.Errors = errors;
-                    _dbContext.UserImportJobRows.Add(userImportJobRow);
+                    if (userImportJob!.UserImportJobRows == null)
+                    {
+                        userImportJob.UserImportJobRows = new List<UserImportJobRow>();
+                    }
+                    userImportJob.UserImportJobRows.Add(userImportJobRow);
+
                     await _dbContext.SaveChangesAsync();
                 }
                 catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("pk_user_import_job_rows"))
@@ -186,12 +198,13 @@ public class UserImportProcessor : IUserImportProcessor
                     _logger.LogInformation("Ignoring previously processed row");
                     await txn.RollbackAsync();
                     _dbContext.ChangeTracker.Clear();
+                    // Refresh the user import job in memory so we can start tracking changes again
+                    userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
                 }
             }
         }
 
-        userImportJob.UserImportJobStatus = UserImportJobStatus.Processed;
-        _dbContext.UserImportJobs.Update(userImportJob);
+        userImportJob!.UserImportJobStatus = UserImportJobStatus.Processed;
         await _dbContext.SaveChangesAsync();
 
         await _userImportStorageService.Archive(userImportJob.StoredFilename);
