@@ -4,5 +4,6 @@ namespace TeacherIdentity.AuthServer.Services.EmailVerification;
 public enum PinGenerationFailedReasons
 {
     None = 0,
-    RateLimitExceeded = 1
+    RateLimitExceeded = 1,
+    InvalidEmail = 2,
 }

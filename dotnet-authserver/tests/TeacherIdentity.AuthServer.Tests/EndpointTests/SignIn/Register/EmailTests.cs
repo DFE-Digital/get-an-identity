@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks
-public class EmailTests : TestBase
+public class EmailTests : TestBase, IAsyncLifetime
 {
     public EmailTests(HostFixture hostFixture)
         : base(hostFixture)
@@ -158,5 +158,94 @@ public class EmailTests : TestBase
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("admin")]
+    [InlineData("academy")]
+    public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", $"{emailPrefix}@foo.com" }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address. It cannot be one that other people may get access to.");
+    }
+
+    [Fact]
+    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoNotReturnError()
+    {
+        // Arrange
+        var invalidPrefix = "headteacher";
+        var user = await TestData.CreateUser(email: $"{invalidPrefix}@foo.com");
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", user.EmailAddress }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_NotificationServiceInvalidEmail_ReturnsError()
+    {
+        // Arrange
+        HostFixture.EmailSender
+            .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new Exception("ValidationError"));
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", email }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
+    }
+
+    public async Task InitializeAsync()
+    {
+        await ClearNonTestUsers();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    private async Task ClearNonTestUsers()
+    {
+        await TestData.WithDbContext(async dbContext =>
+        {
+            await TestUsers.DeleteNonTestUsers(dbContext);
+        });
     }
 }

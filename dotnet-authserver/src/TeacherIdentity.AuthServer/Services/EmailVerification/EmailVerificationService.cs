@@ -5,6 +5,7 @@ using Npgsql;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.Email;
+using Exception = System.Exception;
 
 namespace TeacherIdentity.AuthServer.Services.EmailVerification;
 
@@ -92,14 +93,21 @@ public class EmailVerificationService : IEmailVerificationService
         var client = await _currentClientProvider.GetCurrentClient();
         var clientDisplayName = client?.DisplayName ?? "Get an identity to access Teacher Services";
 
-        var emailSubject = "Confirm your email address";
-        var emailBody = $"Use this code to confirm your email address:\n\n" +
-            $"{pin}\n\n" +
-            $"The code will expire after {(int)_pinLifetime.TotalMinutes} minutes.\n\n" +
-            $"This email address has been used for {clientDisplayName}.\n\n" +
-            $"If this was not you, you can ignore this email.\n\n" +
-            $"Department for Education";
-        await _emailSender.SendEmail(email, emailSubject, emailBody);
+        var emailBody = EmailBodyTemplate(pin, (int)_pinLifetime.TotalMinutes, clientDisplayName);
+
+        try
+        {
+            await _emailSender.SendEmail(email, EmailSubject, emailBody);
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("ValidationError"))
+            {
+                return PinGenerationResult.Failed(PinGenerationFailedReasons.InvalidEmail);
+            }
+
+            throw;
+        }
 
         _logger.LogInformation("Generated email confirmation PIN {Pin} for {Email}", pin, email);
 
@@ -154,4 +162,12 @@ public class EmailVerificationService : IEmailVerificationService
 
         return PinVerificationFailedReasons.None;
     }
+
+    private const string EmailSubject = "Confirm your email address";
+    private string EmailBodyTemplate(string pin, int minutes, string clientName) => $"Use this code to confirm your email address:\n\n" +
+                    $"{pin}\n\n" +
+                    $"The code will expire after {minutes} minutes.\n\n" +
+                    $"This email address has been used for {clientName}.\n\n" +
+                    $"If this was not you, you can ignore this email.\n\n" +
+                    $"Department for Education";
 }

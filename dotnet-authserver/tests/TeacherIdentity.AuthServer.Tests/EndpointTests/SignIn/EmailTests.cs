@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks
-public class EmailTests : TestBase
+public class EmailTests : TestBase, IAsyncLifetime
 {
     public EmailTests(HostFixture hostFixture)
         : base(hostFixture)
@@ -186,6 +186,32 @@ public class EmailTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
     }
 
+    [Fact]
+    public async Task Post_NotificationServiceInvalidEmail_ReturnsError()
+    {
+        // Arrange
+        HostFixture.EmailSender
+            .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new Exception("ValidationError"));
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", email }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -218,5 +244,23 @@ public class EmailTests : TestBase
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Once);
+    }
+
+    public async Task InitializeAsync()
+    {
+        await ClearNonTestUsers();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    private async Task ClearNonTestUsers()
+    {
+        await TestData.WithDbContext(async dbContext =>
+        {
+            await TestUsers.DeleteNonTestUsers(dbContext);
+        });
     }
 }

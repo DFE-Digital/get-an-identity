@@ -1,22 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 [BindProperties]
-public class EmailModel : PageModel
+public class EmailModel : BaseEmailPageModel
 {
-    private readonly IEmailVerificationService _emailVerificationService;
-    private readonly IIdentityLinkGenerator _linkGenerator;
-
     public EmailModel(
         IEmailVerificationService emailVerificationService,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext) :
+        base(emailVerificationService, linkGenerator, dbContext)
     {
-        _emailVerificationService = emailVerificationService;
-        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Email address", Description = "We’ll use this to send you a code to confirm your email address. Do not use a work or university email that you might lose access to.")]
@@ -35,24 +32,15 @@ public class EmailModel : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+        var validateEmailResult = await TryValidateEmail(Email!);
 
-        var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
-
-        if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+        if (!validateEmailResult.IsValid)
         {
-            if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
-            {
-                return new ViewResult()
-                {
-                    StatusCode = 429,
-                    ViewName = "TooManyRequests"
-                };
-            }
-
-            throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+            return validateEmailResult.Result!;
         }
 
-        return Redirect(_linkGenerator.RegisterEmailConfirmation());
+        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+
+        return Redirect(LinkGenerator.RegisterEmailConfirmation());
     }
 }

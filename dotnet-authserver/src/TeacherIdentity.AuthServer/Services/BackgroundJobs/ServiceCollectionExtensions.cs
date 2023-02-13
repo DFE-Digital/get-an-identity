@@ -24,15 +24,6 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IHostedService, RegisterRecurringJobsHostedService>();
         }
 
-        if (environment.IsProduction())
-        {
-            services.AddSingleton<IBackgroundJobScheduler, HangfireBackgroundJobScheduler>();
-        }
-        else
-        {
-            services.AddSingleton<IBackgroundJobScheduler, ExecuteImmediatelyJobScheduler>();
-        }
-
         return services;
     }
 }
