@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks
-public class ResendEmailConfirmationTests : TestBase, IAsyncLifetime
+public class ResendEmailConfirmationTests : TestBase
 {
     public ResendEmailConfirmationTests(HostFixture hostFixture)
         : base(hostFixture)
@@ -258,7 +258,7 @@ public class ResendEmailConfirmationTests : TestBase, IAsyncLifetime
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", $"{emailPrefix}@foo.com" }
+                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
             }
         };
 
@@ -274,7 +274,7 @@ public class ResendEmailConfirmationTests : TestBase, IAsyncLifetime
     {
         // Arrange
         var invalidPrefix = "headteacher";
-        var user = await TestData.CreateUser(email: $"{invalidPrefix}@foo.com");
+        var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -316,23 +316,5 @@ public class ResendEmailConfirmationTests : TestBase, IAsyncLifetime
 
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
-    }
-
-    public async Task InitializeAsync()
-    {
-        await ClearNonTestUsers();
-    }
-
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    private async Task ClearNonTestUsers()
-    {
-        await TestData.WithDbContext(async dbContext =>
-        {
-            await TestUsers.DeleteNonTestUsers(dbContext);
-        });
     }
 }

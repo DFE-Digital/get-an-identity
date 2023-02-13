@@ -10,6 +10,7 @@ public partial class TestData
     private readonly IClock _clock;
     private readonly Random _random = new();
     private readonly ConcurrentBag<string> _trns = new();
+    private readonly ConcurrentBag<string> _emails = new();
 
     public TestData(IServiceProvider serviceProvider)
     {
@@ -31,6 +32,22 @@ public partial class TestData
 
             return trn;
         }
+    }
+
+    public string GenerateUniqueEmail(string? prefix)
+    {
+        string email;
+
+        do
+        {
+            email = Faker.Internet.Email();
+            if (prefix is not null)
+            {
+                email = prefix + email.Substring(email.IndexOf("@", StringComparison.Ordinal));
+            }
+        } while (_emails.Contains(email));
+
+        return email;
     }
 
     public async Task<T> WithDbContext<T>(Func<TeacherIdentityServerDbContext, Task<T>> action)

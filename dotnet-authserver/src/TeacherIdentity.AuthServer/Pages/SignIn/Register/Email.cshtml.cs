@@ -32,7 +32,7 @@ public class EmailModel : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        var validateEmailResult = await TryValidateEmail(Email!);
+        var validateEmailResult = await ValidateEmail(Email!);
 
         if (!validateEmailResult.IsValid)
         {

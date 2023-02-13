@@ -93,7 +93,7 @@ public class EmailVerificationService : IEmailVerificationService
         var client = await _currentClientProvider.GetCurrentClient();
         var clientDisplayName = client?.DisplayName ?? "Get an identity to access Teacher Services";
 
-        var emailBody = EmailBodyTemplate(pin, (int)_pinLifetime.TotalMinutes, clientDisplayName);
+        var emailBody = GetEmailBody(pin, (int)_pinLifetime.TotalMinutes, clientDisplayName);
 
         try
         {
@@ -164,7 +164,7 @@ public class EmailVerificationService : IEmailVerificationService
     }
 
     private const string EmailSubject = "Confirm your email address";
-    private string EmailBodyTemplate(string pin, int minutes, string clientName) => $"Use this code to confirm your email address:\n\n" +
+    private string GetEmailBody(string pin, int minutes, string clientName) => $"Use this code to confirm your email address:\n\n" +
                     $"{pin}\n\n" +
                     $"The code will expire after {minutes} minutes.\n\n" +
                     $"This email address has been used for {clientName}.\n\n" +

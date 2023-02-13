@@ -22,7 +22,7 @@ public class BaseEmailPageModel : PageModel
         _dbContext = dbContext;
     }
 
-    public async Task<EmailValidationResult> TryValidateEmail(string email)
+    public async Task<EmailValidationResult> ValidateEmail(string email)
     {
         if (_invalidEmailPrefixes.Contains(email!.Split("@")[0]))
         {
@@ -37,7 +37,7 @@ public class BaseEmailPageModel : PageModel
         return await TryGeneratePinForEmail(email);
     }
 
-    public async Task<EmailValidationResult> TryGeneratePinForEmail(string email)
+    private async Task<EmailValidationResult> TryGeneratePinForEmail(string email)
     {
         var pinGenerationResult = await _emailVerificationService.GeneratePin(email);
 
