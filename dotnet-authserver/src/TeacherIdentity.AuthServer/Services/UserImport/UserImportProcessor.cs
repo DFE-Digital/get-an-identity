@@ -205,6 +205,7 @@ public class UserImportProcessor : IUserImportProcessor
         }
 
         userImportJob!.UserImportJobStatus = UserImportJobStatus.Processed;
+        userImportJob.Imported = _clock.UtcNow;
         await _dbContext.SaveChangesAsync();
 
         await _userImportStorageService.Archive(userImportJob.StoredFilename);
