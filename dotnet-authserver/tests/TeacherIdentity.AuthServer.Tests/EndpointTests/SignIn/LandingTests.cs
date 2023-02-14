@@ -1,6 +1,3 @@
-using Flurl;
-using TeacherIdentity.AuthServer.State;
-
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 public class LandingTests : TestBase
