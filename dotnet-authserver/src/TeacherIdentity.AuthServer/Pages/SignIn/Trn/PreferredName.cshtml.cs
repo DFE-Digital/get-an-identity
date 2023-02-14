@@ -27,10 +27,12 @@ public class PreferredName : PageModel
 
     [Display(Name = "Preferred first name")]
     [RequiredIfTrue(nameof(HasPreferredName), ErrorMessage = "Enter your preferred first name")]
+    [StringLength(200, ErrorMessage = "Preferred first name must be 200 characters or less")]
     public string? PreferredFirstName { get; set; }
 
     [Display(Name = "Preferred last name")]
     [RequiredIfTrue(nameof(HasPreferredName), ErrorMessage = "Enter your preferred last name")]
+    [StringLength(200, ErrorMessage = "Preferred last name must be 200 characters or less")]
     public string? PreferredLastName { get; set; }
 
     public void OnGet()

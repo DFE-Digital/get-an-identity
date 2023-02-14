@@ -183,6 +183,56 @@ public class OfficialNameTests : TestBase
     }
 
     [Fact]
+    public async Task Post_TooLongOfficialFirstName_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var firstName = String.Join("", Enumerable.Repeat("a", 201));
+        var lastName = "last";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "OfficialFirstName", firstName },
+                { "OfficialLastName", lastName },
+                { "HasPreviousName", AuthenticationState.HasPreviousNameOption.No },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "OfficialFirstName", "First name must be 200 characters or less");
+    }
+
+    [Fact]
+    public async Task Post_TooLongOfficialLastName_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var firstName = "last";
+        var lastName = String.Join("", Enumerable.Repeat("a", 201));
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "OfficialFirstName", firstName },
+                { "OfficialLastName", lastName },
+                { "HasPreviousName", AuthenticationState.HasPreviousNameOption.No },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "OfficialLastName", "Last name must be 200 characters or less");
+    }
+
+    [Fact]
     public async Task Post_ValidOfficialName_SetsOfficialNameOnAuthenticationStateRedirectsToPreferredName()
     {
         // Arrange

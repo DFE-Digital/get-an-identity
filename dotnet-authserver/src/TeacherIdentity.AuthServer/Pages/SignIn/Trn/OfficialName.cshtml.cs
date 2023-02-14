@@ -16,10 +16,12 @@ public class OfficialName : TrnLookupPageModel
 
     [Display(Name = "First name")]
     [Required(ErrorMessage = "Enter your first name")]
+    [StringLength(200, ErrorMessage = "First name must be 200 characters or less")]
     public string? OfficialFirstName { get; set; }
 
     [Display(Name = "Last name")]
     [Required(ErrorMessage = "Enter your last name")]
+    [StringLength(200, ErrorMessage = "Last name must be 200 characters or less")]
     public string? OfficialLastName { get; set; }
 
     [Display(Name = "Previous first name (optional)")]
