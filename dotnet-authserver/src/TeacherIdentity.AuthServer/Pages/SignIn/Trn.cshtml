@@ -4,7 +4,7 @@
     ViewBag.Title = (await Component.InvokeAsync("ClientScopedPartial", new { viewName = "_TrnLookup.StartBookend.{0}.Title" })).RenderToString();
 }
 
-<govuk-panel class="app-panel--interruption">
+<govuk-panel class="app-panel--interruption" data-testid="trn-panel-content">
     <govuk-panel-title>
         <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.{0}.Title" />
     </govuk-panel-title>
