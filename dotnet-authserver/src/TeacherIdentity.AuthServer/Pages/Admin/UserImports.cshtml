@@ -4,10 +4,27 @@
     ViewBag.Title = "User Imports";
 }
 
-<h1 class="govuk-heading-xl">@ViewBag.Title</h1>
-
-@*<table class="govuk-table">
-    <caption class="govuk-table__caption govuk-table__caption--xl">@ViewBag.Title</caption>    
-</table>*@
+<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--xl">@ViewBag.Title</caption>
+    <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">File</th>
+            <th scope="col" class="govuk-table__header">Uploaded</th>
+            <th scope="col" class="govuk-table__header">Status</th>
+            <th scope="col" class="govuk-table__header">Success / Total</th>
+        </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+        @foreach (var userImport in Model.UserImports!)
+        {
+            <tr class="govuk-table__row" data-testid="user-import-@userImport.UserImportJobId">
+                <td class="govuk-table__cell" data-testid="file-@userImport.UserImportJobId">@userImport.Filename</td>
+                <td class="govuk-table__cell" data-testid="uploaded-@userImport.UserImportJobId">@userImport.Uploaded</td>
+                <td class="govuk-table__cell" data-testid="status-@userImport.UserImportJobId">@userImport.Status</td>
+                <td class="govuk-table__cell" data-testid="summary-@userImport.UserImportJobId">@userImport.SuccessSummary</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 <p><a asp-page="AddUserImport">Import Users</a></p>
