@@ -187,7 +187,7 @@ public class OfficialNameTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
-        var firstName = String.Join("", Enumerable.Repeat("a", 201));
+        var firstName = new string('a', 201);
         var lastName = "last";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
@@ -213,7 +213,7 @@ public class OfficialNameTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
         var firstName = "last";
-        var lastName = String.Join("", Enumerable.Repeat("a", 201));
+        var lastName = new string('a', 201);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
         {
