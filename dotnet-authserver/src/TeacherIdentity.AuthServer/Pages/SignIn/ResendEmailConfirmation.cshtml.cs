@@ -1,23 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.EmailVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [BindProperties]
-public class ResendEmailConfirmationModel : PageModel
+[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
+public class ResendEmailConfirmationModel : BaseEmailPageModel
 {
-    private readonly IEmailVerificationService _emailVerificationService;
-    private readonly IIdentityLinkGenerator _linkGenerator;
-
     public ResendEmailConfirmationModel(
         IEmailVerificationService emailVerificationService,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext) :
+        base(emailVerificationService, linkGenerator, dbContext)
     {
-        _emailVerificationService = emailVerificationService;
-        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Email address")]
@@ -37,25 +35,16 @@ public class ResendEmailConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+        var validateEmailResult = await ValidateEmail(Email!);
 
-        var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!);
-
-        if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+        if (!validateEmailResult.IsValid)
         {
-            if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
-            {
-                return new ViewResult()
-                {
-                    StatusCode = 429,
-                    ViewName = "TooManyRequests"
-                };
-            }
-
-            throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+            return validateEmailResult.Result!;
         }
 
-        return Redirect(_linkGenerator.EmailConfirmation());
+        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+
+        return Redirect(LinkGenerator.EmailConfirmation());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -64,11 +53,11 @@ public class ResendEmailConfirmationModel : PageModel
 
         if (authenticationState.EmailAddress is null)
         {
-            context.Result = Redirect(_linkGenerator.Email());
+            context.Result = Redirect(LinkGenerator.Email());
         }
         else if (authenticationState.EmailAddressVerified)
         {
-            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = Redirect(authenticationState.GetNextHopUrl(LinkGenerator));
         }
     }
 }

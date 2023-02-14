@@ -152,7 +152,7 @@ public class EmailTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", $"{emailPrefix}@foo.com" }
+                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
             }
         };
 
@@ -168,7 +168,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidPrefix = "headteacher";
-        var user = await TestData.CreateUser(email: $"{invalidPrefix}@foo.com");
+        var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
@@ -184,6 +184,32 @@ public class EmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_NotificationServiceInvalidEmail_ReturnsError()
+    {
+        // Arrange
+        HostFixture.EmailSender
+            .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new Exception("ValidationError"));
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", email }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
     }
 
     [Theory]

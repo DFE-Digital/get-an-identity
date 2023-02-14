@@ -246,4 +246,75 @@ public class ResendEmailConfirmationTests : TestBase
 
         HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(differentEmail), Times.Once);
     }
+
+    [Theory]
+    [InlineData("admin")]
+    [InlineData("academy")]
+    public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address. It cannot be one that other people may get access to.");
+    }
+
+    [Fact]
+    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoNotReturnError()
+    {
+        // Arrange
+        var invalidPrefix = "headteacher";
+        var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", user.EmailAddress }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_NotificationServiceInvalidEmail_ReturnsError()
+    {
+        // Arrange
+        HostFixture.EmailSender
+            .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new Exception("ValidationError"));
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", email }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
+    }
 }

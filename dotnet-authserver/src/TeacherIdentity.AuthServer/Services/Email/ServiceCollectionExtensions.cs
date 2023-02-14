@@ -15,12 +15,6 @@ public static class ServiceCollectionExtensions
                 .ValidateOnStart();
 
             services.AddSingleton<IEmailSender, NotifyEmailSender>();
-
-            // Use Hangfire for scheduling emails in the background (so we get retries etc.).
-            // As the implementation needs to be able to resolve itself we need two service registrations here;
-            // one for the interface (that decorates the 'base' notify implementation) and another for the concrete type.
-            services.Decorate<IEmailSender, BackgroundEmailSender>();
-            services.AddSingleton<BackgroundEmailSender>(sp => (BackgroundEmailSender)sp.GetRequiredService<IEmailSender>());
         }
         else
         {
