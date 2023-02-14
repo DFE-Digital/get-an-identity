@@ -172,6 +172,56 @@ public class PreferredNameTests : TestBase
     }
 
     [Fact]
+    public async Task Post_TooLongPreferredFirstName_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var firstName = new string('a', 201);
+        var lastName = "last";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasPreferredName", true },
+                { "PreferredFirstName", firstName },
+                { "PreferredLastName", lastName },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "PreferredFirstName", "Preferred first name must be 200 characters or less");
+    }
+
+    [Fact]
+    public async Task Post_TooLongPreferredLastName_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var firstName = "last";
+        var lastName = new string('a', 201);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasPreferredName", true },
+                { "PreferredFirstName", firstName },
+                { "PreferredLastName", lastName },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "PreferredLastName", "Preferred last name must be 200 characters or less");
+    }
+
+    [Fact]
     public async Task Post_ValidForm_RedirectsToDateOfBirthPage()
     {
         // Arrange
