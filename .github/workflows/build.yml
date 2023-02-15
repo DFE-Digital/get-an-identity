@@ -139,7 +139,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auth server docker build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: dotnet-authserver/src/TeacherIdentity.AuthServer
           push: false
@@ -161,7 +161,7 @@ jobs:
         run: docker image push ${{ steps.image_tags.outputs.authserver }}
 
       - name: Test client docker build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: dotnet-authserver/src/TeacherIdentity.TestClient
           push: true
