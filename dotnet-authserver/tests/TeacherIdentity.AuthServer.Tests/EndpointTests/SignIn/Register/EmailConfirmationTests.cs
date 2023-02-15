@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -178,10 +178,10 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(email);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IEmailVerificationService>().Reset();
+        Spy.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -198,7 +198,7 @@ public class EmailConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Once);
     }
 
     [Fact]
@@ -207,11 +207,11 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
-        var pinResult = await emailVerificationService.GeneratePin(email);
-        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IEmailVerificationService>().Reset();
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
+        var pinResult = await userVerificationService.GenerateEmailPin(email);
+        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
+        Spy.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -228,7 +228,7 @@ public class EmailConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Never);
     }
 
     [Fact]
@@ -237,8 +237,8 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(email);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(email);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -265,8 +265,8 @@ public class EmailConfirmationTests : TestBase
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
         var email = Faker.Internet.Email();
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(email);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(email);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")

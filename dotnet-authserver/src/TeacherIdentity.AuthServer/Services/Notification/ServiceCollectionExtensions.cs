@@ -1,4 +1,4 @@
-namespace TeacherIdentity.AuthServer.Services.Email;
+namespace TeacherIdentity.AuthServer.Services.Notification;
 
 public static class ServiceCollectionExtensions
 {
@@ -14,11 +14,11 @@ public static class ServiceCollectionExtensions
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            services.AddSingleton<IEmailSender, NotifyEmailSender>();
+            services.AddSingleton<INotificationSender, NotificationSender>();
         }
         else
         {
-            services.AddSingleton<IEmailSender, NoopEmailSender>();
+            services.AddSingleton<INotificationSender, NoopNotificationSender>();
         }
 
         return services;

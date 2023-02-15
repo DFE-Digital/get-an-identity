@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TeacherIdentity.AuthServer.Services.Email;
+namespace TeacherIdentity.AuthServer.Services.Notification;
 
 public class NotifyOptions
 {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
@@ -13,9 +13,9 @@ public class CheckAnswers : TrnCreateUserPageModel
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         IZendeskApiWrapper zendeskApiWrapper)
-        : base(linkGenerator, dbContext, clock, emailVerificationService, zendeskApiWrapper)
+        : base(linkGenerator, dbContext, clock, userVerificationService, zendeskApiWrapper)
     {
     }
 

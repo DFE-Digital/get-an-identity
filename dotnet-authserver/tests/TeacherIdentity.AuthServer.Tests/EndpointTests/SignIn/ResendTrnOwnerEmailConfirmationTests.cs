@@ -112,6 +112,6 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal($"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingTrnOwner.EmailAddress), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(existingTrnOwner.EmailAddress), Times.Once);
     }
 }

@@ -1,21 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.TrnLookupCompleted)]
 public class ResendTrnOwnerEmailConfirmationModel : PageModel
 {
-    private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
     private readonly IIdentityLinkGenerator _linkGenerator;
 
     public ResendTrnOwnerEmailConfirmationModel(
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator)
     {
-        _emailVerificationService = emailVerificationService;
+        _userVerificationService = userVerificationService;
         _linkGenerator = linkGenerator;
     }
 
@@ -27,7 +27,7 @@ public class ResendTrnOwnerEmailConfirmationModel : PageModel
     {
         var email = HttpContext.GetAuthenticationState().TrnOwnerEmailAddress!;
 
-        var pinGenerationResult = await _emailVerificationService.GeneratePin(email!);
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(email!);
 
         if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
         {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -9,10 +9,10 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     private readonly IIdentityLinkGenerator _linkGenerator;
 
     public EmailConfirmationModel(
-        IEmailVerificationService emailConfirmationService,
+        IUserVerificationService userConfirmationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator)
-        : base(emailConfirmationService, pinValidator)
+        : base(userConfirmationService, pinValidator)
     {
         _linkGenerator = linkGenerator;
     }
@@ -35,7 +35,7 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var pinVerificationFailedReasons = await EmailVerificationService.VerifyPin(Email!, Code!);
+        var pinVerificationFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
 
         if (pinVerificationFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -44,6 +44,6 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 
         HttpContext.GetAuthenticationState().OnEmailVerified();
 
-        return Redirect(_linkGenerator.RegisterName());
+        return Redirect(_linkGenerator.RegisterPhone());
     }
 }

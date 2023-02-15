@@ -2,22 +2,22 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 public class BaseEmailPageModel : PageModel
 {
-    private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
     protected readonly IIdentityLinkGenerator LinkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public BaseEmailPageModel(
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext)
     {
-        _emailVerificationService = emailVerificationService;
+        _userVerificationService = userVerificationService;
         LinkGenerator = linkGenerator;
         _dbContext = dbContext;
     }
@@ -34,12 +34,12 @@ public class BaseEmailPageModel : PageModel
             }
         }
 
-        return await TryGeneratePinForEmail(email);
+        return await TryGenerateEmailPinForEmail(email);
     }
 
-    private async Task<EmailValidationResult> TryGeneratePinForEmail(string email)
+    private async Task<EmailValidationResult> TryGenerateEmailPinForEmail(string email)
     {
-        var pinGenerationResult = await _emailVerificationService.GeneratePin(email);
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(email);
 
         switch (pinGenerationResult.FailedReasons)
         {
@@ -53,7 +53,7 @@ public class BaseEmailPageModel : PageModel
                     ViewName = "TooManyRequests"
                 });
 
-            case PinGenerationFailedReasons.InvalidEmail:
+            case PinGenerationFailedReasons.InvalidAddress:
                 ModelState.AddModelError(nameof(email), "Enter a valid email address");
                 return EmailValidationResult.Failed(this.PageWithErrors());
 

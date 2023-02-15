@@ -129,7 +129,7 @@ public class ResendConfirmationTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal("/update-email/confirmation", new Url(response.Headers.Location?.OriginalString).Path);
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(newEmail), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(newEmail), Times.Once);
     }
 
     private static string UrlEncode(string value) => UrlEncoder.Default.Encode(value);

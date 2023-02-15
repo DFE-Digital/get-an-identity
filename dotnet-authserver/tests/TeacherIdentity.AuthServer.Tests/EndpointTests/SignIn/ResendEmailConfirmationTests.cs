@@ -244,7 +244,7 @@ public class ResendEmailConfirmationTests : TestBase
 
         Assert.Equal(differentEmail, authStateHelper.AuthenticationState.EmailAddress);
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(differentEmail), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(differentEmail), Times.Once);
     }
 
     [Theory]
@@ -296,7 +296,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_NotificationServiceInvalidEmail_ReturnsError()
     {
         // Arrange
-        HostFixture.EmailSender
+        HostFixture.NotificationSender
             .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new Exception("ValidationError"));
 

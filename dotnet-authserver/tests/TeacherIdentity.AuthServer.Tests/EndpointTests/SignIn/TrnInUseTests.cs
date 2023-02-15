@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
@@ -130,8 +130,8 @@ public class TrnInUseTests : TestBase
         // Arrange
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pin = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pin = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookup(trnLookupState, existingTrnOwner),
@@ -269,10 +269,10 @@ public class TrnInUseTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IEmailVerificationService>().Reset();
+        Spy.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
@@ -292,7 +292,7 @@ public class TrnInUseTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingTrnOwner.EmailAddress), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(existingTrnOwner.EmailAddress), Times.Once);
     }
 
     [Fact]
@@ -302,11 +302,11 @@ public class TrnInUseTests : TestBase
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
-        var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
-        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IEmailVerificationService>().Reset();
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
+        var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
+        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
+        Spy.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
@@ -326,7 +326,7 @@ public class TrnInUseTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingTrnOwner.EmailAddress), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(existingTrnOwner.EmailAddress), Times.Never);
     }
 
     [Fact]
@@ -335,8 +335,8 @@ public class TrnInUseTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(existingTrnOwner.EmailAddress);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
