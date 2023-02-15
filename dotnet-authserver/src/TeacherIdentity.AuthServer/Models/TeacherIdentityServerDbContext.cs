@@ -69,11 +69,11 @@ public class TeacherIdentityServerDbContext : DbContext
 
 #pragma warning disable CS0809
     [Obsolete($"Use {nameof(SaveChangesAsync)} instead.")]
-#pragma warning restore CS0809
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         throw new NotSupportedException($"Use {nameof(SaveChangesAsync)} instead.");
     }
+#pragma warning restore CS0809
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
