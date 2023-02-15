@@ -96,4 +96,42 @@ public class CompleteTests : TestBase
         var doc = await response.GetDocument();
         Assert.NotNull(doc.GetElementByTestId("known-user-content"));
     }
+
+    [Fact]
+    public async Task Get_FirstTimeSignInForEmailWithoutTrnUsingRegisterForNpqClient_RendersExpectedContent()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes: null, TestClients.RegisterForNpq);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Contains("Continue to register for an NPQ", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
+        Assert.Contains("Although we could not find your record, you can continue to register for an NPQ.", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
+    }
+
+    [Fact]
+    public async Task Get_FirstTimeSignInForEmailWithoutTrnUsingDefaultClient_RendersExpectedContent()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: false);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Act
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Contains("We’ve finished checking our records", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
+        Assert.Contains("You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
+    }
 }

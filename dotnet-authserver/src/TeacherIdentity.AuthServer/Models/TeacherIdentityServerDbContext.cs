@@ -67,11 +67,13 @@ public class TeacherIdentityServerDbContext : DbContext
         modelBuilder.Entity<Token>().ToTable("tokens");
     }
 
+#pragma warning disable CS0809
     [Obsolete($"Use {nameof(SaveChangesAsync)} instead.")]
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         throw new NotSupportedException($"Use {nameof(SaveChangesAsync)} instead.");
     }
+#pragma warning restore CS0809
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {

@@ -143,7 +143,7 @@ runs:
 
     - uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '7.0.103'
 
     - name: Smoke tests
       uses: ./.github/workflows/actions/test
