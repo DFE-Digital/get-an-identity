@@ -104,7 +104,6 @@ public sealed class AuthenticationStateHelper
                 return Task.CompletedTask;
             };
 
-
         public Func<AuthenticationState, Task> EmailVerified(string? email = null, User? user = null) =>
             async s =>
             {
@@ -117,10 +116,10 @@ public sealed class AuthenticationStateHelper
                 s.OnEmailVerified(user);
             };
 
-        public Func<AuthenticationState, Task> MobileNumberSet(string? email = null) =>
+        public Func<AuthenticationState, Task> MobileNumberSet(string? mobileNumber = null) =>
             s =>
             {
-                s.OnMobileNumberSet(email ?? Faker.Phone.Number());
+                s.OnMobileNumberSet(mobileNumber ?? Faker.Phone.Number());
                 return Task.CompletedTask;
             };
 

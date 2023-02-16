@@ -76,5 +76,5 @@ public abstract class BasePinVerificationPageModel : PageModel
         }
     }
 
-    public abstract Task<PinGenerationResult> GeneratePin();
+    protected abstract Task<PinGenerationResult> GeneratePin();
 }
