@@ -1,20 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
 public class ResendConfirmationModel : PageModel
 {
-    private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
     private readonly IIdentityLinkGenerator _linkGenerator;
 
     public ResendConfirmationModel(
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator)
     {
-        _emailVerificationService = emailVerificationService;
+        _userVerificationService = userVerificationService;
         _linkGenerator = linkGenerator;
     }
 
@@ -33,7 +33,7 @@ public class ResendConfirmationModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!.PlainValue);
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
 
         if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
         {

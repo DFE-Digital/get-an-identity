@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -9,10 +9,10 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 public class EmailModel : BaseEmailPageModel
 {
     public EmailModel(
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(emailVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, linkGenerator, dbContext)
     {
     }
 

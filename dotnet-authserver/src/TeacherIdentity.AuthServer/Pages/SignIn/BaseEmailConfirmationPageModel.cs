@@ -1,21 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 public abstract class BaseEmailConfirmationPageModel : PageModel
 {
     protected readonly PinValidator PinValidator;
-    protected readonly IEmailVerificationService EmailVerificationService;
+    protected readonly IUserVerificationService UserVerificationService;
 
     public BaseEmailConfirmationPageModel(
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         PinValidator pinValidator)
     {
         PinValidator = pinValidator;
-        EmailVerificationService = emailVerificationService;
+        UserVerificationService = userVerificationService;
     }
 
     public virtual string? Email => HttpContext.GetAuthenticationState().EmailAddress;
@@ -37,7 +37,7 @@ public abstract class BaseEmailConfirmationPageModel : PageModel
 
         if (pinVerificationFailedReasons.ShouldGenerateAnotherCode())
         {
-            var pinGenerationResult = await EmailVerificationService.GeneratePin(Email!);
+            var pinGenerationResult = await UserVerificationService.GenerateEmailPin(Email!);
 
             if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
             {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Authenticated.UpdateEmail;
 
@@ -67,8 +67,8 @@ public class ConfirmationTests : TestBase
         HostFixture.SetUserId(user.UserId);
 
         var newEmail = Faker.Internet.Email();
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(newEmail);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
 
         var returnUrl = "/_tests/empty";
@@ -224,11 +224,11 @@ public class ConfirmationTests : TestBase
         HostFixture.SetUserId(user.UserId);
 
         var newEmail = Faker.Internet.Email();
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(newEmail);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IEmailVerificationService>().Reset();
+        Spy.Get<IUserVerificationService>().Reset();
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
 
@@ -250,7 +250,7 @@ public class ConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(newEmail), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(newEmail), Times.Once);
     }
 
     [Fact]
@@ -261,12 +261,12 @@ public class ConfirmationTests : TestBase
         HostFixture.SetUserId(user.UserId);
 
         var newEmail = Faker.Internet.Email();
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var emailVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<EmailVerificationOptions>>();
-        var pinResult = await emailVerificationService.GeneratePin(newEmail);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
+        var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
-        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(emailVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IEmailVerificationService>().Reset();
+        Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
+        Spy.Get<IUserVerificationService>().Reset();
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
 
@@ -288,7 +288,7 @@ public class ConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(newEmail), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(newEmail), Times.Never);
     }
 
     [Fact]
@@ -299,8 +299,8 @@ public class ConfirmationTests : TestBase
         HostFixture.SetUserId(user.UserId);
 
         var newEmail = Faker.Internet.Email();
-        var emailVerificationService = HostFixture.Services.GetRequiredService<IEmailVerificationService>();
-        var pinResult = await emailVerificationService.GeneratePin(newEmail);
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
-namespace TeacherIdentity.AuthServer.Services.EmailVerification;
+namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
 public class RateLimitStore : IRateLimitStore
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
@@ -10,10 +10,10 @@ public class TrnInUseModel : BaseEmailConfirmationPageModel
     private readonly IIdentityLinkGenerator _linkGenerator;
 
     public TrnInUseModel(
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator)
-        : base(emailVerificationService, pinValidator)
+        : base(userVerificationService, pinValidator)
     {
         _linkGenerator = linkGenerator;
     }
@@ -34,11 +34,11 @@ public class TrnInUseModel : BaseEmailConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var verifyPinFailedReasons = await EmailVerificationService.VerifyPin(Email!, Code!);
+        var VerifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
 
-        if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
+        if (VerifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            return await HandlePinVerificationFailed(verifyPinFailedReasons);
+            return await HandlePinVerificationFailed(VerifyEmailPinFailedReasons);
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();

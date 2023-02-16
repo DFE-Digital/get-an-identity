@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TeacherIdentity.AuthServer.Services.EmailVerification;
+namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
 public class RateLimitStoreOptions
 {

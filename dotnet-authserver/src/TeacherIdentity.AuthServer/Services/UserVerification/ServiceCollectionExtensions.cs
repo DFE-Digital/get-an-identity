@@ -1,21 +1,21 @@
-namespace TeacherIdentity.AuthServer.Services.EmailVerification;
+namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddEmailVerification(
+    public static IServiceCollection AddUserVerification(
         this IServiceCollection services,
         IWebHostEnvironment environment,
         IConfiguration configuration)
     {
-        services.AddTransient<IEmailVerificationService, EmailVerificationService>();
+        services.AddTransient<IUserVerificationService, UserVerificationService>();
 
-        services.AddOptions<EmailVerificationOptions>()
-            .Bind(configuration.GetSection("EmailVerification"))
+        services.AddOptions<UserVerificationOptions>()
+            .Bind(configuration.GetSection("UserVerification"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddOptions<RateLimitStoreOptions>()
-            .Bind(configuration.GetSection("EmailVerificationRateLimit"))
+            .Bind(configuration.GetSection("UserVerificationRateLimit"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

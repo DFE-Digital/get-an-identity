@@ -190,7 +190,7 @@ public class EmailTests : TestBase
     public async Task Post_NotificationServiceInvalidEmail_ReturnsError()
     {
         // Arrange
-        HostFixture.EmailSender
+        HostFixture.NotificationSender
             .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new Exception("ValidationError"));
 
@@ -243,6 +243,6 @@ public class EmailTests : TestBase
 
         Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(email), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Once);
     }
 }

@@ -102,6 +102,11 @@ public class AuthenticationState
     public string? StatedTrn { get; private set; }
     [JsonInclude]
     public HasPreviousNameOption? HasPreviousName { get; private set; }
+    [JsonInclude]
+    public string? MobileNumber { get; private set; }
+    [JsonInclude]
+    public bool MobileNumberVerified { get; private set; }
+
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
     /// </summary>
@@ -544,6 +549,14 @@ public class AuthenticationState
 
         HasTrn = trn is not null;
         StatedTrn = trn;
+    }
+
+    public void OnMobileNumberSet(string mobileNumber)
+    {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
+        MobileNumber = mobileNumber;
+        MobileNumberVerified = false;
     }
 
     public void OnHaveResumedCompletedJourney()

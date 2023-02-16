@@ -37,6 +37,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<EmailConfirmationPin> EmailConfirmationPins => Set<EmailConfirmationPin>();
 
+    public DbSet<SmsConfirmationPin> SmsConfirmationPins => Set<SmsConfirmationPin>();
+
     public DbSet<Event> Events => Set<Event>();
 
     public DbSet<JourneyTrnLookupState> JourneyTrnLookupStates => Set<JourneyTrnLookupState>();

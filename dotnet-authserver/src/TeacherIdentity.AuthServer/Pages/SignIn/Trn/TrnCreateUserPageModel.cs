@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using ZendeskApi.Client.Models;
 
@@ -15,20 +15,20 @@ public class TrnCreateUserPageModel : PageModel
 
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
-    private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
 
     public TrnCreateUserPageModel(
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         IZendeskApiWrapper zendeskApiWrapper)
     {
         LinkGenerator = linkGenerator;
         _dbContext = dbContext;
         _clock = clock;
-        _emailVerificationService = emailVerificationService;
+        _userVerificationService = userVerificationService;
         _zendeskApiWrapper = zendeskApiWrapper;
     }
 
@@ -79,7 +79,7 @@ public class TrnCreateUserPageModel : PageModel
 
             authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
 
-            var pinGenerationResult = await _emailVerificationService.GeneratePin(existingUserEmail);
+            var pinGenerationResult = await _userVerificationService.GenerateEmailPin(existingUserEmail);
 
             if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
             {

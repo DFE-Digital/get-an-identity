@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
@@ -13,20 +13,20 @@ public class TrnCallbackModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
-    private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
     private readonly ILogger<TrnCallbackModel> _logger;
 
     public TrnCallbackModel(
         TeacherIdentityServerDbContext dbContext,
         IIdentityLinkGenerator linkGenerator,
         IClock clock,
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         ILogger<TrnCallbackModel> logger)
     {
         _dbContext = dbContext;
         _linkGenerator = linkGenerator;
         _clock = clock;
-        _emailVerificationService = emailVerificationService;
+        _userVerificationService = userVerificationService;
         _logger = logger;
     }
 
@@ -97,7 +97,7 @@ public class TrnCallbackModel : PageModel
 
             authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
 
-            var pinGenerationResult = await _emailVerificationService.GeneratePin(existingUserEmail);
+            var pinGenerationResult = await _userVerificationService.GenerateEmailPin(existingUserEmail);
 
             if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
             {

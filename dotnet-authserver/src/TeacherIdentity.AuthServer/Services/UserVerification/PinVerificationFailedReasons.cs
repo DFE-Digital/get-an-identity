@@ -1,4 +1,4 @@
-namespace TeacherIdentity.AuthServer.Services.EmailVerification;
+namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
 [Flags]
 public enum PinVerificationFailedReasons

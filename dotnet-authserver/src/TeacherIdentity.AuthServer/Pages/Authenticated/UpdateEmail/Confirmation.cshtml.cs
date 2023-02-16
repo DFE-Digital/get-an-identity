@@ -5,27 +5,27 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
 public class ConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IEmailVerificationService _emailVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
     private readonly PinValidator _pinValidator;
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public ConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
-        IEmailVerificationService emailVerificationService,
+        IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;
-        _emailVerificationService = emailVerificationService;
+        _userVerificationService = userVerificationService;
         _pinValidator = pinValidator;
         _linkGenerator = linkGenerator;
         _clock = clock;
@@ -58,11 +58,11 @@ public class ConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        var verifyPinFailedReasons = await _emailVerificationService.VerifyPin(Email!.PlainValue, Code!);
+        var VerifyEmailPinFailedReasons = await _userVerificationService.VerifyEmailPin(Email!.PlainValue, Code!);
 
-        if (verifyPinFailedReasons != PinVerificationFailedReasons.None)
+        if (VerifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            if (verifyPinFailedReasons == PinVerificationFailedReasons.RateLimitExceeded)
+            if (VerifyEmailPinFailedReasons == PinVerificationFailedReasons.RateLimitExceeded)
             {
                 return new ViewResult()
                 {
@@ -71,9 +71,9 @@ public class ConfirmationModel : PageModel
                 };
             }
 
-            if (verifyPinFailedReasons.ShouldGenerateAnotherCode())
+            if (VerifyEmailPinFailedReasons.ShouldGenerateAnotherCode())
             {
-                var pinGenerationResult = await _emailVerificationService.GeneratePin(Email!.PlainValue);
+                var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
 
                 if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
                 {

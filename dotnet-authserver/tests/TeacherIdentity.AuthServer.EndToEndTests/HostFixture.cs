@@ -9,7 +9,7 @@ using TeacherIdentity.AuthServer.EndToEndTests.Infrastructure;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -42,7 +42,7 @@ public class HostFixture : IAsyncLifetime
 
     public Mock<IDqtApiClient> DqtApiClient { get; } = new();
 
-    public IEmailVerificationService? EmailConfirmationService { get; private set; }
+    public IUserVerificationService? UserVerificationService { get; private set; }
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
@@ -132,8 +132,8 @@ public class HostFixture : IAsyncLifetime
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient.Object);
-                    services.Decorate<IEmailVerificationService>(inner =>
-                        new CapturePinsEmailVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
+                    services.Decorate<IUserVerificationService>(inner =>
+                        new CapturePinsUserVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
                 });
@@ -260,26 +260,35 @@ public class HostFixture : IAsyncLifetime
         }
     }
 
-    private class CapturePinsEmailVerificationServiceDecorator : IEmailVerificationService
+    private class CapturePinsUserVerificationServiceDecorator : IUserVerificationService
     {
         public delegate void CapturePin(string email, string pin);
 
-        private readonly IEmailVerificationService _inner;
+        private readonly IUserVerificationService _inner;
         private readonly CapturePin _capturePin;
 
-        public CapturePinsEmailVerificationServiceDecorator(IEmailVerificationService inner, CapturePin capturePin)
+        public CapturePinsUserVerificationServiceDecorator(IUserVerificationService inner, CapturePin capturePin)
         {
             _inner = inner;
             _capturePin = capturePin;
         }
 
-        public async Task<PinGenerationResult> GeneratePin(string email)
+        public async Task<PinGenerationResult> GenerateEmailPin(string email)
         {
-            var pinGenerationResult = await _inner.GeneratePin(email);
+            var pinGenerationResult = await _inner.GenerateEmailPin(email);
             _capturePin(email, pinGenerationResult.Pin!);
             return pinGenerationResult;
         }
 
-        public Task<PinVerificationFailedReasons> VerifyPin(string email, string pin) => _inner.VerifyPin(email, pin);
+        public Task<PinVerificationFailedReasons> VerifyEmailPin(string email, string pin) => _inner.VerifyEmailPin(email, pin);
+        public Task<PinGenerationResult> GenerateSmsPin(string mobileNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PinVerificationFailedReasons> VerifySmsPin(string mobileNumber, string pin)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

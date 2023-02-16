@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TeacherIdentity.AuthServer.Services.EmailVerification;
+namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
-public class EmailVerificationOptions
+public class UserVerificationOptions
 {
     [Required]
     public required int PinLifetimeSeconds { get; set; }

@@ -225,6 +225,6 @@ public class TrnCallbackTests : TestBase
             Assert.Null(user);
         });
 
-        HostFixture.EmailVerificationService.Verify(mock => mock.GeneratePin(existingUserWithTrn.EmailAddress));
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(existingUserWithTrn.EmailAddress));
     }
 }

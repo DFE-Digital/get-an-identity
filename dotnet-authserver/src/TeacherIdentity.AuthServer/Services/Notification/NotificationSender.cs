@@ -1,18 +1,19 @@
 using Microsoft.Extensions.Options;
 using Notify.Client;
 
-namespace TeacherIdentity.AuthServer.Services.Email;
+namespace TeacherIdentity.AuthServer.Services.Notification;
 
-public class NotifyEmailSender : IEmailSender
+public class NotificationSender : INotificationSender
 {
-    private const string TemplateId = "fa26cec0-bf41-42ee-b3ac-b600f6faf8af";
+    private const string EmailTemplateId = "fa26cec0-bf41-42ee-b3ac-b600f6faf8af";
+    private const string SmsTemplateId = "fb66d1f5-00e5-4889-8edb-eb849423e141";
 
     private readonly NotifyOptions _options;
     private readonly NotificationClient _notificationClient;
     private readonly NotificationClient? _noSendNotificationClient;
-    private readonly ILogger<NotifyEmailSender> _logger;
+    private readonly ILogger<NotificationSender> _logger;
 
-    public NotifyEmailSender(IOptions<NotifyOptions> notifyOptionsAccessor, ILogger<NotifyEmailSender> logger)
+    public NotificationSender(IOptions<NotifyOptions> notifyOptionsAccessor, ILogger<NotificationSender> logger)
     {
         _options = notifyOptionsAccessor.Value;
         _notificationClient = new NotificationClient(_options.ApiKey);
@@ -53,7 +54,7 @@ public class NotifyEmailSender : IEmailSender
         {
             await client.SendEmailAsync(
                 to,
-                TemplateId,
+                EmailTemplateId,
                 personalisation: new Dictionary<string, dynamic>()
                 {
                     { "subject", subject },
@@ -65,6 +66,30 @@ public class NotifyEmailSender : IEmailSender
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed sending {Subject} email to {Email}.", to);
+
+            throw;
+        }
+    }
+
+    public async Task SendSms(string to, string message)
+    {
+        NotificationClient client = _notificationClient;
+
+        try
+        {
+            await client.SendSmsAsync(
+                to,
+                SmsTemplateId,
+                personalisation: new Dictionary<string, dynamic>()
+                {
+                    { "message", message }
+                });
+
+            _logger.LogInformation("Successfully sent verification SMS to {MobileNumber}.", to);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed sending verification SMS to {MobileNumber}.", to);
 
             throw;
         }

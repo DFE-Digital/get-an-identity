@@ -11,9 +11,9 @@ using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
-using TeacherIdentity.AuthServer.Services.Email;
-using TeacherIdentity.AuthServer.Services.EmailVerification;
+using TeacherIdentity.AuthServer.Services.Notification;
 using TeacherIdentity.AuthServer.Services.UserImport;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -36,13 +36,13 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public Mock<IDqtApiClient> DqtApiClient { get; } = new Mock<IDqtApiClient>();
 
-    public Mock<IEmailSender> EmailSender { get; } = new Mock<IEmailSender>();
+    public Mock<INotificationSender> NotificationSender { get; } = new Mock<INotificationSender>();
 
     public Mock<IRateLimitStore> RateLimitStore { get; } = new Mock<IRateLimitStore>();
 
     public IRequestClientIpProvider RequestClientIpProvider => Services.GetRequiredService<IRequestClientIpProvider>();
 
-    public Spy<IEmailVerificationService> EmailVerificationService => Spy.Get<IEmailVerificationService>();
+    public Spy<IUserVerificationService> UserVerificationService => Spy.Get<IUserVerificationService>();
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
 
@@ -84,8 +84,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public void ResetMocks()
     {
         DqtApiClient.Reset();
-        EmailSender.Reset();
-        EmailVerificationService.Reset();
+        NotificationSender.Reset();
+        UserVerificationService.Reset();
         RateLimitStore.Reset();
         ZendeskApiWrapper.Reset();
         UserImportCsvStorageService.Reset();
@@ -145,10 +145,10 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IClock, TestClock>();
             services.AddSingleton<IEventObserver, CaptureEventObserver>();
             services.AddSingleton(DqtApiClient.Object);
-            services.AddSingleton(EmailSender.Object);
+            services.AddSingleton(NotificationSender.Object);
             services.AddSingleton(RateLimitStore.Object);
             services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
-            services.Decorate<IEmailVerificationService>(inner => Spy.Get<IEmailVerificationService>().Wrap(inner));
+            services.Decorate<IUserVerificationService>(inner => Spy.Get<IUserVerificationService>().Wrap(inner));
             services.AddSingleton(ZendeskApiWrapper.Object);
             services.AddSingleton(UserImportCsvStorageService.Object);
             services.AddSingleton(UserImportProcessor.Object);
