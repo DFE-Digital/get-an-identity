@@ -134,10 +134,10 @@ public class AuthenticationState
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
 
-    public static AuthenticationState FromInternalClaims(
+    public static AuthenticationState FromUser(
         Guid journeyId,
         UserRequirements userRequirements,
-        ClaimsPrincipal principal,
+        User? user,
         string postSignInUrl,
         DateTime startedAt,
         string? sessionId = null,
@@ -146,19 +146,19 @@ public class AuthenticationState
     {
         return new AuthenticationState(journeyId, userRequirements, postSignInUrl, startedAt, sessionId, oAuthState)
         {
-            UserId = principal.GetUserId(throwIfMissing: false),
+            UserId = user?.UserId,
             FirstTimeSignInForEmail = firstTimeSignInForEmail,
-            EmailAddress = principal.GetEmailAddress(throwIfMissing: false),
-            EmailAddressVerified = principal.GetEmailAddressVerified(throwIfMissing: false) ?? false,
-            FirstName = principal.GetFirstName(throwIfMissing: false),
-            LastName = principal.GetLastName(throwIfMissing: false),
-            DateOfBirth = principal.GetDateOfBirth(throwIfMissing: false),
-            Trn = principal.GetTrn(throwIfMissing: false),
-            HaveCompletedTrnLookup = principal.GetHaveCompletedTrnLookup(throwIfMissing: false) ?? false,
-            TrnLookup = principal.GetHaveCompletedTrnLookup(throwIfMissing: false) == true ? TrnLookupState.Complete : TrnLookupState.None,
-            UserType = principal.GetUserType(throwIfMissing: false),
-            StaffRoles = principal.GetStaffRoles(),
-            TrnLookupStatus = principal.GetTrnLookupStatus(throwIfMissing: false)
+            EmailAddress = user?.EmailAddress,
+            EmailAddressVerified = user is not null,
+            FirstName = user?.FirstName,
+            LastName = user?.LastName,
+            DateOfBirth = user?.DateOfBirth,
+            Trn = user?.Trn,
+            HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null,
+            TrnLookup = user?.CompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None,
+            UserType = user?.UserType,
+            StaffRoles = user?.StaffRoles,
+            TrnLookupStatus = user?.TrnLookupStatus
         };
     }
 

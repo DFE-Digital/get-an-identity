@@ -22,6 +22,7 @@ public class AuthorizationController : Controller
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly UserClaimHelper _userClaimHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public AuthorizationController(
@@ -29,12 +30,14 @@ public class AuthorizationController : Controller
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
         IIdentityLinkGenerator linkGenerator,
+        UserClaimHelper userClaimHelper,
         TeacherIdentityServerDbContext dbContext)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
         _linkGenerator = linkGenerator;
+        _userClaimHelper = userClaimHelper;
         _dbContext = dbContext;
     }
 
@@ -77,19 +80,19 @@ public class AuthorizationController : Controller
             }
 
             // If the user is signed in with an incompatible UserType then force the user to sign in again
-            var principal = authenticateResult.Principal ?? new ClaimsPrincipal();
-            var permittedUserTypes = userRequirements.GetPermittedUserTypes();
-            if (principal.GetUserType(throwIfMissing: false) is UserType userType && !permittedUserTypes.Contains(userType))
+            var signedInUserId = authenticateResult.Principal?.GetUserId();
+            var user = signedInUserId is not null ? await _dbContext.Users.SingleAsync(u => u.UserId == signedInUserId) : null;
+            if (user?.UserType is UserType userType && !userRequirements.GetPermittedUserTypes().Contains(userType))
             {
-                principal = new ClaimsPrincipal();
+                user = null;
             }
 
             var sessionId = request["session_id"]?.Value as string;
 
-            authenticationState = AuthenticationState.FromInternalClaims(
+            authenticationState = AuthenticationState.FromUser(
                 journeyId,
                 userRequirements,
-                principal,
+                user,
                 GetCallbackUrl(journeyId),
                 startedAt: DateTime.UtcNow,
                 sessionId,
@@ -155,6 +158,7 @@ public class AuthorizationController : Controller
         }
 
         var subject = cookiesPrincipal.FindFirst(Claims.Subject)!.Value;
+        var userId = cookiesPrincipal.GetUserId()!.Value;
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??
@@ -187,7 +191,7 @@ public class AuthorizationController : Controller
             case ConsentTypes.Implicit:
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
-                var claims = UserClaimHelper.GetPublicClaims(authenticationState, request.HasScope);
+                var claims = await _userClaimHelper.GetPublicClaims(userId, request.HasScope);
 
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
                 var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);

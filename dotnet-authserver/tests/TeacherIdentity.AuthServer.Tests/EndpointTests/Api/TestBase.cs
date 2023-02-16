@@ -35,14 +35,17 @@ public class TestBase
         return CreateHttpClientWithToken(scopes);
     }
 
-    public Task<HttpClient> CreateHttpClientWithToken(params string[] scopes)
+    public async Task<HttpClient> CreateHttpClientWithToken(params string[] scopes)
     {
-        var user = TestUsers.AdminUserWithAllRoles;
+        using var scope = HostFixture.Services.CreateScope();
+        var userClaimHelper = scope.ServiceProvider.GetRequiredService<UserClaimHelper>();
+
+        var userId = TestUsers.AdminUserWithAllRoles.UserId;
         var client = TestClients.Client1;
 
         var allScopes = new[] { "email", "profile", "openid" }.Concat(scopes).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var claims = UserClaimHelper.GetPublicClaims(user, hasScope: allScopes.Contains)
+        var claims = (await userClaimHelper.GetPublicClaims(userId, hasScope: allScopes.Contains))
             .Append(new Claim("client_id", client.ClientId!))
             .Append(new Claim(Claims.Issuer, new Uri(HostFixture.Configuration["BaseAddress"]!).AbsoluteUri))
             .Append(new Claim(Claims.Scope, string.Join(" ", allScopes)));
@@ -62,7 +65,7 @@ public class TestBase
         var httpClient = HostFixture.CreateClient();
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
-        return Task.FromResult(httpClient);
+        return httpClient;
     }
 
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();

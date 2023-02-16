@@ -450,7 +450,8 @@ public class Program
             .AddSingleton<ProtectedStringFactory>()
             .AddTransient<ClientScopedViewHelper>()
             .AddTransient<IActionContextAccessor, ActionContextAccessor>()
-            .AddTransient<TrnLookupHelper>();
+            .AddTransient<TrnLookupHelper>()
+            .AddTransient<UserClaimHelper>();
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 
