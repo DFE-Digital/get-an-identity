@@ -127,7 +127,7 @@ public class UserImportProcessor : IUserImportProcessor
                 UserImportJobId = userImportJobId,
                 RowNumber = rowNumber,
                 Id = id,
-                RawData = csv.Parser.RawRecord
+                RawData = csv.Parser.RawRecord.TrimEnd('\r', '\n')
             };
 
             if (errors.Count > 0)

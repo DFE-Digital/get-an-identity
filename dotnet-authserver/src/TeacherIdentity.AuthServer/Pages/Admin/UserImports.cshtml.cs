@@ -40,6 +40,5 @@ public class UserImportsModel : PageModel
         public required string Uploaded { get; init; }
         public required string Status { get; init; }
         public required string SuccessSummary { get; init; }
-
     }
 }
