@@ -1,7 +1,7 @@
 @page "/admin/user-imports"
 @model TeacherIdentity.AuthServer.Pages.Admin.UserImportsModel
 @{
-    ViewBag.Title = "User Imports";
+    ViewBag.Title = "User imports";
 }
 
 <table class="govuk-table">
@@ -18,7 +18,7 @@
         @foreach (var userImport in Model.UserImports!)
         {
             <tr class="govuk-table__row" data-testid="user-import-@userImport.UserImportJobId">
-                <td class="govuk-table__cell" data-testid="file-@userImport.UserImportJobId">@userImport.Filename</td>
+                <td class="govuk-table__cell" data-testid="file-@userImport.UserImportJobId"><a asp-page="UserImport" asp-route-userImportJobId="@userImport.UserImportJobId">@userImport.Filename</a></td>
                 <td class="govuk-table__cell" data-testid="uploaded-@userImport.UserImportJobId">@userImport.Uploaded</td>
                 <td class="govuk-table__cell" data-testid="status-@userImport.UserImportJobId">@userImport.Status</td>
                 <td class="govuk-table__cell" data-testid="summary-@userImport.UserImportJobId">@userImport.SuccessSummary</td>
@@ -27,4 +27,4 @@
     </tbody>
 </table>
 
-<p><a asp-page="AddUserImport">Import Users</a></p>
+<p><a asp-page="AddUserImport">Import users</a></p>
