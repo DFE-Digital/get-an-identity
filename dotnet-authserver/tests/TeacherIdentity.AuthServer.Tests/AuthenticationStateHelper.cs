@@ -104,6 +104,7 @@ public sealed class AuthenticationStateHelper
                 return Task.CompletedTask;
             };
 
+
         public Func<AuthenticationState, Task> EmailVerified(string? email = null, User? user = null) =>
             async s =>
             {
@@ -114,6 +115,13 @@ public sealed class AuthenticationStateHelper
 
                 await EmailSet(email ?? user?.EmailAddress)(s);
                 s.OnEmailVerified(user);
+            };
+
+        public Func<AuthenticationState, Task> MobileNumberSet(string? email = null) =>
+            s =>
+            {
+                s.OnMobileNumberSet(email ?? Faker.Phone.Number());
+                return Task.CompletedTask;
             };
 
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(

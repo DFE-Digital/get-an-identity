@@ -114,6 +114,7 @@ public class AuthenticationState
     public bool HaveResumedCompletedJourney { get; private set; }
 
     public bool EmailAddressSet => EmailAddress is not null;
+    public bool MobileNumberSet => MobileNumber is not null;
     public bool HasTrnSet => HasTrn.HasValue;
     public bool PreferredNameSet => HasPreferredName.HasValue;
     public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
@@ -324,6 +325,16 @@ public class AuthenticationState
                 TrnLookup = TrnLookupState.Complete;
             }
         }
+    }
+
+    public void OnMobileNumberVerified(User? user = null)
+    {
+        if (MobileNumber is null)
+        {
+            throw new InvalidOperationException($"{nameof(MobileNumber)} is not known.");
+        }
+
+        MobileNumberVerified = true;
     }
 
     public void OnTrnLookupCompletedForTrnAlreadyInUse(string existingTrnOwnerEmail)
@@ -553,8 +564,6 @@ public class AuthenticationState
 
     public void OnMobileNumberSet(string mobileNumber)
     {
-        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
-
         MobileNumber = mobileNumber;
         MobileNumberVerified = false;
     }

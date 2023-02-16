@@ -5,19 +5,19 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-public abstract class BaseEmailConfirmationPageModel : BasePinVerificationPageModel
+public abstract class BasePhoneConfirmationPageModel : BasePinVerificationPageModel
 {
-    protected BaseEmailConfirmationPageModel(
+    protected BasePhoneConfirmationPageModel(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator)
         : base(userVerificationService, pinValidator)
     {
     }
 
-    public virtual string? Email => HttpContext.GetAuthenticationState().EmailAddress;
+    public virtual string? MobileNumber => HttpContext.GetAuthenticationState().MobileNumber;
 
     public override Task<PinGenerationResult> GeneratePin()
     {
-        return UserVerificationService.GenerateEmailPin(Email!);
+        return UserVerificationService.GenerateSmsPin(MobileNumber!);
     }
 }
