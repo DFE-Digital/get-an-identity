@@ -7,7 +7,9 @@ public class UserMapping : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("users");
+        builder.ToTable(
+            "users",
+            t => t.HasCheckConstraint("ck_trn_lookup_status", "(completed_trn_lookup is null and trn is null) or trn_lookup_status is not null"));
         builder.HasKey(u => u.UserId);
         builder.Property(u => u.EmailAddress).HasMaxLength(User.EmailAddressMaxLength).IsRequired().UseCollation("case_insensitive");
         builder.HasIndex(u => u.EmailAddress).IsUnique().HasDatabaseName(User.EmailAddressUniqueIndexName).HasFilter("is_deleted = false");

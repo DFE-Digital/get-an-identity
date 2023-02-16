@@ -119,12 +119,10 @@ public class TrnCallbackTests : TestBase
     }
 
     [Theory]
-    [InlineData(true, false, TrnLookupStatus.Found)]
-    [InlineData(false, false, TrnLookupStatus.None)]
-    [InlineData(false, true, TrnLookupStatus.Pending)]
+    [InlineData(true, TrnLookupStatus.Found)]
+    [InlineData(false, TrnLookupStatus.Pending)]
     public async Task Get_ValidCallback_CreatesUserLocksLookupStateAndRedirectsToNextPage(
         bool hasTrn,
-        bool supportTicketCreated,
         TrnLookupStatus expectedTrnLookupStatus)
     {
         // Arrange
@@ -135,7 +133,7 @@ public class TrnCallbackTests : TestBase
         var trn = hasTrn ? TestData.GenerateTrn() : null;
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName, supportTicketCreated),
+            c => c.TrnLookupCallbackCompleted(email, trn, dateOfBirth, firstName, lastName),
             CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/callback?{authStateHelper.ToQueryParam()}");
