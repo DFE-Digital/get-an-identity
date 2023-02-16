@@ -49,8 +49,8 @@ public class UserImportModel : PageModel
         Uploaded = userImportJob.Uploaded.ToString("dd/MM/yyyy HH:mm");
         Status = userImportJob.UserImportJobStatus.ToString();
 
-        var userImportJobRows = await _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == UserImportJobId).ToListAsync();
-        if (userImportJobRows is not null)
+        List<UserImportJobRow> userImportJobRows = await _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == UserImportJobId).ToListAsync();
+        if (userImportJobRows.Count > 0)
         {
             SuccessSummary = $"{userImportJobRows.Count(r => r.UserId != null)} / {userImportJobRows.Count()}";
             UserImportRows = userImportJobRows.Select(r => new UserImportJobRowInfo
@@ -74,8 +74,8 @@ public class UserImportModel : PageModel
     {
         using var stream = new MemoryStream();
 
-        var userImportJobRows = await _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == UserImportJobId).ToListAsync();
-        if (userImportJobRows is not null)
+        List<UserImportJobRow> userImportJobRows = await _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == UserImportJobId).ToListAsync();
+        if (userImportJobRows.Count > 0)
         {
             var data = userImportJobRows.Select(
                 r => new
