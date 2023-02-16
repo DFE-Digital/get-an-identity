@@ -42,7 +42,7 @@ public class HostFixture : IAsyncLifetime
 
     public Mock<IDqtApiClient> DqtApiClient { get; } = new();
 
-    public IUserVerificationService? UserConfirmationService { get; private set; }
+    public IUserVerificationService? UserVerificationService { get; private set; }
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 

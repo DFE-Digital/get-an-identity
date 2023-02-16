@@ -37,11 +37,11 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var VerifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
+        var verifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
 
-        if (VerifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
+        if (verifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            return await HandlePinVerificationFailed(VerifyEmailPinFailedReasons);
+            return await HandlePinVerificationFailed(verifyEmailPinFailedReasons);
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();

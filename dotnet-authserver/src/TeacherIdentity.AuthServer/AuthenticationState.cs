@@ -102,7 +102,9 @@ public class AuthenticationState
     public string? StatedTrn { get; private set; }
     [JsonInclude]
     public HasPreviousNameOption? HasPreviousName { get; private set; }
+    [JsonInclude]
     public string? MobileNumber { get; private set; }
+    [JsonInclude]
     public bool MobileNumberVerified { get; private set; }
 
     /// <summary>
