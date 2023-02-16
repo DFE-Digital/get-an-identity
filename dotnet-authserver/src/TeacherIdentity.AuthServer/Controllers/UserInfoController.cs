@@ -1,31 +1,29 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using TeacherIdentity.AuthServer.Models;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Controllers;
 
 public class UserInfoController : Controller
 {
-    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly UserClaimHelper _userClaimHelper;
 
-    public UserInfoController(TeacherIdentityServerDbContext dbContext)
+    public UserInfoController(UserClaimHelper userClaimHelper)
     {
-        _dbContext = dbContext;
+        _userClaimHelper = userClaimHelper;
     }
 
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet("~/connect/userinfo"), HttpPost("~/connect/userinfo"), Produces("application/json")]
     public async Task<IActionResult> UserInfo()
     {
-        var userId = Guid.Parse(User.FindFirst(Claims.Subject)!.Value);
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == userId);
+        var userId = User.GetUserId()!.Value;
+        var claims = await _userClaimHelper.GetPublicClaims(userId, User.HasScope);
 
-        if (user is null)
+        if (claims.Count == 0)
         {
             return Challenge(
                 authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
@@ -37,7 +35,6 @@ public class UserInfoController : Controller
                 }));
         }
 
-        var claims = UserClaimHelper.GetPublicClaims(user, User.HasScope);
         var response = claims.ToDictionary(c => c.Type, c => (object)c.Value, StringComparer.Ordinal);
         return Ok(response);
     }

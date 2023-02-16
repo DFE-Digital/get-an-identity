@@ -44,6 +44,7 @@ public class Program
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
 
+                options.GetClaimsFromUserInfoEndpoint = true;
                 options.SaveTokens = true;
 
                 // Log the access token to the console for debugging

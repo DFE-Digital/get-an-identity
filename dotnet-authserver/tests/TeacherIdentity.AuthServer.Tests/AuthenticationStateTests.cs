@@ -9,129 +9,108 @@ namespace TeacherIdentity.AuthServer.Tests;
 public partial class AuthenticationStateTests
 {
     [Fact]
-    public void FromInternalClaims_DefaultUser()
+    public void FromUser_DefaultUser_MapsDataOnCorrectly()
     {
         // Arrange
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var email = Faker.Internet.Email();
-        var emailVerified = true;
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var firstTimeSignInForEmail = true;
-        var haveCompletedTrnLookup = true;
-        var trn = "2345678";
-        var userId = Guid.NewGuid();
-        var userType = UserType.Default;
-
-        var claims = new[]
+        var user = new User()
         {
-            new Claim(Claims.Subject, userId.ToString()!),
-            new Claim(Claims.Email, email),
-            new Claim(Claims.EmailVerified, emailVerified.ToString()),
-            new Claim(Claims.Name, firstName + " " + lastName),
-            new Claim(Claims.GivenName, firstName),
-            new Claim(Claims.FamilyName, lastName),
-            new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
-            new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString()),
-            new Claim(CustomClaims.Trn, trn),
-            new Claim(CustomClaims.UserType, userType.ToString()),
-            new Claim(CustomClaims.TrnLookupStatus, TrnLookupStatus.Found.ToString())
+            CompletedTrnLookup = new(2023, 2, 16, 18, 44, 17),
+            Created = DateTime.UtcNow,
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            EmailAddress = Faker.Internet.Email(),
+            FirstName = Faker.Name.First(),
+            LastName = Faker.Name.Last(),
+            Trn = "2345678",
+            TrnAssociationSource = TrnAssociationSource.Lookup,
+            TrnLookupStatus = TrnLookupStatus.Found,
+            Updated = DateTime.UtcNow,
+            UserId = Guid.NewGuid(),
+            UserType = UserType.Default
         };
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        var firstTimeSignInForEmail = true;
 
         var journeyId = Guid.NewGuid();
         var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         // Act
-        var authenticationState = AuthenticationState.FromInternalClaims(
+        var authenticationState = AuthenticationState.FromUser(
             journeyId,
             userRequirements,
-            principal,
+            user,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
             oAuthState: null,
             firstTimeSignInForEmail: firstTimeSignInForEmail);
 
         // Assert
-        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
-        Assert.Equal(email, authenticationState.EmailAddress);
-        Assert.Equal(emailVerified, authenticationState.EmailAddressVerified);
-        Assert.Equal(firstName, authenticationState.FirstName);
-        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(user.EmailAddress, authenticationState.EmailAddress);
+        Assert.True(authenticationState.EmailAddressVerified);
+        Assert.Equal(user.FirstName, authenticationState.FirstName);
+        Assert.Equal(user.LastName, authenticationState.LastName);
         Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
-        Assert.Equal(haveCompletedTrnLookup, authenticationState.HaveCompletedTrnLookup);
-        Assert.Equal(trn, authenticationState.Trn);
-        Assert.Equal(userId, authenticationState.UserId);
+        Assert.True(authenticationState.HaveCompletedTrnLookup);
+        Assert.Equal(user.Trn, authenticationState.Trn);
+        Assert.Equal(user.UserId, authenticationState.UserId);
         Assert.Equal(AuthenticationState.TrnLookupState.Complete, authenticationState.TrnLookup);
-        Assert.Equal(userType, authenticationState.UserType);
+        Assert.Equal(user.UserType, authenticationState.UserType);
         Assert.Equal(TrnLookupStatus.Found, authenticationState.TrnLookupStatus);
     }
 
     [Fact]
-    public void FromInternalClaims_StaffUser()
+    public void FromUser_StaffUser_MapsDataOnCorrectly()
     {
         // Arrange
-        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var email = Faker.Internet.Email();
-        var emailVerified = true;
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var firstTimeSignInForEmail = true;
-        var userId = Guid.NewGuid();
-        var userType = UserType.Staff;
-        var staffRoles = new[] { StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport };
-
-        var claims = new[]
+        var user = new User()
         {
-            new Claim(Claims.Subject, userId.ToString()!),
-            new Claim(Claims.Email, email),
-            new Claim(Claims.EmailVerified, emailVerified.ToString()),
-            new Claim(Claims.Name, firstName + " " + lastName),
-            new Claim(Claims.GivenName, firstName),
-            new Claim(Claims.FamilyName, lastName),
-            new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
-            new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
-            new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
-            new Claim(CustomClaims.UserType, userType.ToString())
+            CompletedTrnLookup = new(2023, 2, 16, 18, 44, 17),
+            Created = DateTime.UtcNow,
+            EmailAddress = Faker.Internet.Email(),
+            FirstName = Faker.Name.First(),
+            LastName = Faker.Name.Last(),
+            StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport },
+            Updated = DateTime.UtcNow,
+            UserId = Guid.NewGuid(),
+            UserType = UserType.Default
         };
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        var firstTimeSignInForEmail = true;
 
         var journeyId = Guid.NewGuid();
         var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         // Act
-        var authenticationState = AuthenticationState.FromInternalClaims(
+        var authenticationState = AuthenticationState.FromUser(
             journeyId,
             userRequirements,
-            principal,
+            user,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
             oAuthState: null,
             firstTimeSignInForEmail: firstTimeSignInForEmail);
 
         // Assert
-        Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
-        Assert.Equal(email, authenticationState.EmailAddress);
-        Assert.Equal(emailVerified, authenticationState.EmailAddressVerified);
-        Assert.Equal(firstName, authenticationState.FirstName);
-        Assert.Equal(lastName, authenticationState.LastName);
+        Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
+        Assert.Equal(user.EmailAddress, authenticationState.EmailAddress);
+        Assert.True(authenticationState.EmailAddressVerified);
+        Assert.Equal(user.FirstName, authenticationState.FirstName);
+        Assert.Equal(user.LastName, authenticationState.LastName);
         Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
-        Assert.Equal(staffRoles, authenticationState.StaffRoles);
-        Assert.Equal(userId, authenticationState.UserId);
-        Assert.Equal(userType, authenticationState.UserType);
+        Assert.Equal(user.StaffRoles, authenticationState.StaffRoles);
+        Assert.Equal(user.UserId, authenticationState.UserId);
+        Assert.Equal(user.UserType, authenticationState.UserType);
         Assert.Null(authenticationState.TrnLookupStatus);
     }
 
     [Fact]
-    public void GetInternalClaims_DefaultUser()
+    public void GetInternalClaims_DefaultUser_ReturnsExpectedClaims()
     {
         // Arrange
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
-        var emailVerified = true;
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
-        var haveCompletedTrnLookup = true;
         var trn = "2345678";
         var userId = Guid.NewGuid();
         var userType = UserType.Default;
@@ -172,26 +151,21 @@ public partial class AuthenticationStateTests
         {
             new Claim(Claims.Subject, userId.ToString()!),
             new Claim(Claims.Email, email),
-            new Claim(Claims.EmailVerified, emailVerified.ToString()),
             new Claim(Claims.Name, firstName + " " + lastName),
             new Claim(Claims.GivenName, firstName),
             new Claim(Claims.FamilyName, lastName),
-            new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
-            new Claim(CustomClaims.HaveCompletedTrnLookup, haveCompletedTrnLookup.ToString()),
             new Claim(CustomClaims.Trn, trn),
-            new Claim(CustomClaims.UserType, userType.ToString()),
-            new Claim(CustomClaims.TrnLookupStatus, trnLookupStatus.ToString())
+            new Claim(CustomClaims.UserType, userType.ToString())
         };
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), claims.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
     }
 
     [Fact]
-    public void GetInternalClaims_StaffUser()
+    public void GetInternalClaims_StaffUser_ReturnsExpectedClaims()
     {
         // Arrange
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
-        var emailVerified = true;
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
         var userId = Guid.NewGuid();
@@ -231,14 +205,11 @@ public partial class AuthenticationStateTests
         {
             new Claim(Claims.Subject, userId.ToString()!),
             new Claim(Claims.Email, email),
-            new Claim(Claims.EmailVerified, emailVerified.ToString()),
             new Claim(Claims.Name, firstName + " " + lastName),
             new Claim(Claims.GivenName, firstName),
             new Claim(Claims.FamilyName, lastName),
-            new Claim(Claims.Birthdate, dateOfBirth.ToString("yyyy-MM-dd")),
             new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
             new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
-            new Claim(CustomClaims.HaveCompletedTrnLookup, bool.FalseString),
             new Claim(CustomClaims.UserType, userType.ToString())
         };
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), claims.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
@@ -871,14 +842,14 @@ public partial class AuthenticationStateTests
 
                 // User requesting authorization with admin scopes or trn scope
                 {
-                    S(AuthenticationState.FromInternalClaims(journeyId, UserRequirements.DefaultUserType, new ClaimsPrincipal(), postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "user:read", null))),
+                    S(AuthenticationState.FromUser(journeyId, UserRequirements.DefaultUserType, user: null, postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "user:read", null))),
                     $"/sign-in/email?asid={journeyId}",
                     AuthenticationState.AuthenticationMilestone.None
                 },
 
                 // User requesting authorization without admin scopes or trn scope
                 {
-                    S(AuthenticationState.FromInternalClaims(journeyId, UserRequirements.DefaultUserType, new ClaimsPrincipal(), postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "foo", null))),
+                    S(AuthenticationState.FromUser(journeyId, UserRequirements.DefaultUserType, user: null, postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "foo", null))),
                     $"/sign-in/landing?asid={journeyId}",
                     AuthenticationState.AuthenticationMilestone.None
                 },
