@@ -116,11 +116,11 @@ public sealed class AuthenticationStateHelper
                 s.OnEmailVerified(user);
             };
 
-        public Func<AuthenticationState, Task> MobileNumberSet(string? mobileNumber = null) =>
-            s =>
+        public Func<AuthenticationState, Task> MobileNumberSet(string? email, string? mobileNumber = null) =>
+            async s =>
             {
+                await EmailVerified(email)(s);
                 s.OnMobileNumberSet(mobileNumber ?? Faker.Phone.Number());
-                return Task.CompletedTask;
             };
 
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(
