@@ -1,0 +1,28 @@
+@page "/sign-in/register/name"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.Name
+@{
+    ViewBag.Title = "Your name";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterPhoneConfirmation()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterName()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <govuk-input asp-for="FirstName" spellcheck="false" autocomplete="given-name">
+                <govuk-input-label class="govuk-label--s" />
+            </govuk-input>
+
+            <govuk-input asp-for="LastName" spellcheck="false" autocomplete="family-name">
+                <govuk-input-label class="govuk-label--s"/>
+            </govuk-input>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+
