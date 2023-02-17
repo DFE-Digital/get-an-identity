@@ -1,8 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 using static TeacherIdentity.AuthServer.AuthenticationState;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
