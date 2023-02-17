@@ -57,6 +57,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\lib\nicknames\names.csv" Link="names.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="wwwroot\Scripts\Components\accessible-autocomplete.min.js" />
   </ItemGroup>
 

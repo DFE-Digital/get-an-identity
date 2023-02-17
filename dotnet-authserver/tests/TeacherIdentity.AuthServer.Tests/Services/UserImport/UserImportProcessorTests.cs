@@ -267,6 +267,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
         // Arrange
         using var dbContext = _dbFixture.GetDbContext();
         var userImportStorageService = new Mock<IUserImportStorageService>();
+        var userSearchService = new Mock<IUserSearchService>();
         var clock = new TestClock();
         var logger = new Mock<ILogger<UserImportProcessor>>();
         var userImportJobId = Guid.NewGuid();
@@ -304,11 +305,14 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
 
         userImportStorageService.Setup(s => s.OpenReadStream(storedFilename))
             .ReturnsAsync(csvStream);
+        userSearchService.Setup(s => s.FindUsers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<bool>()))
+            .ReturnsAsync(new User[] { });
 
         // Act
         var userImportProcessor = new UserImportProcessor(
             dbContext,
             userImportStorageService.Object,
+            userSearchService.Object,
             clock,
             logger.Object);
         await userImportProcessor.Process(userImportJobId);
