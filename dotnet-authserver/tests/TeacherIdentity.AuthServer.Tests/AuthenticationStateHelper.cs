@@ -116,7 +116,7 @@ public sealed class AuthenticationStateHelper
                 s.OnEmailVerified(user);
             };
 
-        public Func<AuthenticationState, Task> MobileNumberSet(string? email, string? mobileNumber = null) =>
+        public Func<AuthenticationState, Task> MobileNumberSet(string? email = null, string? mobileNumber = null) =>
             async s =>
             {
                 await EmailVerified(email)(s);
