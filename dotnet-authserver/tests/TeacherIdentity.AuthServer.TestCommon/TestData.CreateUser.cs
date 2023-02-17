@@ -46,7 +46,7 @@ public partial class TestData
                 throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
             }
 
-            var normalisedMobileNumber = Regex.Replace(Faker.Phone.Number(), @"(?<!^)[^\d]", "");
+            var normalisedMobileNumber = Regex.Replace(Faker.Phone.Number(), @"^[^\d\+]|(?<=.)[^\d]", "");
 
             var user = new User()
             {
