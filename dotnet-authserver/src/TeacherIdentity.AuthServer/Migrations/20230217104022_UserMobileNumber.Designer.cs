@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -12,9 +13,11 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230217104022_UserMobileNumber")]
+    partial class UserMobileNumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -582,10 +585,7 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasDatabaseName("ix_users_trn")
                         .HasFilter("is_deleted = false and trn is not null");
 
-                    b.ToTable("users", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_trn_lookup_status", "(completed_trn_lookup is null and trn is null) or trn_lookup_status is not null");
-                        });
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.UserImportJob", b =>

@@ -310,20 +310,7 @@ public class AuthenticationState
                 throw new InvalidOperationException($"Journey does not allow {user.UserType} users.");
             }
 
-            UserId = user.UserId;
-            FirstName = user.FirstName;
-            LastName = user.LastName;
-            DateOfBirth = user.DateOfBirth;
-            HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
-            Trn = user.Trn;
-            UserType = user.UserType;
-            StaffRoles = user.StaffRoles;
-            TrnLookupStatus = user.TrnLookupStatus;
-
-            if (HaveCompletedTrnLookup || Trn is not null)
-            {
-                TrnLookup = TrnLookupState.Complete;
-            }
+            UpdateAuthenticationStateWithUserDetails(user);
         }
     }
 
@@ -335,6 +322,11 @@ public class AuthenticationState
         }
 
         MobileNumberVerified = true;
+
+        if (user is not null)
+        {
+            UpdateAuthenticationStateWithUserDetails(user);
+        }
     }
 
     public void OnTrnLookupCompletedForTrnAlreadyInUse(string existingTrnOwnerEmail)
@@ -677,6 +669,26 @@ public class AuthenticationState
         ignoredScopes.Add(CustomScopes.DqtRead);
 
         return !OAuthState.HasAnyScope(ignoredScopes) && !UserId.HasValue;
+    }
+
+    private void UpdateAuthenticationStateWithUserDetails(User user)
+    {
+        UserId = user.UserId;
+        EmailAddress = user.EmailAddress;
+        MobileNumber = user.MobileNumber;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
+        DateOfBirth = user.DateOfBirth;
+        HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
+        Trn = user.Trn;
+        UserType = user.UserType;
+        StaffRoles = user.StaffRoles;
+        TrnLookupStatus = user.TrnLookupStatus;
+
+        if (HaveCompletedTrnLookup || Trn is not null)
+        {
+            TrnLookup = TrnLookupState.Complete;
+        }
     }
 }
 

@@ -77,7 +77,7 @@ public class NotificationSender : INotificationSender
 
         try
         {
-            await client.SendSmsAsync(
+            var thing = await client.SendSmsAsync(
                 to,
                 SmsTemplateId,
                 personalisation: new Dictionary<string, dynamic>()

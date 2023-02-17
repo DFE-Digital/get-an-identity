@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -247,7 +248,7 @@ public class PhoneConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidPin_UpdatesAuthenticationState()
+    public async Task Post_ValidPinForNewUser_UpdatesAuthenticationState()
     {
         // Arrange
         var mobileNumber = Faker.Phone.Number();
@@ -297,5 +298,113 @@ public class PhoneConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForNonAdminScopeWithNonAdminUser_UpdatesAuthenticationStateSignsInAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Default);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(user.MobileNumber), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/phone-exists", response.Headers.Location?.OriginalString);
+
+        Assert.True(authStateHelper.AuthenticationState.MobileNumberVerified);
+        Assert.NotNull(authStateHelper.AuthenticationState.UserId);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForAdminScopeWithAdminUser_UpdatesAuthenticationStateSignsInAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Staff);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/phone-exists", response.Headers.Location?.OriginalString);
+
+        Assert.True(authStateHelper.AuthenticationState.MobileNumberVerified);
+        Assert.NotNull(authStateHelper.AuthenticationState.UserId);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForNonAdminScopeWithAdminUser_ReturnsForbidden()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Staff);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(user.MobileNumber), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Default);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
     }
 }

@@ -28,4 +28,5 @@ public class User
     public User? MergedWithUser { get; set; }
     public virtual ICollection<User>? MergedUsers { get; set; }
     public Guid? MergedWithUserId { get; set; }
+    public string? MobileNumber { get; set; }
 }

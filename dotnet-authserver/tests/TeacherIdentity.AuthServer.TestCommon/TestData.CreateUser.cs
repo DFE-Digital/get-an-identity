@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.TestCommon;
@@ -45,10 +46,13 @@ public partial class TestData
                 throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
             }
 
+            var normalisedMobileNumber = Regex.Replace(Faker.Phone.Number(), @"(?<!^)[^\d]", "");
+
             var user = new User()
             {
                 UserId = Guid.NewGuid(),
                 EmailAddress = email ?? Faker.Internet.Email(),
+                MobileNumber = normalisedMobileNumber,
                 FirstName = firstName ?? Faker.Name.First(),
                 LastName = Faker.Name.Last(),
                 Created = _clock.UtcNow,

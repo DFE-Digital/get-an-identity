@@ -103,6 +103,8 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string RegisterResendPhoneConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendPhoneConfirmation");
 
+    public static string RegisterPhoneExists(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/PhoneExists");
+
     public static string RegisterName(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/Name");
 
     public static string RegisterDateOfBirth(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/DateOfBirthPage");

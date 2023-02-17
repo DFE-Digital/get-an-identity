@@ -10,10 +10,10 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     private readonly IIdentityLinkGenerator _linkGenerator;
 
     public EmailConfirmationModel(
-        IUserVerificationService userConfirmationService,
+        IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator)
-        : base(userConfirmationService, pinValidator)
+        : base(userVerificationService, pinValidator)
     {
         _linkGenerator = linkGenerator;
     }
