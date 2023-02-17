@@ -102,9 +102,7 @@ $app-button-inverse-hover-background-colour: govuk-tint($app-button-inverse-fore
   @include govuk-media-query(desktop) {
     float: left;
     margin-right: govuk-spacing(7);
-    max-width: 385px;
-    min-width: 260px;
-    width: 100%;
+    width: 260px;
   }
 }
 
