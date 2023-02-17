@@ -5,9 +5,9 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
 [Collection(nameof(DisableParallelization))]  // Depends on mocks and changes the clock
-public class EmailConfirmationTests : TestBase
+public class PhoneConfirmationTests : TestBase
 {
-    public EmailConfirmationTests(HostFixture hostFixture)
+    public PhoneConfirmationTests(HostFixture hostFixture)
         : base(hostFixture)
     {
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(false);
@@ -16,48 +16,48 @@ public class EmailConfirmationTests : TestBase
     [Fact]
     public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/email-confirmation");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Get_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/email-confirmation");
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/register/email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(c => c.MobileNumberSet(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
-    public async Task Get_EmailNotSet_RedirectsToEmailPage()
+    public async Task Get_MobileNumberNotSet_RedirectsToPhonePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}");
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Act
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/email", response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/register/phone", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}");
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -66,44 +66,44 @@ public class EmailConfirmationTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, doc.GetElementByTestId("email")?.TextContent);
+        Assert.Equal(authStateHelper.AuthenticationState.MobileNumber, doc.GetElementByTestId("mobileNumber")?.TextContent);
     }
 
     [Fact]
     public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/register/email-confirmation");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/register/email-confirmation");
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(c => c.MobileNumberSet(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Post_UnknownPin_ReturnsError()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
 
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -122,11 +122,11 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_PinTooShort_ReturnsError()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
         var pin = "0";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -145,11 +145,11 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_PinTooLong_ReturnsError()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
         var pin = "0123345678";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -168,11 +168,11 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_NonNumericPin_ReturnsError()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
         var pin = "abc";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -191,15 +191,15 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_PinExpiredLessThanTwoHoursAgo_ReturnsErrorAndSendsANewPin()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateEmailPin(email);
+        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         Spy.Get<IUserVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -213,23 +213,23 @@ public class EmailConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(mobileNumber), Times.Once);
     }
 
     [Fact]
     public async Task Post_PinExpiredMoreThanTwoHoursAgo_ReturnsErrorAndDoesNotSendANewPin()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
-        var pinResult = await userVerificationService.GenerateEmailPin(email);
+        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         Spy.Get<IUserVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -243,20 +243,20 @@ public class EmailConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(mobileNumber), Times.Never);
     }
 
     [Fact]
     public async Task Post_ValidPin_UpdatesAuthenticationState()
     {
         // Arrange
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateEmailPin(email);
+        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -270,7 +270,7 @@ public class EmailConfirmationTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
 
-        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
+        Assert.True(authStateHelper.AuthenticationState.MobileNumberVerified);
     }
 
     [Fact]
@@ -279,12 +279,12 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
-        var email = Faker.Internet.Email();
+        var mobileNumber = Faker.Phone.Number();
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateEmailPin(email);
+        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {

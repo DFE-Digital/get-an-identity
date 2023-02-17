@@ -409,8 +409,8 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var mobileNumber = Faker.Phone.Number();
         var pinResult = await service.GenerateSmsPin(mobileNumber);
 
-        var ecp = await dbContext.SmsConfirmationPins.SingleAsync(p => p.MobileNumber == mobileNumber && p.Pin == pinResult.Pin);
-        ecp.IsActive = false;
+        var smsConfirmationPin = await dbContext.SmsConfirmationPins.SingleAsync(p => p.MobileNumber == mobileNumber && p.Pin == pinResult.Pin);
+        smsConfirmationPin.IsActive = false;
         await dbContext.SaveChangesAsync();
 
         // Act

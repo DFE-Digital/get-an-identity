@@ -5,11 +5,11 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class EmailConfirmationModel : BaseEmailConfirmationPageModel
+public class PhoneConfirmation : BasePhoneConfirmationPageModel
 {
     private readonly IIdentityLinkGenerator _linkGenerator;
 
-    public EmailConfirmationModel(
+    public PhoneConfirmation(
         IUserVerificationService userConfirmationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator)
@@ -19,7 +19,7 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     }
 
     [BindProperty]
-    [Display(Name = "Confirmation code")]
+    [Display(Name = "Security code")]
     public override string? Code { get; set; }
 
     public void OnGet()
@@ -36,25 +36,25 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var pinVerificationFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
+        var pinVerificationFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!, Code!);
 
         if (pinVerificationFailedReasons != PinVerificationFailedReasons.None)
         {
             return await HandlePinVerificationFailed(pinVerificationFailedReasons);
         }
 
-        HttpContext.GetAuthenticationState().OnEmailVerified();
+        HttpContext.GetAuthenticationState().OnMobileNumberVerified();
 
-        return Redirect(_linkGenerator.RegisterPhone());
+        return Redirect(_linkGenerator.RegisterName());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        if (!authenticationState.EmailAddressSet)
+        if (!authenticationState.MobileNumberSet)
         {
-            context.Result = new RedirectResult(_linkGenerator.RegisterEmail());
+            context.Result = new RedirectResult(_linkGenerator.RegisterPhone());
         }
     }
 }
