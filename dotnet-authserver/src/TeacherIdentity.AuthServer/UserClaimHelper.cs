@@ -82,6 +82,13 @@ public class UserClaimHelper
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        var mergedUserIds = await _dbContext.Users.IgnoreQueryFilters()
+            .Where(u => u.MergedWithUserId == userId)
+            .Select(u => u.UserId)
+            .ToListAsync();
+
+        claims.Add(new Claim(CustomClaims.PreviousUserId, String.Join(",", mergedUserIds)));
+
         return claims;
     }
 

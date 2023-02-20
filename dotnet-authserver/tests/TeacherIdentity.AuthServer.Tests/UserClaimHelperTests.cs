@@ -41,6 +41,7 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
             new Claim(Claims.Birthdate, user.DateOfBirth!.Value.ToString("yyyy-MM-dd")),
+            new Claim(CustomClaims.PreviousUserId, String.Empty),
         };
 
         if (haveTrnScope)
@@ -50,5 +51,30 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
+    }
+
+    [Fact]
+    public async Task GetPublicClaims_FromUserWithMergedUsers_ReturnsPreviousUserIdClaim()
+    {
+        // Arrange
+        var user = await _dbFixture.TestData.CreateUser();
+        var mergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+        var anotherMergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext);
+
+        // Act
+#pragma warning disable CS0618 // Type or member is obsolete
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            hasScope: scope => false);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        // Assert
+        var expectedPreviousUserIdClaim =
+            new Claim(CustomClaims.PreviousUserId, $"{mergedUser.UserId},{anotherMergedUser.UserId}");
+
+        Assert.Equal(expectedPreviousUserIdClaim, result.First(c => c.Type == CustomClaims.PreviousUserId), new ClaimTypeAndValueEqualityComparer());
     }
 }

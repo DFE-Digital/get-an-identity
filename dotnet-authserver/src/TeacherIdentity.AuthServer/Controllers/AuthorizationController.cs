@@ -380,6 +380,10 @@ public class AuthorizationController : Controller
 
                 yield break;
 
+            case CustomClaims.PreviousUserId:
+                yield return Destinations.IdentityToken;
+                yield break;
+
             default:
                 yield break;
         }
