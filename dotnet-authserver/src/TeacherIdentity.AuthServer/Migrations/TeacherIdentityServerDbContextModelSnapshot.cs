@@ -574,6 +574,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                     b.HasIndex("MergedWithUserId")
                         .HasDatabaseName("ix_users_merged_with_user_id");
 
+                    b.HasIndex("MobileNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_mobile_number");
+
                     b.HasIndex("RegisteredWithClientId")
                         .HasDatabaseName("ix_users_registered_with_client_id");
 

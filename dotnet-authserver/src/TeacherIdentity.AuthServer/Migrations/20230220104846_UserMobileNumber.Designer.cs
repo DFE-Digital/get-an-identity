@@ -13,7 +13,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    [Migration("20230217104022_UserMobileNumber")]
+    [Migration("20230220104846_UserMobileNumber")]
     partial class UserMobileNumber
     {
         /// <inheritdoc />
@@ -577,6 +577,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                     b.HasIndex("MergedWithUserId")
                         .HasDatabaseName("ix_users_merged_with_user_id");
 
+                    b.HasIndex("MobileNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_mobile_number");
+
                     b.HasIndex("RegisteredWithClientId")
                         .HasDatabaseName("ix_users_registered_with_client_id");
 
@@ -585,7 +589,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasDatabaseName("ix_users_trn")
                         .HasFilter("is_deleted = false and trn is not null");
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("users", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_trn_lookup_status", "(completed_trn_lookup is null and trn is null) or trn_lookup_status is not null");
+                        });
                 });
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.UserImportJob", b =>
