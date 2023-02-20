@@ -7,6 +7,7 @@ public class User
     public const int LastNameMaxLength = 200;
 
     public const string EmailAddressUniqueIndexName = "ix_users_email_address";
+    public const string MobileNumberUniqueIndexName = "ix_users_mobile_number";
 
     public Guid UserId { get; set; }
     public required string EmailAddress { get; set; }
@@ -28,4 +29,5 @@ public class User
     public User? MergedWithUser { get; set; }
     public virtual ICollection<User>? MergedUsers { get; set; }
     public Guid? MergedWithUserId { get; set; }
+    public string? MobileNumber { get; set; }
 }

@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
@@ -8,14 +11,17 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 public class PhoneConfirmation : BasePhoneConfirmationPageModel
 {
     private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
     public PhoneConfirmation(
-        IUserVerificationService userConfirmationService,
+        IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator)
-        : base(userConfirmationService, pinValidator)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext)
+        : base(userVerificationService, pinValidator)
     {
         _linkGenerator = linkGenerator;
+        _dbContext = dbContext;
     }
 
     [BindProperty]
@@ -43,7 +49,25 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
             return await HandlePinVerificationFailed(pinVerificationFailedReasons);
         }
 
-        HttpContext.GetAuthenticationState().OnMobileNumberVerified();
+        var authenticationState = HttpContext.GetAuthenticationState();
+        var permittedUserTypes = authenticationState.GetPermittedUserTypes();
+
+        var user = await _dbContext.Users
+            .Where(u => (u.MobileNumber ?? "").EndsWith(NormaliseMobileNumber(MobileNumber!)))
+            .SingleOrDefaultAsync();
+
+        if (user is not null && !permittedUserTypes.Contains(user.UserType))
+        {
+            return new ForbidResult();
+        }
+
+        authenticationState.OnMobileNumberVerified(user);
+
+        if (user is not null)
+        {
+            await authenticationState.SignIn(HttpContext);
+            return Redirect(_linkGenerator.RegisterPhoneExists());
+        }
 
         return Redirect(_linkGenerator.RegisterName());
     }
@@ -56,5 +80,15 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
         {
             context.Result = new RedirectResult(_linkGenerator.RegisterPhone());
         }
+    }
+
+    private string NormaliseMobileNumber(string mobileNumber)
+    {
+        return new string(RemoveUkCountryCode(mobileNumber).Where(char.IsAsciiDigit).ToArray()).TrimStart('0');
+    }
+
+    private string RemoveUkCountryCode(string mobileNumber)
+    {
+        return Regex.Replace(mobileNumber, @"^(\+44|0044)", "");
     }
 }

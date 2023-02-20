@@ -11,7 +11,7 @@ public abstract class BasePhoneConfirmationPageModel : BasePinVerificationPageMo
     {
     }
 
-    public virtual string? MobileNumber => HttpContext.GetAuthenticationState().MobileNumber;
+    public string? MobileNumber => HttpContext.GetAuthenticationState().MobileNumber;
 
     protected override Task<PinGenerationResult> GeneratePin()
     {

@@ -31,7 +31,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var currentClientDisplayName = "Test app";
         currentClientProviderMock.Setup(mock => mock.GetCurrentClient()).ReturnsAsync(new Application() { DisplayName = currentClientDisplayName });
@@ -95,7 +95,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var email = Faker.Internet.Email();
 
@@ -120,7 +120,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var rateLimiter = new Mock<IRateLimitStore>();
         rateLimiter.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(true));
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var email = Faker.Internet.Email();
 
@@ -144,7 +144,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var email = Faker.Internet.Email();
         var pinResult = await service.GenerateEmailPin(email);
@@ -168,7 +168,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var email = Faker.Internet.Email();
         var anotherEmail = Faker.Internet.Email();
@@ -191,7 +191,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var email = Faker.Internet.Email();
         var pinResult = await service.GenerateEmailPin(email);
@@ -224,7 +224,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
             PinGenerationTimeoutSeconds = 120
         });
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var email = Faker.Internet.Email();
         var pinResult = await service.GenerateEmailPin(email);
@@ -250,7 +250,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var currentClientDisplayName = "Test app";
         currentClientProviderMock.Setup(mock => mock.GetCurrentClient()).ReturnsAsync(new Application() { DisplayName = currentClientDisplayName });
@@ -308,7 +308,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var mobileNumber = Faker.Phone.Number();
 
@@ -333,7 +333,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var rateLimiter = new Mock<IRateLimitStore>();
         rateLimiter.Setup(x => x.IsClientIpBlockedForPinVerification(It.IsAny<string>())).Returns(Task.FromResult(true));
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var mobileNumber = Faker.Phone.Number();
 
@@ -357,7 +357,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var mobileNumber = Faker.Phone.Number();
         var pinResult = await service.GenerateSmsPin(mobileNumber);
@@ -381,7 +381,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var mobileNumber = Faker.Phone.Number();
         var anotherMobileNumber = Faker.Phone.Number();
@@ -404,7 +404,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientProviderMock = new Mock<ICurrentClientProvider>();
         var rateLimiter = new Mock<IRateLimitStore>();
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var mobileNumber = Faker.Phone.Number();
         var pinResult = await service.GenerateSmsPin(mobileNumber);
@@ -437,7 +437,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
             PinGenerationTimeoutSeconds = 120
         });
         var requestClientIpProvider = new TestRequestClientIpProvider();
-        var service = CreateUserConfirmationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
+        var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
         var mobileNumber = Faker.Phone.Number();
         var pinResult = await service.GenerateSmsPin(mobileNumber);
@@ -453,7 +453,7 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         Assert.Equal(clock.UtcNow, smsConfirmationPin?.VerifiedOn);
     }
 
-    private UserVerificationService CreateUserConfirmationService(
+    private UserVerificationService CreateUserVerificationService(
         TeacherIdentityServerDbContext dbContext,
         INotificationSender notificationSender,
         IClock clock,

@@ -14,10 +14,10 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
-        IUserVerificationService userConfirmationService,
+        IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
         PinValidator pinValidator)
-        : base(userConfirmationService, pinValidator)
+        : base(userVerificationService, pinValidator)
     {
         _dbContext = dbContext;
         _linkGenerator = linkGenerator;

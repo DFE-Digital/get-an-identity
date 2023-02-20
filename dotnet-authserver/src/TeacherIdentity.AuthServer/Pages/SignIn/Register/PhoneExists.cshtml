@@ -1,0 +1,19 @@
+@page "/sign-in/register/phone-exists"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.PhoneExists
+@{
+    ViewBag.Title = "Sign in to your Teaching services account";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterPhoneConfirmation()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+        <p>We’ve found a Teaching services account for mobile number <span data-testid="mobileNumber">@Model.MobileNumber</span></p>
+
+        <govuk-button-link href="@HttpContext.GetAuthenticationState().GetNextHopUrl(LinkGenerator)">Sign in</govuk-button-link>
+    </div>
+</div>
