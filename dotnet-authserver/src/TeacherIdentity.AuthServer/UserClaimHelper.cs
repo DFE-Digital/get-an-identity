@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
