@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -41,7 +42,6 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
             new Claim(Claims.Birthdate, user.DateOfBirth!.Value.ToString("yyyy-MM-dd")),
-            new Claim(CustomClaims.PreviousUserId, String.Empty),
         };
 
         if (haveTrnScope)
@@ -53,13 +53,21 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
     }
 
-    [Fact]
-    public async Task GetPublicClaims_FromUserWithMergedUsers_ReturnsPreviousUserIdClaim()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetPublicClaims_FromUserWithMergedUsers_ReturnsPreviousUserIdClaim(bool hasMergedUsers)
     {
         // Arrange
+        User? mergedUser = null;
+        User? anotherMergedUser = null;
+
         var user = await _dbFixture.TestData.CreateUser();
-        var mergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
-        var anotherMergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+        if (hasMergedUsers)
+        {
+            mergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+            anotherMergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+        }
 
         using var dbContext = _dbFixture.GetDbContext();
         var userClaimHelper = new UserClaimHelper(dbContext);
@@ -72,9 +80,21 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
 #pragma warning restore CS0618 // Type or member is obsolete
 
         // Assert
-        var expectedPreviousUserIdClaim =
-            new Claim(CustomClaims.PreviousUserId, $"{mergedUser.UserId},{anotherMergedUser.UserId}");
-
-        Assert.Equal(expectedPreviousUserIdClaim, result.First(c => c.Type == CustomClaims.PreviousUserId), new ClaimTypeAndValueEqualityComparer());
+        if (hasMergedUsers)
+        {
+            var expectedPreviousUserIdClaims = new List<Claim>()
+            {
+                new Claim(CustomClaims.PreviousUserId, mergedUser!.UserId.ToString()),
+                new Claim(CustomClaims.PreviousUserId, anotherMergedUser!.UserId.ToString()),
+            };
+            Assert.Equal(
+                expectedPreviousUserIdClaims.OrderBy(c => c.Value),
+                result.Where(c => c.Type == CustomClaims.PreviousUserId).OrderBy(c => c.Value),
+                new ClaimTypeAndValueEqualityComparer());
+        }
+        else
+        {
+           Assert.DoesNotContain(result, c => c.Type == CustomClaims.PreviousUserId);
+        }
     }
 }

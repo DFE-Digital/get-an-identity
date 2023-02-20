@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -82,12 +83,9 @@ public class UserClaimHelper
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        var mergedUserIds = await _dbContext.Users.IgnoreQueryFilters()
+        await _dbContext.Users.IgnoreQueryFilters()
             .Where(u => u.MergedWithUserId == userId)
-            .Select(u => u.UserId)
-            .ToListAsync();
-
-        claims.Add(new Claim(CustomClaims.PreviousUserId, String.Join(",", mergedUserIds)));
+            .ForEachAsync(u => claims.Add(new Claim(CustomClaims.PreviousUserId, u.UserId.ToString())));
 
         return claims;
     }
