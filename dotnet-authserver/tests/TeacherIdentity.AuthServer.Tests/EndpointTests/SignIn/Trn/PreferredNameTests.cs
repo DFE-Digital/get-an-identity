@@ -34,6 +34,12 @@ public class PreferredNameTests : TestBase
         await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
+    [Fact]
+    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Get, "/sign-in/trn/preferred-name");
+    }
+
     [Theory]
     [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
@@ -61,7 +67,7 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/preferred-name", ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/preferred-name", CustomScopes.DqtRead);
     }
 
     [Fact]
@@ -86,6 +92,12 @@ public class PreferredNameTests : TestBase
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
         await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/preferred-name");
+    }
+
+    [Fact]
+    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Theory]

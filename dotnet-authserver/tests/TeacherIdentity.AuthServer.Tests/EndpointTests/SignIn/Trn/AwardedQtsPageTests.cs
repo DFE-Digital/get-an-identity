@@ -34,6 +34,12 @@ public class AwardedQtsPageTests : TestBase
         await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/awarded-qts");
     }
 
+    [Fact]
+    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Get, "/sign-in/trn/awarded-qts");
+    }
+
     [Theory]
     [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
@@ -79,7 +85,7 @@ public class AwardedQtsPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/awarded-qts", ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/awarded-qts", CustomScopes.DqtRead);
     }
 
     [Fact]
@@ -104,6 +110,12 @@ public class AwardedQtsPageTests : TestBase
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
         await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/awarded-qts");
+    }
+
+    [Fact]
+    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Post, "/sign-in/trn/awarded-qts");
     }
 
     [Theory]

@@ -37,6 +37,12 @@ public class NoMatchTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
+    [Fact]
+    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Get, "/sign-in/trn/no-match");
+    }
+
     [Theory]
     [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
@@ -311,6 +317,12 @@ public class NoMatchTests : TestBase
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
         await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/no-match");
+    }
+
+    [Fact]
+    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Theory]

@@ -167,12 +167,12 @@ public partial class TestBase
     }
 
     public async Task ValidRequest_RendersContent(
+        Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
         string url,
-        Func<Configure, Func<AuthenticationState, Task>> configure,
         string? additionalScopes)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configure, additionalScopes);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthenticationHelper, additionalScopes);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
@@ -231,5 +231,25 @@ public partial class TestBase
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+    }
+
+    public async Task InvalidUserRequirements_ReturnsForbidden(
+        Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
+        string? additionalScopes,
+        HttpMethod method,
+        string url,
+        HttpContent? content = null)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthenticationHelper, additionalScopes);
+
+        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
+        var request = new HttpRequestMessage(method, fullUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
     }
 }

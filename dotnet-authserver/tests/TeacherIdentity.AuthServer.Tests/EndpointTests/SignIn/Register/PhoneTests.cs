@@ -37,7 +37,7 @@ public class PhoneTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/register/phone", c => c.EmailVerified(), additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.EmailVerified(), "/sign-in/register/phone", additionalScopes: null);
     }
 
     [Fact]
