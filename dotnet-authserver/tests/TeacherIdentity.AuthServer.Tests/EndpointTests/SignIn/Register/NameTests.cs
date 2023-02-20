@@ -34,7 +34,7 @@ public class NameTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/register/name", ConfigureValidAuthenticationState, additionalScopes: null);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/register/name", additionalScopes: null);
     }
 
     [Fact]

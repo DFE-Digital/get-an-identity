@@ -274,6 +274,13 @@ public class Program
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(
+                "/SignIn/Trn",
+                model =>
+                {
+                    model.Filters.Add(new CheckUserRequirementsForTrnJourneyFilterFactory());
+                });
+
+            options.Conventions.AddFolderApplicationModelConvention(
                 "/Admin",
                 model =>
                 {
@@ -437,7 +444,8 @@ public class Program
         builder.Services
             .AddSingleton<IActionDescriptorProvider, Infrastructure.ApplicationModel.RemoveStubFindEndpointsActionDescriptorProvider>()
             .AddTransient<RequireAuthenticationStateFilter>()
-            .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>();
+            .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>()
+            .AddSingleton<CheckUserRequirementsForTrnJourneyFilter>();
 
         builder.Services
             .AddSingleton<IClock, SystemClock>()

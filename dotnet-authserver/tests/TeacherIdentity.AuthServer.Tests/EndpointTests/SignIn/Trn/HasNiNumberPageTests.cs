@@ -28,6 +28,12 @@ public class HasNiNumberPageTests : TestBase
         await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/has-nino");
     }
 
+    [Fact]
+    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Get, "/sign-in/trn/has-nino");
+    }
+
     [Theory]
     [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
@@ -55,7 +61,7 @@ public class HasNiNumberPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent("/sign-in/trn/has-nino", ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/has-nino", CustomScopes.DqtRead);
     }
 
     [Fact]
@@ -74,6 +80,12 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
         await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/has-nino");
+    }
+
+    [Fact]
+    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    {
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Post, "/sign-in/trn/has-nino");
     }
 
     [Theory]
