@@ -576,7 +576,8 @@ namespace TeacherIdentity.AuthServer.Migrations
 
                     b.HasIndex("MobileNumber")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_mobile_number");
+                        .HasDatabaseName("ix_users_mobile_number")
+                        .HasFilter("is_deleted = false and mobile_number is not null");
 
                     b.HasIndex("RegisteredWithClientId")
                         .HasDatabaseName("ix_users_registered_with_client_id");

@@ -7,6 +7,7 @@ public class User
     public const int LastNameMaxLength = 200;
 
     public const string EmailAddressUniqueIndexName = "ix_users_email_address";
+    public const string MobileNumberUniqueIndexName = "ix_users_mobile_number";
 
     public Guid UserId { get; set; }
     public required string EmailAddress { get; set; }

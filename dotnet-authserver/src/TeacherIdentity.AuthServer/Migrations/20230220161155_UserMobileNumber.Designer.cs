@@ -13,7 +13,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    [Migration("20230220104846_UserMobileNumber")]
+    [Migration("20230220161155_UserMobileNumber")]
     partial class UserMobileNumber
     {
         /// <inheritdoc />
@@ -579,7 +579,8 @@ namespace TeacherIdentity.AuthServer.Migrations
 
                     b.HasIndex("MobileNumber")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_mobile_number");
+                        .HasDatabaseName("ix_users_mobile_number")
+                        .HasFilter("is_deleted = false and mobile_number is not null");
 
                     b.HasIndex("RegisteredWithClientId")
                         .HasDatabaseName("ix_users_registered_with_client_id");

@@ -37,6 +37,6 @@ public class PhoneExistsTests : TestBase
     public async Task Get_ValidRequest_RendersContent()
     {
         var user = await TestData.CreateUser();
-        await ValidRequest_RendersContent("/sign-in/register/phone-exists", c => c.Completed(user), additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.Completed(user), "/sign-in/register/phone-exists", additionalScopes: null);
     }
 }

@@ -21,7 +21,8 @@ namespace TeacherIdentity.AuthServer.Migrations
                 name: "ix_users_mobile_number",
                 table: "users",
                 column: "mobile_number",
-                unique: true);
+                unique: true,
+                filter: "is_deleted = false and mobile_number is not null");
         }
 
         /// <inheritdoc />
