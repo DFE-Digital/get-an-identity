@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -50,5 +51,50 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetPublicClaims_FromUserWithMergedUsers_ReturnsPreviousUserIdClaim(bool hasMergedUsers)
+    {
+        // Arrange
+        User? mergedUser = null;
+        User? anotherMergedUser = null;
+
+        var user = await _dbFixture.TestData.CreateUser();
+        if (hasMergedUsers)
+        {
+            mergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+            anotherMergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
+        }
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext);
+
+        // Act
+#pragma warning disable CS0618 // Type or member is obsolete
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            hasScope: scope => false);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        // Assert
+        if (hasMergedUsers)
+        {
+            var expectedPreviousUserIdClaims = new List<Claim>()
+            {
+                new Claim(CustomClaims.PreviousUserId, mergedUser!.UserId.ToString()),
+                new Claim(CustomClaims.PreviousUserId, anotherMergedUser!.UserId.ToString()),
+            };
+            Assert.Equal(
+                expectedPreviousUserIdClaims.OrderBy(c => c.Value),
+                result.Where(c => c.Type == CustomClaims.PreviousUserId).OrderBy(c => c.Value),
+                new ClaimTypeAndValueEqualityComparer());
+        }
+        else
+        {
+            Assert.DoesNotContain(result, c => c.Type == CustomClaims.PreviousUserId);
+        }
     }
 }
