@@ -94,7 +94,7 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         }
         else
         {
-           Assert.DoesNotContain(result, c => c.Type == CustomClaims.PreviousUserId);
+            Assert.DoesNotContain(result, c => c.Type == CustomClaims.PreviousUserId);
         }
     }
 }
