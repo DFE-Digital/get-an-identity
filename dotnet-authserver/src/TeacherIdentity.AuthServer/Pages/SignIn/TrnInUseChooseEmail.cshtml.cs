@@ -54,14 +54,18 @@ public class TrnInUseChooseEmailModel : PageModel
         var authenticationState = HttpContext.GetAuthenticationState();
 
         var lookupState = await _dbContext.JourneyTrnLookupStates
-            .SingleAsync(s => s.JourneyId == authenticationState.JourneyId);
+            .SingleOrDefaultAsync(s => s.JourneyId == authenticationState.JourneyId);
         var user = await _dbContext.Users.SingleAsync(u => u.EmailAddress == authenticationState.TrnOwnerEmailAddress);
 
         var emailChanged = user.EmailAddress != Email;
 
         user.EmailAddress = Email;
-        lookupState.Locked = _clock.UtcNow;
-        lookupState.UserId = user.UserId;
+
+        if (lookupState is not null)
+        {
+            lookupState.Locked = _clock.UtcNow;
+            lookupState.UserId = user.UserId;
+        }
 
         if (emailChanged)
         {

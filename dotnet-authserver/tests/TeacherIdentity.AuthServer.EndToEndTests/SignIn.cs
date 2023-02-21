@@ -6,7 +6,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
-public class SignIn : IClassFixture<HostFixture>
+public partial class SignIn : IClassFixture<HostFixture>
 {
     private readonly HostFixture _hostFixture;
 
@@ -61,46 +61,6 @@ public class SignIn : IClassFixture<HostFixture>
         _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId));
     }
 
-    [Fact]
-    public async Task StaffUser_CanSignInSuccessfullyWithEmailAndPin()
-    {
-        await using var context = await _hostFixture.CreateBrowserContext();
-        var page = await context.NewPageAsync();
-
-        await SignInExistingStaffUserWithTestClient(page);
-    }
-
-    [Fact]
-    public async Task StaffUser_CanSignInToAdminPageSuccessfullyWithEmailAndPin()
-    {
-        var staffUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: StaffRoles.All);
-
-        await using var context = await _hostFixture.CreateBrowserContext();
-        var page = await context.NewPageAsync();
-
-        // Try to access protected admin area on auth server
-
-        await page.GotoAsync($"{HostFixture.AuthServerBaseUrl}/admin/staff");
-
-        // Fill in the sign in form (email + PIN)
-
-        await page.FillAsync("text=Enter your email address", staffUser.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be on the originally request URL, /admin/staff
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        Assert.EndsWith("/admin/staff", page.Url);
-
-        // Check events have been emitted
-
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, staffUser.UserId, expectOAuthProperties: false));
-    }
-
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -115,7 +75,7 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewTeacherUserWithTrnScope(page, email, firstName, lastName, trn, dateOfBirth, null, null);
+        await SignInAsNewTeacherUserWithTrnScope(page, email, firstName, lastName, trn, dateOfBirth, preferredFirstName: null, preferredLastName: null);
     }
 
     [Fact]
@@ -370,13 +330,13 @@ public class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewTeacherUserWithTrnScope(page, email, firstName, lastName, trn, dateOfBirth, null, null);
+        await SignInAsNewTeacherUserWithTrnScope(page, email, firstName, lastName, trn, dateOfBirth, preferredFirstName: null, preferredLastName: null);
 
         await ClearCookiesForTestClient();
 
         // Start on the client app and try to access a protected area
 
-        await page.GotoAsync("/profile?scope=email+openid+profile+trn");
+        await page.GotoAsync($"/profile?scope=email+openid+profile+{Uri.EscapeDataString(CustomScopes.DqtRead)}");
 
         // Should have jumped straight to confirmation page as the auth server knows who we are
 
@@ -417,24 +377,35 @@ public class SignIn : IClassFixture<HostFixture>
         }
     }
 
-    [Fact]
-    public async Task NewTeacherUser_WithTrnMatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully()
+    [Theory]
+    [InlineData(CustomScopes.DqtRead)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [InlineData(CustomScopes.Trn)]
+#pragma warning restore CS0618 // Type or member is obsolete
+    public async Task NewTeacherUser_WithTrnMatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully(string additionalScope)
     {
         var existingTrnOwner = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
         var trn = existingTrnOwner.Trn!;
         var trnOwnerEmailAddress = existingTrnOwner.EmailAddress;
         var email = Faker.Internet.Email();
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
+        var officialFirstName = Faker.Name.First();
+        var officialLastName = Faker.Name.Last();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = Array.Empty<FindTeachersResponseResult>()
+            });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
         // Start on the client app and try to access a protected area
 
-        await page.GotoAsync("/profile?scope=email+openid+profile+trn");
+        await page.GotoAsync($"/profile?scope=email+openid+profile+{Uri.EscapeDataString(additionalScope)}");
 
         // Fill in the sign in form (email + PIN)
 
@@ -452,19 +423,78 @@ public class SignIn : IClassFixture<HostFixture>
 
         await page.ClickAsync("button:text-is('Continue')");
 
-        // Should now be on our stub Find page
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (additionalScope == CustomScopes.Trn)
+#pragma warning restore CS0618 // Type or member is obsolete
+        {
+            // Should now be on our stub Find page
 
-        urlPath = new Uri(page.Url).LocalPath;
-        Assert.EndsWith("/FindALostTrn", urlPath);
+            urlPath = new Uri(page.Url).LocalPath;
+            Assert.EndsWith("/FindALostTrn", urlPath);
 
-        await page.FillAsync("#OfficialFirstName", firstName);
-        await page.FillAsync("#OfficialLastName", lastName);
-        await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
-        await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
-        await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
-        await page.FillAsync("#Trn", trn);
+            await page.FillAsync("#OfficialFirstName", officialFirstName);
+            await page.FillAsync("#OfficialLastName", officialLastName);
+            await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
+            await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
+            await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
+            await page.FillAsync("#Trn", trn);
 
-        await page.ClickAsync("button:text-is('Continue')");
+            await page.ClickAsync("button:text-is('Continue')");
+        }
+        else
+        {
+            // Has TRN page
+
+            await page.ClickAsync("label:text-is('Yes, I know my TRN')");
+            await page.FillAsync("text=What is your TRN?", trn);
+            await page.ClickAsync("button:text-is('Continue')");
+
+            // Official name page
+
+            await page.FillAsync("text=First name", officialFirstName);
+            await page.FillAsync("text=Last name", officialLastName);
+            await page.ClickAsync("label:text-is('No')");  // Have you ever changed your name?
+            await page.ClickAsync("button:text-is('Continue')");
+
+            // Preferred name page
+
+            await page.ClickAsync("label:text-is('Yes')");  // Is x y your preferred name?
+            await page.ClickAsync("button:text-is('Continue')");
+
+            // Simulate DQT API returning result when next page submitted
+
+            _hostFixture.DqtApiClient
+                .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FindTeachersResponse()
+                {
+                    Results = new FindTeachersResponseResult[]
+                    {
+                        new()
+                        {
+                            DateOfBirth = dateOfBirth,
+                            FirstName = officialFirstName,
+                            LastName = officialLastName,
+                            EmailAddresses = new[] { trnOwnerEmailAddress },
+                            HasActiveSanctions = false,
+                            NationalInsuranceNumber = null,
+                            Trn = trn,
+                            Uid = Guid.NewGuid().ToString()
+                        }
+                    }
+                });
+
+            // Date of birth page
+
+            await page.FillAsync("label:text-is('Day')", dateOfBirth.Day.ToString());
+            await page.FillAsync("label:text-is('Month')", dateOfBirth.Month.ToString());
+            await page.FillAsync("label:text-is('Year')", dateOfBirth.Year.ToString());
+            await page.ClickAsync("button:text-is('Continue')");
+
+            // Check answers page
+
+            await page.WaitForSelectorAsync("h1:text-is('Check your answers')");
+            await page.ClickAsync("button:text-is('Continue')");
+        }
 
         // Should now be on 'TRN in use' page
 
@@ -497,32 +527,6 @@ public class SignIn : IClassFixture<HostFixture>
         // Check events have been emitted
 
         _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, existingTrnOwner.UserId));
-    }
-
-    [Fact]
-    public async Task StaffUser_MissingPermission_GetsForbiddenError()
-    {
-        var staffUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: Array.Empty<string>());
-
-        await using var context = await _hostFixture.CreateBrowserContext();
-        var page = await context.NewPageAsync();
-
-        // Start on the client app and try to access a protected area with admin scope
-
-        await page.GotoAsync($"/profile?scope={CustomScopes.UserRead}");
-
-        // Fill in the sign in form (email + PIN)
-
-        await page.FillAsync("text=Enter your email address", staffUser.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should get a Forbidden error
-
-        await page.WaitForSelectorAsync("h1:text-is('Forbidden')");
     }
 
     [Fact]
@@ -658,44 +662,5 @@ public class SignIn : IClassFixture<HostFixture>
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
         Assert.Equal(email, await page.InnerTextAsync("data-testid=email"));
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
-    }
-
-    private async Task<Guid> SignInExistingStaffUserWithTestClient(IPage page)
-    {
-        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: StaffRoles.All);
-
-        // Start on the client app and try to access a protected area with admin scope
-
-        await page.GotoAsync($"/profile?scope=email+openid+profile+{CustomScopes.UserRead}");
-
-        // Fill in the sign in form (email + PIN)
-
-        await page.FillAsync("text=Enter your email address", user.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be on the confirmation page
-
-        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be back at the client, signed in
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
-
-        var signedInEmail = await page.InnerTextAsync("data-testid=email");
-        Assert.Equal(string.Empty, await page.InnerTextAsync("data-testid=trn"));
-        Assert.Equal(user.EmailAddress, signedInEmail);
-
-        // Check events have been emitted
-
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId));
-
-        return user.UserId;
     }
 }
