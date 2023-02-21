@@ -1,6 +1,6 @@
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Services.UserImport;
+namespace TeacherIdentity.AuthServer.Services.UserSearch;
 
 public interface IUserSearchService
 {

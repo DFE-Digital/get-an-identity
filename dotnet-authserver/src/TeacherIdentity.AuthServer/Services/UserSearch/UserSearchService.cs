@@ -2,7 +2,7 @@ using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 
-namespace TeacherIdentity.AuthServer.Services.UserImport;
+namespace TeacherIdentity.AuthServer.Services.UserSearch;
 
 public class UserSearchService : IUserSearchService
 {

@@ -11,6 +11,10 @@
     "TeacherIdentity.DevBootstrap Import Test Users": {
       "commandName": "Project",
       "commandLineArgs": "--environment Local --import-test-users"
+    },
+    "TeacherIdentity.DevBootstrap Generate User Import CSV File": {
+      "commandName": "Project",
+      "commandLineArgs": "--environment Local --generate-user-import"
     }
   }
 }

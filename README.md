@@ -56,6 +56,12 @@ The API is an ASP.NET Core 7 web application. To develop locally you will need t
 
 #### Initial setup
 
+Initialise / update git submodules using the following command:
+
+```shell
+git submodule update --init --remote
+```
+
 Install Postgres then add a connection string to user secrets for the `TeacherIdentityServer`, `TeacherIdentityAuthServerTests` and `TeacherIdentityServerEndToEndTests` projects.
 
 ```shell

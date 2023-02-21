@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.UserSearch;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Services.UserImport;
@@ -32,6 +34,8 @@ public class UserImportProcessor : IUserImportProcessor
 
     public async Task Process(Guid userImportJobId)
     {
+        var sw = Stopwatch.StartNew();
+
         var userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
         if (userImportJob == null)
         {
@@ -144,7 +148,7 @@ public class UserImportProcessor : IUserImportProcessor
                 var existingUsers = await _userSearchService.FindUsers(row!.FirstName!, row.LastName!, dateOfBirth);
                 if (existingUsers.Any(u => u.EmailAddress != row.EmailAddress!))
                 {
-                    errors.Add($"Potential duplicate user");
+                    errors.Add("Potential duplicate user");
                     userImportJobRow.Errors = errors;
                 }
                 else
@@ -225,5 +229,8 @@ public class UserImportProcessor : IUserImportProcessor
         await _dbContext.SaveChangesAsync();
 
         await _userImportStorageService.Archive(userImportJob.StoredFilename);
+
+        sw.Stop();
+        _logger.LogInformation($"Processed {rowNumber} user import rows in {sw.ElapsedMilliseconds}ms.");
     }
 }

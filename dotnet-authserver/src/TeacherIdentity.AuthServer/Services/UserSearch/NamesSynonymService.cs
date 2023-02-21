@@ -1,4 +1,4 @@
-namespace TeacherIdentity.AuthServer.Services.UserImport;
+namespace TeacherIdentity.AuthServer.Services.UserSearch;
 
 public class NamesSynonymService : INamesSynonymService
 {
@@ -11,7 +11,7 @@ public class NamesSynonymService : INamesSynonymService
 
     public IList<string> GetSynonyms(string name)
     {
-        if (namesLookup.TryGetValue(name, out var synonyms))
+        if (namesLookup.TryGetValue(name.ToLower(), out var synonyms))
         {
             return synonyms.ToList();
         }
