@@ -419,7 +419,6 @@ public class AuthenticationState
         }
 
         Debug.Assert(user.EmailAddress == EmailAddress);
-        Debug.Assert(user.MobileNumber == MobileNumber);
 
         var permittedUserTypes = GetPermittedUserTypes();
         if (!permittedUserTypes.Contains(user.UserType))

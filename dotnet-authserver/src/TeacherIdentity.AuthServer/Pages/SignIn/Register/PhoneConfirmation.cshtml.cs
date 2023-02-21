@@ -84,11 +84,6 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
 
     private string NormaliseMobileNumber(string mobileNumber)
     {
-        return new string(RemoveUkCountryCode(mobileNumber).Where(char.IsAsciiDigit).ToArray()).TrimStart('0');
-    }
-
-    private string RemoveUkCountryCode(string mobileNumber)
-    {
-        return Regex.Replace(mobileNumber, @"^(\+44|0044)", "");
+        return new string(mobileNumber.Where(char.IsAsciiDigit).ToArray()).TrimStart('0');
     }
 }

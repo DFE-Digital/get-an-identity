@@ -131,13 +131,17 @@ public class DateOfBirthPageTests : TestBase
         Assert.Equal(dateOfBirth, authStateHelper.AuthenticationState.DateOfBirth);
     }
 
-    [Fact]
-    public async Task Post_ValidForm_CreatesUser()
+    [Theory]
+    [InlineData("+447123456 789", "07123456789")]
+    [InlineData("(0044)7111456789", "07111456789")]
+    [InlineData("+672-7-123-456-789", "+6727123456789")]
+    [InlineData("00672/7-123-456-789", "006727123456789")]
+    public async Task Post_ValidForm_CreatesUserWithCorrectFormatMobileNumber(string mobileNumber, string formattedMobileNumber)
     {
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterNameSet(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -156,6 +160,7 @@ public class DateOfBirthPageTests : TestBase
         {
             var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
             Assert.NotNull(user);
+            Assert.Equal(formattedMobileNumber, user.MobileNumber);
         });
     }
 

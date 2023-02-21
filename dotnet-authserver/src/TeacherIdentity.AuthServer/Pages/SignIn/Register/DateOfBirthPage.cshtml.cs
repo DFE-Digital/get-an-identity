@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -46,7 +47,7 @@ public class DateOfBirthPage : PageModel
         return Redirect(_linkGenerator.CompleteAuthorization());
     }
 
-    protected async Task<User> TryCreateUser()
+    private async Task<User> TryCreateUser()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
@@ -56,7 +57,7 @@ public class DateOfBirthPage : PageModel
             Created = _clock.UtcNow,
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = authenticationState.MobileNumber!,
+            MobileNumber = FormatMobileNumber(authenticationState.MobileNumber!),
             FirstName = authenticationState.FirstName!,
             LastName = authenticationState.LastName!,
             Updated = _clock.UtcNow,
@@ -85,5 +86,11 @@ public class DateOfBirthPage : PageModel
         }
 
         return user;
+    }
+
+    private string FormatMobileNumber(string mobileNumber)
+    {
+        var strippedMobileNumber = Regex.Replace(mobileNumber, @"^[^\d\+]|(?<=.)[^\d]", "");
+        return Regex.Replace(strippedMobileNumber, @"^(\+44|0044)", "0");
     }
 }
