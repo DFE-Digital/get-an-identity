@@ -123,6 +123,29 @@ public sealed class AuthenticationStateHelper
                 s.OnMobileNumberSet(mobileNumber ?? Faker.Phone.Number());
             };
 
+        public Func<AuthenticationState, Task> MobileVerified(string? mobileNumber = null, User? user = null) =>
+            async s =>
+            {
+                if (mobileNumber is not null && user is not null && mobileNumber != user?.MobileNumber)
+                {
+                    throw new ArgumentException("Mobile number does not match user's mobile number.", nameof(mobileNumber));
+                }
+
+                await MobileNumberSet(mobileNumber ?? user?.MobileNumber)(s);
+                s.OnMobileNumberVerified(user);
+            };
+
+        public Func<AuthenticationState, Task> RegisterNameSet(
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null) =>
+            async s =>
+            {
+                await MobileVerified(mobileNumber)(s);
+                s.OnNameSet(firstName ?? Faker.Name.First(), lastName ?? Faker.Name.Last());
+            };
+
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(
             string email,
             string? trn,
