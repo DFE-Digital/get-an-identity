@@ -1,2 +1,10 @@
-<p>Although we could not find your record, you can continue to register for an NPQ.</p>
-<p>You’ll need to enter some of your details again.</p>
+@if (ViewData.TryGetValue("Scope", out var scopeObj) && scopeObj is string scope && scope.Split(' ').Contains("trn"))
+{
+    <p>Although we could not find your record, you can continue to register for an NPQ.</p>
+    <p>You’ll need to enter some of your details again.</p>
+}
+else
+{
+    <p>You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.</p>
+    <p>If you need to come back to this service later you’ll only need to give us your email address <strong>(@Model.Email)</strong>.</p>
+}
