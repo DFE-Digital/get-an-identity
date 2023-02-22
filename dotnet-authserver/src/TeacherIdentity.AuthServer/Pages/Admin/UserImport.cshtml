@@ -47,7 +47,7 @@
     </div>
 </section>
 
-@if (Model.UserImportRows is not null && Model.UserImportRows.Length > 0)
+@if (Model.UserImportRows?.Length > 0)
 {
     <table class="govuk-table" data-testid="details-@Model.UserImportJobId">
         <caption class="govuk-table__caption govuk-table__caption--l">Details</caption>

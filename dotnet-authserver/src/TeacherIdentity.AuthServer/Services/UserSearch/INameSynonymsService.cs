@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Services.UserSearch;
 
-public interface INamesSynonymService
+public interface INameSynonymsService
 {
     IList<string> GetSynonyms(string name);
 }

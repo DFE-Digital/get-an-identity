@@ -352,7 +352,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
         }
         else
         {
-            userSearchService = new UserSearchService(dbContext, new NamesSynonymService());
+            userSearchService = new UserSearchService(dbContext, new NameSynonymsService());
         }
 
         var clock = new TestClock();

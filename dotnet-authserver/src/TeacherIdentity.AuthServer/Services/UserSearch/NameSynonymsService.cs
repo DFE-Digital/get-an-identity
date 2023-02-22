@@ -1,12 +1,12 @@
 namespace TeacherIdentity.AuthServer.Services.UserSearch;
 
-public class NamesSynonymService : INamesSynonymService
+public class NameSynonymsService : INameSynonymsService
 {
     private readonly Dictionary<string, HashSet<string>> namesLookup = new Dictionary<string, HashSet<string>>();
 
-    public NamesSynonymService()
+    public NameSynonymsService()
     {
-        Initialise();
+        Initialize();
     }
 
     public IList<string> GetSynonyms(string name)
@@ -19,7 +19,7 @@ public class NamesSynonymService : INamesSynonymService
         return new List<string>();
     }
 
-    private void Initialise()
+    private void Initialize()
     {
         var namesFilePath = Path.Combine(AppContext.BaseDirectory, "names.csv");
         using var textReader = File.OpenText(namesFilePath);

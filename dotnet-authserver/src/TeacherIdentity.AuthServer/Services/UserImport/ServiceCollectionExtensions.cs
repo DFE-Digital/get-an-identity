@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
             });
 
             services.AddSingleton<IUserImportStorageService, BlobStorageUserImportStorageService>();
-            services.AddSingleton<INamesSynonymService, NamesSynonymService>();
+            services.AddSingleton<INameSynonymsService, NameSynonymsService>();
             services.AddScoped<IUserSearchService, UserSearchService>();
             services.AddScoped<IUserImportProcessor, UserImportProcessor>();
         }

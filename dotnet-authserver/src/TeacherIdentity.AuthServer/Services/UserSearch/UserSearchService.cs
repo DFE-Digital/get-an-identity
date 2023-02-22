@@ -7,17 +7,17 @@ namespace TeacherIdentity.AuthServer.Services.UserSearch;
 public class UserSearchService : IUserSearchService
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly INamesSynonymService _namesSynonymService;
+    private readonly INameSynonymsService _namesSynonymService;
 
     public UserSearchService(
         TeacherIdentityServerDbContext dbContext,
-        INamesSynonymService namesSynonymService)
+        INameSynonymsService namesSynonymService)
     {
         _dbContext = dbContext;
         _namesSynonymService = namesSynonymService;
     }
 
-    public async Task<User[]> FindUsers(string firstName, string lastName, DateOnly dateofBirth, bool includeSynonyms = true)
+    public async Task<User[]> FindUsers(string firstName, string lastName, DateOnly dateOfBirth, bool includeSynonyms = true)
     {
         var searchPredicate = PredicateBuilder.New<UserSearchAttribute>(false);
 
@@ -33,7 +33,7 @@ public class UserSearchService : IUserSearchService
         }
 
         searchPredicate.Or(a => a.AttributeType == "last_name" && a.AttributeValue == lastName);
-        searchPredicate.Or(a => a.AttributeType == "date_of_birth" && a.AttributeValue == dateofBirth.ToString("yyyy-MM-dd"));
+        searchPredicate.Or(a => a.AttributeType == "date_of_birth" && a.AttributeValue == dateOfBirth.ToString("yyyy-MM-dd"));
 
         var results = await _dbContext.UserSearchAttributes
             .Where(searchPredicate)
@@ -43,18 +43,7 @@ public class UserSearchService : IUserSearchService
             .ToListAsync();
 
         // each result (if there are any) is a list containing only a single user, so flatten it
-        User[] users;
-        if (results.Any())
-        {
-            users = results
-            .Select(r => r[0])
-            .ToArray();
-        }
-        else
-        {
-            users = Array.Empty<User>();
-        }
-
+        var users = results.SelectMany(u => u).ToArray();
         return users;
     }
 }
