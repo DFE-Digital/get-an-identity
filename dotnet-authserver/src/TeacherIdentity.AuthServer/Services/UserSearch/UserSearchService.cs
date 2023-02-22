@@ -23,7 +23,7 @@ public class UserSearchService : IUserSearchService
 
         if (includeSynonyms)
         {
-            var synonyms = _namesSynonymService.GetSynonyms(firstName);
+            var synonyms = _namesSynonymService.GetSynonyms(firstName).ToList();
             synonyms.Insert(0, firstName);
             searchPredicate.Or(a => a.AttributeType == "first_name" && synonyms.Contains(a.AttributeValue));
         }

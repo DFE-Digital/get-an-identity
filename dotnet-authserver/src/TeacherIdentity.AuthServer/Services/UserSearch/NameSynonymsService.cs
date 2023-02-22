@@ -9,7 +9,7 @@ public class NameSynonymsService : INameSynonymsService
         Initialize();
     }
 
-    public IList<string> GetSynonyms(string name)
+    public IReadOnlyCollection<string> GetSynonyms(string name)
     {
         if (namesLookup.TryGetValue(name.ToLower(), out var synonyms))
         {
