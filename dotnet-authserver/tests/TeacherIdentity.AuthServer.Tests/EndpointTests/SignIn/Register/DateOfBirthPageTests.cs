@@ -135,7 +135,7 @@ public class DateOfBirthPageTests : TestBase
     [InlineData("+447123456 789", "07123456789")]
     [InlineData("(0044)7111456789", "07111456789")]
     [InlineData("+672-7-123-456-789", "+6727123456789")]
-    [InlineData("00672/7-123-456-789", "006727123456789")]
+    [InlineData("00672/7-111-456-789", "+6727111456789")]
     public async Task Post_ValidForm_CreatesUserWithCorrectFormatMobileNumber(string mobileNumber, string formattedMobileNumber)
     {
         // Arrange

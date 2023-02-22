@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
@@ -38,7 +37,7 @@ public class DateOfBirthPage : PageModel
         var authenticationState = HttpContext.GetAuthenticationState();
         authenticationState.OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
-        var user = await TryCreateUser();
+        var user = await CreateUser();
 
         authenticationState.OnUserRegistered(user);
         await authenticationState.SignIn(HttpContext);
@@ -46,7 +45,7 @@ public class DateOfBirthPage : PageModel
         return Redirect(_linkGenerator.CompleteAuthorization());
     }
 
-    private async Task<User> TryCreateUser()
+    private async Task<User> CreateUser()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
@@ -56,7 +55,7 @@ public class DateOfBirthPage : PageModel
             Created = _clock.UtcNow,
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = FormatMobileNumber(authenticationState.MobileNumber!),
+            MobileNumber = PhoneHelper.FormatMobileNumber(authenticationState.MobileNumber!),
             FirstName = authenticationState.FirstName!,
             LastName = authenticationState.LastName!,
             Updated = _clock.UtcNow,
@@ -75,21 +74,8 @@ public class DateOfBirthPage : PageModel
             User = user
         });
 
-        try
-        {
-            await _dbContext.SaveChangesAsync();
-        }
-        catch (DbUpdateException)
-        {
-            // We don't currently handle any update exceptions
-        }
+        await _dbContext.SaveChangesAsync();
 
         return user;
-    }
-
-    private string FormatMobileNumber(string mobileNumber)
-    {
-        var strippedMobileNumber = Regex.Replace(mobileNumber, @"^[^\d\+]|(?<=.)[^\d]", "");
-        return Regex.Replace(strippedMobileNumber, @"^(\+44|0044)", "0");
     }
 }

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -52,7 +53,7 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
         var permittedUserTypes = authenticationState.GetPermittedUserTypes();
 
         var user = await _dbContext.Users
-            .Where(u => (u.MobileNumber ?? "").EndsWith(NormaliseMobileNumber(MobileNumber!)))
+            .Where(u => (u.MobileNumber ?? "") == PhoneHelper.FormatMobileNumber(MobileNumber!))
             .SingleOrDefaultAsync();
 
         if (user is not null && !permittedUserTypes.Contains(user.UserType))
@@ -79,10 +80,5 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
         {
             context.Result = new RedirectResult(_linkGenerator.RegisterPhone());
         }
-    }
-
-    private string NormaliseMobileNumber(string mobileNumber)
-    {
-        return new string(mobileNumber.Where(char.IsAsciiDigit).ToArray()).TrimStart('0');
     }
 }
