@@ -1,6 +1,7 @@
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Services.UserImport;
 
@@ -28,6 +29,8 @@ public static class ServiceCollectionExtensions
             });
 
             services.AddSingleton<IUserImportStorageService, BlobStorageUserImportStorageService>();
+            services.AddSingleton<INameSynonymsService, NameSynonymsService>();
+            services.AddScoped<IUserSearchService, UserSearchService>();
             services.AddScoped<IUserImportProcessor, UserImportProcessor>();
         }
 

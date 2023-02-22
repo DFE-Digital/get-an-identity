@@ -1,0 +1,3 @@
+[submodule "dotnet-authserver/lib/nicknames"]
+	path = dotnet-authserver/lib/nicknames
+	url = https://github.com/carltonnorthern/nicknames

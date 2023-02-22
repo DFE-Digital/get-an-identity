@@ -20,17 +20,26 @@ public class UserImportsModel : PageModel
 
     public async Task OnGet()
     {
-        UserImports = await _dbContext.UserImportJobs
-            .OrderByDescending(j => j.Uploaded)
-            .Select(j => new UserImportJobInfo()
+        var jobs = await _dbContext.UserImportJobs
+            .Select(j => new
             {
-                UserImportJobId = j.UserImportJobId,
-                Filename = j.OriginalFilename,
-                Uploaded = j.Uploaded.ToString("dd/MM/yyyy HH:mm"),
-                Status = j.UserImportJobStatus.ToString(),
-                SuccessSummary = j.UserImportJobRows == null ? "TBC" : $"{j.UserImportJobRows.Count(r => r.UserId != null)} / {j.UserImportJobRows.Count()}"
+                Job = j,
+                ImportedCount = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count(r => r.UserId != null),
+                TotalRows = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count()
             })
             .ToArrayAsync();
+
+        UserImports = jobs
+            .OrderByDescending(j => j.Job.Uploaded)
+            .Select(j => new UserImportJobInfo()
+            {
+                UserImportJobId = j.Job.UserImportJobId,
+                Filename = j.Job.OriginalFilename,
+                Uploaded = j.Job.Uploaded.ToString("dd/MM/yyyy HH:mm"),
+                Status = j.Job.UserImportJobStatus.ToString(),
+                SuccessSummary = $"{j.ImportedCount} / {j.TotalRows}"
+            })
+            .ToArray();
     }
 
     public class UserImportJobInfo

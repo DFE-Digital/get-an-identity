@@ -65,6 +65,7 @@ public class UserImportModel : PageModel
         else
         {
             SuccessSummary = "TBC";
+            UserImportRows = new UserImportJobRowInfo[] { };
         }
 
         return Page();

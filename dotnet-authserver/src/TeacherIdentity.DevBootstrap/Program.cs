@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.DevBootstrap.Csv;
 using static Bogus.DataSets.Name;
 
@@ -57,6 +58,12 @@ if (args.Contains("--import-test-users"))
 {
     Console.WriteLine();
     await ImportTestUsers();
+}
+
+if (args.Contains("--generate-user-import"))
+{
+    Console.WriteLine();
+    await GenerateUserImport();
 }
 
 async Task CreateDatabase()
@@ -197,6 +204,42 @@ async Task ImportTestUsers(string csvFileName = "test-users.csv")
             Console.WriteLine($"Saved {i} users in teacher identity database.");
         }
     });
+
+    Console.WriteLine("done.");
+}
+
+async Task GenerateUserImport(int userCount = 100_000)
+{
+    Console.WriteLine($"Generating user import file with {userCount} users... ");
+
+    var userImportRowFaker = new Faker<UserImportRow>("en")
+            .RuleFor(r => r.Id, (f, u) => Guid.NewGuid().ToString())
+            .RuleFor(r => r.EmailAddress, (f, u) => f.Internet.Email(u.FirstName, u.LastName))
+            .RuleFor(r => r.FirstName, (f, u) => f.Name.FirstName(f.PickRandom<Gender>()))
+            .RuleFor(r => r.LastName, (f, u) => f.Name.LastName())
+            .RuleFor(r => r.DateOfBirth, (f, u) => DateOnly.FromDateTime(f.Date.Between(new DateTime(1950, 1, 1), new DateTime(2002, 1, 1))).ToString("ddMMyyyy"));
+
+    var userImportFilePath = Path.Combine(AppContext.BaseDirectory, $"test-user-import-{DateTime.UtcNow:yyyyMMddHHmmss}.csv");
+    using var writer = new StreamWriter(userImportFilePath);
+    using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true });
+    int logFrequency = userCount / 20;
+    var userImportRowCount = 0;
+    foreach (var userImportRow in userImportRowFaker.GenerateLazy(userCount))
+    {
+        await csv.WriteRecordsAsync(new[] { userImportRow });
+        userImportRowCount++;
+
+        if (userImportRowCount != 0 && userImportRowCount % logFrequency == 0)
+        {
+            Console.WriteLine($"Generated {userImportRowCount} user import rows.");
+        }
+    }
+
+    // Log any unlogged totals
+    if (userImportRowCount % logFrequency != 0)
+    {
+        Console.WriteLine($"Generated {userImportRowCount} user import rows.");
+    }
 
     Console.WriteLine("done.");
 }

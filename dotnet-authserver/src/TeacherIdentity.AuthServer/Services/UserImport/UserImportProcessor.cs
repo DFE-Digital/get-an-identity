@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.UserSearch;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Services.UserImport;
@@ -12,23 +14,28 @@ public class UserImportProcessor : IUserImportProcessor
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserImportStorageService _userImportStorageService;
+    private readonly IUserSearchService _userSearchService;
     private readonly IClock _clock;
     private readonly ILogger<UserImportProcessor> _logger;
 
     public UserImportProcessor(
         TeacherIdentityServerDbContext dbContext,
         IUserImportStorageService userImportStorageService,
+        IUserSearchService userSearchService,
         IClock clock,
         ILogger<UserImportProcessor> logger)
     {
         _dbContext = dbContext;
         _userImportStorageService = userImportStorageService;
+        _userSearchService = userSearchService;
         _clock = clock;
         _logger = logger;
     }
 
     public async Task Process(Guid userImportJobId)
     {
+        var sw = Stopwatch.StartNew();
+
         var userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
         if (userImportJob == null)
         {
@@ -136,19 +143,30 @@ public class UserImportProcessor : IUserImportProcessor
             }
             else
             {
-                user = new User
+                var dateOfBirth = DateOnly.ParseExact(row!.DateOfBirth!, "ddMMyyyy", CultureInfo.InvariantCulture);
+                // Validate for potential duplicates
+                var existingUsers = await _userSearchService.FindUsers(row!.FirstName!, row.LastName!, dateOfBirth);
+                if (existingUsers.Any(u => u.EmailAddress != row.EmailAddress!))
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = row!.EmailAddress!,
-                    FirstName = row.FirstName!,
-                    LastName = row.LastName!,
-                    Created = _clock.UtcNow,
-                    Updated = _clock.UtcNow,
-                    DateOfBirth = DateOnly.ParseExact(row.DateOfBirth!, "ddMMyyyy", CultureInfo.InvariantCulture),
-                    UserType = UserType.Teacher
-                };
+                    errors.Add("Potential duplicate user");
+                    userImportJobRow.Errors = errors;
+                }
+                else
+                {
+                    user = new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = row.EmailAddress!,
+                        FirstName = row.FirstName!,
+                        LastName = row.LastName!,
+                        Created = _clock.UtcNow,
+                        Updated = _clock.UtcNow,
+                        DateOfBirth = dateOfBirth,
+                        UserType = UserType.Teacher
+                    };
 
-                userImportJobRow.UserId = user.UserId;
+                    userImportJobRow.UserId = user.UserId;
+                }
             }
 
             using (var txn = await _dbContext.Database.BeginTransactionAsync())
@@ -183,7 +201,9 @@ public class UserImportProcessor : IUserImportProcessor
                     // Refresh the user import job in memory so we can start tracking changes again
                     userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
                     errors.Add("A user already exists with the specified email address");
-                    userImportJobRow.UserId = null;
+
+                    User existingUser = await _dbContext.Users.SingleAsync(u => u.EmailAddress == row!.EmailAddress);
+                    userImportJobRow.UserId = existingUser.UserId;
                     userImportJobRow.Errors = errors;
                     if (userImportJob!.UserImportJobRows == null)
                     {
@@ -209,5 +229,8 @@ public class UserImportProcessor : IUserImportProcessor
         await _dbContext.SaveChangesAsync();
 
         await _userImportStorageService.Archive(userImportJob.StoredFilename);
+
+        sw.Stop();
+        _logger.LogInformation($"Processed {rowNumber} user import rows in {sw.ElapsedMilliseconds}ms.");
     }
 }
