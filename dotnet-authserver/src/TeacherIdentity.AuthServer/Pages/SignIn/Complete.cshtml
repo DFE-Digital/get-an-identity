@@ -20,6 +20,8 @@
                 Uri.EscapeDataString(value);
         }
     }
+
+    ViewData.Add("Scope", Model.Scope);
 }
 
 <form action="@action" method="@method" asp-antiforgery="false">

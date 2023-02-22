@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Oidc;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
 [Collection(nameof(DisableParallelization))]  // Relies on mocks
@@ -97,12 +99,15 @@ public class CompleteTests : TestBase
         Assert.NotNull(doc.GetElementByTestId("known-user-content"));
     }
 
-    [Fact]
-    public async Task Get_FirstTimeSignInForEmailWithoutTrnUsingRegisterForNpqClient_RendersExpectedContent()
+    [Theory]
+    [MemberData(nameof(FirstTimeSignInForRegisterForNpqData))]
+    public async Task Get_FirstTimeSignInForEmailWithoutTrnUsingRegisterForNpqClient_RendersExpectedContent(
+        string additionalScopes,
+        string[] expectedContent)
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: false);
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes: null, TestClients.RegisterForNpq);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: true), additionalScopes, TestClients.RegisterForNpq);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -112,8 +117,13 @@ public class CompleteTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Contains("Continue to register for an NPQ", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
-        Assert.Contains("Although we could not find your record, you can continue to register for an NPQ.", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
+        var content = doc.GetElementByTestId("first-time-user-content")?.InnerHtml;
+        Assert.Contains("Continue to register for an NPQ", content);
+
+        foreach (var block in expectedContent)
+        {
+            Assert.Contains(block, content);
+        }
     }
 
     [Fact]
@@ -134,4 +144,26 @@ public class CompleteTests : TestBase
         Assert.Contains("We’ve finished checking our records", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
         Assert.Contains("You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.", doc.GetElementByTestId("first-time-user-content")!.InnerHtml);
     }
+
+    public static TheoryData<string, string[]> FirstTimeSignInForRegisterForNpqData => new()
+    {
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            CustomScopes.Trn,
+#pragma warning restore CS0618 // Type or member is obsolete
+            new[]
+            {
+                "Although we could not find your record, you can continue to register for an NPQ.",
+                "You’ll need to enter some of your details again."
+            }
+        },
+        {
+            CustomScopes.DqtRead,
+            new[]
+            {
+                "You can continue anyway and we’ll try to find your record. Someone may be in touch to ask for more information.",
+                "If you need to come back to this service later you’ll only need to give us your email address"
+            }
+        }
+    };
 }

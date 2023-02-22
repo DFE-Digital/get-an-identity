@@ -29,6 +29,8 @@ public class CompleteModel : PageModel
 
     public UserType UserType { get; set; }
 
+    public string? Scope { get; set; }
+
     public void OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
@@ -44,6 +46,7 @@ public class CompleteModel : PageModel
         Trn = authenticationState.Trn;
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
         UserType = authenticationState.UserType!.Value;
+        Scope = authenticationState.OAuthState?.Scope;
 
         HttpContext.Features.Get<WebRequestEventFeature>()?.Event.AddTag(FirstTimeSignInForEmail ? "FirstTimeUser" : "ReturningUser");
     }
