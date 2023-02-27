@@ -1,8 +1,8 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-public class PhoneExistsTests : TestBase
+public class EmailExistsTests : TestBase
 {
-    public PhoneExistsTests(HostFixture hostFixture)
+    public EmailExistsTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -10,20 +10,20 @@ public class PhoneExistsTests : TestBase
     [Fact]
     public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/phone-exists");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/email-exists");
     }
 
     [Fact]
     public async Task Get_MissingAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/phone-exists");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/email-exists");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
         var user = await TestData.CreateUser();
-        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone-exists");
+        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), additionalScopes: null, HttpMethod.Get, "/sign-in/register/email-exists");
     }
 
     [Fact]
@@ -36,6 +36,6 @@ public class PhoneExistsTests : TestBase
     public async Task Get_ValidRequest_RendersContent()
     {
         var user = await TestData.CreateUser();
-        await ValidRequest_RendersContent(c => c.Completed(user), "/sign-in/register/phone-exists", additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.Completed(user), "/sign-in/register/email-exists", additionalScopes: null);
     }
 }
