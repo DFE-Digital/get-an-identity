@@ -7,6 +7,7 @@ public class UserImportJob
     public required string OriginalFilename { get; set; }
     public required UserImportJobStatus UserImportJobStatus { get; set; }
     public required DateTime Uploaded { get; set; }
+    public Guid? UploadedByUserId { get; set; }
     public DateTime? Imported { get; set; }
     public List<UserImportJobRow>? UserImportJobRows { get; set; }
 }

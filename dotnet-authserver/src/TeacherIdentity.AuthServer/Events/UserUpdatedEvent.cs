@@ -26,5 +26,6 @@ public enum UserUpdatedEventSource
     Api = 0,
     TrnMatchedToExistingUser = 1,
     ChangedByUser = 2,
-    SupportUi = 3
+    SupportUi = 3,
+    UserImport = 4
 }

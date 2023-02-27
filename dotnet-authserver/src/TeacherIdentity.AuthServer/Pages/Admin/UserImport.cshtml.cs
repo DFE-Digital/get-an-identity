@@ -97,7 +97,7 @@ public class UserImportModel : PageModel
                     Id = r.Id,
                     UserId = r.UserId,
                     UserImportRowResult = r.UserImportRowResult,
-                    Notes = r.Notes is null ? null : string.Join(".", r.Notes),
+                    Notes = r.Notes is null ? null : string.Join(". ", r.Notes),
                     RawData = r.RawData
                 });
 

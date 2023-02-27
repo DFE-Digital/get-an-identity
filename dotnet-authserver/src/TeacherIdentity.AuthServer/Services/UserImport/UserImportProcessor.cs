@@ -129,12 +129,9 @@ public class UserImportProcessor : IUserImportProcessor
                     errors.Add($"{UserImportRow.DateOfBirthHeader} field should be a valid date in ddMMyyyy format");
                 }
 
-                if (!string.IsNullOrEmpty(row.Trn))
+                if (!string.IsNullOrEmpty(row.Trn) && !Regex.IsMatch(row.Trn, @"^\d{7}$"))
                 {
-                    if (!Regex.IsMatch(row.Trn, @"^\d{7}$"))
-                    {
-                        errors.Add($"{UserImportRow.TrnHeader} field must be empty or a 7 digit number");
-                    }
+                    errors.Add($"{UserImportRow.TrnHeader} field must be empty or a 7 digit number");
                 }
             }
 
@@ -231,6 +228,16 @@ public class UserImportProcessor : IUserImportProcessor
                             userImportJobRow.UserId = existingUser.UserId;
                             userImportJobRow.UserImportRowResult = UserImportRowResult.UserUpdated;
                             userImportJobRow.Notes = new List<string> { "Updated TRN for existing user" };
+
+                            _dbContext.AddEvent(new UserUpdatedEvent()
+                            {
+                                Source = UserUpdatedEventSource.UserImport,
+                                UpdatedByClientId = null,
+                                UpdatedByUserId = userImportJob!.UploadedByUserId,
+                                CreatedUtc = _clock.UtcNow,
+                                User = Events.User.FromModel(existingUser),
+                                Changes = UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus
+                            });
                         }
                         else if (existingUser.Trn != row.Trn)
                         {
