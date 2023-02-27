@@ -177,6 +177,38 @@ public class UsersTests : TestBase, IAsyncLifetime
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Get_ValidRequest_ReturnsExpectedContentForUser(bool hasTrn)
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: hasTrn);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+
+        var userRow = doc.GetElementByTestId($"user-{user.UserId}")!;
+
+        if (hasTrn)
+        {
+            Assert.DoesNotContain("Add a DQT record", userRow.InnerHtml);
+            Assert.DoesNotContain("Mark as non DQT", userRow.InnerHtml);
+        }
+        else
+        {
+            Assert.Contains("Add a DQT record", userRow.InnerHtml);
+            Assert.Contains("Mark as non DQT", userRow.InnerHtml);
+        }
+    }
+
     private Dictionary<string, string> GetFilterQueryParams(TrnLookupStatus[] activeFilters)
     {
         var filterParams = new Dictionary<string, string>();
