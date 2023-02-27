@@ -208,16 +208,34 @@ async Task ImportTestUsers(string csvFileName = "test-users.csv")
     Console.WriteLine("done.");
 }
 
-async Task GenerateUserImport(int userCount = 100_000)
+async Task GenerateUserImport(int userCount = 10_000)
 {
     Console.WriteLine($"Generating user import file with {userCount} users... ");
 
+    // Generate all possible TRNs and randomise list to use to generate unique TRNs
+    var trns = Enumerable.Range(1000000, 8999999);
+    var randomizer = new Randomizer();
+    var randomised = randomizer.Shuffle(trns);
+    var enumerator = randomised.GetEnumerator();
+    var trnGenerator = () =>
+    {
+        if (!enumerator.MoveNext())
+        {
+            enumerator.Reset();
+            enumerator.MoveNext();
+        }
+
+        var trn = enumerator.Current;
+        return trn.ToString();
+    };
+
     var userImportRowFaker = new Faker<UserImportRow>("en")
             .RuleFor(r => r.Id, (f, u) => Guid.NewGuid().ToString())
-            .RuleFor(r => r.EmailAddress, (f, u) => f.Internet.Email(u.FirstName, u.LastName))
             .RuleFor(r => r.FirstName, (f, u) => f.Name.FirstName(f.PickRandom<Gender>()))
             .RuleFor(r => r.LastName, (f, u) => f.Name.LastName())
-            .RuleFor(r => r.DateOfBirth, (f, u) => DateOnly.FromDateTime(f.Date.Between(new DateTime(1950, 1, 1), new DateTime(2002, 1, 1))).ToString("ddMMyyyy"));
+            .RuleFor(i => i.EmailAddress, (f, i) => f.Internet.Email(i.FirstName, i.LastName, uniqueSuffix: randomizer.Number(1, 1000000).ToString()))
+            .RuleFor(r => r.DateOfBirth, (f, u) => DateOnly.FromDateTime(f.Date.Between(new DateTime(1950, 1, 1), new DateTime(2002, 1, 1))).ToString("ddMMyyyy"))
+            .RuleFor(r => r.Trn, (f, u) => trnGenerator());
 
     var userImportFilePath = Path.Combine(AppContext.BaseDirectory, $"test-user-import-{DateTime.UtcNow:yyyyMMddHHmmss}.csv");
     using var writer = new StreamWriter(userImportFilePath);

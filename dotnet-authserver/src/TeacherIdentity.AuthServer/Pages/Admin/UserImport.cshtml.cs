@@ -33,6 +33,13 @@ public class UserImportModel : PageModel
 
     public string? Status { get; set; }
 
+    public int AddedCount { get; set; }
+
+    public int UpdatedCount { get; set; }
+    public int InvalidCount { get; set; }
+    public int NoActionCount { get; set; }
+    public int TotalRowsCount { get; set; }
+
     public string? SuccessSummary { get; set; }
 
     public UserImportJobRowInfo[]? UserImportRows { get; set; }
@@ -52,14 +59,19 @@ public class UserImportModel : PageModel
         List<UserImportJobRow> userImportJobRows = await _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == UserImportJobId).ToListAsync();
         if (userImportJobRows.Count > 0)
         {
-            SuccessSummary = $"{userImportJobRows.Count(r => r.UserId != null)} / {userImportJobRows.Count()}";
+            AddedCount = userImportJobRows.Count(r => r.UserImportRowResult == UserImportRowResult.UserAdded);
+            UpdatedCount = userImportJobRows.Count(r => r.UserImportRowResult == UserImportRowResult.UserUpdated);
+            InvalidCount = userImportJobRows.Count(r => r.UserImportRowResult == UserImportRowResult.Invalid);
+            NoActionCount = userImportJobRows.Count(r => r.UserImportRowResult == UserImportRowResult.None);
+            TotalRowsCount = userImportJobRows.Count();
             UserImportRows = userImportJobRows.Select(r => new UserImportJobRowInfo
             {
                 RowNumber = r.RowNumber,
                 Id = r.Id ?? "{null}",
                 UserId = r.UserId is null ? "{null}" : r.UserId.Value.ToString(),
-                ErrorCount = r.Errors is null ? 0 : r.Errors.Count,
-                Errors = r.Errors ?? new List<string>()
+                NotesCount = r.Notes is null ? 0 : r.Notes.Count,
+                Notes = r.Notes ?? new List<string>(),
+                UserImportRowResult = r.UserImportRowResult
             }).ToArray();
         }
         else
@@ -84,7 +96,8 @@ public class UserImportModel : PageModel
                     RowNumber = r.RowNumber,
                     Id = r.Id,
                     UserId = r.UserId,
-                    Errors = r.Errors is null ? null : string.Join(".", r.Errors),
+                    UserImportRowResult = r.UserImportRowResult,
+                    Notes = r.Notes is null ? null : string.Join(".", r.Notes),
                     RawData = r.RawData
                 });
 
@@ -102,8 +115,9 @@ public class UserImportModel : PageModel
         public required int RowNumber { get; init; }
         public required string Id { get; init; }
         public required string UserId { get; init; }
-        public required int ErrorCount { get; init; }
-        public required List<string> Errors { get; init; }
+        public required int NotesCount { get; init; }
+        public required List<string> Notes { get; init; }
+        public required UserImportRowResult UserImportRowResult { get; set; }
     }
 
 }

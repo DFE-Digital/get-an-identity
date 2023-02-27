@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -127,6 +128,14 @@ public class UserImportProcessor : IUserImportProcessor
                 {
                     errors.Add($"{UserImportRow.DateOfBirthHeader} field should be a valid date in ddMMyyyy format");
                 }
+
+                if (!string.IsNullOrEmpty(row.Trn))
+                {
+                    if (!Regex.IsMatch(row.Trn, @"^\d{7}$"))
+                    {
+                        errors.Add($"{UserImportRow.TrnHeader} field must be empty or a 7 digit number");
+                    }
+                }
             }
 
             var userImportJobRow = new UserImportJobRow
@@ -139,7 +148,8 @@ public class UserImportProcessor : IUserImportProcessor
 
             if (errors.Count > 0)
             {
-                userImportJobRow.Errors = errors;
+                userImportJobRow.Notes = errors;
+                userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
             }
             else
             {
@@ -149,7 +159,8 @@ public class UserImportProcessor : IUserImportProcessor
                 if (existingUsers.Any(u => u.EmailAddress != row.EmailAddress!))
                 {
                     errors.Add("Potential duplicate user");
-                    userImportJobRow.Errors = errors;
+                    userImportJobRow.Notes = errors;
+                    userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
                 }
                 else
                 {
@@ -165,7 +176,15 @@ public class UserImportProcessor : IUserImportProcessor
                         UserType = UserType.Teacher
                     };
 
+                    if (!string.IsNullOrEmpty(row.Trn))
+                    {
+                        user.Trn = row.Trn;
+                        user.TrnAssociationSource = TrnAssociationSource.UserImport;
+                        user.TrnLookupStatus = TrnLookupStatus.Found;
+                    }
+
                     userImportJobRow.UserId = user.UserId;
+                    userImportJobRow.UserImportRowResult = UserImportRowResult.UserAdded;
                 }
             }
 
@@ -200,11 +219,66 @@ public class UserImportProcessor : IUserImportProcessor
                     _dbContext.ChangeTracker.Clear();
                     // Refresh the user import job in memory so we can start tracking changes again
                     userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
-                    errors.Add("A user already exists with the specified email address");
 
                     User existingUser = await _dbContext.Users.SingleAsync(u => u.EmailAddress == row!.EmailAddress);
-                    userImportJobRow.UserId = existingUser.UserId;
-                    userImportJobRow.Errors = errors;
+                    if (!string.IsNullOrEmpty(row!.Trn))
+                    {
+                        if (existingUser.Trn is null)
+                        {
+                            existingUser.Trn = row.Trn;
+                            existingUser.TrnAssociationSource = TrnAssociationSource.UserImport;
+                            existingUser.TrnLookupStatus = TrnLookupStatus.Found;
+                            userImportJobRow.UserId = existingUser.UserId;
+                            userImportJobRow.UserImportRowResult = UserImportRowResult.UserUpdated;
+                            userImportJobRow.Notes = new List<string> { "Updated TRN for existing user" };
+                        }
+                        else if (existingUser.Trn != row.Trn)
+                        {
+                            userImportJobRow.UserId = null;
+                            userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
+                            userImportJobRow.Notes = new List<string> { "A user already exists with the specified email address but a different TRN" };
+                        }
+                        else
+                        {
+                            userImportJobRow.UserImportRowResult = UserImportRowResult.None;
+                            userImportJobRow.Notes = new List<string> { "A user already exists with the specified email address" };
+                        }
+                    }
+                    else
+                    {
+                        userImportJobRow.UserImportRowResult = UserImportRowResult.None;
+                        userImportJobRow.Notes = new List<string> { "A user already exists with the specified email address" };
+                    }
+
+                    if (userImportJob!.UserImportJobRows == null)
+                    {
+                        userImportJob.UserImportJobRows = new List<UserImportJobRow>();
+                    }
+                    userImportJob.UserImportJobRows.Add(userImportJobRow);
+
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
+                {
+                    await txn.RollbackAsync();
+                    _dbContext.ChangeTracker.Clear();
+                    // Refresh the user import job in memory so we can start tracking changes again
+                    userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
+
+                    User existingUser = await _dbContext.Users.SingleAsync(u => u.Trn == row!.Trn);
+                    if (existingUser.EmailAddress == row!.EmailAddress)
+                    {
+                        userImportJobRow.UserId = existingUser.UserId;
+                        userImportJobRow.UserImportRowResult = UserImportRowResult.None;
+                        userImportJobRow.Notes = new List<string> { "A user already exists with the specified email address" };
+                    }
+                    else
+                    {
+                        userImportJobRow.UserId = null;
+                        userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
+                        userImportJobRow.Notes = new List<string> { "A user already exists with the specified TRN" };
+                    }
+
                     if (userImportJob!.UserImportJobRows == null)
                     {
                         userImportJob.UserImportJobRows = new List<UserImportJobRow>();

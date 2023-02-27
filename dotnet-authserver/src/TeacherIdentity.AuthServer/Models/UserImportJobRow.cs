@@ -10,5 +10,6 @@ public class UserImportJobRow
     public string? Id { get; set; }
     public string? RawData { get; set; }
     public Guid? UserId { get; set; }
-    public List<string>? Errors { get; set; }
+    public List<string>? Notes { get; set; }
+    public UserImportRowResult UserImportRowResult { get; set; }
 }

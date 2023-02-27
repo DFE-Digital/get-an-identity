@@ -51,7 +51,8 @@ public class UserImportTests : TestBase
             UserImportJobId = userImportJobId,
             RowNumber = 1,
             Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid()
+            UserId = Guid.NewGuid(),
+            UserImportRowResult = UserImportRowResult.UserAdded
         };
 
         var userImportJobRow2Failure = new UserImportJobRow
@@ -59,7 +60,8 @@ public class UserImportTests : TestBase
             UserImportJobId = userImportJobId,
             RowNumber = 2,
             Id = Guid.NewGuid().ToString(),
-            Errors = new List<string> { "There is something wrong with this row", "There is something else wrong with this row" }
+            Notes = new List<string> { "There is something wrong with this row", "There is something else wrong with this row" },
+            UserImportRowResult = UserImportRowResult.Invalid
         };
 
         var userImportJobRow3Success = new UserImportJobRow
@@ -67,7 +69,8 @@ public class UserImportTests : TestBase
             UserImportJobId = userImportJobId,
             RowNumber = 3,
             Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid()
+            UserId = Guid.NewGuid(),
+            UserImportRowResult = UserImportRowResult.UserAdded
         };
 
         var userImportJob = new UserImportJob
@@ -110,9 +113,21 @@ public class UserImportTests : TestBase
         var status = summary.GetElementByTestId($"status-{userImportJobId}");
         Assert.NotNull(status);
         Assert.Equal(userImportJob.UserImportJobStatus.ToString(), status.TextContent);
-        var successSummary = summary.GetElementByTestId($"successsummary-{userImportJobId}");
-        Assert.NotNull(successSummary);
-        Assert.Equal("2 / 3", successSummary.TextContent);
+        var added = summary.GetElementByTestId($"added-{userImportJobId}");
+        Assert.NotNull(added);
+        Assert.Equal("2", added.TextContent);
+        var updated = summary.GetElementByTestId($"updated-{userImportJobId}");
+        Assert.NotNull(updated);
+        Assert.Equal("0", updated.TextContent);
+        var invalid = summary.GetElementByTestId($"invalid-{userImportJobId}");
+        Assert.NotNull(invalid);
+        Assert.Equal("1", invalid.TextContent);
+        var noAction = summary.GetElementByTestId($"noaction-{userImportJobId}");
+        Assert.NotNull(noAction);
+        Assert.Equal("0", noAction.TextContent);
+        var total = summary.GetElementByTestId($"total-{userImportJobId}");
+        Assert.NotNull(total);
+        Assert.Equal("3", total.TextContent);
 
         var details = doc.GetElementByTestId($"details-{userImportJobId}");
         Assert.NotNull(details);
@@ -128,11 +143,11 @@ public class UserImportTests : TestBase
         var userId1 = tableRow1.GetElementByTestId("userid-1");
         Assert.NotNull(userId1);
         Assert.Equal(userImportJobRow1Success.UserId.ToString(), userId1.TextContent);
-        var errorcount1 = tableRow1.GetElementByTestId("errorcount-1");
-        Assert.NotNull(errorcount1);
-        Assert.Equal("0", errorcount1.TextContent);
-        var tableRow1Errors = details.GetElementByTestId("user-import-row-errors-1");
-        Assert.Null(tableRow1Errors);
+        var result1 = tableRow1.GetElementByTestId("result-1");
+        Assert.NotNull(result1);
+        Assert.Equal("UserAdded", result1.TextContent);
+        var tableRow1Notes = details.GetElementByTestId("user-import-row-notes-1");
+        Assert.Null(tableRow1Notes);
 
         var tableRow2 = details.GetElementByTestId("user-import-row-2");
         Assert.NotNull(tableRow2);
@@ -145,11 +160,11 @@ public class UserImportTests : TestBase
         var userId2 = tableRow2.GetElementByTestId("userid-2");
         Assert.NotNull(userId2);
         Assert.Equal("{null}", userId2.TextContent);
-        var errorcount2 = tableRow2.GetElementByTestId("errorcount-2");
-        Assert.NotNull(errorcount2);
-        Assert.Equal("2", errorcount2.TextContent);
-        var tableRow2Errors = details.GetElementByTestId("user-import-row-errors-2");
-        Assert.NotNull(tableRow2Errors);
+        var result2 = tableRow2.GetElementByTestId("result-2");
+        Assert.NotNull(result2);
+        Assert.Equal("Invalid", result2.TextContent);
+        var tableRow2Notes = details.GetElementByTestId("user-import-row-notes-2");
+        Assert.NotNull(tableRow2Notes);
 
         var tableRow3 = details.GetElementByTestId("user-import-row-3");
         Assert.NotNull(tableRow3);
@@ -162,11 +177,11 @@ public class UserImportTests : TestBase
         var userId3 = tableRow3.GetElementByTestId("userid-3");
         Assert.NotNull(userId3);
         Assert.Equal(userImportJobRow3Success.UserId.ToString(), userId3.TextContent);
-        var errorcount3 = tableRow3.GetElementByTestId("errorcount-3");
-        Assert.NotNull(errorcount3);
-        Assert.Equal("0", errorcount3.TextContent);
-        var tableRow3Errors = details.GetElementByTestId("user-import-row-errors-3");
-        Assert.Null(tableRow3Errors);
+        var result3 = tableRow3.GetElementByTestId("result-3");
+        Assert.NotNull(result3);
+        Assert.Equal("UserAdded", result3.TextContent);
+        var tableRow3Notes = details.GetElementByTestId("user-import-row-notes-3");
+        Assert.Null(tableRow3Notes);
     }
 
     [Fact]
@@ -181,7 +196,8 @@ public class UserImportTests : TestBase
             RowNumber = 1,
             Id = Guid.NewGuid().ToString(),
             UserId = Guid.NewGuid(),
-            RawData = "This,was,the,raw,data,1"
+            RawData = "This,was,the,raw,data,1",
+            UserImportRowResult = UserImportRowResult.UserAdded
         };
 
         var userImportJobRow2Failure = new UserImportJobRow
@@ -190,7 +206,8 @@ public class UserImportTests : TestBase
             RowNumber = 2,
             Id = Guid.NewGuid().ToString(),
             RawData = "This,was,the,raw,data,2",
-            Errors = new List<string> { "There is something wrong with this row", "There is something else wrong with this row" }
+            Notes = new List<string> { "There is something wrong with this row", "There is something else wrong with this row" },
+            UserImportRowResult = UserImportRowResult.Invalid
         };
 
         var userImportJobRow3Success = new UserImportJobRow
@@ -199,7 +216,8 @@ public class UserImportTests : TestBase
             RowNumber = 3,
             Id = Guid.NewGuid().ToString(),
             UserId = Guid.NewGuid(),
-            RawData = "This,was,the,raw,data,3"
+            RawData = "This,was,the,raw,data,3",
+            UserImportRowResult = UserImportRowResult.UserAdded
         };
 
         var userImportJob = new UserImportJob
@@ -242,18 +260,21 @@ public class UserImportTests : TestBase
         Assert.Equal("1", rows[0].RowNumber);
         Assert.Equal(userImportJobRow1Success.Id.ToString(), rows[0].Id);
         Assert.Equal(userImportJobRow1Success.UserId.ToString(), rows[0].UserId);
-        Assert.Equal(string.Empty, rows[0].Errors);
+        Assert.Equal(userImportJobRow1Success.UserImportRowResult.ToString(), rows[0].UserImportRowResult);
+        Assert.Equal(string.Empty, rows[0].Notes);
         Assert.Equal(userImportJobRow1Success.RawData, rows[0].RawData);
         Assert.Equal("2", rows[1].RowNumber);
         Assert.Equal(userImportJobRow2Failure.Id.ToString(), rows[1].Id);
         Assert.Equal(string.Empty, rows[1].UserId);
-        Assert.Contains(userImportJobRow2Failure.Errors[0], rows[1].Errors);
-        Assert.Contains(userImportJobRow2Failure.Errors[1], rows[1].Errors);
+        Assert.Equal(userImportJobRow2Failure.UserImportRowResult.ToString(), rows[1].UserImportRowResult);
+        Assert.Contains(userImportJobRow2Failure.Notes[0], rows[1].Notes);
+        Assert.Contains(userImportJobRow2Failure.Notes[1], rows[1].Notes);
         Assert.Equal(userImportJobRow2Failure.RawData, rows[1].RawData);
         Assert.Equal("3", rows[2].RowNumber);
         Assert.Equal(userImportJobRow3Success.Id.ToString(), rows[2].Id);
         Assert.Equal(userImportJobRow3Success.UserId.ToString(), rows[2].UserId);
-        Assert.Equal(string.Empty, rows[2].Errors);
+        Assert.Equal(userImportJobRow3Success.UserImportRowResult.ToString(), rows[2].UserImportRowResult);
+        Assert.Equal(string.Empty, rows[2].Notes);
         Assert.Equal(userImportJobRow3Success.RawData, rows[2].RawData);
     }
 }
@@ -263,6 +284,7 @@ public class CsvRowInfo
     public required string RowNumber { get; init; }
     public required string Id { get; init; }
     public required string UserId { get; init; }
-    public required string Errors { get; init; }
+    public required string UserImportRowResult { get; init; }
+    public required string Notes { get; init; }
     public required string RawData { get; init; }
 }

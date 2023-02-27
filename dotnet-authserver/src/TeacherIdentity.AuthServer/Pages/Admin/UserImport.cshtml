@@ -34,12 +34,28 @@
                 <govuk-summary-list-row-value data-testid="status-@Model.UserImportJobId">@Model.Status</govuk-summary-list-row-value>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
-                <govuk-summary-list-row-key>Users imported / total rows</govuk-summary-list-row-key>
-                <govuk-summary-list-row-value data-testid="successsummary-@Model.UserImportJobId">@Model.SuccessSummary</govuk-summary-list-row-value>
+                <govuk-summary-list-row-key>Users added</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value data-testid="added-@Model.UserImportJobId">@Model.AddedCount</govuk-summary-list-row-value>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Users updated</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value data-testid="updated-@Model.UserImportJobId">@Model.UpdatedCount</govuk-summary-list-row-value>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Invalid</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value data-testid="invalid-@Model.UserImportJobId">@Model.InvalidCount</govuk-summary-list-row-value>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>No action</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value data-testid="noaction-@Model.UserImportJobId">@Model.NoActionCount</govuk-summary-list-row-value>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Total rows</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value data-testid="total-@Model.UserImportJobId">@Model.TotalRowsCount</govuk-summary-list-row-value>
                 @if (Model.UserImportRows is not null && Model.UserImportRows.Length > 0)
                 {
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action asp-page="UserImport" asp-page-handler="DownloadFile">Download details</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action asp-page="UserImport" asp-page-handler="DownloadFile">Download (.csv)</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 }                
             </govuk-summary-list-row>
@@ -56,30 +72,30 @@
                 <th scope="col" class="govuk-table__header">Row number</th>
                 <th scope="col" class="govuk-table__header">ID</th>
                 <th scope="col" class="govuk-table__header">User ID</th>
-                <th scope="col" class="govuk-table__header govuk-table__header--numeric">Errors</th>
+                <th scope="col" class="govuk-table__header">Import result</th>
             </tr>
         </thead>
         <tbody class="govuk-table__body">
             @foreach (var userImportRow in Model.UserImportRows!)
             {
                 <tr class="govuk-table__row" data-testid="user-import-row-@userImportRow.RowNumber">
-                    <td class="govuk-table__cell @(userImportRow.ErrorCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="rownumber-@userImportRow.RowNumber">@userImportRow.RowNumber</td>
-                    <td class="govuk-table__cell @(userImportRow.ErrorCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="id-@userImportRow.RowNumber"><pre class="govuk-!-margin-0">@userImportRow.Id</pre></td>
-                    <td class="govuk-table__cell @(userImportRow.ErrorCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="userid-@userImportRow.RowNumber"><pre class="govuk-!-margin-0">@userImportRow.UserId</pre></td>
-                    <td class="govuk-table__cell govuk-table__cell--numeric @(userImportRow.ErrorCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="errorcount-@userImportRow.RowNumber">@userImportRow.ErrorCount</td>
+                    <td class="govuk-table__cell @(userImportRow.NotesCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="rownumber-@userImportRow.RowNumber">@userImportRow.RowNumber</td>
+                    <td class="govuk-table__cell @(userImportRow.NotesCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="id-@userImportRow.RowNumber"><pre class="govuk-!-margin-0">@userImportRow.Id</pre></td>
+                    <td class="govuk-table__cell @(userImportRow.NotesCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="userid-@userImportRow.RowNumber"><pre class="govuk-!-margin-0">@userImportRow.UserId</pre></td>
+                    <td class="govuk-table__cell @(userImportRow.NotesCount != 0 ? "gai-!-border-bottom-0" : null)" data-testid="result-@userImportRow.RowNumber">@userImportRow.UserImportRowResult</td>
                 </tr>
-                @if (userImportRow.ErrorCount != 0)
+                @if (userImportRow.NotesCount != 0)
                 {
-                    <tr class="govuk-table__row" data-testid="user-import-row-errors-@userImportRow.RowNumber">
+                    <tr class="govuk-table__row" data-testid="user-import-row-notes-@userImportRow.RowNumber">
                         <td class="govuk-table__cell" colspan="4">
                             <govuk-details class="govuk-!-margin-bottom-0">
                                 <govuk-details-summary>
-                                    Error details
+                                    Notes
                                 </govuk-details-summary>
                                 <govuk-details-text>
-                                    @foreach (var error in userImportRow.Errors)
+                                    @foreach (var note in userImportRow.Notes)
                                     {
-                                        <p>@error</p>
+                                        <p>@note</p>
                                     }
                                 </govuk-details-text>
                             </govuk-details>

@@ -112,7 +112,7 @@ public class AddUserImportTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
         var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
         var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,EXTRA_COLUMN");
+        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN,EXTRA_COLUMN");
         var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
         byteArrayContent.Headers.Add("Content-Type", "text/csv");
         multipartContent.Add(byteArrayContent, "Upload", "test-user-import.csv");
@@ -132,7 +132,7 @@ public class AddUserImportTests : TestBase
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
         var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
         var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH");
+        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
         var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
         byteArrayContent.Headers.Add("Content-Type", "text/csv");
         multipartContent.Add(byteArrayContent, "Upload", "test-user-import.csv");
@@ -153,8 +153,8 @@ public class AddUserImportTests : TestBase
         var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
         var csvFilename = "test-user-import.csv";
         var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH");
-        csvContent.AppendLine("1234567890,test@email.com,joe,bloggs,05021970");
+        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
+        csvContent.AppendLine("1234567890,test@email.com,joe,bloggs,05021970,1234765");
         var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
         byteArrayContent.Headers.Add("Content-Type", "text/csv");
         multipartContent.Add(byteArrayContent, "Upload", csvFilename);
