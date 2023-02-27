@@ -394,6 +394,47 @@ public class AuthenticationState
         TrnLookupStatus = user.TrnLookupStatus;
     }
 
+    public void OnUserRegistered(User user)
+    {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
+        if (EmailAddress is null)
+        {
+            throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
+        }
+
+        if (!EmailAddressVerified)
+        {
+            throw new InvalidOperationException($"Email has not been verified.");
+        }
+
+        if (MobileNumber is null)
+        {
+            throw new InvalidOperationException($"{nameof(MobileNumber)} is not known.");
+        }
+
+        if (!MobileNumberSet)
+        {
+            throw new InvalidOperationException($"Mobile number has not been verified.");
+        }
+
+        Debug.Assert(user.EmailAddress == EmailAddress);
+
+        var permittedUserTypes = GetPermittedUserTypes();
+        if (!permittedUserTypes.Contains(user.UserType))
+        {
+            throw new InvalidOperationException($"Journey does not allow {user.UserType} users.");
+        }
+
+        UserId = user.UserId;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
+        DateOfBirth = user.DateOfBirth;
+        FirstTimeSignInForEmail = true;
+        UserType = user.UserType;
+        StaffRoles = user.StaffRoles;
+    }
+
     public void OnEmailVerifiedOfExistingAccountForTrn()
     {
         ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.TrnLookupCompleted);

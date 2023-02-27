@@ -148,7 +148,7 @@ public class NameTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidName_SetsNameOnAuthenticationState()
+    public async Task Post_ValidName_SetsNameOnAuthenticationStateAndRedirects()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
@@ -169,6 +169,7 @@ public class NameTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/date-of-birth", response.Headers.Location?.OriginalString);
 
         Assert.Equal(firstName, authStateHelper.AuthenticationState.FirstName);
         Assert.Equal(lastName, authStateHelper.AuthenticationState.LastName);

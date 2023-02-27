@@ -1,0 +1,24 @@
+@page "/sign-in/register/date-of-birth"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.DateOfBirthPage
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.DateOfBirth);
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterName()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterDateOfBirth()" method="post" asp-antiforgery="true">
+            <govuk-date-input asp-for="DateOfBirth">
+                <govuk-date-input-fieldset>
+                    <govuk-date-input-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl"/>
+                </govuk-date-input-fieldset>
+            </govuk-date-input>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

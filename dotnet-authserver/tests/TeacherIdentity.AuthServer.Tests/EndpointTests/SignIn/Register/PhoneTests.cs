@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -146,10 +147,10 @@ public class PhoneTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-
         Assert.Equal(mobileNumber, authStateHelper.AuthenticationState.MobileNumber);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(mobileNumber), Times.Once);
+        var formattedMobileNumber = PhoneHelper.FormatMobileNumber(mobileNumber);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(formattedMobileNumber), Times.Once);
     }
 
     [Fact]

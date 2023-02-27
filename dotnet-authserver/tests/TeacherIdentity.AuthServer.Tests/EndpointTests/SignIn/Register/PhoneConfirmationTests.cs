@@ -248,7 +248,7 @@ public class PhoneConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidPinForNewUser_UpdatesAuthenticationState()
+    public async Task Post_ValidPinForNewUser_UpdatesAuthenticationStateAndRedirects()
     {
         // Arrange
         var mobileNumber = Faker.Phone.Number();
@@ -270,6 +270,7 @@ public class PhoneConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/name", response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.MobileNumberVerified);
     }
