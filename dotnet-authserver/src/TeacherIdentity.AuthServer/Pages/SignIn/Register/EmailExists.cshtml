@@ -1,0 +1,19 @@
+@page "/sign-in/register/email-exists"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.EmailExists
+@{
+    ViewBag.Title = "Sign in to your Teaching services account";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterEmailConfirmation()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+        <p>We’ve found a Teaching services account for email (@Model.Email)</p>
+
+        <govuk-button-link href="@HttpContext.GetAuthenticationState().GetNextHopUrl(LinkGenerator)">Sign in</govuk-button-link>
+    </div>
+</div>

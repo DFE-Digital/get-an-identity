@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
@@ -8,14 +10,17 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
     private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
     public EmailConfirmationModel(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext)
         : base(userVerificationService, pinValidator)
     {
         _linkGenerator = linkGenerator;
+        _dbContext = dbContext;
     }
 
     [BindProperty]
@@ -43,7 +48,23 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             return await HandlePinVerificationFailed(pinVerificationFailedReasons);
         }
 
-        HttpContext.GetAuthenticationState().OnEmailVerified();
+        var authenticationState = HttpContext.GetAuthenticationState();
+        var permittedUserTypes = authenticationState.GetPermittedUserTypes();
+
+        var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
+
+        if (user is not null && !permittedUserTypes.Contains(user.UserType))
+        {
+            return new ForbidResult();
+        }
+
+        HttpContext.GetAuthenticationState().OnEmailVerified(user);
+
+        if (user is not null)
+        {
+            await authenticationState.SignIn(HttpContext);
+            return Redirect(_linkGenerator.RegisterEmailExists());
+        }
 
         return Redirect(_linkGenerator.RegisterPhone());
     }

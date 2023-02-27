@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -297,5 +298,59 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForNonAdminScopeWithNonAdminUser_UpdatesAuthenticationStateSignsInAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Default);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(user.EmailAddress);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/email-exists", response.Headers.Location?.OriginalString);
+
+        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
+        Assert.NotNull(authStateHelper.AuthenticationState.UserId);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Default);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(user.EmailAddress);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
     }
 }
