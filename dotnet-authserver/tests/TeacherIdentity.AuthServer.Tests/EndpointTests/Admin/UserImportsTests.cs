@@ -32,7 +32,8 @@ public class UserImportsTests : TestBase
             UserImportJobId = userImportJobId,
             RowNumber = 1,
             Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid()
+            UserId = Guid.NewGuid(),
+            UserImportRowResult = UserImportRowResult.UserAdded
         };
 
         var userImportJobRowFailure = new UserImportJobRow
@@ -40,7 +41,8 @@ public class UserImportsTests : TestBase
             UserImportJobId = userImportJobId,
             RowNumber = 2,
             Id = Guid.NewGuid().ToString(),
-            Errors = new List<string> { "There is something wrong with this row" }
+            Notes = new List<string> { "There is something wrong with this row" },
+            UserImportRowResult = UserImportRowResult.Invalid
         };
 
         var userImportJobRowSuccess2 = new UserImportJobRow
@@ -48,7 +50,8 @@ public class UserImportsTests : TestBase
             UserImportJobId = userImportJobId,
             RowNumber = 3,
             Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid()
+            UserId = Guid.NewGuid(),
+            UserImportRowResult = UserImportRowResult.UserAdded
         };
 
         var userImportJob = new UserImportJob
@@ -90,8 +93,20 @@ public class UserImportsTests : TestBase
         var status = tableRow.GetElementByTestId($"status-{userImportJobId}");
         Assert.NotNull(status);
         Assert.Equal(userImportJob.UserImportJobStatus.ToString(), status.TextContent);
-        var summary = tableRow.GetElementByTestId($"summary-{userImportJobId}");
-        Assert.NotNull(summary);
-        Assert.Equal("2 / 3", summary.TextContent);
+        var added = tableRow.GetElementByTestId($"added-{userImportJobId}");
+        Assert.NotNull(added);
+        Assert.Equal("2", added.TextContent);
+        var updated = tableRow.GetElementByTestId($"updated-{userImportJobId}");
+        Assert.NotNull(updated);
+        Assert.Equal("0", updated.TextContent);
+        var invalid = tableRow.GetElementByTestId($"invalid-{userImportJobId}");
+        Assert.NotNull(invalid);
+        Assert.Equal("1", invalid.TextContent);
+        var noAction = tableRow.GetElementByTestId($"noaction-{userImportJobId}");
+        Assert.NotNull(noAction);
+        Assert.Equal("0", noAction.TextContent);
+        var total = tableRow.GetElementByTestId($"total-{userImportJobId}");
+        Assert.NotNull(total);
+        Assert.Equal("3", total.TextContent);
     }
 }

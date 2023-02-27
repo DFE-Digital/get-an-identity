@@ -8,6 +8,7 @@ public class User
 
     public const string EmailAddressUniqueIndexName = "ix_users_email_address";
     public const string MobileNumberUniqueIndexName = "ix_users_mobile_number";
+    public const string TrnUniqueIndexName = "ix_users_trn";
 
     public Guid UserId { get; set; }
     public required string EmailAddress { get; set; }

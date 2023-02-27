@@ -4,12 +4,13 @@ namespace TeacherIdentity.AuthServer.Services.UserImport;
 
 public class UserImportRow
 {
-    public const int ColumnCount = 5;
+    public const int ColumnCount = 6;
     public const string IdHeader = "ID";
     public const string EmailAddressHeader = "EMAIL_ADDRESS";
     public const string FirstNameHeader = "FIRST_NAME";
     public const string LastNameHeader = "LAST_NAME";
     public const string DateOfBirthHeader = "DATE_OF_BIRTH";
+    public const string TrnHeader = "TRN";
 
     [Name(IdHeader)]
     public string? Id { get; set; }
@@ -21,4 +22,6 @@ public class UserImportRow
     public string? LastName { get; set; }
     [Name(DateOfBirthHeader)]
     public string? DateOfBirth { get; set; }
+    [Name(TrnHeader)]
+    public string? Trn { get; set; }
 }

@@ -12,7 +12,8 @@ public class UserImportJobRowMapping : IEntityTypeConfiguration<UserImportJobRow
         builder.Property(r => r.Id).HasMaxLength(UserImportJobRow.IdMaxLength).IsRequired();
         builder.Property(r => r.RowNumber).IsRequired();
         builder.HasKey(r => new { r.UserImportJobId, r.RowNumber });
-        builder.Property(r => r.Errors).HasColumnType("varchar[]");
+        builder.Property(r => r.Notes).HasColumnType("varchar[]");
+        builder.Property(r => r.UserImportRowResult).IsRequired().HasDefaultValue(UserImportRowResult.None);
         builder.HasOne(r => r.UserImportJob).WithMany(j => j.UserImportJobRows).HasForeignKey(r => r.UserImportJobId);
     }
 }

@@ -69,7 +69,7 @@ public class AddUserImportModel : PageModel
             csv.ValidateHeader<UserImportRow>();
 
             // Need to also check we don't have extra columns (ValidateHeader doesn't check this unfortunately)
-            if (csv.HeaderRecord!.Length != 5)
+            if (csv.HeaderRecord!.Length != UserImportRow.ColumnCount)
             {
                 ModelState.AddModelError(nameof(Upload), "The selected file contains invalid headers");
                 return this.PageWithErrors();
@@ -100,7 +100,8 @@ public class AddUserImportModel : PageModel
             StoredFilename = storedFilename,
             OriginalFilename = originalFilename,
             UserImportJobStatus = UserImportJobStatus.New,
-            Uploaded = DateTime.UtcNow
+            Uploaded = DateTime.UtcNow,
+            UploadedByUserId = User.GetUserId()!.Value
         };
 
         _dbContext.UserImportJobs.Add(userImportJob);

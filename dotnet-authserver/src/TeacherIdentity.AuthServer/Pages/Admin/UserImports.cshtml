@@ -11,7 +11,11 @@
             <th scope="col" class="govuk-table__header">File</th>
             <th scope="col" class="govuk-table__header">Uploaded</th>
             <th scope="col" class="govuk-table__header">Status</th>
-            <th scope="col" class="govuk-table__header">Success / Total</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Added</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Updated</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Invalid</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">No action</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Total rows</th>
         </tr>
     </thead>
     <tbody class="govuk-table__body">
@@ -21,7 +25,11 @@
                 <td class="govuk-table__cell" data-testid="file-@userImport.UserImportJobId"><a asp-page="UserImport" asp-route-userImportJobId="@userImport.UserImportJobId">@userImport.Filename</a></td>
                 <td class="govuk-table__cell" data-testid="uploaded-@userImport.UserImportJobId">@userImport.Uploaded</td>
                 <td class="govuk-table__cell" data-testid="status-@userImport.UserImportJobId">@userImport.Status</td>
-                <td class="govuk-table__cell" data-testid="summary-@userImport.UserImportJobId">@userImport.SuccessSummary</td>
+                <td class="govuk-table__cell govuk-table__cell--numeric" data-testid="added-@userImport.UserImportJobId">@userImport.AddedCount</td>
+                <td class="govuk-table__cell govuk-table__cell--numeric" data-testid="updated-@userImport.UserImportJobId">@userImport.UpdatedCount</td>
+                <td class="govuk-table__cell govuk-table__cell--numeric" data-testid="invalid-@userImport.UserImportJobId">@userImport.InvalidCount</td>
+                <td class="govuk-table__cell govuk-table__cell--numeric" data-testid="noaction-@userImport.UserImportJobId">@userImport.NoActionCount</td>
+                <td class="govuk-table__cell govuk-table__cell--numeric" data-testid="total-@userImport.UserImportJobId">@userImport.TotalRowsCount</td>
             </tr>
         }
     </tbody>

@@ -24,7 +24,10 @@ public class UserImportsModel : PageModel
             .Select(j => new
             {
                 Job = j,
-                ImportedCount = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count(r => r.UserId != null),
+                AddedCount = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count(r => r.UserImportRowResult == UserImportRowResult.UserAdded),
+                UpdatedCount = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count(r => r.UserImportRowResult == UserImportRowResult.UserUpdated),
+                InvalidCount = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count(r => r.UserImportRowResult == UserImportRowResult.Invalid),
+                NoActionCount = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count(r => r.UserImportRowResult == UserImportRowResult.None),
                 TotalRows = _dbContext.UserImportJobRows.Where(r => r.UserImportJobId == j.UserImportJobId).Count()
             })
             .ToArrayAsync();
@@ -37,7 +40,11 @@ public class UserImportsModel : PageModel
                 Filename = j.Job.OriginalFilename,
                 Uploaded = j.Job.Uploaded.ToString("dd/MM/yyyy HH:mm"),
                 Status = j.Job.UserImportJobStatus.ToString(),
-                SuccessSummary = $"{j.ImportedCount} / {j.TotalRows}"
+                AddedCount = j.AddedCount,
+                UpdatedCount = j.UpdatedCount,
+                InvalidCount = j.InvalidCount,
+                NoActionCount = j.NoActionCount,
+                TotalRowsCount = j.TotalRows
             })
             .ToArray();
     }
@@ -48,6 +55,10 @@ public class UserImportsModel : PageModel
         public required string Filename { get; init; }
         public required string Uploaded { get; init; }
         public required string Status { get; init; }
-        public required string SuccessSummary { get; init; }
+        public required int AddedCount { get; init; }
+        public required int UpdatedCount { get; init; }
+        public required int InvalidCount { get; init; }
+        public required int NoActionCount { get; init; }
+        public required int TotalRowsCount { get; init; }
     }
 }
