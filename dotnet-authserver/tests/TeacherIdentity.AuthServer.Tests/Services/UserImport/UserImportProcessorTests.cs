@@ -25,13 +25,14 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
         var uniqueSuffixTest18 = Guid.NewGuid().ToString();
         var uniqueSuffixTest21 = Guid.NewGuid().ToString();
         var uniqueSuffixTest23 = Guid.NewGuid().ToString();
+        var uniqueSuffixTest24 = Guid.NewGuid().ToString();
 
         return new TheoryData<UserImportTestScenarioData>()
         {
             // 1. All valid row data
             new UserImportTestScenarioData
             {
-                ExistingUser = null, // Existing user to pre-populate the database with before executing the test
+                ExistingUsers = null, // Existing user to pre-populate the database with before executing the test
                 Id = "UserImportProcessorTests1", // ID
                 EmailAddress = "UserImportProcessorTests1@email.com", // EMAIL_ADDRESS
                 FirstName = Faker.Name.First(), // FIRST_NAME
@@ -48,7 +49,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 2. Too few fields in the row data
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = string.Empty,
                 EmailAddress = string.Empty,
                 FirstName = string.Empty,
@@ -65,7 +66,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             new UserImportTestScenarioData
             // 3. Too many fields in the row data
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = string.Empty,
                 EmailAddress = string.Empty,
                 FirstName = string.Empty,
@@ -82,7 +83,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 4. Empty ID field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = string.Empty,
                 EmailAddress = "UserImportProcessorTests4@email.com",
                 FirstName = Faker.Name.First(),
@@ -99,7 +100,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 5. Oversized ID field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = new string('a', UserImportJobRow.IdMaxLength + 1),
                 EmailAddress = "UserImportProcessorTests5@email.com",
                 FirstName = Faker.Name.First(),
@@ -116,7 +117,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 6. Empty EMAIL_ADDRESS field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests6",
                 EmailAddress = string.Empty,
                 FirstName = Faker.Name.First(),
@@ -133,7 +134,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 7. Oversized EMAIL_ADDRESS field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests7",
                 EmailAddress = $"{new string('a', User.EmailAddressMaxLength + 1)}@email.com",
                 FirstName = Faker.Name.First(),
@@ -150,7 +151,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 8. Invalid format EMAIL_ADDRESS field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests8",
                 EmailAddress = "UserImportProcessorTests8.com",
                 FirstName = Faker.Name.First(),
@@ -167,7 +168,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 9. Empty FIRST_NAME field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests9",
                 EmailAddress = "UserImportProcessorTests9@email.com",
                 FirstName = string.Empty,
@@ -184,7 +185,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 10. Oversized FIRST_NAME field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests10",
                 EmailAddress = "UserImportProcessorTests10@email.com",
                 FirstName = new string('a', User.FirstNameMaxLength + 1),
@@ -201,7 +202,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 11. Empty LAST_NAME field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests11",
                 EmailAddress = "UserImportProcessorTests11@email.com",
                 FirstName = Faker.Name.First(),
@@ -218,7 +219,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 12. Oversized LAST_NAME field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests12",
                 EmailAddress = "UserImportProcessorTests12@email.com",
                 FirstName = string.Empty,
@@ -235,7 +236,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 13. Empty DATE_OF_BIRTH field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests13",
                 EmailAddress = "UserImportProcessorTests13@email.com",
                 FirstName = Faker.Name.First(),
@@ -252,7 +253,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 14. Invalid format DATE_OF_BIRTH field
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests14",
                 EmailAddress = "UserImportProcessorTests14@email.com",
                 FirstName = Faker.Name.First(),
@@ -269,16 +270,19 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 15. Duplicate EMAIL_ADDRESS field
             new UserImportTestScenarioData
             {
-                ExistingUser = new User
+                ExistingUsers = new []
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = "UserImportProcessorTests15@email.com",
-                    FirstName = "Josephine",
-                    LastName = "Smith",
-                    Created = clock.UtcNow,
-                    Updated = clock.UtcNow,
-                    DateOfBirth = new DateOnly(1969, 12, 1),
-                    UserType = UserType.Teacher
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = "UserImportProcessorTests15@email.com",
+                        FirstName = "Josephine",
+                        LastName = "Smith",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1969, 12, 1),
+                        UserType = UserType.Teacher
+                    }
                 },
                 Id = "UserImportProcessorTests15",
                 EmailAddress = "UserImportProcessorTests15@email.com",
@@ -296,7 +300,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 16. Multiple invalid fields
             new UserImportTestScenarioData
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = string.Empty,
                 EmailAddress = "UserImportProcessorTests16@email.com",
                 FirstName = string.Empty,
@@ -318,16 +322,19 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 17. Potential duplicate based on first name, last name and date of birth
             new UserImportTestScenarioData
             {
-                ExistingUser = new User
+                ExistingUsers = new []
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest17}@email.com",
-                    FirstName = "Josephine",
-                    LastName = $"Smith{uniqueSuffixTest17}",
-                    Created = clock.UtcNow,
-                    Updated = clock.UtcNow,
-                    DateOfBirth = new DateOnly(1970, 2, 5),
-                    UserType = UserType.Teacher
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest17}@email.com",
+                        FirstName = "Josephine",
+                        LastName = $"Smith{uniqueSuffixTest17}",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1970, 2, 5),
+                        UserType = UserType.Teacher
+                    }
                 },
                 Id = "UserImportProcessorTests17",
                 EmailAddress = "UserImportProcessorTests17@email.com",
@@ -345,16 +352,19 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             // 18. Potential duplicate based on synonym of first name, last name and date of birth
             new UserImportTestScenarioData
             {
-                ExistingUser = new User
+                ExistingUsers = new []
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest18}@email.com",
-                    FirstName = "Josephine",
-                    LastName = $"Smith{uniqueSuffixTest18}",
-                    Created = clock.UtcNow,
-                    Updated = clock.UtcNow,
-                    DateOfBirth = new DateOnly(1970, 2, 5),
-                    UserType = UserType.Teacher
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest18}@email.com",
+                        FirstName = "Josephine",
+                        LastName = $"Smith{uniqueSuffixTest18}",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1970, 2, 5),
+                        UserType = UserType.Teacher
+                    }
                 },
                 Id = "UserImportProcessorTests18",
                 EmailAddress = "UserImportProcessorTests18@email.com",
@@ -372,7 +382,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             new UserImportTestScenarioData
             // 19. Invalid TRN format
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests19",
                 EmailAddress = "UserImportProcessorTests19@email.com",
                 FirstName = Faker.Name.First(),
@@ -389,7 +399,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             new UserImportTestScenarioData
             // 20. All valid including TRN
             {
-                ExistingUser = null,
+                ExistingUsers = null,
                 Id = "UserImportProcessorTests20",
                 EmailAddress = "UserImportProcessorTests20@email.com",
                 FirstName = Faker.Name.First(),
@@ -406,19 +416,22 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             new UserImportTestScenarioData
             // 21. Existing user with same email but different TRN
             {
-                ExistingUser = new User
+                ExistingUsers = new []
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest21}@email.com",
-                    FirstName = "Josephine",
-                    LastName = $"Smith{uniqueSuffixTest21}",
-                    Created = clock.UtcNow,
-                    Updated = clock.UtcNow,
-                    DateOfBirth = new DateOnly(1970, 2, 5),
-                    Trn = "7654321",
-                    UserType = UserType.Teacher,
-                    TrnAssociationSource = TrnAssociationSource.Lookup,
-                    TrnLookupStatus = TrnLookupStatus.Found
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest21}@email.com",
+                        FirstName = "Josephine",
+                        LastName = $"Smith{uniqueSuffixTest21}",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1970, 2, 5),
+                        Trn = "7654321",
+                        UserType = UserType.Teacher,
+                        TrnAssociationSource = TrnAssociationSource.Lookup,
+                        TrnLookupStatus = TrnLookupStatus.Found
+                    }
                 },
                 Id = "UserImportProcessorTests21",
                 EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest21}@email.com",
@@ -436,19 +449,22 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             new UserImportTestScenarioData
             // 22. Existing user with same TRN but different email
             {
-                ExistingUser = new User
+                ExistingUsers = new []
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = $"UserImportProcessorTest{Guid.NewGuid()}@email.com",
-                    FirstName = Faker.Name.First(),
-                    LastName = Faker.Name.Last(),
-                    Created = clock.UtcNow,
-                    Updated = clock.UtcNow,
-                    DateOfBirth = new DateOnly(1970, 2, 5),
-                    Trn = "1111111",
-                    UserType = UserType.Teacher,
-                    TrnAssociationSource = TrnAssociationSource.Lookup,
-                    TrnLookupStatus = TrnLookupStatus.Found
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest{Guid.NewGuid()}@email.com",
+                        FirstName = Faker.Name.First(),
+                        LastName = Faker.Name.Last(),
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1970, 2, 5),
+                        Trn = "1111111",
+                        UserType = UserType.Teacher,
+                        TrnAssociationSource = TrnAssociationSource.Lookup,
+                        TrnLookupStatus = TrnLookupStatus.Found
+                    }
                 },
                 Id = "UserImportProcessorTests22",
                 EmailAddress = $"UserImportProcessorTest{Guid.NewGuid()}@email.com",
@@ -466,20 +482,23 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             new UserImportTestScenarioData
             // 23. Existing user with same email but no TRN
             {
-                ExistingUser = new User
+                ExistingUsers = new []
                 {
-                    UserId = Guid.NewGuid(),
-                    EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest23}@email.com",
-                    FirstName = "Josephine",
-                    LastName = $"Smith{uniqueSuffixTest23}",
-                    Created = clock.UtcNow,
-                    Updated = clock.UtcNow,
-                    DateOfBirth = new DateOnly(1970, 2, 5),
-                    UserType = UserType.Teacher,
-                    TrnAssociationSource = TrnAssociationSource.Lookup,
-                    TrnLookupStatus = TrnLookupStatus.Found
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest23}@email.com",
+                        FirstName = "Josephine",
+                        LastName = $"Smith{uniqueSuffixTest23}",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1970, 2, 5),
+                        UserType = UserType.Teacher,
+                        TrnAssociationSource = TrnAssociationSource.Lookup,
+                        TrnLookupStatus = TrnLookupStatus.Found
+                    }
                 },
-                Id = "UserImportProcessorTests21",
+                Id = "UserImportProcessorTests23",
                 EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest23}@email.com",
                 FirstName = "Josephine",
                 LastName = $"Smith{uniqueSuffixTest23}",
@@ -491,6 +510,50 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 ExpectUserImportedEventToBeInserted = false,
                 ExpectedNotes = new [] { "Updated TRN for existing user" },
                 ExpectedUserImportRowResult = UserImportRowResult.UserUpdated
+            },
+            new UserImportTestScenarioData
+            // 24. Existing user with same email but no TRN, trying to update with same TRN as another existing user
+            {
+                ExistingUsers = new []
+                {
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest24@email.com",
+                        FirstName = "Albert",
+                        LastName = $"Jones{uniqueSuffixTest24}",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1956, 3, 7),
+                        Trn = "5555555",
+                        UserType = UserType.Teacher,
+                        TrnAssociationSource = TrnAssociationSource.Lookup,
+                        TrnLookupStatus = TrnLookupStatus.Found
+                    },
+                    new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest24}@email.com",
+                        FirstName = "Josephine",
+                        LastName = $"Smith{uniqueSuffixTest24}",
+                        Created = clock.UtcNow,
+                        Updated = clock.UtcNow,
+                        DateOfBirth = new DateOnly(1970, 2, 5),
+                        UserType = UserType.Teacher
+                    }
+                },
+                Id = "UserImportProcessorTests24",
+                EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest24}@email.com",
+                FirstName = "Josephine",
+                LastName = $"Smith{uniqueSuffixTest24}",
+                DateOfBirth = "05021970",
+                Trn = "5555555",
+                FullRowDataOverride = string.Empty,
+                UseMockUserSearchService = true,
+                ExpectUserToBeInserted = false,
+                ExpectUserImportedEventToBeInserted = false,
+                ExpectedNotes = new [] { "A user already exists with the specified TRN but a different email address" },
+                ExpectedUserImportRowResult = UserImportRowResult.Invalid
             }
         };
     }
@@ -543,9 +606,12 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Uploaded = clock.UtcNow
             });
 
-            if (testScenarioData.ExistingUser != null)
+            if (testScenarioData.ExistingUsers?.Length > 0)
             {
-                dbContext.Users.Add(testScenarioData.ExistingUser);
+                foreach (var existingUser in testScenarioData.ExistingUsers)
+                {
+                    dbContext.Users.Add(existingUser);
+                }
             }
 
             await dbContext.SaveChangesAsync();
@@ -567,7 +633,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
         // Assert
         await _dbFixture.TestData.WithDbContext(async dbContext =>
         {
-            if (testScenarioData.ExistingUser == null)
+            if (!(testScenarioData.ExistingUsers?.Length > 0))
             {
                 var user = await dbContext.Users.SingleOrDefaultAsync(r => r.EmailAddress == testScenarioData.EmailAddress);
                 if (testScenarioData.ExpectUserToBeInserted)
@@ -617,7 +683,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
 
 public class UserImportTestScenarioData
 {
-    public required User? ExistingUser { get; set; }
+    public required User[]? ExistingUsers { get; set; }
     public required string Id { get; set; }
     public required string EmailAddress { get; set; }
     public required string FirstName { get; set; }

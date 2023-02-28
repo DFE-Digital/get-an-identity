@@ -222,22 +222,33 @@ public class UserImportProcessor : IUserImportProcessor
                     {
                         if (existingUser.Trn is null)
                         {
-                            existingUser.Trn = row.Trn;
-                            existingUser.TrnAssociationSource = TrnAssociationSource.UserImport;
-                            existingUser.TrnLookupStatus = TrnLookupStatus.Found;
-                            userImportJobRow.UserId = existingUser.UserId;
-                            userImportJobRow.UserImportRowResult = UserImportRowResult.UserUpdated;
-                            userImportJobRow.Notes = new List<string> { "Updated TRN for existing user" };
-
-                            _dbContext.AddEvent(new UserUpdatedEvent()
+                            // First double-check that the TRN we are going to assign to this user is not already in use
+                            var existingUsersWithTrn = await _dbContext.Users.CountAsync(u => u.Trn == row!.Trn);
+                            if (existingUsersWithTrn > 0)
                             {
-                                Source = UserUpdatedEventSource.UserImport,
-                                UpdatedByClientId = null,
-                                UpdatedByUserId = userImportJob!.UploadedByUserId,
-                                CreatedUtc = _clock.UtcNow,
-                                User = Events.User.FromModel(existingUser),
-                                Changes = UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus
-                            });
+                                userImportJobRow.UserId = null;
+                                userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
+                                userImportJobRow.Notes = new List<string> { "A user already exists with the specified TRN but a different email address" };
+                            }
+                            else
+                            {
+                                existingUser.Trn = row.Trn;
+                                existingUser.TrnAssociationSource = TrnAssociationSource.UserImport;
+                                existingUser.TrnLookupStatus = TrnLookupStatus.Found;
+                                userImportJobRow.UserId = existingUser.UserId;
+                                userImportJobRow.UserImportRowResult = UserImportRowResult.UserUpdated;
+                                userImportJobRow.Notes = new List<string> { "Updated TRN for existing user" };
+
+                                _dbContext.AddEvent(new UserUpdatedEvent()
+                                {
+                                    Source = UserUpdatedEventSource.UserImport,
+                                    UpdatedByClientId = null,
+                                    UpdatedByUserId = userImportJob!.UploadedByUserId,
+                                    CreatedUtc = _clock.UtcNow,
+                                    User = Events.User.FromModel(existingUser),
+                                    Changes = UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus
+                                });
+                            }
                         }
                         else if (existingUser.Trn != row.Trn)
                         {

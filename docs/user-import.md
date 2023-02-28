@@ -19,7 +19,7 @@ The user import requires a CSV file with a header with the following fields:
 | DATE_OF_BIRTH | The user's date of birth                                     | A valid date in ddMMyyyy format e.g. 03051971      |
 | TRN           | The user's TRN (if known in the source service)              | Empty or a 7 digit number                          |
 
-\* Note that there is no validation of whether it is actually a valid personal email
+\* Note that there is no validation of whether the email address supplied is actually a valid personal email
 
 ## Download File Definition
 
@@ -40,23 +40,25 @@ The following diagram shows the process for each row of data in the CSV file
 
 ```mermaid
 flowchart TD
-    data[Process CSV Row] --> format{Are fields in valid format?}
+    rowdata[Process CSV Row] --> format{Are fields in valid format?}
     format -- Yes --> dup[Check for duplicates]
     format -- No --> invalid[Invalid - user data not updated]
-    dup --> emailmatch{Is there an existing user with the same email address?}
-    emailmatch -- Yes --> trn{Is TRN supplied in CSV?}
+    dup --> emailmatch{Is there an existing user<br/>with the same email address?}
+    emailmatch -- Yes --> trn{Is the TRN supplied in the CSV?}
     trn -- No --> none[Nothing to do - user data not updated]
     none --> setuserid[Update result data with user Id]
-    trn -- Yes --> trnmissing{Is the TRN missing for the existing user record?}
-    trnmissing -- Yes --> updatetrn[Update TRN for existing user]
+    trn -- Yes --> trnmissing{Is the TRN missing<br/>for the existing user record?}
+    trnmissing -- Yes --> trninuse{Is there already an existing user<br/> with this TRN?}
+    trninuse -- No --> updatetrn[Update TRN for existing user]
+    trninuse -- Yes --> invalid
     updatetrn --> setuserid
-    trnmissing -- No --> trnmatch{Do the TRNs in the CSV and identity match?}
-    trnmatch -- Yes --> none
-    trnmatch -- No --> invalid
-    emailmatch -- No --> fuzzy{Is there an existing user with the same first name or a synonym, last name and date of birth}
+    trnmissing -- No --> trnmatch{Is the TRN in the CSV different<br/>to the identity user?}
+    trnmatch -- No --> none
+    trnmatch -- Yes --> invalid
+    emailmatch -- No --> fuzzy{"Is there an existing user<br/>with the same<br/>first name (or a synonym),<br/>last name and<br/>date of birth?"}
     fuzzy -- Yes --> potdup[Potential Duplicate]
     potdup --> invalid 
-    fuzzy -- No --> existingtrn{Is there an existing user with the same TRN?}
+    fuzzy -- No --> existingtrn{Is there an existing user<br/>with the same TRN?}
     existingtrn -- Yes --> invalid
     existingtrn -- No --> insert[Add a new user]
     insert --> setuserid
