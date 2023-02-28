@@ -107,7 +107,7 @@ public sealed class AuthenticationStateHelper
         public Func<AuthenticationState, Task> EmailVerified(string? email = null, User? user = null) =>
             async s =>
             {
-                if (email is not null && user is not null && email != user?.EmailAddress)
+                if (email is not null && user is not null && email != user.EmailAddress)
                 {
                     throw new ArgumentException("Email does not match user's email.", nameof(email));
                 }
@@ -116,22 +116,28 @@ public sealed class AuthenticationStateHelper
                 s.OnEmailVerified(user);
             };
 
-        public Func<AuthenticationState, Task> MobileNumberSet(string? mobileNumber = null, string? email = null) =>
+        public Func<AuthenticationState, Task> MobileNumberSet(
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
             async s =>
             {
-                await EmailVerified(email)(s);
+                await EmailVerified(email, user)(s);
                 s.OnMobileNumberSet(mobileNumber ?? Faker.Phone.Number());
             };
 
-        public Func<AuthenticationState, Task> MobileVerified(string? mobileNumber = null, User? user = null) =>
+        public Func<AuthenticationState, Task> MobileVerified(
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
             async s =>
             {
-                if (mobileNumber is not null && user is not null && mobileNumber != user?.MobileNumber)
+                if (mobileNumber is not null && user is not null && mobileNumber != user.MobileNumber)
                 {
                     throw new ArgumentException("Mobile number does not match user's mobile number.", nameof(mobileNumber));
                 }
 
-                await MobileNumberSet(mobileNumber ?? user?.MobileNumber)(s);
+                await MobileNumberSet(mobileNumber, email, user)(s);
                 s.OnMobileNumberVerified(user);
             };
 
@@ -139,11 +145,38 @@ public sealed class AuthenticationStateHelper
             string? firstName = null,
             string? lastName = null,
             string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
+            async s =>
+            {
+                await MobileVerified(mobileNumber, email, user)(s);
+                s.OnNameSet(firstName ?? Faker.Name.First(), lastName ?? Faker.Name.Last());
+            };
+
+        public Func<AuthenticationState, Task> RegisterDateOfBirthSet(
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
+            async s =>
+            {
+                await RegisterNameSet(firstName, lastName, mobileNumber, email, user)(s);
+                s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
+            };
+
+        public Func<AuthenticationState, Task> RegisterExistingUserAccountMatch(
+            User? existingUserAccount = null,
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
             string? email = null) =>
             async s =>
             {
-                await MobileVerified(mobileNumber)(s);
-                s.OnNameSet(firstName ?? Faker.Name.First(), lastName ?? Faker.Name.Last());
+                await RegisterDateOfBirthSet(dateOfBirth, firstName, lastName, mobileNumber, email)(s);
+                s.OnExistingAccountFound(existingUserAccount ?? await TestData.CreateUser());
             };
 
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(

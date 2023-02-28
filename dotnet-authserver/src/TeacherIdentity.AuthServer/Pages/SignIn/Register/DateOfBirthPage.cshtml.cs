@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -12,14 +13,18 @@ public class DateOfBirthPage : PageModel
     IIdentityLinkGenerator _linkGenerator;
     private TeacherIdentityServerDbContext _dbContext;
     private IClock _clock;
+    private readonly IUserSearchService _userSearchService;
 
     public DateOfBirthPage(
         IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext, IClock clock)
+        TeacherIdentityServerDbContext dbContext,
+        IClock clock,
+        IUserSearchService userSearchService)
     {
         _linkGenerator = linkGenerator;
         _dbContext = dbContext;
         _clock = clock;
+        _userSearchService = userSearchService;
     }
 
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
@@ -37,12 +42,23 @@ public class DateOfBirthPage : PageModel
         var authenticationState = HttpContext.GetAuthenticationState();
         authenticationState.OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
+        var users = await _userSearchService.FindUsers(
+            authenticationState.FirstName!,
+            authenticationState.LastName!,
+            (DateOnly)DateOfBirth!);
+
+        if (users.Length > 0)
+        {
+            authenticationState.OnExistingAccountFound(users[0]);
+            return Redirect(_linkGenerator.RegisterCheckAccount());
+        }
+
         var user = await CreateUser();
 
         authenticationState.OnUserRegistered(user);
         await authenticationState.SignIn(HttpContext);
 
-        return Redirect(_linkGenerator.CompleteAuthorization());
+        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }
 
     private async Task<User> CreateUser()

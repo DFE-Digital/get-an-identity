@@ -126,7 +126,7 @@ public class DateOfBirthPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/complete", response.Headers.Location?.OriginalString);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
 
         Assert.Equal(dateOfBirth, authStateHelper.AuthenticationState.DateOfBirth);
     }
@@ -164,6 +164,40 @@ public class DateOfBirthPageTests : TestBase
         });
     }
 
+    [Fact]
+    public async Task Post_ValidFormUserAlreadyExists_UpdatesAuthenticationStateAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser();
+        var dateOfBirth = user.DateOfBirth;
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterNameSet(user.FirstName, user.LastName), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "DateOfBirth.Day", dateOfBirth?.ToString("dd")! },
+                { "DateOfBirth.Month", dateOfBirth?.ToString("MM")! },
+                { "DateOfBirth.Year", dateOfBirth?.ToString("yyyy")! },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-account", response.Headers.Location?.OriginalString);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var newUser = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
+            Assert.Null(newUser);
+        });
+
+        Assert.Equal(user.EmailAddress, authStateHelper.AuthenticationState.ExistingAccountEmail);
+        Assert.Equal(user.UserId, authStateHelper.AuthenticationState.ExistingAccountUserId);
+    }
 
     private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
         configure.RegisterNameSet();
