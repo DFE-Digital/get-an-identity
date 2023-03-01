@@ -45,12 +45,11 @@ public class CheckAccount : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
-        authenticationState.OnExistingAccountConfirmed((bool)IsUsersAccount!);
+        authenticationState.OnExistingAccountChosen((bool)IsUsersAccount!);
 
         if (IsUsersAccount == true)
         {
-            await TryGenerateEmailPinForEmail(ExistingEmail!);
-            return Redirect(_linkGenerator.RegisterConfirmExistingAccount());
+            return await GenerateEmailPinForEmail(ExistingEmail!);
         }
 
         var user = await CreateUser();
@@ -61,25 +60,21 @@ public class CheckAccount : PageModel
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
     }
 
-    private async Task<EmailValidationResult> TryGenerateEmailPinForEmail(string email)
+    private async Task<IActionResult> GenerateEmailPinForEmail(string email)
     {
         var pinGenerationResult = await _userVerificationService.GenerateEmailPin(email);
 
         switch (pinGenerationResult.FailedReasons)
         {
             case PinGenerationFailedReasons.None:
-                return EmailValidationResult.Success();
+                return Redirect(_linkGenerator.RegisterConfirmExistingAccount());
 
             case PinGenerationFailedReasons.RateLimitExceeded:
-                return EmailValidationResult.Failed(new ViewResult()
+                return new ViewResult()
                 {
                     StatusCode = 429,
                     ViewName = "TooManyRequests"
-                });
-
-            case PinGenerationFailedReasons.InvalidAddress:
-                ModelState.AddModelError(nameof(email), "Enter a valid email address");
-                return EmailValidationResult.Failed(this.PageWithErrors());
+                };
 
             default:
                 throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");

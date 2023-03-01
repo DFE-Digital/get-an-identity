@@ -53,11 +53,13 @@ public class AddUserImportTests : TestBase
     public async Task Post_NoneCsvFileUploaded_RendersError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
-        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
         var byteArrayContent = new ByteArrayContent(new byte[] { });
         byteArrayContent.Headers.Add("Content-Type", "application/octet-stream");
+
+        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
         multipartContent.Add(byteArrayContent, "Upload", "test-user-import.txt");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
         request.Content = multipartContent;
 
         // Act
@@ -71,12 +73,10 @@ public class AddUserImportTests : TestBase
     public async Task Post_EmptyFileUploaded_RendersError()
     {
         // Arrange
+        var csvContent = new StringBuilder();
+
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
-        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
-        var byteArrayContent = new ByteArrayContent(new byte[] { });
-        byteArrayContent.Headers.Add("Content-Type", "text/csv");
-        multipartContent.Add(byteArrayContent, "Upload", "test-user-import.csv");
-        request.Content = multipartContent;
+        request.Content = BuildCsvUploadFormContent("test-user-import.csv", csvContent);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -89,14 +89,10 @@ public class AddUserImportTests : TestBase
     public async Task Post_FileWithInvalidHeadersUploaded_RendersError()
     {
         // Arrange
+        var csvContent = new StringBuilder().AppendLine("This is an invalid header");
+
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
-        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
-        var csvContent = new StringBuilder();
-        csvContent.AppendLine("This is an invalid header");
-        var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
-        byteArrayContent.Headers.Add("Content-Type", "text/csv");
-        multipartContent.Add(byteArrayContent, "Upload", "test-user-import.csv");
-        request.Content = multipartContent;
+        request.Content = BuildCsvUploadFormContent("test-user-import.csv", csvContent);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -109,14 +105,10 @@ public class AddUserImportTests : TestBase
     public async Task Post_FileWithExtraHeadersUploaded_RendersError()
     {
         // Arrange
+        var csvContent = new StringBuilder().AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN,EXTRA_COLUMN");
+
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
-        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
-        var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN,EXTRA_COLUMN");
-        var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
-        byteArrayContent.Headers.Add("Content-Type", "text/csv");
-        multipartContent.Add(byteArrayContent, "Upload", "test-user-import.csv");
-        request.Content = multipartContent;
+        request.Content = BuildCsvUploadFormContent("test-user-import.csv", csvContent);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -129,14 +121,10 @@ public class AddUserImportTests : TestBase
     public async Task Post_FileWithValidHeadersButNoDataRowsUploaded_RendersError()
     {
         // Arrange
+        var csvContent = new StringBuilder().AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
+
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
-        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
-        var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
-        var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
-        byteArrayContent.Headers.Add("Content-Type", "text/csv");
-        multipartContent.Add(byteArrayContent, "Upload", "test-user-import.csv");
-        request.Content = multipartContent;
+        request.Content = BuildCsvUploadFormContent("test-user-import.csv", csvContent);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -149,16 +137,16 @@ public class AddUserImportTests : TestBase
     public async Task Post_ValidFileUploaded_StoresFileAndUpdatesDatabaseAndRedirects()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
-        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
         var csvFilename = "test-user-import.csv";
-        var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
-        csvContent.AppendLine("1234567890,test@email.com,joe,bloggs,05021970,1234765");
-        var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
-        byteArrayContent.Headers.Add("Content-Type", "text/csv");
-        multipartContent.Add(byteArrayContent, "Upload", csvFilename);
-        request.Content = multipartContent;
+        var csvContent = BuildCsvContent();
+        var csvStream = new MemoryStream(Encoding.UTF8.GetBytes(csvContent.ToString()));
+
+        HostFixture.UserImportCsvStorageService
+            .Setup(s => s.OpenReadStream(It.IsAny<string>()))
+            .ReturnsAsync(csvStream);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
+        request.Content = BuildCsvUploadFormContent(csvFilename, csvContent);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -178,5 +166,23 @@ public class AddUserImportTests : TestBase
         var redirectedResponse = await response.FollowRedirect(HttpClient);
         var redirectedDoc = await redirectedResponse.GetDocument();
         AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, $"CSV {csvFilename} uploaded");
+    }
+
+    private StringBuilder BuildCsvContent()
+    {
+        var csvContent = new StringBuilder();
+        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
+        csvContent.AppendLine("1234567890,test@email.com,joe,bloggs,05021970,1234765");
+        return csvContent;
+    }
+
+    private MultipartFormDataContent BuildCsvUploadFormContent(string csvFilename, StringBuilder csvContent)
+    {
+        var byteArrayContent = new ByteArrayContent(Encoding.UTF8.GetBytes(csvContent.ToString()));
+        byteArrayContent.Headers.Add("Content-Type", "text/csv");
+
+        var multipartContent = new MultipartFormDataContent("----myuserimportboundary");
+        multipartContent.Add(byteArrayContent, "Upload", csvFilename);
+        return multipartContent;
     }
 }

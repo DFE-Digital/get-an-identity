@@ -111,7 +111,7 @@ public class AuthenticationState
     [JsonInclude]
     public string? ExistingAccountEmail { get; private set; }
     [JsonInclude]
-    public bool? ExistingAccountConfirmed { get; private set; }
+    public bool? ExistingAccountChosen { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -620,7 +620,7 @@ public class AuthenticationState
         ExistingAccountEmail = existingUserAccount.EmailAddress;
     }
 
-    public void OnExistingAccountConfirmed(bool isUsersAccount)
+    public void OnExistingAccountChosen(bool isUsersAccount)
     {
         if (!isUsersAccount)
         {
@@ -628,7 +628,7 @@ public class AuthenticationState
             ExistingAccountEmail = null;
         }
 
-        ExistingAccountConfirmed = isUsersAccount;
+        ExistingAccountChosen = isUsersAccount;
     }
 
     public string? GetOfficialName()
