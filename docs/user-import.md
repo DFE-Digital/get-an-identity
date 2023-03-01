@@ -29,7 +29,7 @@ The results of each file import can be downloaded in a CSV file with the followi
 | --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
 | ROW_NUMBER                  | The row number from the original uploaded CSV file           | An integer                                             |
 | ID                          | The unique ID associated with the user in the source service | A string                                               |
-| USR_ID                      | The unique ID associated with the user in identity           | A GUID                                                 |
+| USER_ID                     | The unique ID associated with the user in identity           | A GUID                                                 |
 | USER_USER_IMPORT_ROW_RESULT | The outcome associated with the row of data from the CSV     | One of `None`, `UserAdded`, `UserUpdated` or `Invalid` |
 | NOTES                       | Any notes e.g. errors                                        | A string with multiple notes separated by ". "         |
 | RAW_DATA                    | The raw row of data from the original uploaded CSV file      | A string                                               |
