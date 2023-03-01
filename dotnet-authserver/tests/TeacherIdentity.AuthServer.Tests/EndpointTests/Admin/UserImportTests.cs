@@ -1,6 +1,7 @@
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
@@ -281,10 +282,16 @@ public class UserImportTests : TestBase
 
 public class CsvRowInfo
 {
+    [Name("ROW_NUMBER")]
     public required string RowNumber { get; init; }
+    [Name("ID")]
     public required string Id { get; init; }
+    [Name("USER_ID")]
     public required string UserId { get; init; }
+    [Name("USER_IMPORT_ROW_RESULT")]
     public required string UserImportRowResult { get; init; }
+    [Name("NOTES")]
     public required string Notes { get; init; }
+    [Name("RAW_DATA")]
     public required string RawData { get; init; }
 }

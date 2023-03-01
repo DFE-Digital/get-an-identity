@@ -1,6 +1,7 @@
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -91,7 +92,7 @@ public class UserImportModel : PageModel
         if (userImportJobRows.Count > 0)
         {
             var data = userImportJobRows.Select(
-                r => new
+                r => new UserImportDownloadRow
                 {
                     RowNumber = r.RowNumber,
                     Id = r.Id,
@@ -118,6 +119,22 @@ public class UserImportModel : PageModel
         public required int NotesCount { get; init; }
         public required List<string> Notes { get; init; }
         public required UserImportRowResult UserImportRowResult { get; set; }
+    }
+
+    public class UserImportDownloadRow
+    {
+        [Name("ROW_NUMBER")]
+        public required int RowNumber { get; init; }
+        [Name("ID")]
+        public string? Id { get; init; }
+        [Name("USER_ID")]
+        public Guid? UserId { get; init; }
+        [Name("USER_IMPORT_ROW_RESULT")]
+        public required UserImportRowResult UserImportRowResult { get; set; }
+        [Name("NOTES")]
+        public string? Notes { get; init; }
+        [Name("RAW_DATA")]
+        public string? RawData { get; init; }
     }
 
 }
