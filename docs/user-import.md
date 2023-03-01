@@ -10,14 +10,14 @@ The user import feature has been created to automate the creation of teaching ac
 
 The user import requires a CSV file with a header with the following fields:
 
-| Header Name   | Description                                                  | Expected Format                                    |
-| ------------- | ------------------------------------------------------------ | -------------------------------------------------- |
-| ID            | The unique ID associated with the user in the source service | A string up to 100 characters                      |
-| EMAIL_ADDRESS | The user's email address                                     | A valid email address format up to 200 characters* |
-| FIRST_NAME    | The user's first name                                        | A string up to 200 characters                      |
-| LAST_NAME     | The user's last name                                         | A string up to 200 characters                      |
-| DATE_OF_BIRTH | The user's date of birth                                     | A valid date in ddMMyyyy format e.g. 03051971      |
-| TRN           | The user's TRN (if known in the source service)              | Empty or a 7 digit number                          |
+| Header Name   | Description                                                  | Mandatory? | Expected Format                                    |
+| ------------- | ------------------------------------------------------------ | -----------| -------------------------------------------------- |
+| ID            | The unique ID associated with the user in the source service | Mandatory  | A string up to 100 characters                      |
+| EMAIL_ADDRESS | The user's email address                                     | Mandatory  | A valid email address format up to 200 characters* |
+| FIRST_NAME    | The user's first name                                        | Mandatory  | A string up to 200 characters                      |
+| LAST_NAME     | The user's last name                                         | Mandatory  | A string up to 200 characters                      |
+| DATE_OF_BIRTH | The user's date of birth                                     | Mandatory  | A valid date in ddMMyyyy format e.g. 03051971      |
+| TRN           | The user's TRN (if known in the source service)              | Optional   | Empty or a 7 digit number                          |
 
 \* Note that there is no validation of whether the email address supplied is actually a valid personal email
 
@@ -25,16 +25,16 @@ The user import requires a CSV file with a header with the following fields:
 
 The results of each file import can be downloaded in a CSV file with the following fields:
 
-| Header Name         | Description                                                  | Format                                         |
-| ------------------- | ------------------------------------------------------------ | -----------------------------------------------|
-| RowNumber           | The row number from the original uploaded CSV file           | An integer                                     |
-| Id                  | The unique ID associated with the user in the source service | A string                                       |
-| UserId              | The unique ID associated with the user in identity           | A GUID                                         |
-| UserImportRowResult | The outcome associated with the row of data from the CSV     | One of `None`, `UserAdded`, `UserUpdated` or `Invalid` |
-| Notes               | Any notes e.g. errors                                        | A string with multiple notes separated by ". " |
-| RawData             | The raw row of data from the original uploaded CSV file      | A string                                       |
+| Header Name                 | Description                                                  | Format                                                 |
+| --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| ROW_NUMBER                  | The row number from the original uploaded CSV file           | An integer                                             |
+| ID                          | The unique ID associated with the user in the source service | A string                                               |
+| USR_ID                      | The unique ID associated with the user in identity           | A GUID                                                 |
+| USER_USER_IMPORT_ROW_RESULT | The outcome associated with the row of data from the CSV     | One of `None`, `UserAdded`, `UserUpdated` or `Invalid` |
+| NOTES                       | Any notes e.g. errors                                        | A string with multiple notes separated by ". "         |
+| RAW_DATA                    | The raw row of data from the original uploaded CSV file      | A string                                               |
 
-This CSV can then be used by the source service to enhance it's data with user IDs from Identity
+This CSV can then be used by the source service to enhance its data with user IDs from Identity
 
 ## User Import Processing
 
