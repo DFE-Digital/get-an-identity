@@ -179,6 +179,19 @@ public sealed class AuthenticationStateHelper
                 s.OnExistingAccountFound(existingUserAccount ?? await TestData.CreateUser());
             };
 
+        public Func<AuthenticationState, Task>  RegisterExistingUserAccountChosen(
+            User? existingUserAccount = null,
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null) =>
+            async s =>
+            {
+                await RegisterExistingUserAccountMatch(existingUserAccount, dateOfBirth, firstName, lastName, mobileNumber, email)(s);
+                s.OnExistingAccountChosen(true);
+            };
+
         public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(
             string email,
             string? trn,

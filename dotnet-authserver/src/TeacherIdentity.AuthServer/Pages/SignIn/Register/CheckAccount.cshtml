@@ -17,13 +17,13 @@
 
             <h2>Is this your account?</h2>
 
-            <govuk-inset-text>@Redactor.RedactEmail(Model.ExistingEmail!)</govuk-inset-text>
+            <govuk-inset-text>@Redactor.RedactEmail(Model.ExistingAccountEmail!)</govuk-inset-text>
 
             <govuk-radios asp-for="IsUsersAccount">
                 <govuk-radios-fieldset>
                     <govuk-radios-item value="True">
                         Yes, sign into this account
-                        <govuk-radios-item-hint>We’ll send a security code to @Redactor.RedactEmail(Model.ExistingEmail!)</govuk-radios-item-hint>
+                        <govuk-radios-item-hint>We’ll send a security code to @Redactor.RedactEmail(Model.ExistingAccountEmail!)</govuk-radios-item-hint>
                     </govuk-radios-item>
                     <govuk-radios-item value="False">
                         No, this is not my account
