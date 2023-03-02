@@ -1,5 +1,6 @@
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.Establishment;
 using TeacherIdentity.AuthServer.Services.Notification;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.Services.UserImport;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddBackgroundJobs(environment, postgresConnectionString)
+            .AddGias(environment, configuration)
             .AddUserImport(environment, configuration)
             .AddDqtApi(environment, configuration)
             .AddEmail(environment, configuration)

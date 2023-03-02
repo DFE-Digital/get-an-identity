@@ -6,4 +6,6 @@ public class GiasOptions
 {
     [Required]
     public required string BaseDownloadAddress { get; init; }
+    [Required]
+    public required string RefreshEstablishmentDomainsJobSchedule { get; init; }
 }

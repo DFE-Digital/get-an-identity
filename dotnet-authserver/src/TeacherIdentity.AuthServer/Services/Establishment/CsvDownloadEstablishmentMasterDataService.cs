@@ -20,7 +20,7 @@ public class CsvDownloadEstablishmentMasterDataService : IEstablishmentMasterDat
     public async IAsyncEnumerable<string?> GetEstablishmentWebsites()
     {
         var filename = GetLatestEstablishmentsCsvFilename();
-        using var response = await _httpClient.GetAsync(filename);
+        using var response = await _httpClient.GetAsync(filename, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
 
         using var stream = await response.Content.ReadAsStreamAsync();
