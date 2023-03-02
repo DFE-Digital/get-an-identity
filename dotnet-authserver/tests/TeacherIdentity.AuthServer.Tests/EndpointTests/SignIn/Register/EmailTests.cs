@@ -179,7 +179,7 @@ public class EmailTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address. It cannot be one that other people may get access to.");
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
     }
 
     [Fact]
