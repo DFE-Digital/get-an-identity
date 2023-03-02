@@ -1,0 +1,28 @@
+@page "/sign-in/register/confirm-existing-account"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ConfirmExistingAccount
+@{
+    ViewBag.Title = "Confirm your email address";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterCheckAccount()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterConfirmExistingAccount()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>A confirmation code has been sent to <b data-testid="email">@Redactor.RedactEmail(Model.Email!)</b></p>
+
+            <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
+                <govuk-input-label class="govuk-label--s" />
+            </govuk-input>
+
+            <p><a href="@LinkGenerator.RegisterResendEmailConfirmation()">I have not received an email</a></p>
+            <p><a href="@LinkGenerator.RegisterResendPhoneConfirmation()">I can’t access this email address</a></p>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>

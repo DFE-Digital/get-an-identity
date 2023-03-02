@@ -631,6 +631,13 @@ public class AuthenticationState
         ExistingAccountChosen = isUsersAccount;
     }
 
+    public void OnExistingAccountVerified(User user)
+    {
+        EmailAddressVerified = true;
+
+        UpdateAuthenticationStateWithUserDetails(user);
+    }
+
     public string? GetOfficialName()
     {
         return GetFullName(OfficialFirstName, OfficialLastName);

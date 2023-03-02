@@ -26,7 +26,7 @@ public class CheckAccount : PageModel
     }
 
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
-    public string? ExistingEmail => HttpContext.GetAuthenticationState().ExistingAccountEmail;
+    public string? ExistingAccountEmail => HttpContext.GetAuthenticationState().ExistingAccountEmail;
 
     [BindProperty]
     [Display(Name = " ")]
@@ -49,7 +49,7 @@ public class CheckAccount : PageModel
 
         if (IsUsersAccount == true)
         {
-            return await GenerateEmailPinForEmail(ExistingEmail!);
+            return await GenerateEmailPinForEmail(ExistingAccountEmail!);
         }
 
         var user = await CreateUser();
