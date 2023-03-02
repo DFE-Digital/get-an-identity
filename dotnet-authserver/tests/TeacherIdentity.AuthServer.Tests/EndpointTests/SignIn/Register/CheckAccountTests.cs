@@ -77,7 +77,7 @@ public class CheckAccountTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "IsUsersAccount", "Content TBD");
+        await AssertEx.HtmlResponseHasError(response, "IsUsersAccount", "Select yes if this is your account");
     }
 
     [Fact]
