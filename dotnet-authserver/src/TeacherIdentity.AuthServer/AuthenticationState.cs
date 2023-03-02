@@ -106,6 +106,12 @@ public class AuthenticationState
     public string? MobileNumber { get; private set; }
     [JsonInclude]
     public bool MobileNumberVerified { get; private set; }
+    [JsonInclude]
+    public Guid? ExistingAccountUserId { get; private set; }
+    [JsonInclude]
+    public string? ExistingAccountEmail { get; private set; }
+    [JsonInclude]
+    public bool? ExistingAccountChosen { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -606,6 +612,23 @@ public class AuthenticationState
         ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.Complete);
 
         HaveResumedCompletedJourney = true;
+    }
+
+    public void OnExistingAccountFound(User existingUserAccount)
+    {
+        ExistingAccountUserId = existingUserAccount.UserId;
+        ExistingAccountEmail = existingUserAccount.EmailAddress;
+    }
+
+    public void OnExistingAccountChosen(bool isUsersAccount)
+    {
+        if (!isUsersAccount)
+        {
+            ExistingAccountUserId = null;
+            ExistingAccountEmail = null;
+        }
+
+        ExistingAccountChosen = isUsersAccount;
     }
 
     public string? GetOfficialName()

@@ -1,0 +1,38 @@
+@page "/sign-in/register/check-account"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.CheckAccount
+@{
+    ViewBag.Title = "We’ve found an account that matches your details";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterDateOfBirth()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterCheckAccount()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>This could be because you already have a Teaching services account, and you’re using a different email address or mobile phone number.</p>
+
+            <h2>Is this your account?</h2>
+
+            <govuk-inset-text>@Redactor.RedactEmail(Model.ExistingEmail!)</govuk-inset-text>
+
+            <govuk-radios asp-for="IsUsersAccount">
+                <govuk-radios-fieldset>
+                    <govuk-radios-item value="True">
+                        Yes, sign into this account
+                        <govuk-radios-item-hint>We’ll send a security code to @Redactor.RedactEmail(Model.ExistingEmail!)</govuk-radios-item-hint>
+                    </govuk-radios-item>
+                    <govuk-radios-item value="False">
+                        No, this is not my account
+                        <govuk-radios-item-hint>Create an account using @Model.Email</govuk-radios-item-hint>
+                    </govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>

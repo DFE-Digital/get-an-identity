@@ -40,7 +40,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 DateOfBirth = "05021970", // DATE_OF_BIRTH
                 Trn = string.Empty, // TRN
                 FullRowDataOverride = string.Empty, // Full row data override
-                UseMockUserSearchService = true, // Use mock search service to check for potential duplicate users 
+                UseMockUserSearchService = true, // Use mock search service to check for potential duplicate users
                 ExpectUserToBeInserted = true, // We expect a User record to be inserted
                 ExpectUserImportedEventToBeInserted = true, // We expect a UserImportedEvent Event record to be inserted
                 ExpectedNotes = null, // Expected errors
@@ -565,7 +565,6 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
         // Arrange
         using var dbContext = _dbFixture.GetDbContext();
         var userImportStorageService = Mock.Of<IUserImportStorageService>();
-        var mocUserSearchService = Mock.Of<IUserSearchService>();
         IUserSearchService userSearchService;
         if (testScenarioData.UseMockUserSearchService)
         {

@@ -39,7 +39,7 @@ public class UserSearchService : IUserSearchService
             .Where(searchPredicate)
             .GroupBy(a => a.UserId)
             .Where(g => g.Count() == 3)
-            .Select(g => _dbContext.Users.Where(d => d.UserId == g.Key).ToList())
+            .Select(g => _dbContext.Users.Where(d => d.UserId == g.Key && d.UserType == UserType.Default).ToList())
             .ToListAsync();
 
         // each result (if there are any) is a list containing only a single user, so flatten it

@@ -3,34 +3,39 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.UserSearch;
+using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
-public class DateOfBirthPage : PageModel
+public class CheckAccount : PageModel
 {
-    IIdentityLinkGenerator _linkGenerator;
-    private TeacherIdentityServerDbContext _dbContext;
-    private IClock _clock;
-    private readonly IUserSearchService _userSearchService;
+    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IUserVerificationService _userVerificationService;
+    private readonly IClock _clock;
 
-    public DateOfBirthPage(
+    public CheckAccount(
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
-        IClock clock,
-        IUserSearchService userSearchService)
+        IUserVerificationService userVerificationService, IClock clock)
     {
         _linkGenerator = linkGenerator;
         _dbContext = dbContext;
+        _userVerificationService = userVerificationService;
         _clock = clock;
-        _userSearchService = userSearchService;
     }
 
-    [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
-    [Required(ErrorMessage = "Enter your date of birth")]
-    [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
-    public DateOnly? DateOfBirth { get; set; }
+    public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
+    public string? ExistingEmail => HttpContext.GetAuthenticationState().ExistingAccountEmail;
+
+    [BindProperty]
+    [Display(Name = " ")]
+    [Required(ErrorMessage = "Content TBD")]
+    public bool? IsUsersAccount { get; set; }
+
+    public void OnGet()
+    {
+    }
 
     public async Task<IActionResult> OnPost()
     {
@@ -40,17 +45,11 @@ public class DateOfBirthPage : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
-        authenticationState.OnDateOfBirthSet((DateOnly)DateOfBirth!);
+        authenticationState.OnExistingAccountChosen((bool)IsUsersAccount!);
 
-        var users = await _userSearchService.FindUsers(
-            authenticationState.FirstName!,
-            authenticationState.LastName!,
-            (DateOnly)DateOfBirth!);
-
-        if (users.Length > 0)
+        if (IsUsersAccount == true)
         {
-            authenticationState.OnExistingAccountFound(users[0]);
-            return Redirect(_linkGenerator.RegisterCheckAccount());
+            return await GenerateEmailPinForEmail(ExistingEmail!);
         }
 
         var user = await CreateUser();
@@ -59,6 +58,27 @@ public class DateOfBirthPage : PageModel
         await authenticationState.SignIn(HttpContext);
 
         return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+    }
+
+    private async Task<IActionResult> GenerateEmailPinForEmail(string email)
+    {
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(email);
+
+        switch (pinGenerationResult.FailedReasons)
+        {
+            case PinGenerationFailedReasons.None:
+                return Redirect(_linkGenerator.RegisterConfirmExistingAccount());
+
+            case PinGenerationFailedReasons.RateLimitExceeded:
+                return new ViewResult()
+                {
+                    StatusCode = 429,
+                    ViewName = "TooManyRequests"
+                };
+
+            default:
+                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+        }
     }
 
     private async Task<User> CreateUser()
