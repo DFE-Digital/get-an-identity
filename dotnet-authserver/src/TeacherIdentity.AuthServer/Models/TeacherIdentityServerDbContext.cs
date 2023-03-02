@@ -53,6 +53,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<WebHook> WebHooks => Set<WebHook>();
 
+    public DbSet<EstablishmentDomain> EstablishmentDomains => Set<EstablishmentDomain>();
+
     public void AddEvent(EventBase @event)
     {
         Events.Add(Event.FromEventBase(@event));
