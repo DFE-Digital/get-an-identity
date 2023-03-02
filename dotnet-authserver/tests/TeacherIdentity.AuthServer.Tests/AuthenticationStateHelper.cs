@@ -179,7 +179,7 @@ public sealed class AuthenticationStateHelper
                 s.OnExistingAccountFound(existingUserAccount ?? await TestData.CreateUser());
             };
 
-        public Func<AuthenticationState, Task>  RegisterExistingUserAccountChosen(
+        public Func<AuthenticationState, Task> RegisterExistingUserAccountChosen(
             User? existingUserAccount = null,
             DateOnly? dateOfBirth = null,
             string? firstName = null,
