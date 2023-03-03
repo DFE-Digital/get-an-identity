@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
         IWebHostEnvironment environment,
         string postgresConnectionString)
     {
-        if (!environment.IsUnitTests())
+        if (!environment.IsUnitTests() && !environment.IsEndToEndTests())
         {
             services.AddHangfire(configuration => configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
