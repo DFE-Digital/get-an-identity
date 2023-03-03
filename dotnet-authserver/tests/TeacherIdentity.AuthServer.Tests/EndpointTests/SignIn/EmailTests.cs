@@ -191,7 +191,7 @@ public class EmailTests : TestBase
     public async Task Post_EmailWithInvalidSuffix_ReturnsError()
     {
         // Arrange
-        var invalidEmailSuffix = "myschool321.sch.uk";
+        var invalidEmailSuffix = "myschool3211.sch.uk";
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -209,7 +209,7 @@ public class EmailTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", $"john.doe@{invalidEmailSuffix}" }
+                { "Email", $"john.doe21@{invalidEmailSuffix}" }
             }
         };
 
@@ -224,7 +224,7 @@ public class EmailTests : TestBase
     public async Task Post_EmailWithInvalidSuffixAlreadyExists_DoesNotReturnError()
     {
         // Arrange
-        var invalidEmailSuffix = "myschool321.sch.uk";
+        var invalidEmailSuffix = "myschool3212.sch.uk";
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -237,7 +237,7 @@ public class EmailTests : TestBase
             await dbContext.SaveChangesAsync();
         });
 
-        var user = await TestData.CreateUser(email: $"john.doe2@{invalidEmailSuffix}");
+        var user = await TestData.CreateUser(email: $"john.doe22@{invalidEmailSuffix}");
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")

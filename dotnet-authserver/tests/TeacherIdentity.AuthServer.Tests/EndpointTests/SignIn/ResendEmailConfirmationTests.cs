@@ -297,7 +297,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_EmailWithInvalidSuffix_ReturnsError()
     {
         // Arrange
-        var invalidEmailSuffix = "myschool456.sch.uk";
+        var invalidEmailSuffix = "myschool4561.sch.uk";
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -310,12 +310,12 @@ public class ResendEmailConfirmationTests : TestBase
             await dbContext.SaveChangesAsync();
         });
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", $"john.doe3@{invalidEmailSuffix}" }
+                { "Email", $"john.doe31@{invalidEmailSuffix}" }
             }
         };
 
@@ -330,7 +330,7 @@ public class ResendEmailConfirmationTests : TestBase
     public async Task Post_EmailWithInvalidSuffixAlreadyExists_DoesNotReturnError()
     {
         // Arrange
-        var invalidEmailSuffix = "myschool456.sch.uk";
+        var invalidEmailSuffix = "myschool4562.sch.uk";
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -343,9 +343,9 @@ public class ResendEmailConfirmationTests : TestBase
             await dbContext.SaveChangesAsync();
         });
 
-        var user = await TestData.CreateUser(email: $"john.doe3@{invalidEmailSuffix}");
+        var user = await TestData.CreateUser(email: $"john.doe32@{invalidEmailSuffix}");
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
