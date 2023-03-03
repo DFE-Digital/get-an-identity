@@ -7,9 +7,10 @@ using TeacherIdentity.AuthServer.Services.Establishment;
 
 namespace TeacherIdentity.AuthServer.Jobs;
 
-public class RefreshEstablishmentDomainsJob
+public partial class RefreshEstablishmentDomainsJob
 {
-    private const string ExtractDomainRegex = "^(?:https?:\\/\\/)?(?:[^@\\/\\n]+@)?(?:www\\.)?([^:\\/\\n]+)";
+    [GeneratedRegex("^(?:https?:\\/\\/)?(?:[^@\\/\\n]+@)?(?:www\\.)?([^:\\/\\n]+)")]
+    private static partial Regex ExtractDomainRegex();
     private string[] additionalKnownEstablishmentDomains = new[] { "leghvale.st-helens.sch.uk", "mansfieldgreenacademy.e-act.org.uk" };
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IEstablishmentMasterDataService _establishmentMasterDataService;
@@ -41,7 +42,7 @@ public class RefreshEstablishmentDomainsJob
                     continue;
                 }
 
-                var match = Regex.Match(website, ExtractDomainRegex);
+                var match = ExtractDomainRegex().Match(website);
                 var domainName = match.Groups.Values.Last().Value;
                 if (Uri.CheckHostName(domainName) == UriHostNameType.Unknown)
                 {
@@ -79,7 +80,7 @@ public class RefreshEstablishmentDomainsJob
 
         bool TryAddEstablishmentDomain(string domainName)
         {
-            if (existingDomains!.Contains(domainName))
+            if (existingDomains!.Contains(domainName, StringComparer.OrdinalIgnoreCase))
             {
                 return false;
             }

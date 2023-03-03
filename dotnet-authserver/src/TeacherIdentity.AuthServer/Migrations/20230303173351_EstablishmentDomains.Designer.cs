@@ -13,7 +13,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    [Migration("20230302124408_EstablishmentDomains")]
+    [Migration("20230303173351_EstablishmentDomains")]
     partial class EstablishmentDomains
     {
         /// <inheritdoc />
@@ -205,7 +205,8 @@ namespace TeacherIdentity.AuthServer.Migrations
                 {
                     b.Property<string>("DomainName")
                         .HasColumnType("text")
-                        .HasColumnName("domain_name");
+                        .HasColumnName("domain_name")
+                        .UseCollation("case_insensitive");
 
                     b.HasKey("DomainName")
                         .HasName("pk_establishment_domains");

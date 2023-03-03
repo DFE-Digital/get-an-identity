@@ -8,7 +8,7 @@ public class EstablishmentDomainMapping : IEntityTypeConfiguration<Establishment
     public void Configure(EntityTypeBuilder<EstablishmentDomain> builder)
     {
         builder.ToTable("establishment_domains");
-        builder.Property(d => d.DomainName).IsRequired();
+        builder.Property(d => d.DomainName).IsRequired().UseCollation("case_insensitive");
         builder.HasKey(d => d.DomainName);
     }
 }

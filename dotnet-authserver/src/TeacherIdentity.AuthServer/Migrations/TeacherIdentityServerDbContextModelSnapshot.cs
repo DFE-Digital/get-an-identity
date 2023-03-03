@@ -202,7 +202,8 @@ namespace TeacherIdentity.AuthServer.Migrations
                 {
                     b.Property<string>("DomainName")
                         .HasColumnType("text")
-                        .HasColumnName("domain_name");
+                        .HasColumnName("domain_name")
+                        .UseCollation("case_insensitive");
 
                     b.HasKey("DomainName")
                         .HasName("pk_establishment_domains");

@@ -14,7 +14,7 @@ namespace TeacherIdentity.AuthServer.Migrations
                 name: "establishment_domains",
                 columns: table => new
                 {
-                    domainname = table.Column<string>(name: "domain_name", type: "text", nullable: false)
+                    domainname = table.Column<string>(name: "domain_name", type: "text", nullable: false, collation: "case_insensitive")
                 },
                 constraints: table =>
                 {

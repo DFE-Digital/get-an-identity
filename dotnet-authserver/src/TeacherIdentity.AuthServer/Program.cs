@@ -532,7 +532,7 @@ public class Program
 
         app.UseAuthorization();
 
-        if (!builder.Environment.IsUnitTests())
+        if (!builder.Environment.IsUnitTests() && !builder.Environment.IsEndToEndTests())
         {
             app.MapHangfireDashboardWithAuthorizationPolicy(authorizationPolicyName: AuthorizationPolicies.GetAnIdentityAdmin, "/_hangfire");
         }
