@@ -32,11 +32,11 @@ public class EmailModel : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        var validateEmailResult = await ValidateEmail(Email!);
+        var emailPinGenerationResult = await GenerateEmailPinForNewEmail(Email!);
 
-        if (!validateEmailResult.IsValid)
+        if (!emailPinGenerationResult.Success)
         {
-            return validateEmailResult.Result!;
+            return emailPinGenerationResult.Result!;
         }
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
