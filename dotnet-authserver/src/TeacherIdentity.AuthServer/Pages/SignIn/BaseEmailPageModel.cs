@@ -24,12 +24,17 @@ public class BaseEmailPageModel : PageModel
 
     public async Task<EmailValidationResult> ValidateEmail(string email)
     {
-        if (_invalidEmailPrefixes.Contains(email!.Split("@")[0]))
+        var emailParts = email!.Split("@");
+        var emailPrefix = emailParts[0];
+        var emailSuffix = emailParts[1];
+
+        var invalidDomainCount = await _dbContext.EstablishmentDomains.Where(d => d.DomainName == emailSuffix).CountAsync();
+        if (_invalidEmailPrefixes.Contains(emailPrefix) || invalidDomainCount > 0)
         {
             var existingUser = await _dbContext.Users.Where(user => user.EmailAddress == email).SingleOrDefaultAsync();
             if (existingUser is null)
             {
-                ModelState.AddModelError(nameof(email), "Enter a personal email address. It cannot be one that other people may get access to.");
+                ModelState.AddModelError(nameof(email), "Enter a personal email address not one from a work or education setting.");
                 return EmailValidationResult.Failed(this.PageWithErrors());
             }
         }

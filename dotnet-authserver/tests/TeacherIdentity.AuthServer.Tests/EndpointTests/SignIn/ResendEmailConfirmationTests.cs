@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -266,15 +267,83 @@ public class ResendEmailConfirmationTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address. It cannot be one that other people may get access to.");
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
     }
 
     [Fact]
-    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoNotReturnError()
+    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoesNotReturnError()
     {
         // Arrange
         var invalidPrefix = "headteacher";
         var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", user.EmailAddress }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_EmailWithInvalidSuffix_ReturnsError()
+    {
+        // Arrange
+        var invalidEmailSuffix = "myschool4561.sch.uk";
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var establishmentDomain = new EstablishmentDomain
+            {
+                DomainName = invalidEmailSuffix
+            };
+
+            dbContext.EstablishmentDomains.Add(establishmentDomain);
+            await dbContext.SaveChangesAsync();
+        });
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", $"john.doe31@{invalidEmailSuffix}" }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
+    }
+
+    [Fact]
+    public async Task Post_EmailWithInvalidSuffixAlreadyExists_DoesNotReturnError()
+    {
+        // Arrange
+        var invalidEmailSuffix = "myschool4562.sch.uk";
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var establishmentDomain = new EstablishmentDomain
+            {
+                DomainName = invalidEmailSuffix
+            };
+
+            dbContext.EstablishmentDomains.Add(establishmentDomain);
+            await dbContext.SaveChangesAsync();
+        });
+
+        var user = await TestData.CreateUser(email: $"john.doe32@{invalidEmailSuffix}");
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
