@@ -30,7 +30,7 @@ public class CheckAccount : PageModel
 
     [BindProperty]
     [Display(Name = " ")]
-    [Required(ErrorMessage = "Content TBD")]
+    [Required(ErrorMessage = "Select yes if this is your account")]
     public bool? IsUsersAccount { get; set; }
 
     public void OnGet()
