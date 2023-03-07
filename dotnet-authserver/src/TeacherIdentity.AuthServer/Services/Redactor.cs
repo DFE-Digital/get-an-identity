@@ -55,4 +55,14 @@ public class Redactor
 
         return builder.ToString();
     }
+
+    public string? RedactMobileNumber(string mobileNumber)
+    {
+        if (string.IsNullOrEmpty(mobileNumber))
+        {
+            return string.Empty;
+        }
+
+        return new string('*', mobileNumber.Length - 4) + mobileNumber.Substring(mobileNumber.Length - 4);
+    }
 }

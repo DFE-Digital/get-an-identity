@@ -119,6 +119,12 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string RegisterResendConfirmExistingAccountEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendConfirmExistingAccountEmail");
 
+    public static string RegisterSendConfirmExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/SendConfirmExistingAccountPhone");
+
+    public static string RegisterConfirmExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ConfirmExistingAccountPhone");
+
+    public static string RegisterProveYourIdentity(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ProveYourIdentity");
+
     public static string UpdateEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)
