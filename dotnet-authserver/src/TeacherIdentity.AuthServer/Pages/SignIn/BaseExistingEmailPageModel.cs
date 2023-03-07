@@ -13,17 +13,17 @@ public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
         base(userVerificationService, linkGenerator, dbContext)
     { }
 
-    public async Task<EmailPinGenerationResult> GenerateEmailPinForExistingEmail(string email)
+    public async Task<PinGenerationResultAction> GenerateEmailPinForExistingEmail(string email)
     {
         var emailPinGenerationFailedReasons = await GenerateEmailPin(email, false);
 
         switch (emailPinGenerationFailedReasons)
         {
             case EmailPinGenerationFailedReason.None:
-                return EmailPinGenerationResult.Succeeded();
+                return PinGenerationResultAction.Succeeded();
 
             case EmailPinGenerationFailedReason.RateLimitExceeded:
-                return EmailPinGenerationResult.Failed(new ViewResult()
+                return PinGenerationResultAction.Failed(new ViewResult()
                 {
                     StatusCode = 429,
                     ViewName = "TooManyRequests"

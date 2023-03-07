@@ -14,17 +14,17 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
     {
     }
 
-    public async Task<EmailPinGenerationResult> GenerateEmailPinForNewEmail(string email)
+    public async Task<PinGenerationResultAction> GenerateEmailPinForNewEmail(string email)
     {
         var emailPinGenerationFailedReasons = await GenerateEmailPin(email, true);
 
         switch (emailPinGenerationFailedReasons)
         {
             case EmailPinGenerationFailedReason.None:
-                return EmailPinGenerationResult.Succeeded();
+                return PinGenerationResultAction.Succeeded();
 
             case EmailPinGenerationFailedReason.RateLimitExceeded:
-                return EmailPinGenerationResult.Failed(new ViewResult()
+                return PinGenerationResultAction.Failed(new ViewResult()
                 {
                     StatusCode = 429,
                     ViewName = "TooManyRequests"
@@ -32,11 +32,11 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
 
             case EmailPinGenerationFailedReason.NonPersonalAddress:
                 ModelState.AddModelError(nameof(email), "Enter a personal email address not one from a work or education setting.");
-                return EmailPinGenerationResult.Failed(this.PageWithErrors());
+                return PinGenerationResultAction.Failed(this.PageWithErrors());
 
             case EmailPinGenerationFailedReason.InvalidAddress:
                 ModelState.AddModelError(nameof(email), "Enter a valid email address");
-                return EmailPinGenerationResult.Failed(this.PageWithErrors());
+                return PinGenerationResultAction.Failed(this.PageWithErrors());
 
             default:
                 throw new NotImplementedException($"Unknown {nameof(EmailPinGenerationFailedReason)}: '{emailPinGenerationFailedReasons}'.");
