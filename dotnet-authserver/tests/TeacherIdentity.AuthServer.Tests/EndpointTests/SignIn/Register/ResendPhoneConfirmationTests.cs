@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -206,7 +207,7 @@ public class ResendPhoneConfirmationTests : TestBase
 
         Assert.Equal(mobileNumber, authStateHelper.AuthenticationState.MobileNumber);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(mobileNumber), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(PhoneHelper.FormatMobileNumber(mobileNumber)), Times.Once);
     }
 
     [Fact]
