@@ -21,14 +21,14 @@ public class BaseEmailPinGenerationPageModel : PageModel
         DbContext = dbContext;
     }
 
-    public async Task<EmailPinGenerationFailedReasons> GenerateEmailPin(string email, bool requiresValidation = true)
+    public async Task<EmailPinGenerationFailedReason> GenerateEmailPin(string email, bool requiresValidation = true)
     {
         if (requiresValidation && !await IsValidPersonalEmail(email))
         {
-            return EmailPinGenerationFailedReasons.NonPersonalAddress;
+            return EmailPinGenerationFailedReason.NonPersonalAddress;
         }
 
-        return await TryGenerateEmailPinForEmail(email, requiresValidation);
+        return await TryGenerateEmailPinForEmail(email);
     }
 
     private async Task<bool> IsValidPersonalEmail(string email)
@@ -50,10 +50,10 @@ public class BaseEmailPinGenerationPageModel : PageModel
         return true;
     }
 
-    private async Task<EmailPinGenerationFailedReasons> TryGenerateEmailPinForEmail(string email, bool requiresValidation)
+    private async Task<EmailPinGenerationFailedReason> TryGenerateEmailPinForEmail(string email)
     {
         var pinGenerationResult = await _userVerificationService.GenerateEmailPin(email);
-        return pinGenerationResult.FailedReasons.ToEmailPinGenerationFailedReasons();
+        return pinGenerationResult.FailedReason.ToEmailPinGenerationFailedReasons();
     }
 
     private static readonly string[] _invalidEmailPrefixes =

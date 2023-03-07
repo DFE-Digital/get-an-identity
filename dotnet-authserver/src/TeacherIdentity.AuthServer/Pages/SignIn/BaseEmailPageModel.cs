@@ -20,26 +20,26 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
 
         switch (emailPinGenerationFailedReasons)
         {
-            case EmailPinGenerationFailedReasons.None:
+            case EmailPinGenerationFailedReason.None:
                 return EmailPinGenerationResult.Succeeded();
 
-            case EmailPinGenerationFailedReasons.RateLimitExceeded:
+            case EmailPinGenerationFailedReason.RateLimitExceeded:
                 return EmailPinGenerationResult.Failed(new ViewResult()
                 {
                     StatusCode = 429,
                     ViewName = "TooManyRequests"
                 });
 
-            case EmailPinGenerationFailedReasons.NonPersonalAddress:
+            case EmailPinGenerationFailedReason.NonPersonalAddress:
                 ModelState.AddModelError(nameof(email), "Enter a personal email address not one from a work or education setting.");
                 return EmailPinGenerationResult.Failed(this.PageWithErrors());
 
-            case EmailPinGenerationFailedReasons.InvalidAddress:
+            case EmailPinGenerationFailedReason.InvalidAddress:
                 ModelState.AddModelError(nameof(email), "Enter a valid email address");
                 return EmailPinGenerationResult.Failed(this.PageWithErrors());
 
             default:
-                throw new NotImplementedException($"Unknown {nameof(EmailPinGenerationFailedReasons)}: '{emailPinGenerationFailedReasons}'.");
+                throw new NotImplementedException($"Unknown {nameof(EmailPinGenerationFailedReason)}: '{emailPinGenerationFailedReasons}'.");
         }
     }
 }

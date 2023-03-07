@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
-public enum PinGenerationFailedReasons
+public enum PinGenerationFailedReason
 {
     None,
     RateLimitExceeded,

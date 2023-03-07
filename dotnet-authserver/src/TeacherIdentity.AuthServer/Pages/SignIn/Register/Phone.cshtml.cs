@@ -38,24 +38,24 @@ public class Phone : PageModel
 
         var pinGenerationResult = await _userVerificationService.GenerateSmsPin(PhoneHelper.FormatMobileNumber(MobileNumber!));
 
-        switch (pinGenerationResult.FailedReasons)
+        switch (pinGenerationResult.FailedReason)
         {
-            case PinGenerationFailedReasons.None:
+            case PinGenerationFailedReason.None:
                 break;
 
-            case PinGenerationFailedReasons.RateLimitExceeded:
+            case PinGenerationFailedReason.RateLimitExceeded:
                 return new ViewResult()
                 {
                     StatusCode = 429,
                     ViewName = "TooManyRequests"
                 };
 
-            case PinGenerationFailedReasons.InvalidAddress:
+            case PinGenerationFailedReason.InvalidAddress:
                 ModelState.AddModelError(nameof(MobileNumber), "Enter a valid mobile phone number");
                 return this.PageWithErrors();
 
             default:
-                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
         }
 
         HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
