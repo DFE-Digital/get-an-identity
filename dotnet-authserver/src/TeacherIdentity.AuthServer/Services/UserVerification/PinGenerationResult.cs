@@ -3,14 +3,14 @@ namespace TeacherIdentity.AuthServer.Services.UserVerification;
 public sealed class PinGenerationResult
 {
     public string? Pin { get; private set; }
-    public PinGenerationFailedReasons FailedReasons { get; private set; }
-    public bool Succeeded => FailedReasons == PinGenerationFailedReasons.None;
+    public PinGenerationFailedReason FailedReason { get; private set; }
+    public bool Succeeded => FailedReason == PinGenerationFailedReason.None;
 
-    public static PinGenerationResult Failed(PinGenerationFailedReasons failedReasons)
+    public static PinGenerationResult Failed(PinGenerationFailedReason failedReason)
     {
         return new()
         {
-            FailedReasons = failedReasons
+            FailedReason = failedReason
         };
     }
 
@@ -19,7 +19,7 @@ public sealed class PinGenerationResult
         return new()
         {
             Pin = pin,
-            FailedReasons = PinGenerationFailedReasons.None
+            FailedReason = PinGenerationFailedReason.None
         };
     }
 }

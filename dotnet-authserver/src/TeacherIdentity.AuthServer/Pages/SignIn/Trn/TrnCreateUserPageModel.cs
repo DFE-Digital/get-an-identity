@@ -81,9 +81,9 @@ public class TrnCreateUserPageModel : PageModel
 
             var pinGenerationResult = await _userVerificationService.GenerateEmailPin(existingUserEmail);
 
-            if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+            if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
             {
-                if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+                if (pinGenerationResult.FailedReason == PinGenerationFailedReason.RateLimitExceeded)
                 {
                     return new ViewResult()
                     {
@@ -92,7 +92,7 @@ public class TrnCreateUserPageModel : PageModel
                     };
                 }
 
-                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
             }
 
             return Redirect(authenticationState.GetNextHopUrl(LinkGenerator));

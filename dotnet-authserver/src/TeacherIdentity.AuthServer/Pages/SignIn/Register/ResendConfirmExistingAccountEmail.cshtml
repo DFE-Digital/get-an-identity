@@ -1,0 +1,21 @@
+@page "/sign-in/register/resend-confirm-existing-account-email"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ResendConfirmExistingAccountEmail
+@{
+    ViewBag.Title = "Request a new security code";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterConfirmExistingAccount()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterResendConfirmExistingAccountEmail()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">Request a new email code</h1>
+
+            <p>Emails sometimes take a few minutes to arrive. If you do not receive the email, you can request a new one.</p>
+
+            <govuk-button type="submit">Request a new code</govuk-button>
+        </form>
+    </div>
+</div>

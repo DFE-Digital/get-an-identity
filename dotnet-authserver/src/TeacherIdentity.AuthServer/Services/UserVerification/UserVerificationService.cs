@@ -47,7 +47,7 @@ public class UserVerificationService : IUserVerificationService
         var ip = _clientIpProvider.GetClientIpAddress();
         if (await _rateLimiter.IsClientIpBlockedForPinGeneration(ip))
         {
-            return PinGenerationResult.Failed(PinGenerationFailedReasons.RateLimitExceeded);
+            return PinGenerationResult.Failed(PinGenerationFailedReason.RateLimitExceeded);
         }
 
         // Generate a random PIN then try to insert it into the DB for the specified email address.
@@ -105,7 +105,7 @@ public class UserVerificationService : IUserVerificationService
         {
             if (ex.Message.Contains("ValidationError"))
             {
-                return PinGenerationResult.Failed(PinGenerationFailedReasons.InvalidAddress);
+                return PinGenerationResult.Failed(PinGenerationFailedReason.InvalidAddress);
             }
 
             throw;
@@ -136,7 +136,7 @@ public class UserVerificationService : IUserVerificationService
         var ip = _clientIpProvider.GetClientIpAddress();
         if (await _rateLimiter.IsClientIpBlockedForPinGeneration(ip))
         {
-            return PinGenerationResult.Failed(PinGenerationFailedReasons.RateLimitExceeded);
+            return PinGenerationResult.Failed(PinGenerationFailedReason.RateLimitExceeded);
         }
 
         // Generate a random PIN then try to insert it into the DB for the specified mobile number.
@@ -189,7 +189,7 @@ public class UserVerificationService : IUserVerificationService
         {
             if (ex.Message.Contains("ValidationError"))
             {
-                return PinGenerationResult.Failed(PinGenerationFailedReasons.InvalidAddress);
+                return PinGenerationResult.Failed(PinGenerationFailedReason.InvalidAddress);
             }
 
             throw;

@@ -4,19 +4,18 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
+public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
 {
-    public BaseEmailPageModel(
+    public BaseExistingEmailPageModel(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
-    {
-    }
+    { }
 
-    public async Task<EmailPinGenerationResult> GenerateEmailPinForNewEmail(string email)
+    public async Task<EmailPinGenerationResult> GenerateEmailPinForExistingEmail(string email)
     {
-        var emailPinGenerationFailedReasons = await GenerateEmailPin(email, true);
+        var emailPinGenerationFailedReasons = await GenerateEmailPin(email, false);
 
         switch (emailPinGenerationFailedReasons)
         {
@@ -30,13 +29,9 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
                     ViewName = "TooManyRequests"
                 });
 
-            case EmailPinGenerationFailedReason.NonPersonalAddress:
-                ModelState.AddModelError(nameof(email), "Enter a personal email address not one from a work or education setting.");
-                return EmailPinGenerationResult.Failed(this.PageWithErrors());
-
             case EmailPinGenerationFailedReason.InvalidAddress:
-                ModelState.AddModelError(nameof(email), "Enter a valid email address");
-                return EmailPinGenerationResult.Failed(this.PageWithErrors());
+            case EmailPinGenerationFailedReason.NonPersonalAddress:
+                throw new Exception($"Validation error thrown for existing email: {email}");
 
             default:
                 throw new NotImplementedException($"Unknown {nameof(EmailPinGenerationFailedReason)}: '{emailPinGenerationFailedReasons}'.");

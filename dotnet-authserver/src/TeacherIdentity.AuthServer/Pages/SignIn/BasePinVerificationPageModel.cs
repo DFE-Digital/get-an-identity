@@ -37,9 +37,9 @@ public abstract class BasePinVerificationPageModel : PageModel
         {
             var pinGenerationResult = await GeneratePin();
 
-            if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+            if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
             {
-                HandlePinGenerationFailed(pinGenerationResult.FailedReasons);
+                HandlePinGenerationFailed(pinGenerationResult.FailedReason);
             }
 
             ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");
@@ -52,9 +52,9 @@ public abstract class BasePinVerificationPageModel : PageModel
         return this.PageWithErrors();
     }
 
-    private IActionResult HandlePinGenerationFailed(PinGenerationFailedReasons pinGenerationFailedReasons)
+    private IActionResult HandlePinGenerationFailed(PinGenerationFailedReason pinGenerationFailedReason)
     {
-        if (pinGenerationFailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+        if (pinGenerationFailedReason == PinGenerationFailedReason.RateLimitExceeded)
         {
             return new ViewResult()
             {
@@ -63,7 +63,7 @@ public abstract class BasePinVerificationPageModel : PageModel
             };
         }
 
-        throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationFailedReasons}'.");
+        throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationFailedReason}'.");
     }
 
     protected void ValidateCode()

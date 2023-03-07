@@ -75,9 +75,9 @@ public class ConfirmationModel : PageModel
             {
                 var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
 
-                if (pinGenerationResult.FailedReasons != PinGenerationFailedReasons.None)
+                if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
                 {
-                    if (pinGenerationResult.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+                    if (pinGenerationResult.FailedReason == PinGenerationFailedReason.RateLimitExceeded)
                     {
                         return new ViewResult()
                         {
@@ -86,7 +86,7 @@ public class ConfirmationModel : PageModel
                         };
                     }
 
-                    throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReasons)}: '{pinGenerationResult.FailedReasons}'.");
+                    throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
                 }
 
                 ModelState.AddModelError(nameof(Code), "The security code has expired. New code sent.");

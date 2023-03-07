@@ -61,7 +61,7 @@ public class IndexModel : PageModel
         }
 
         var result = await _userVerificationService.GenerateEmailPin(Email!);
-        if (result.FailedReasons == PinGenerationFailedReasons.RateLimitExceeded)
+        if (result.FailedReason == PinGenerationFailedReason.RateLimitExceeded)
         {
             return new ViewResult()
             {
