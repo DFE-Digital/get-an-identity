@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class Phone : BasePhonePageModel
+public class ResendPhoneConfirmationModel : BasePhonePageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private IIdentityLinkGenerator _linkGenerator;
 
-    public Phone(
+    public ResendPhoneConfirmationModel(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator) :
         base(userVerificationService)
@@ -17,6 +18,7 @@ public class Phone : BasePhonePageModel
 
     public void OnGet()
     {
+        MobileNumber = HttpContext.GetAuthenticationState().MobileNumber;
     }
 
     public async Task<IActionResult> OnPost()
@@ -36,5 +38,19 @@ public class Phone : BasePhonePageModel
         HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
 
         return Redirect(_linkGenerator.RegisterPhoneConfirmation());
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (authenticationState.MobileNumber is null)
+        {
+            context.Result = Redirect(_linkGenerator.RegisterPhone());
+        }
+        else if (authenticationState.MobileNumberVerified)
+        {
+            context.Result = Redirect(_linkGenerator.RegisterName());
+        }
     }
 }

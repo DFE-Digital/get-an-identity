@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
-public sealed class EmailPinGenerationResult
+public sealed class PinGenerationResultAction
 {
     public bool Success;
     public IActionResult? Result { get; private set; }
 
-    public static EmailPinGenerationResult Failed(IActionResult result)
+    public static PinGenerationResultAction Failed(IActionResult result)
     {
         return new()
         {
@@ -16,7 +16,7 @@ public sealed class EmailPinGenerationResult
         };
     }
 
-    public static EmailPinGenerationResult Succeeded()
+    public static PinGenerationResultAction Succeeded()
     {
         return new()
         {
