@@ -10,9 +10,8 @@ public class ResendConfirmExistingAccountEmail : BaseExistingEmailPageModel
     public ResendConfirmExistingAccountEmail(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ILogger<BaseExistingEmailPageModel> logger) :
-        base(userVerificationService, linkGenerator, dbContext, logger)
+        TeacherIdentityServerDbContext dbContext) :
+        base(userVerificationService, linkGenerator, dbContext)
     {
     }
 

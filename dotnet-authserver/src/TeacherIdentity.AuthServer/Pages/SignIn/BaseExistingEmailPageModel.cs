@@ -6,17 +6,12 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
 {
-    private readonly ILogger<BaseExistingEmailPageModel> _logger;
-
     public BaseExistingEmailPageModel(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ILogger<BaseExistingEmailPageModel> logger) :
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
-    {
-        _logger = logger;
-    }
+    { }
 
     public async Task<EmailPinGenerationResult> GenerateEmailPinForExistingEmail(string email)
     {
@@ -35,8 +30,8 @@ public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
                 });
 
             case EmailPinGenerationFailedReason.InvalidAddress:
-                _logger.LogWarning($"Validation failed for existing email: {email} ");
-                return EmailPinGenerationResult.Failed(this.PageWithErrors());
+            case EmailPinGenerationFailedReason.NonPersonalAddress:
+                throw new Exception($"Validation error thrown for existing email: {email}");
 
             default:
                 throw new NotImplementedException($"Unknown {nameof(EmailPinGenerationFailedReason)}: '{emailPinGenerationFailedReasons}'.");

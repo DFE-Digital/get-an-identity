@@ -14,9 +14,8 @@ public class CheckAccount : BaseExistingEmailPageModel
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        ILogger<BaseExistingEmailPageModel> logger,
         IClock clock) :
-        base(userVerificationService, linkGenerator, dbContext, logger)
+        base(userVerificationService, linkGenerator, dbContext)
     {
         _clock = clock;
     }
