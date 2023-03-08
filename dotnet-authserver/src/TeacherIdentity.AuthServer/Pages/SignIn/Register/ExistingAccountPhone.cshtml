@@ -1,0 +1,23 @@
+@page "/sign-in/register/existing-account-phone"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ExistingAccountPhone
+@{
+    ViewBag.Title = "Request a new security code";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterExistingAccountEmailConfirmation()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterExistingAccountPhone()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">Request security code to your mobile phone</h1>
+
+            <p>We’ll send text message to <b>@Redactor.RedactMobileNumber(Model.ExistingMobileNumber!)</b> which contains a security code</p>
+
+            <govuk-button type="submit">Request security code</govuk-button>
+
+            <p><a href="@LinkGenerator.RegisterProveYourIdentity()">I can’t access this mobile number</a></p>
+        </form>
+    </div>
+</div>

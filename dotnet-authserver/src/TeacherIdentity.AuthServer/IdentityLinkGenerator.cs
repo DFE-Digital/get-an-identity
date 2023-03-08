@@ -111,19 +111,19 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string RegisterDateOfBirth(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/DateOfBirthPage");
 
-    public static string RegisterCheckAccount(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/CheckAccount");
+    public static string RegisterAccountExists(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/AccountExists");
 
-    public static string RegisterConfirmExistingAccount(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ConfirmExistingAccount");
+    public static string RegisterExistingAccountEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountEmailConfirmation");
 
     public static string RegisterResendEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendEmailConfirmation");
 
-    public static string RegisterResendConfirmExistingAccountEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendConfirmExistingAccountEmail");
+    public static string RegisterResendExistingAccountEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendExistingAccountEmail");
 
-    public static string RegisterSendConfirmExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/SendConfirmExistingAccountPhone");
+    public static string RegisterExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhone");
 
-    public static string RegisterResendConfirmExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendConfirmExistingAccountPhone");
+    public static string RegisterResendExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendExistingAccountPhone");
 
-    public static string RegisterConfirmExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ConfirmExistingAccountPhone");
+    public static string RegisterExistingAccountPhoneConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhoneConfirmation");
 
     public static string RegisterProveYourIdentity(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ProveYourIdentity");
 

@@ -1,5 +1,5 @@
-@page "/sign-in/register/check-account"
-@model TeacherIdentity.AuthServer.Pages.SignIn.Register.CheckAccount
+@page "/sign-in/register/account-exists"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.AccountExists
 @{
     ViewBag.Title = "We’ve found an account that matches your details";
 }
@@ -10,7 +10,7 @@
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.RegisterCheckAccount()" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.RegisterAccountExists()" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>This could be because you already have a Teaching services account, and you’re using a different email address or mobile phone number.</p>

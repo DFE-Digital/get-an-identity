@@ -7,12 +7,12 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class ConfirmExistingAccount : BaseEmailConfirmationPageModel
+public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
 {
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
-    public ConfirmExistingAccount(
+    public ExistingAccountEmailConfirmation(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator,
@@ -65,7 +65,7 @@ public class ConfirmExistingAccount : BaseEmailConfirmationPageModel
 
         if (HttpContext.GetAuthenticationState().ExistingAccountChosen != true)
         {
-            context.Result = new RedirectResult(_linkGenerator.RegisterCheckAccount());
+            context.Result = new RedirectResult(_linkGenerator.RegisterAccountExists());
             return;
         }
 

@@ -187,7 +187,7 @@ public class DateOfBirthPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/check-account", response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/register/account-exists", response.Headers.Location?.OriginalString);
 
         await TestData.WithDbContext(async dbContext =>
         {

@@ -50,7 +50,7 @@ public class DateOfBirthPage : PageModel
         if (users.Length > 0)
         {
             authenticationState.OnExistingAccountFound(users[0]);
-            return Redirect(_linkGenerator.RegisterCheckAccount());
+            return Redirect(_linkGenerator.RegisterAccountExists());
         }
 
         var user = await CreateUser();

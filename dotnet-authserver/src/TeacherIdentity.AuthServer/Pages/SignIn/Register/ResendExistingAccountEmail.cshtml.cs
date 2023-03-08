@@ -5,9 +5,9 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class ResendConfirmExistingAccountEmail : BaseExistingEmailPageModel
+public class ResendExistingAccountEmail : BaseExistingEmailPageModel
 {
-    public ResendConfirmExistingAccountEmail(
+    public ResendExistingAccountEmail(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
@@ -29,14 +29,14 @@ public class ResendConfirmExistingAccountEmail : BaseExistingEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        return Redirect(LinkGenerator.RegisterConfirmExistingAccount());
+        return Redirect(LinkGenerator.RegisterExistingAccountEmailConfirmation());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
         if (HttpContext.GetAuthenticationState().ExistingAccountChosen != true)
         {
-            context.Result = new RedirectResult(LinkGenerator.RegisterCheckAccount());
+            context.Result = new RedirectResult(LinkGenerator.RegisterAccountExists());
         }
     }
 }

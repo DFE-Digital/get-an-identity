@@ -7,12 +7,12 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class ConfirmExistingAccountPhone : BasePhoneConfirmationPageModel
+public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
 {
     private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
-    public ConfirmExistingAccountPhone(
+    public ExistingAccountPhoneConfirmation(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         IIdentityLinkGenerator linkGenerator,
@@ -65,7 +65,7 @@ public class ConfirmExistingAccountPhone : BasePhoneConfirmationPageModel
 
         if (MobileNumber is null || authenticationState.ExistingAccountChosen != true)
         {
-            context.Result = new RedirectResult(_linkGenerator.RegisterCheckAccount());
+            context.Result = new RedirectResult(_linkGenerator.RegisterAccountExists());
             return;
         }
 
