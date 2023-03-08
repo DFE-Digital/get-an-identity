@@ -63,6 +63,11 @@ public class Redactor
             return string.Empty;
         }
 
+        if (mobileNumber.Length <= 4)
+        {
+            return "***" + mobileNumber[^1];
+        }
+
         return new string('*', mobileNumber.Length - 4) + mobileNumber.Substring(mobileNumber.Length - 4);
     }
 }
