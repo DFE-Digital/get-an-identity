@@ -97,7 +97,7 @@ public class ResendPhoneConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_MobileNumberNotKnown_RedirectsToRegisterPhonePage()
+    public async Task Post_PhoneNotKnown_RedirectsToRegisterPhonePage()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
@@ -211,7 +211,7 @@ public class ResendPhoneConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NotificationServiceMobileNumber_ReturnsError()
+    public async Task Post_InvalidNotificationServiceMobileNumber_ReturnsError()
     {
         // Arrange
         HostFixture.NotificationSender

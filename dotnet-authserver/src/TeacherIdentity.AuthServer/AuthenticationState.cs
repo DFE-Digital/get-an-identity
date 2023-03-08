@@ -111,6 +111,8 @@ public class AuthenticationState
     [JsonInclude]
     public string? ExistingAccountEmail { get; private set; }
     [JsonInclude]
+    public string? ExistingAccountMobileNumber { get; private set; }
+    [JsonInclude]
     public bool? ExistingAccountChosen { get; private set; }
 
     /// <summary>
@@ -618,6 +620,7 @@ public class AuthenticationState
     {
         ExistingAccountUserId = existingUserAccount.UserId;
         ExistingAccountEmail = existingUserAccount.EmailAddress;
+        ExistingAccountMobileNumber = existingUserAccount.MobileNumber;
     }
 
     public void OnExistingAccountChosen(bool isUsersAccount)
