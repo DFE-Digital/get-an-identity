@@ -125,7 +125,7 @@ public static class IdentityLinkGeneratorExtensions
 
     public static string RegisterExistingAccountPhoneConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhoneConfirmation");
 
-    public static string RegisterProveYourIdentity(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ProveYourIdentity");
+    public static string RegisterChangeEmailRequest(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ChangeEmailRequest");
 
     public static string UpdateEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)

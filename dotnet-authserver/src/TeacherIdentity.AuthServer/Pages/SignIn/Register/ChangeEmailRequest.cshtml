@@ -1,0 +1,55 @@
+@page "/sign-in/register/change-email-request"
+@{
+    ViewBag.Title = "You need to prove your identity to change your email address";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterExistingAccountPhone()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+        <p>Call the Teaching Regulation Agency (TRA) for support.</p>
+
+        <p>Telephone: 020 7593 5394</p>
+        <p>Lines are open Monday to Thursday, 9am to 5pm, and on Friday from 9am to 4:30pm (except public holidays)</p>
+
+        <h2 class="govuk-heading-m">Send a secure email using Galaxkey</h2>
+
+        <p>To send a secure email to the Teaching Regulation Agency (TRA) you need to use the Galaxkey site:</p>
+        <p><a href="https://manager.galaxkey.com/services/registerme">https://manager.galaxkey.com/services/registerme</a></p>
+
+        <p>Use your new email address, jane.doe@example.com.</p>
+        <p>After you activate your account you can then send secure emails to TRA using Galaxkey.</p>
+
+        <h2 class="govuk-heading-m">Send your ID documents securely</h2>
+
+        <p>Follow these steps to send your documents through Galaxkey:</p>
+
+        <ul class="govuk-list govuk-list--bullet">
+            <li>select ‘Compose’ to create a new secure email</li>
+            <li>enter ‘qts.enquiries@education.gov.uk’ as the recipient</li>
+            <li>enter ‘Change of details’ as the subject line</li>
+            <li>in your email include:</li>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>your full legal name</li>
+                <li>your date of birth</li>
+                <li>your email address</li>
+            </ul>
+            <li>attach a scanned copy or photo of one of the following types of ID:</li>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>passport</li>
+                <li>driving licence (full or provisional)</li>
+                <li>certificate of residence</li>
+                <li>birth certificate</li>
+            </ul>
+        </ul>
+
+        <h2 class="govuk-heading-m">What happens next</h2>
+
+        <p>TRA will confirm your identity and update your email address.</p>
+        <p>Your ID documents will be deleted once your request is processed.</p>
+    </div>
+</div>
