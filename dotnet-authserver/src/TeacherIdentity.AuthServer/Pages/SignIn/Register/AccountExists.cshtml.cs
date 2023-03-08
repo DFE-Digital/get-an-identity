@@ -6,11 +6,11 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class CheckAccount : BaseExistingEmailPageModel
+public class AccountExists : BaseExistingEmailPageModel
 {
     private readonly IClock _clock;
 
-    public CheckAccount(
+    public AccountExists(
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
@@ -46,7 +46,7 @@ public class CheckAccount : BaseExistingEmailPageModel
         {
             var emailPinGenerationResult = await GenerateEmailPinForExistingEmail(ExistingAccountEmail!);
             return emailPinGenerationResult.Success
-                ? Redirect(LinkGenerator.RegisterConfirmExistingAccount())
+                ? Redirect(LinkGenerator.RegisterExistingAccountEmailConfirmation())
                 : emailPinGenerationResult.Result!;
         }
 

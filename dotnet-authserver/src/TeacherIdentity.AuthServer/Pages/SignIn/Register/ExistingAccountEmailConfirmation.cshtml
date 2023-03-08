@@ -1,16 +1,16 @@
-@page "/sign-in/register/confirm-existing-account"
-@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ConfirmExistingAccount
+@page "/sign-in/register/existing-account-email-confirmation"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ExistingAccountEmailConfirmation
 @{
     ViewBag.Title = "Confirm your email address";
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@LinkGenerator.RegisterCheckAccount()" />
+    <govuk-back-link href="@LinkGenerator.RegisterAccountExists()" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.RegisterConfirmExistingAccount()" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.RegisterExistingAccountEmailConfirmation()" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>A confirmation code has been sent to <b data-testid="email">@Redactor.RedactEmail(Model.Email!)</b></p>
@@ -19,8 +19,8 @@
                 <govuk-input-label class="govuk-label--s" />
             </govuk-input>
 
-            <p><a href="@LinkGenerator.RegisterResendConfirmExistingAccountEmail()">I have not received an email</a></p>
-            <p><a href="@LinkGenerator.RegisterSendConfirmExistingAccountPhone()">I can’t access this email address</a></p>
+            <p><a href="@LinkGenerator.RegisterResendExistingAccountEmail()">I have not received an email</a></p>
+            <p><a href="@LinkGenerator.RegisterExistingAccountPhone()">I can’t access this email address</a></p>
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>

@@ -1,16 +1,16 @@
-@page "/sign-in/register/confirm-existing-account-phone"
-@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ConfirmExistingAccountPhone
+@page "/sign-in/register/existing-account-phone-confirmation"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ExistingAccountPhoneConfirmation
 @{
     ViewBag.Title = "Check your phone";
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@LinkGenerator.RegisterSendConfirmExistingAccountPhone()" />
+    <govuk-back-link href="@LinkGenerator.RegisterExistingAccountPhone()" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.RegisterConfirmExistingAccountPhone()" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.RegisterExistingAccountPhoneConfirmation()" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>We’ve sent you a text message with a security code to <b data-testid="mobileNumber">@Redactor.RedactMobileNumber(Model.MobileNumber!)</b></p>
@@ -19,7 +19,7 @@
                 <govuk-input-label class="govuk-label--s" />
             </govuk-input>
 
-            <p><a href="@LinkGenerator.RegisterResendConfirmExistingAccountPhone()">I have not received a text message</a></p>
+            <p><a href="@LinkGenerator.RegisterResendExistingAccountPhone()">I have not received a text message</a></p>
             <p><a href="@LinkGenerator.RegisterResendPhoneConfirmation()">I can’t access this mobile number</a></p>
 
             <govuk-button type="submit">Continue</govuk-button>

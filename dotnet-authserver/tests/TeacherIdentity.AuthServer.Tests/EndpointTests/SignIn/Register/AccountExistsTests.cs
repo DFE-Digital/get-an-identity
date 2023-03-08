@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-public class CheckAccountTests : TestBase
+public class AccountExistsTests : TestBase
 {
-    public CheckAccountTests(HostFixture hostFixture)
+    public AccountExistsTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -12,19 +12,19 @@ public class CheckAccountTests : TestBase
     [Fact]
     public async Task Get_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/check-account");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_MissingAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/check-account");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Get, "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/check-account");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/account-exists");
     }
 
     [Fact]
@@ -36,31 +36,31 @@ public class CheckAccountTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(c => c.RegisterExistingUserAccountMatch(), "/sign-in/register/check-account", additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.RegisterExistingUserAccountMatch(), "/sign-in/register/account-exists", additionalScopes: null);
     }
 
     [Fact]
     public async Task Post_InvalidAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/register/check-account");
+        await InvalidAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Post_NoAuthenticationStateProvided_ReturnsBadRequest()
     {
-        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/register/check-account");
+        await MissingAuthenticationState_ReturnsBadRequest(HttpMethod.Post, $"/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/check-account");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/check-account");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/account-exists");
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class CheckAccountTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/check-account?{authStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -86,7 +86,7 @@ public class CheckAccountTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/check-account?{authStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -113,7 +113,7 @@ public class CheckAccountTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/check-account?{authStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {

@@ -4,11 +4,11 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-public class SendConfirmExistingAccountPhone : BaseExistingPhonePageModel
+public class ResendExistingAccountPhone : BaseExistingPhonePageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
 
-    public SendConfirmExistingAccountPhone(
+    public ResendExistingAccountPhone(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator) :
         base(userVerificationService)
@@ -32,7 +32,7 @@ public class SendConfirmExistingAccountPhone : BaseExistingPhonePageModel
             return pinGenerationResult.Result!;
         }
 
-        return Redirect(_linkGenerator.RegisterConfirmExistingAccountPhone());
+        return Redirect(_linkGenerator.RegisterExistingAccountPhoneConfirmation());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -42,7 +42,7 @@ public class SendConfirmExistingAccountPhone : BaseExistingPhonePageModel
         if (authenticationState.ExistingAccountMobileNumber is null ||
             authenticationState.ExistingAccountChosen != true)
         {
-            context.Result = new RedirectResult(_linkGenerator.RegisterCheckAccount());
+            context.Result = new RedirectResult(_linkGenerator.RegisterAccountExists());
         }
     }
 }
