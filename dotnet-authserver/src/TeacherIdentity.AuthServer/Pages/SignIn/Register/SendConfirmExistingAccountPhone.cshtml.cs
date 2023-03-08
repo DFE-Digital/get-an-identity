@@ -37,8 +37,10 @@ public class SendConfirmExistingAccountPhone : BaseExistingPhonePageModel
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (HttpContext.GetAuthenticationState().ExistingAccountMobileNumber is null ||
-            HttpContext.GetAuthenticationState().ExistingAccountChosen != true)
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (authenticationState.ExistingAccountMobileNumber is null ||
+            authenticationState.ExistingAccountChosen != true)
         {
             context.Result = new RedirectResult(_linkGenerator.RegisterCheckAccount());
         }
