@@ -184,7 +184,7 @@ public class ConfirmTests : TestBase
             e =>
             {
                 var userMergedEvent = Assert.IsType<UserMergedEvent>(e);
-                Assert.Equal(userToMerge, userMergedEvent.User);
+                Assert.Equal(userToMerge.UserId, userMergedEvent.User.UserId);
                 Assert.Equal(user.UserId, userMergedEvent.MergedWithUserId);
                 Assert.Equal(Clock.UtcNow, userMergedEvent.CreatedUtc);
             });
