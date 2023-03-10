@@ -180,6 +180,12 @@ public class AuthenticationState
         }
     }
 
+    public bool TryGetOAuthState([NotNullWhen(true)] out OAuthAuthorizationState? oAuthState)
+    {
+        oAuthState = OAuthState;
+        return OAuthState is not null;
+    }
+
     public IEnumerable<Claim> GetInternalClaims()
     {
         if (!IsComplete())

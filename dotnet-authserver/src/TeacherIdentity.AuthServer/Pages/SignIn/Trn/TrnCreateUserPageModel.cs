@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using ZendeskApi.Client.Models;
@@ -101,10 +102,13 @@ public class TrnCreateUserPageModel : PageModel
         authenticationState.OnTrnLookupCompletedAndUserRegistered(user);
         await authenticationState.SignIn(HttpContext);
 
-        if (authenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
+#pragma warning disable CS0618 // Type or member is obsolete
+        if ((!authenticationState.TryGetOAuthState(out var oAuthState) || !oAuthState.HasScope(CustomScopes.Trn)) &&
+            authenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
         {
             await CreateTrnResolutionZendeskTicket(authenticationState);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         return Redirect(authenticationState.GetNextHopUrl(LinkGenerator));
     }
