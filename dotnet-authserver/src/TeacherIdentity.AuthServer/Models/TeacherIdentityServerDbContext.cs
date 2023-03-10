@@ -1,19 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Events;
 
 namespace TeacherIdentity.AuthServer.Models;
 
 public class TeacherIdentityServerDbContext : DbContext
 {
-    private readonly IEventObserver? _eventObserver;
-    private readonly List<EventBase> _events = new();
-
-    public TeacherIdentityServerDbContext(DbContextOptions<TeacherIdentityServerDbContext> options, IEventObserver? eventObserver)
-            : base(options)
+    public TeacherIdentityServerDbContext(DbContextOptions<TeacherIdentityServerDbContext> options)
+        : base(options)
     {
-        _eventObserver = eventObserver;
     }
 
     public static void ConfigureOptions(DbContextOptionsBuilder optionsBuilder, string connectionString)
@@ -32,8 +27,8 @@ public class TeacherIdentityServerDbContext : DbContext
             .UseOpenIddict<Application, Authorization, Scope, Token, string>();
     }
 
-    public static TeacherIdentityServerDbContext Create(string connectionString, IEventObserver? eventObserver = null) =>
-        new TeacherIdentityServerDbContext(CreateOptions(connectionString), eventObserver);
+    public static TeacherIdentityServerDbContext Create(string connectionString) =>
+        new TeacherIdentityServerDbContext(CreateOptions(connectionString));
 
     public DbSet<EmailConfirmationPin> EmailConfirmationPins => Set<EmailConfirmationPin>();
 
@@ -58,7 +53,6 @@ public class TeacherIdentityServerDbContext : DbContext
     public void AddEvent(EventBase @event)
     {
         Events.Add(Event.FromEventBase(@event));
-        _events.Add(@event);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -71,30 +65,16 @@ public class TeacherIdentityServerDbContext : DbContext
         modelBuilder.Entity<Token>().ToTable("tokens");
     }
 
-#pragma warning disable CS0809
-    [Obsolete($"Use {nameof(SaveChangesAsync)} instead.")]
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
-        throw new NotSupportedException($"Use {nameof(SaveChangesAsync)} instead.");
+        UpdateSoftDeleteFlag();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
     }
-#pragma warning restore CS0809
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         UpdateSoftDeleteFlag();
-
-        try
-        {
-            var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-
-            await PublishEvents();
-
-            return result;
-        }
-        finally
-        {
-            _events.Clear();
-        }
+        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     private static DbContextOptions<TeacherIdentityServerDbContext> CreateOptions(string connectionString)
@@ -102,19 +82,6 @@ public class TeacherIdentityServerDbContext : DbContext
         var optionsBuilder = new DbContextOptionsBuilder<TeacherIdentityServerDbContext>();
         ConfigureOptions(optionsBuilder, connectionString);
         return optionsBuilder.Options;
-    }
-
-    private async Task PublishEvents()
-    {
-        if (_eventObserver is null)
-        {
-            return;
-        }
-
-        foreach (var e in _events)
-        {
-            await _eventObserver.OnEventSaved(e);
-        }
     }
 
     private void UpdateSoftDeleteFlag()

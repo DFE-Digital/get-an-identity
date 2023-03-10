@@ -1,6 +1,7 @@
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.Establishment;
+using TeacherIdentity.AuthServer.Services.EventPublishing;
 using TeacherIdentity.AuthServer.Services.Notification;
 using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.Services.UserImport;
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
             .AddUserVerification(environment, configuration)
             .AddTrnLookup(configuration)
             .AddSingleton<Redactor>()
-            .AddZendesk(environment, configuration);
+            .AddZendesk(environment, configuration)
+            .AddEventPublishing(environment);
     }
 }

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EventProcessing;
@@ -136,6 +138,16 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
             // Add Pages defined in this test project
             services.AddRazorPages().AddApplicationPart(typeof(HostFixture).Assembly);
+
+            // Publish events synchronously
+            services.AddSingleton<PublishEventsDbCommandInterceptor>();
+            services.Decorate<DbContextOptions<TeacherIdentityServerDbContext>>((inner, sp) =>
+            {
+                var coreOptionsExtension = inner.GetExtension<CoreOptionsExtension>();
+
+                return (DbContextOptions<TeacherIdentityServerDbContext>)inner.WithExtension(
+                    coreOptionsExtension.WithInterceptors(new[] { sp.GetRequiredService<PublishEventsDbCommandInterceptor>() }));
+            });
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();

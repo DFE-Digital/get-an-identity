@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -15,6 +16,8 @@ public class DbFixture : IAsyncLifetime
         Services = GetServices();
     }
 
+    public IClock Clock => Services.GetRequiredService<IClock>();
+
     public string ConnectionString { get; }
 
     public DbHelper DbHelper { get; }
@@ -24,6 +27,8 @@ public class DbFixture : IAsyncLifetime
     public TestData TestData => Services.GetRequiredService<TestData>();
 
     public TeacherIdentityServerDbContext GetDbContext() => Services.GetRequiredService<TeacherIdentityServerDbContext>();
+
+    public IDbContextFactory<TeacherIdentityServerDbContext> GetDbContextFactory() => Services.GetRequiredService<IDbContextFactory<TeacherIdentityServerDbContext>>();
 
     public async Task InitializeAsync()
     {
@@ -37,11 +42,11 @@ public class DbFixture : IAsyncLifetime
         var services = new ServiceCollection();
 
         services.AddDbContext<TeacherIdentityServerDbContext>(
-            options =>
-            {
-                TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString);
-            },
+            options => TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString),
             contextLifetime: ServiceLifetime.Transient);
+
+        services.AddDbContextFactory<TeacherIdentityServerDbContext>(
+            options => TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString));
 
         services.AddSingleton<TestData>();
         services.AddSingleton<IClock, TestClock>();

@@ -2,11 +2,14 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Playwright;
 using Moq;
 using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EndToEndTests.Infrastructure;
 using TeacherIdentity.AuthServer.EventProcessing;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -136,6 +139,16 @@ public class HostFixture : IAsyncLifetime
                         new CapturePinsUserVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
+
+                    // Publish events synchronously
+                    services.AddSingleton<PublishEventsDbCommandInterceptor>();
+                    services.Decorate<DbContextOptions<TeacherIdentityServerDbContext>>((inner, sp) =>
+                    {
+                        var coreOptionsExtension = inner.GetExtension<CoreOptionsExtension>();
+
+                        return (DbContextOptions<TeacherIdentityServerDbContext>)inner.WithExtension(
+                            coreOptionsExtension.WithInterceptors(new[] { sp.GetRequiredService<PublishEventsDbCommandInterceptor>() }));
+                    });
                 });
             });
 

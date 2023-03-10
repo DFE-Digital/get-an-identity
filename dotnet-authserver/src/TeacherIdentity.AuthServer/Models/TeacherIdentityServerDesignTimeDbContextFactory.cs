@@ -17,6 +17,6 @@ public class TeacherIdentityServerDesignTimeDbContextFactory : IDesignTimeDbCont
         var optionsBuilder = new DbContextOptionsBuilder<TeacherIdentityServerDbContext>();
         TeacherIdentityServerDbContext.ConfigureOptions(optionsBuilder, connectionString);
 
-        return new TeacherIdentityServerDbContext(optionsBuilder.Options, eventObserver: null);
+        return new TeacherIdentityServerDbContext(optionsBuilder.Options);
     }
 }
