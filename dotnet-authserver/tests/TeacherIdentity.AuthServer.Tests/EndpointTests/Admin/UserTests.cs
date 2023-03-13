@@ -1,6 +1,5 @@
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class UserTests : TestBase
 {
     public UserTests(HostFixture hostFixture)

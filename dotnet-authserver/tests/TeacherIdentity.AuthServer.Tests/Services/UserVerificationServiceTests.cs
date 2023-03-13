@@ -9,7 +9,6 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.Services;
 
-[Collection(nameof(DisableParallelization))]  // Changes the clock
 public class UserVerificationServiceTests : IClassFixture<DbFixture>
 {
     private static readonly TimeSpan _pinLifetime = TimeSpan.FromSeconds(120);

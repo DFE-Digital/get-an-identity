@@ -7,7 +7,6 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Authenticated.UpdateEmail;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks and changes the clock
 public class ConfirmationTests : TestBase
 {
     public ConfirmationTests(HostFixture hostFixture)
@@ -228,7 +227,7 @@ public class ConfirmationTests : TestBase
         var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
 
@@ -266,7 +265,7 @@ public class ConfirmationTests : TestBase
         var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
 

@@ -3,7 +3,6 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks
 public class EmailTests : TestBase
 {
     public EmailTests(HostFixture hostFixture)

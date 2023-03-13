@@ -27,6 +27,8 @@ public abstract partial class TestBase
 
     public HttpClient HttpClient { get; }
 
+    public SpyRegistry SpyRegistry => HostFixture.SpyRegistry;
+
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
     public Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(

@@ -4,7 +4,6 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class IttProviderTests : TestBase
 {
     public IttProviderTests(HostFixture hostFixture)

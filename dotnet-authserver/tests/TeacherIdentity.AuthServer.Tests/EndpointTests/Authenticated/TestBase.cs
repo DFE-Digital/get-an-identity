@@ -24,6 +24,8 @@ public partial class TestBase
 
     public HostFixture HostFixture { get; }
 
+    public SpyRegistry SpyRegistry => HostFixture.SpyRegistry;
+
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
     public HttpClient HttpClient { get; }

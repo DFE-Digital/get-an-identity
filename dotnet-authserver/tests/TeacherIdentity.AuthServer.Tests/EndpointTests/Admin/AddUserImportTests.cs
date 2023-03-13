@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class AddUserImportTests : TestBase
 {
     public AddUserImportTests(HostFixture hostFixture)
