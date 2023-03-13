@@ -61,23 +61,6 @@ public partial class SignIn : IClassFixture<HostFixture>
         _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId));
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task NewTeacherUser_IsRedirectedToFindAndRegistersAnAccountOnCallback(bool hasTrn)
-    {
-        var email = Faker.Internet.Email();
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-        var trn = hasTrn ? _hostFixture.TestData.GenerateTrn() : null;
-        var dateOfBirth = new DateOnly(1990, 1, 2);
-
-        await using var context = await _hostFixture.CreateBrowserContext();
-        var page = await context.NewPageAsync();
-
-        await SignInAsNewTeacherUserWithTrnScope(page, email, firstName, lastName, trn, dateOfBirth, preferredFirstName: null, preferredLastName: null);
-    }
-
     [Fact]
     public async Task NewTeacherUser_WithFoundTrn_CreatesUserAndCompletesFlow()
     {
@@ -330,7 +313,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await SignInAsNewTeacherUserWithTrnScope(page, email, firstName, lastName, trn, dateOfBirth, preferredFirstName: null, preferredLastName: null);
+        await SignInAsNewTeacherUserWithDqtReadScope(page, email, firstName, lastName, trn, dateOfBirth, preferredFirstName: null, preferredLastName: null);
 
         await ClearCookiesForTestClient();
 
@@ -350,7 +333,6 @@ public partial class SignIn : IClassFixture<HostFixture>
         Assert.Equal(clientAppHost, pageUrlHost);
 
         var signedInEmail = await page.InnerTextAsync("data-testid=email");
-        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
         Assert.Equal(email, signedInEmail);
 
         async Task ClearCookiesForTestClient()
@@ -377,12 +359,8 @@ public partial class SignIn : IClassFixture<HostFixture>
         }
     }
 
-    [Theory]
-    [InlineData(CustomScopes.DqtRead)]
-#pragma warning disable CS0618 // Type or member is obsolete
-    [InlineData(CustomScopes.Trn)]
-#pragma warning restore CS0618 // Type or member is obsolete
-    public async Task NewTeacherUser_WithTrnMatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully(string additionalScope)
+    [Fact]
+    public async Task NewTeacherUser_WithTrnMatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully()
     {
         var existingTrnOwner = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
@@ -405,7 +383,7 @@ public partial class SignIn : IClassFixture<HostFixture>
 
         // Start on the client app and try to access a protected area
 
-        await page.GotoAsync($"/profile?scope=email+openid+profile+{Uri.EscapeDataString(additionalScope)}");
+        await page.GotoAsync($"/profile?scope=email+openid+profile+{Uri.EscapeDataString(CustomScopes.DqtRead)}");
 
         // Fill in the sign in form (email + PIN)
 
@@ -423,78 +401,57 @@ public partial class SignIn : IClassFixture<HostFixture>
 
         await page.ClickAsync("button:text-is('Continue')");
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (additionalScope == CustomScopes.Trn)
-#pragma warning restore CS0618 // Type or member is obsolete
-        {
-            // Should now be on our stub Find page
+        // Has TRN page
 
-            urlPath = new Uri(page.Url).LocalPath;
-            Assert.EndsWith("/FindALostTrn", urlPath);
+        await page.ClickAsync("label:text-is('Yes, I know my TRN')");
+        await page.FillAsync("text=What is your TRN?", trn);
+        await page.ClickAsync("button:text-is('Continue')");
 
-            await page.FillAsync("#OfficialFirstName", officialFirstName);
-            await page.FillAsync("#OfficialLastName", officialLastName);
-            await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
-            await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
-            await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
-            await page.FillAsync("#Trn", trn);
+        // Official name page
 
-            await page.ClickAsync("button:text-is('Continue')");
-        }
-        else
-        {
-            // Has TRN page
+        await page.FillAsync("text=First name", officialFirstName);
+        await page.FillAsync("text=Last name", officialLastName);
+        await page.ClickAsync("label:text-is('No')");  // Have you ever changed your name?
+        await page.ClickAsync("button:text-is('Continue')");
 
-            await page.ClickAsync("label:text-is('Yes, I know my TRN')");
-            await page.FillAsync("text=What is your TRN?", trn);
-            await page.ClickAsync("button:text-is('Continue')");
+        // Preferred name page
 
-            // Official name page
+        await page.ClickAsync("label:text-is('Yes')");  // Is x y your preferred name?
+        await page.ClickAsync("button:text-is('Continue')");
 
-            await page.FillAsync("text=First name", officialFirstName);
-            await page.FillAsync("text=Last name", officialLastName);
-            await page.ClickAsync("label:text-is('No')");  // Have you ever changed your name?
-            await page.ClickAsync("button:text-is('Continue')");
+        // Simulate DQT API returning result when next page submitted
 
-            // Preferred name page
-
-            await page.ClickAsync("label:text-is('Yes')");  // Is x y your preferred name?
-            await page.ClickAsync("button:text-is('Continue')");
-
-            // Simulate DQT API returning result when next page submitted
-
-            _hostFixture.DqtApiClient
-                .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new FindTeachersResponse()
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = new FindTeachersResponseResult[]
                 {
-                    Results = new FindTeachersResponseResult[]
+                    new()
                     {
-                        new()
-                        {
-                            DateOfBirth = dateOfBirth,
-                            FirstName = officialFirstName,
-                            LastName = officialLastName,
-                            EmailAddresses = new[] { trnOwnerEmailAddress },
-                            HasActiveSanctions = false,
-                            NationalInsuranceNumber = null,
-                            Trn = trn,
-                            Uid = Guid.NewGuid().ToString()
-                        }
+                        DateOfBirth = dateOfBirth,
+                        FirstName = officialFirstName,
+                        LastName = officialLastName,
+                        EmailAddresses = new[] { trnOwnerEmailAddress },
+                        HasActiveSanctions = false,
+                        NationalInsuranceNumber = null,
+                        Trn = trn,
+                        Uid = Guid.NewGuid().ToString()
                     }
-                });
+                }
+            });
 
-            // Date of birth page
+        // Date of birth page
 
-            await page.FillAsync("label:text-is('Day')", dateOfBirth.Day.ToString());
-            await page.FillAsync("label:text-is('Month')", dateOfBirth.Month.ToString());
-            await page.FillAsync("label:text-is('Year')", dateOfBirth.Year.ToString());
-            await page.ClickAsync("button:text-is('Continue')");
+        await page.FillAsync("label:text-is('Day')", dateOfBirth.Day.ToString());
+        await page.FillAsync("label:text-is('Month')", dateOfBirth.Month.ToString());
+        await page.FillAsync("label:text-is('Year')", dateOfBirth.Year.ToString());
+        await page.ClickAsync("button:text-is('Continue')");
 
-            // Check answers page
+        // Check answers page
 
-            await page.WaitForSelectorAsync("h1:text-is('Check your answers')");
-            await page.ClickAsync("button:text-is('Continue')");
-        }
+        await page.WaitForSelectorAsync("h1:text-is('Check your answers')");
+        await page.ClickAsync("button:text-is('Continue')");
 
         // Should now be on 'TRN in use' page
 
@@ -601,19 +558,26 @@ public partial class SignIn : IClassFixture<HostFixture>
         }
     }
 
-    private async Task SignInAsNewTeacherUserWithTrnScope(
+    private async Task SignInAsNewTeacherUserWithDqtReadScope(
         IPage page,
         string email,
-        string firstName,
-        string lastName,
+        string officialFirstName,
+        string officialLastName,
         string? trn,
         DateOnly dateOfBirth,
         string? preferredFirstName,
         string? preferredLastName)
     {
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = Array.Empty<FindTeachersResponseResult>()
+            });
+
         // Start on the client app and try to access a protected area
 
-        await page.GotoAsync("/profile?scope=email+openid+profile+trn");
+        await page.GotoAsync($"/profile?scope=email+openid+profile+{Uri.EscapeDataString(CustomScopes.DqtRead)}");
 
         // Fill in the sign in form (email + PIN)
 
@@ -631,20 +595,63 @@ public partial class SignIn : IClassFixture<HostFixture>
 
         await page.ClickAsync("button:text-is('Continue')");
 
-        // Should now be on our stub Find page
+        // Has TRN page
 
-        urlPath = new Uri(page.Url).LocalPath;
-        Assert.EndsWith("/FindALostTrn", urlPath);
+        if (trn is null)
+        {
+            await page.ClickAsync("label:text-is('No, I need to continue without my TRN')");
+        }
+        else
+        {
+            await page.ClickAsync("label:text-is('Yes, I know my TRN')");
+            await page.FillAsync("text=What is your TRN?", trn ?? string.Empty);
+        }
+        await page.ClickAsync("button:text-is('Continue')");
 
-        await page.FillAsync("#OfficialFirstName", firstName);
-        await page.FillAsync("#OfficialLastName", lastName);
-        await page.FillAsync("#PreferredFirstName", preferredFirstName ?? string.Empty);
-        await page.FillAsync("#PreferredLastName", preferredLastName ?? string.Empty);
-        await page.FillAsync("id=DateOfBirth.Day", dateOfBirth.Day.ToString());
-        await page.FillAsync("id=DateOfBirth.Month", dateOfBirth.Month.ToString());
-        await page.FillAsync("id=DateOfBirth.Year", dateOfBirth.Year.ToString());
-        await page.FillAsync("#Trn", trn ?? string.Empty);
+        // Official name page
 
+        await page.FillAsync("text=First name", officialFirstName);
+        await page.FillAsync("text=Last name", officialLastName);
+        await page.ClickAsync("label:text-is('No')");  // Have you ever changed your name?
+        await page.ClickAsync("button:text-is('Continue')");
+
+        // Preferred name page
+
+        await page.ClickAsync("label:text-is('Yes')");  // Is x y your preferred name?
+        await page.ClickAsync("button:text-is('Continue')");
+
+        // Simulate DQT API returning result when next page submitted
+
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FindTeachersResponse()
+            {
+                Results = new FindTeachersResponseResult[]
+                {
+                    new()
+                    {
+                        DateOfBirth = dateOfBirth,
+                        FirstName = officialFirstName,
+                        LastName = officialLastName,
+                        EmailAddresses = new[] { email },
+                        HasActiveSanctions = false,
+                        NationalInsuranceNumber = null,
+                        Trn = trn ?? "9123456",
+                        Uid = Guid.NewGuid().ToString()
+                    }
+                }
+            });
+
+        // Date of birth page
+
+        await page.FillAsync("label:text-is('Day')", dateOfBirth.Day.ToString());
+        await page.FillAsync("label:text-is('Month')", dateOfBirth.Month.ToString());
+        await page.FillAsync("label:text-is('Year')", dateOfBirth.Year.ToString());
+        await page.ClickAsync("button:text-is('Continue')");
+
+        // Check answers page
+
+        await page.WaitForSelectorAsync("h1:text-is('Check your answers')");
         await page.ClickAsync("button:text-is('Continue')");
 
         // Should now be on the confirmation page
@@ -658,9 +665,6 @@ public partial class SignIn : IClassFixture<HostFixture>
         var pageUrlHost = new Uri(page.Url).Host;
         Assert.Equal(clientAppHost, pageUrlHost);
 
-        Assert.Equal(firstName, await page.InnerTextAsync("data-testid=first-name"));
-        Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
         Assert.Equal(email, await page.InnerTextAsync("data-testid=email"));
-        Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
     }
 }
