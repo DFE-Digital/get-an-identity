@@ -36,6 +36,43 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         }
     }
 
+    public async ValueTask<bool> ValidateRedirectUriDomain(Application application, string address, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(application);
+        ArgumentException.ThrowIfNullOrEmpty(address);
+
+        if (!Uri.TryCreate(address, UriKind.Absolute, out var addressUri))
+        {
+            return false;
+        }
+
+        var addressAuthority = addressUri.GetLeftPart(UriPartial.Authority);
+
+        foreach (var uri in await Store.GetRedirectUrisAsync(application, cancellationToken))
+        {
+            var authority = new Uri(uri).GetLeftPart(UriPartial.Authority);
+
+            if (WildcardPathSegmentPattern().IsMatch(authority))
+            {
+                var pattern = $"^{Regex.Escape(authority).Replace("__", ".*")}$";
+
+                if (Regex.IsMatch(addressAuthority, pattern))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (authority.Equals(addressAuthority))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public override async ValueTask<bool> ValidateRedirectUriAsync(Application application, string address, CancellationToken cancellationToken = default)
     {
         // This is a modified form of the standard implementation with support for a __ wildcard in a redirect URI

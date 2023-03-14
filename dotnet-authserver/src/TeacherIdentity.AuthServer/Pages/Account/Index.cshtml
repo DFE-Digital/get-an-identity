@@ -1,0 +1,84 @@
+@page "/account"
+@model TeacherIdentity.AuthServer.Pages.Account.IndexModel
+@{
+    ViewBag.Title = "DfE Identity account";
+}
+
+@section BeforeContent
+{
+    @if (Model.SafeRedirectUri is not null)
+    {
+        <div class="gai-banner-bar">
+            <govuk-back-link href="@Model.SafeRedirectUri" data-testid="BackLink">
+                Back
+                @if (Model.ClientDisplayName is not null)
+                {
+                    <text>to @Model.ClientDisplayName</text>
+                }
+            </govuk-back-link>
+        </div>
+    }
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <span class="govuk-caption-xl">DfE Identity account</span>
+        <h1 class="govuk-heading-xl">Your details</h1>
+
+        <h3 class="govuk-heading-m">Personal details</h3>
+        <govuk-summary-list>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="#" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+            @if (Model.HasTrn)
+            {
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Official name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>
+                        @Model.OfficialName
+                        <p class="govuk-hint govuk-!-font-size-14">Displayed on teaching certificates </p>
+                    </govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="#" visually-hidden-text="official name">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+            }
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString("dd MMMM yyyy")</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="#" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+        </govuk-summary-list>
+
+        <h3 class="govuk-heading-m">Sign in details</h3>
+        <govuk-summary-list>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@Model.Email</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="#" visually-hidden-text="email">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Mobile number</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@Model.MobileNumber</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="#" visually-hidden-text="mobile number">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+        </govuk-summary-list>
+
+        @if (Model.SafeRedirectUri is not null && Model.ClientDisplayName is not null)
+        {
+            <govuk-button-link href="@Model.SafeRedirectUri" data-testid="BackButton">
+                Back to @Model.ClientDisplayName
+            </govuk-button-link>
+        }
+    </div>
+</div>
