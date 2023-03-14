@@ -5,7 +5,6 @@ using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class NoMatchTests : TestBase
 {
     public NoMatchTests(HostFixture hostFixture)

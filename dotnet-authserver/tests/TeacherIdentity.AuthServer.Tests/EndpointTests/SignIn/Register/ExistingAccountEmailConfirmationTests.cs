@@ -7,7 +7,6 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks and changes the clock
 public class ExistingAccountEmailConfirmationTests : TestBase, IAsyncLifetime
 {
     private User? _existingUserAccount;
@@ -203,7 +202,7 @@ public class ExistingAccountEmailConfirmationTests : TestBase, IAsyncLifetime
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateEmailPin(_existingUserAccount!.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -231,7 +230,7 @@ public class ExistingAccountEmailConfirmationTests : TestBase, IAsyncLifetime
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
         var pinResult = await userVerificationService.GenerateEmailPin(_existingUserAccount!.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-email-confirmation?{authStateHelper.ToQueryParam()}")

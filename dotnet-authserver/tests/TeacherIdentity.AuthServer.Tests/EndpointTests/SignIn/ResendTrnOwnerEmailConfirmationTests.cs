@@ -2,7 +2,6 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks
 public class ResendTrnOwnerEmailConfirmationTests : TestBase
 {
     public ResendTrnOwnerEmailConfirmationTests(HostFixture hostFixture)

@@ -5,7 +5,6 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Authenticated.UpdateEmail;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class IndexTests : TestBase
 {
     public IndexTests(HostFixture hostFixture)

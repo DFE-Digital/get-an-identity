@@ -2,7 +2,6 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class CompleteTests : TestBase
 {
     public CompleteTests(HostFixture hostFixture)

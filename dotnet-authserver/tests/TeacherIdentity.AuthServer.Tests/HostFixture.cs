@@ -32,25 +32,29 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         DbHelper = dbHelper;
     }
 
+    public TestClock Clock => TestScopedServices.Current.Clock;
+
     public IConfiguration Configuration => Services.GetRequiredService<IConfiguration>();
 
     public DbHelper DbHelper { get; }
 
-    public Mock<IDqtApiClient> DqtApiClient { get; } = new Mock<IDqtApiClient>();
-
-    public Mock<INotificationSender> NotificationSender { get; } = new Mock<INotificationSender>();
-
-    public Mock<IRateLimitStore> RateLimitStore { get; } = new Mock<IRateLimitStore>();
-
-    public IRequestClientIpProvider RequestClientIpProvider => Services.GetRequiredService<IRequestClientIpProvider>();
-
-    public Spy<IUserVerificationService> UserVerificationService => Spy.Get<IUserVerificationService>();
+    public Mock<IDqtApiClient> DqtApiClient => TestScopedServices.Current.DqtApiClient;
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
 
-    public Mock<IZendeskApiWrapper> ZendeskApiWrapper { get; } = new Mock<IZendeskApiWrapper>();
+    public Mock<INotificationSender> NotificationSender => TestScopedServices.Current.NotificationSender;
 
-    public Mock<IUserImportStorageService> UserImportCsvStorageService { get; } = new Mock<IUserImportStorageService>();
+    public Mock<IRateLimitStore> RateLimitStore => TestScopedServices.Current.RateLimitStore;
+
+    public IRequestClientIpProvider RequestClientIpProvider => Services.GetRequiredService<IRequestClientIpProvider>();
+
+    public SpyRegistry SpyRegistry => TestScopedServices.Current.SpyRegistry;
+
+    public Mock<IUserImportStorageService> UserImportCsvStorageService => TestScopedServices.Current.UserImportCsvStorageService;
+
+    public Spy<IUserVerificationService> UserVerificationService => SpyRegistry.Get<IUserVerificationService>();
+
+    public Mock<IZendeskApiWrapper> ZendeskApiWrapper => TestScopedServices.Current.ZendeskApiWrapper;
 
     public async Task Initialize()
     {
@@ -81,18 +85,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public void InitEventObserver() => EventObserver.Init();
 
-    public void ResetMocks()
-    {
-        DqtApiClient.Reset();
-        NotificationSender.Reset();
-        UserVerificationService.Reset();
-        RateLimitStore.Reset();
-        ZendeskApiWrapper.Reset();
-        UserImportCsvStorageService.Reset();
-
-        DqtApiClient.Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FindTeachersResponse() { Results = Array.Empty<FindTeachersResponseResult>() });
-    }
+    public void ResetMocks() => _ = TestScopedServices.Current;
 
     // N.B. Don't call this from InitializeAsync - it won't work
     public void SetUserId(Guid? userId) => Services.GetRequiredService<CurrentUserIdContainer>().CurrentUserId.Value = userId;
@@ -151,15 +144,15 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
             services.AddSingleton<TestData>();
-            services.AddSingleton<IClock, TestClock>();
+            services.AddTransient<IClock>(_ => Clock);
             services.AddSingleton<IEventObserver, CaptureEventObserver>();
-            services.AddSingleton(DqtApiClient.Object);
-            services.AddSingleton(NotificationSender.Object);
-            services.AddSingleton(RateLimitStore.Object);
+            services.AddTransient(_ => DqtApiClient.Object);
+            services.AddTransient(_ => NotificationSender.Object);
+            services.AddTransient(_ => RateLimitStore.Object);
             services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
-            services.Decorate<IUserVerificationService>(inner => Spy.Get<IUserVerificationService>().Wrap(inner));
-            services.AddSingleton(ZendeskApiWrapper.Object);
-            services.AddSingleton(UserImportCsvStorageService.Object);
+            services.Decorate<IUserVerificationService>(inner => SpyRegistry.Get<IUserVerificationService>().Wrap(inner));
+            services.AddTransient(_ => ZendeskApiWrapper.Object);
+            services.AddTransient(_ => UserImportCsvStorageService.Object);
         });
     }
 

@@ -2,7 +2,6 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin.AssignTrn;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks
 public class TrnTests : TestBase
 {
     public TrnTests(HostFixture hostFixture)

@@ -3,11 +3,11 @@ using Castle.DynamicProxy;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
-public static class Spy
+public class SpyRegistry
 {
-    private static readonly Dictionary<Type, object> _allSpies = new();
+    private readonly Dictionary<Type, object> _allSpies = new();
 
-    public static Spy<T> Get<T>()
+    public Spy<T> Get<T>()
         where T : class
     {
         lock (_allSpies)

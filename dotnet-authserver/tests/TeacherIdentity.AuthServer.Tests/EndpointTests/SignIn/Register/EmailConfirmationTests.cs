@@ -5,7 +5,6 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks and changes the clock
 public class EmailConfirmationTests : TestBase
 {
     public EmailConfirmationTests(HostFixture hostFixture)
@@ -197,7 +196,7 @@ public class EmailConfirmationTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateEmailPin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -227,7 +226,7 @@ public class EmailConfirmationTests : TestBase
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
         var pinResult = await userVerificationService.GenerateEmailPin(email);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}")

@@ -5,7 +5,6 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
-[Collection(nameof(DisableParallelization))]  // Relies on mocks and changes the clock
 public class TrnInUseTests : TestBase
 {
     public TrnInUseTests(HostFixture hostFixture)
@@ -272,7 +271,7 @@ public class TrnInUseTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
@@ -306,7 +305,7 @@ public class TrnInUseTests : TestBase
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
         var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
-        Spy.Get<IUserVerificationService>().Reset();
+        SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),

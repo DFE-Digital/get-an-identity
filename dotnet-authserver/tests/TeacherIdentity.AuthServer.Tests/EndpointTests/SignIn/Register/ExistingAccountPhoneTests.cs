@@ -2,7 +2,6 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-[Collection(nameof(DisableParallelization))]  // Depends on mocks
 public class ExistingAccountPhoneTests : TestBase, IAsyncLifetime
 {
     private User? _existingUserAccount;
