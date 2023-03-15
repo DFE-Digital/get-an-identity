@@ -451,7 +451,7 @@ public class NoMatchTests : TestBase
         s.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
     };
 
-    public static TheoryData<Func<Configure, Func<AuthenticationState, Task>>, string> MissingAnswersData
+    public static TheoryData<AuthenticationStateConfiguration, string> MissingAnswersData
     {
         get
         {

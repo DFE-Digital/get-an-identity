@@ -448,7 +448,7 @@ public class CheckAnswersTests : TestBase
         });
     }
 
-    public static TheoryData<Func<Configure, Func<AuthenticationState, Task>>, string> MissingAnswersData
+    public static TheoryData<AuthenticationStateConfiguration, string> MissingAnswersData
     {
         get
         {
