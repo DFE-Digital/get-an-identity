@@ -96,7 +96,7 @@ public partial class TestBase
     }
 
     public async Task JourneyHasExpired_RendersErrorPage(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
+        AuthenticationStateConfiguration configureAuthenticationHelper,
         string? additionalScopes,
         HttpMethod method,
         string url,
@@ -167,7 +167,7 @@ public partial class TestBase
     }
 
     public async Task ValidRequest_RendersContent(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
+        AuthenticationStateConfiguration configureAuthenticationHelper,
         string url,
         string? additionalScopes)
     {
@@ -233,8 +233,30 @@ public partial class TestBase
         Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
     }
 
+    public async Task GivenAuthenticationState_RedirectsTo(
+        AuthenticationStateConfiguration configureAuthenticationHelper,
+        HttpMethod method,
+        string url,
+        string redirectUrl,
+        string? additionalScopes = null)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthenticationHelper, additionalScopes);
+
+        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
+        var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith(redirectUrl, response.Headers.Location?.OriginalString);
+
+    }
+
     public async Task InvalidUserRequirements_ReturnsForbidden(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationHelper,
+        AuthenticationStateConfiguration configureAuthenticationHelper,
         string? additionalScopes,
         HttpMethod method,
         string url,

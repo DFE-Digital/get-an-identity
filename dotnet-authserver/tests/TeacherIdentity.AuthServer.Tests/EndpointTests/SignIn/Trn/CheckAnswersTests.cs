@@ -52,7 +52,7 @@ public class CheckAnswersTests : TestBase
     [Theory]
     [MemberData(nameof(MissingAnswersData))]
     public async Task Get_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        AuthenticationStateConfiguration configureAuthStateHelper,
         string expectedRedirect)
     {
         // Arrange

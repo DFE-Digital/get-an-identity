@@ -63,9 +63,15 @@ public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
 
-        if (MobileNumber is null || authenticationState.ExistingAccountChosen != true)
+        if (authenticationState.ExistingAccountChosen != true)
         {
-            context.Result = new RedirectResult(_linkGenerator.RegisterAccountExists());
+            context.Result = Redirect(_linkGenerator.RegisterAccountExists());
+            return;
+        }
+
+        if (authenticationState.ExistingAccountMobileNumber is null)
+        {
+            context.Result = Redirect(_linkGenerator.RegisterExistingAccountEmailConfirmation());
             return;
         }
 

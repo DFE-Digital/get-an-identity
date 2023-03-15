@@ -63,7 +63,7 @@ public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
     {
         var authenticationState = HttpContext.GetAuthenticationState();
 
-        if (HttpContext.GetAuthenticationState().ExistingAccountChosen != true)
+        if (authenticationState.ExistingAccountChosen != true)
         {
             context.Result = new RedirectResult(_linkGenerator.RegisterAccountExists());
             return;

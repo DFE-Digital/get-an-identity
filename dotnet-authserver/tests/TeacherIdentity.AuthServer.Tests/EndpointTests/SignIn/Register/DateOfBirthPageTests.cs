@@ -30,13 +30,19 @@ public class DateOfBirthPageTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/date-of-birth");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/date-of-birth");
+    }
+
+    [Fact]
+    public async Task Get_NameNotSet_RedirectsToNamePage()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/date-of-birth", "/sign-in/register/name");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/register/date-of-birth", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/date-of-birth", additionalScopes: null);
     }
 
     [Fact]
@@ -60,14 +66,20 @@ public class DateOfBirthPageTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/date-of-birth");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/date-of-birth");
+    }
+
+    [Fact]
+    public async Task Post_NameNotSet_RedirectsToNamePage()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/date-of-birth", "/sign-in/register/name");
     }
 
     [Fact]
     public async Task Post_NullDateOfBirth_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -86,7 +98,7 @@ public class DateOfBirthPageTests : TestBase
         // Arrange
         var dateOfBirth = new DateOnly(2100, 1, 1);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -110,7 +122,7 @@ public class DateOfBirthPageTests : TestBase
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -199,6 +211,6 @@ public class DateOfBirthPageTests : TestBase
         Assert.Equal(user.UserId, authStateHelper.AuthenticationState.ExistingAccountUserId);
     }
 
-    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
-        configure.RegisterNameSet();
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.DateOfBirth);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Name);
 }

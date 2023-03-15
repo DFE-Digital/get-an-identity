@@ -40,16 +40,7 @@ public class PhoneConfirmationTests : TestBase
     [Fact]
     public async Task Get_MobileNumberNotSet_RedirectsToPhonePage()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/phone", response.Headers.Location?.OriginalString);
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/phone-confirmation", "/sign-in/register/phone");
     }
 
     [Fact]
@@ -94,6 +85,12 @@ public class PhoneConfirmationTests : TestBase
     }
 
     [Fact]
+    public async Task Post_MobileNumberNotSet_RedirectsToPhonePage()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/phone-confirmation", "/sign-in/register/phone");
+    }
+
+    [Fact]
     public async Task Post_UnknownPin_ReturnsError()
     {
         // Arrange
@@ -102,7 +99,7 @@ public class PhoneConfirmationTests : TestBase
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -125,7 +122,7 @@ public class PhoneConfirmationTests : TestBase
         var mobileNumber = Faker.Phone.Number();
         var pin = "0";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -148,7 +145,7 @@ public class PhoneConfirmationTests : TestBase
         var mobileNumber = Faker.Phone.Number();
         var pin = "0123345678";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -171,7 +168,7 @@ public class PhoneConfirmationTests : TestBase
         var mobileNumber = Faker.Phone.Number();
         var pin = "abc";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -198,7 +195,7 @@ public class PhoneConfirmationTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -228,7 +225,7 @@ public class PhoneConfirmationTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -255,7 +252,7 @@ public class PhoneConfirmationTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -284,7 +281,7 @@ public class PhoneConfirmationTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(mobileNumber), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -309,7 +306,7 @@ public class PhoneConfirmationTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(user.MobileNumber), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: user.MobileNumber), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -338,7 +335,7 @@ public class PhoneConfirmationTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileNumberSet(user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -353,4 +350,7 @@ public class PhoneConfirmationTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
     }
+
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneConfirmation);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Phone);
 }

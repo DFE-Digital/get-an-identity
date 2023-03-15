@@ -8,6 +8,8 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
+public delegate Func<AuthenticationState, Task> AuthenticationStateConfiguration(AuthenticationStateHelper.Configure config);
+
 public sealed class AuthenticationStateHelper
 {
     private readonly Guid _journeyId;
@@ -25,7 +27,7 @@ public sealed class AuthenticationStateHelper
     }
 
     public static async Task<AuthenticationStateHelper> Create(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthenticationState,
+        AuthenticationStateConfiguration configureAuthenticationState,
         HostFixture hostFixture,
         string? additionalScopes,
         TeacherIdentityApplicationDescriptor? client)

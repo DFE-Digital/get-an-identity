@@ -31,13 +31,13 @@ public class EmailTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/email");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/email");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(c => c.Start(), "/sign-in/register/email", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/email", additionalScopes: null);
     }
 
     [Fact]
@@ -61,14 +61,14 @@ public class EmailTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/email");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/email");
     }
 
     [Fact]
     public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var email = Faker.Internet.Email();
 
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
@@ -93,7 +93,7 @@ public class EmailTests : TestBase
     public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -110,7 +110,7 @@ public class EmailTests : TestBase
     public async Task Post_InvalidEmail_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -132,7 +132,7 @@ public class EmailTests : TestBase
     public async Task Post_ValidEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToRegisterEmailConfirmation(bool emailIsKnown)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var email = Faker.Internet.Email();
 
         if (emailIsKnown)
@@ -166,7 +166,7 @@ public class EmailTests : TestBase
     public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -189,7 +189,7 @@ public class EmailTests : TestBase
         var invalidPrefix = "headteacher";
         var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -222,7 +222,7 @@ public class EmailTests : TestBase
             await dbContext.SaveChangesAsync();
         });
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -257,7 +257,7 @@ public class EmailTests : TestBase
 
         var user = await TestData.CreateUser(email: $"john.doe12@{invalidEmailSuffix}");
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -281,7 +281,7 @@ public class EmailTests : TestBase
             .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new Exception("ValidationError"));
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var email = Faker.Internet.Email();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
@@ -298,4 +298,6 @@ public class EmailTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Email", "Enter a valid email address");
     }
+
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Email);
 }

@@ -32,7 +32,7 @@ public abstract partial class TestBase
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
     public Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
-        Func<AuthenticationStateHelper.Configure, Func<AuthenticationState, Task>> configure,
+        AuthenticationStateConfiguration configure,
         string? additionalScopes,
         TeacherIdentityApplicationDescriptor? client = null) =>
         AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes, client);

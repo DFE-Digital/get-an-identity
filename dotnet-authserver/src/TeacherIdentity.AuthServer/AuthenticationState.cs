@@ -127,6 +127,7 @@ public class AuthenticationState
     public bool PreferredNameSet => HasPreferredName.HasValue;
     public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
     public bool DateOfBirthSet => DateOfBirth.HasValue;
+    public bool ExistingAccountFound => ExistingAccountUserId.HasValue;
     public bool HasNationalInsuranceNumberSet => HasNationalInsuranceNumber.HasValue;
     public bool NationalInsuranceNumberSet => NationalInsuranceNumber is not null;
     public bool AwardedQtsSet => AwardedQts.HasValue;

@@ -31,22 +31,13 @@ public class ResendPhoneConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
-    public async Task Get_PhoneNotKnown_RedirectsToRegisterPhonePage()
+    public async Task Get_PhoneNotSet_RedirectsToRegisterPhonePage()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal($"/sign-in/register/phone?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/resend-phone-confirmation", "/sign-in/register/phone");
     }
 
     [Fact]
@@ -68,7 +59,7 @@ public class ResendPhoneConfirmationTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/register/resend-phone-confirmation", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/resend-phone-confirmation", additionalScopes: null);
     }
 
     [Fact]
@@ -92,30 +83,13 @@ public class ResendPhoneConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
-    public async Task Post_PhoneNotKnown_RedirectsToRegisterPhonePage()
+    public async Task Post_PhoneNotSet_RedirectsToRegisterPhonePage()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
-        var differentEmail = Faker.Internet.Email();
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "MobileNumber", differentEmail }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal($"/sign-in/register/phone?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/resend-phone-confirmation", "/sign-in/register/phone");
     }
 
     [Fact]
@@ -145,7 +119,7 @@ public class ResendPhoneConfirmationTests : TestBase
     public async Task Post_EmptyMobileNumber_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -163,7 +137,7 @@ public class ResendPhoneConfirmationTests : TestBase
     public async Task Post_ValidMobileNumberWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
@@ -186,7 +160,7 @@ public class ResendPhoneConfirmationTests : TestBase
     public async Task Post_ValidRequest_SetsMobileNumberOnAuthenticationStateGeneratesPinAndRedirects()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var mobileNumber = Faker.Phone.Number();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -217,7 +191,7 @@ public class ResendPhoneConfirmationTests : TestBase
             .Setup(mock => mock.SendSms(It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new Exception("ValidationError"));
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var mobileNumber = Faker.Phone.Number();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -235,6 +209,6 @@ public class ResendPhoneConfirmationTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "MobileNumber", "Enter a valid mobile phone number");
     }
 
-    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
-        configure.MobileNumberSet();
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.ResendPhone);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Phone);
 }

@@ -34,29 +34,20 @@ public class EmailConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/email-confirmation");
     }
 
     [Fact]
     public async Task Get_EmailNotSet_RedirectsToEmailPage()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/email", response.Headers.Location?.OriginalString);
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/email-confirmation", "/sign-in/register/email");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/email-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -90,7 +81,13 @@ public class EmailConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_EmailNotSet_RedirectsToEmailPage()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/email-confirmation", "/sign-in/register/email");
     }
 
     [Fact]
@@ -352,4 +349,7 @@ public class EmailConfirmationTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
     }
+
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.EmailConfirmation);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Email);
 }
