@@ -293,6 +293,13 @@ public class Program
                 {
                     model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.Authenticated));
                 });
+
+            options.Conventions.AddFolderApplicationModelConvention(
+                "/Account",
+                model =>
+                {
+                    model.Filters.Add(new AuthorizeFilter(AuthorizationPolicies.Authenticated));
+                });
         });
 
         builder.Services.AddSession(options =>

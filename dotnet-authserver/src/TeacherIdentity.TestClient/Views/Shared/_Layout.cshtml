@@ -1,3 +1,8 @@
+@using Microsoft.AspNetCore.Http.Extensions;
+@inject IConfiguration Configuration
+@{
+    var accountLink = $"{Configuration["SignInAuthority"]}/account?client_id={Uri.EscapeDataString(Configuration["ClientId"]!)}&redirect_uri={Uri.EscapeDataString(Context.Request.GetEncodedUrl())}";
+}
 <!DOCTYPE html>
 <html lang="en" class="govuk-template ">
 
@@ -50,7 +55,12 @@
             <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu" hidden>Menu</button>
 
             <ul id="navigation" class="govuk-header__navigation-list">
-              <li class="govuk-header__navigation-item govuk-header__navigation-item--active">
+                <li class="govuk-header__navigation-item">
+                  <a class="govuk-header__link" href="@accountLink">
+                      Account
+                  </a>
+                </li>
+              <li class="govuk-header__navigation-item">
                 <a class="govuk-header__link" asp-controller="Home" asp-action="SignOut">
                   Sign out
                 </a>
