@@ -1,4 +1,3 @@
-using TeacherIdentity.AuthServer.Pages.SignIn;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Common;
