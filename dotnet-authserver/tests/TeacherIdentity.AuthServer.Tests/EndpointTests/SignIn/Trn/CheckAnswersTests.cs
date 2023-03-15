@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Oidc;
-using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
