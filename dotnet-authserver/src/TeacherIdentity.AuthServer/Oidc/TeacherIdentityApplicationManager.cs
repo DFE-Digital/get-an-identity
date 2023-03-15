@@ -52,18 +52,16 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         {
             var authority = new Uri(uri).GetLeftPart(UriPartial.Authority);
 
+            if (authority.Equals(addressAuthority))
+            {
+                return true;
+            }
+
             if (WildcardPathSegmentPattern().IsMatch(authority))
             {
                 var pattern = $"^{Regex.Escape(authority).Replace("__", ".*")}$";
 
                 if (Regex.IsMatch(addressAuthority, pattern))
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (authority.Equals(addressAuthority))
                 {
                     return true;
                 }
