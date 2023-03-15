@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.Models;
 
@@ -30,23 +31,32 @@ public partial class TestData
             }
             while (_trns.Contains(trn));
 
+            _trns.Add(trn);
             return trn;
         }
     }
 
-    public string GenerateUniqueEmail(string? prefix)
+    public string GenerateUniqueEmail(string? prefix = null, string? suffix = null)
     {
         string email;
+
+        // if both prefix and suffix are defined, email is fully specified
+        Debug.Assert(prefix is null || suffix is null);
 
         do
         {
             email = Faker.Internet.Email();
+
             if (prefix is not null)
             {
                 email = prefix + email.Substring(email.IndexOf("@", StringComparison.Ordinal));
+            } else if (suffix is not null)
+            {
+                email = email.Substring(0, 1 + email.IndexOf("@", StringComparison.Ordinal)) + suffix;
             }
         } while (_emails.Contains(email));
 
+        _emails.Add(email);
         return email;
     }
 

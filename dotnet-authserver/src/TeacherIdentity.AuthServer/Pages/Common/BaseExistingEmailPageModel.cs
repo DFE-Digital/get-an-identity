@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
-namespace TeacherIdentity.AuthServer.Pages.SignIn;
+namespace TeacherIdentity.AuthServer.Pages.Common;
 
 public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
 {

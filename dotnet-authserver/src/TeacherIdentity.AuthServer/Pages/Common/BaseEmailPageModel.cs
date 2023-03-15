@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
-namespace TeacherIdentity.AuthServer.Pages.SignIn;
+namespace TeacherIdentity.AuthServer.Pages.Common;
 
 public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
 {
@@ -41,5 +42,12 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
             default:
                 throw new NotImplementedException($"Unknown {nameof(EmailPinGenerationFailedReason)}: '{emailPinGenerationFailedReasons}'.");
         }
+    }
+
+    public async Task<bool> EmailExists(string email)
+    {
+        // Check if email is already in use
+        var userWithNewEmail = await DbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == email);
+        return userWithNewEmail is not null && userWithNewEmail.UserId != User.GetUserId()!.Value;
     }
 }
