@@ -116,6 +116,7 @@ public class PublishEventsBackgroundServiceTests : IClassFixture<DbFixture>, IAs
             Trn = null,
             TrnAssociationSource = null,
             TrnLookupStatus = null,
+            MobileNumber = Faker.Phone.Number(),
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         }

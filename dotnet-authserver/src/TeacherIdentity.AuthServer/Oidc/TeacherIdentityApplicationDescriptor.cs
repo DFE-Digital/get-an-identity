@@ -8,6 +8,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
     private static readonly string[] _standardScopes = new[]
     {
         Scopes.Email,
+        Scopes.Phone,
         Scopes.Profile
     }.ToArray();
 
@@ -59,6 +60,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
             permissions.Add(OpenIddictConstants.Permissions.Endpoints.Logout);
             permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
             permissions.Add(OpenIddictConstants.Permissions.Scopes.Email);
+            permissions.Add(OpenIddictConstants.Permissions.Scopes.Phone);
             permissions.Add(OpenIddictConstants.Permissions.Scopes.Profile);
 
             foreach (var redirectUri in redirectUris)

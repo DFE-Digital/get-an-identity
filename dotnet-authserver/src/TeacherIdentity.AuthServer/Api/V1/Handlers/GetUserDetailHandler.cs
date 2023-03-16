@@ -54,6 +54,7 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailRequest, GetUse
             LastName = user.LastName,
             DateOfBirth = user.DateOfBirth,
             Trn = user.Trn,
+            MobileNumber = user.MobileNumber,
             MergedUserIds = user.MergedUsers?.Select(mu => mu.UserId)
         };
     }
