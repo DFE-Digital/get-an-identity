@@ -34,9 +34,11 @@ public class ResendExistingAccountEmail : BaseExistingEmailPageModel
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (HttpContext.GetAuthenticationState().ExistingAccountChosen != true)
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (authenticationState.ExistingAccountChosen != true)
         {
-            context.Result = new RedirectResult(LinkGenerator.RegisterAccountExists());
+            context.Result = Redirect(LinkGenerator.RegisterAccountExists());
         }
     }
 }

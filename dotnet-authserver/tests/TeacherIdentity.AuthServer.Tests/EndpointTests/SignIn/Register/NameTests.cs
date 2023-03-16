@@ -28,13 +28,19 @@ public class NameTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/name");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/name");
+    }
+
+    [Fact]
+    public async Task Get_MobileNumberNotVerified_RedirectsToPhoneConfirmation()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/name", "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/register/name", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/name", additionalScopes: null);
     }
 
     [Fact]
@@ -58,14 +64,20 @@ public class NameTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/name");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/name");
+    }
+
+    [Fact]
+    public async Task Post_MobileNumberNotVerified_RedirectsToPhoneConfirmation()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/name", "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
     public async Task Post_EmptyFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
         {
@@ -86,7 +98,7 @@ public class NameTests : TestBase
     public async Task Post_EmptyLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
         {
@@ -107,7 +119,7 @@ public class NameTests : TestBase
     public async Task Post_TooLongFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
         {
@@ -129,7 +141,7 @@ public class NameTests : TestBase
     public async Task Post_TooLongLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
         {
@@ -151,7 +163,7 @@ public class NameTests : TestBase
     public async Task Post_ValidName_SetsNameOnAuthenticationStateAndRedirects()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
 
@@ -175,6 +187,6 @@ public class NameTests : TestBase
         Assert.Equal(lastName, authStateHelper.AuthenticationState.LastName);
     }
 
-    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
-        configure.MobileNumberSet();
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Name);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneConfirmation);
 }

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
@@ -93,5 +94,15 @@ public class DateOfBirthPage : PageModel
         await _dbContext.SaveChangesAsync();
 
         return user;
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (!authenticationState.PreferredNameSet)
+        {
+            context.Result = new RedirectResult(_linkGenerator.RegisterName());
+        }
     }
 }

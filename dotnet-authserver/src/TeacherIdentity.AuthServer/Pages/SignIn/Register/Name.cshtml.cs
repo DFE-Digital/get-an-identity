@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using static TeacherIdentity.AuthServer.AuthenticationState;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationMilestone.EmailVerified)]
 public class Name : PageModel
 {
     private IIdentityLinkGenerator _linkGenerator;
@@ -40,5 +39,15 @@ public class Name : PageModel
         HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!);
 
         return Redirect(_linkGenerator.RegisterDateOfBirth());
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (!authenticationState.MobileNumberVerified)
+        {
+            context.Result = new RedirectResult(_linkGenerator.RegisterPhoneConfirmation());
+        }
     }
 }

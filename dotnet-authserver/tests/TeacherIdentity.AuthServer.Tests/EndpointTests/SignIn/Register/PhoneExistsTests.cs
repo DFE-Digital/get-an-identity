@@ -23,7 +23,13 @@ public class PhoneExistsTests : TestBase
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
         var user = await TestData.CreateUser();
-        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone-exists");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(user), additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone-exists");
+    }
+
+    [Fact]
+    public async Task Get_UserNotSignedIn_RedirectsToPhoneConfirmation()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/phone-exists", "/sign-in/register/phone-confirmation");
     }
 
     [Fact]
@@ -36,6 +42,15 @@ public class PhoneExistsTests : TestBase
     public async Task Get_ValidRequest_RendersContent()
     {
         var user = await TestData.CreateUser();
-        await ValidRequest_RendersContent(c => c.Completed(user), "/sign-in/register/phone-exists", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(user), "/sign-in/register/phone-exists", additionalScopes: null);
     }
+
+    [Fact]
+    public async Task Post_UserNotSignedIn_RedirectsToPhoneConfirmation()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/phone-exists", "/sign-in/register/phone-confirmation");
+    }
+
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneExists);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneConfirmation);
 }

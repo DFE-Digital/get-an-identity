@@ -43,28 +43,19 @@ public class ResendExistingAccountEmailTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email");
     }
 
     [Fact]
     public async Task Get_ExistingAccountChosenNotSet_RedirectsToCheckAccount()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterExistingUserAccountMatch(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/resend-existing-account-email?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/account-exists", response.Headers.Location?.OriginalString);
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Get, "/sign-in/register/resend-existing-account-email", "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/register/resend-existing-account-email", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(_existingUserAccount), "/sign-in/register/resend-existing-account-email", additionalScopes: null);
     }
 
     [Fact]
@@ -88,14 +79,20 @@ public class ResendExistingAccountEmailTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email");
+    }
+
+    [Fact]
+    public async Task Post_ExistingAccountChosenNotSet_RedirectsToCheckAccount()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Post, "/sign-in/register/resend-existing-account-email", "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Post_ValidEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
 
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
@@ -115,7 +112,7 @@ public class ResendExistingAccountEmailTests : TestBase, IAsyncLifetime
     public async Task Post_ValidRequest_GeneratesPinAndRedirects()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-existing-account-email?{authStateHelper.ToQueryParam()}")
         {
@@ -132,6 +129,6 @@ public class ResendExistingAccountEmailTests : TestBase, IAsyncLifetime
         HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(_existingUserAccount!.EmailAddress), Times.Once);
     }
 
-    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
-        configure.RegisterExistingUserAccountChosen(existingUserAccount: _existingUserAccount);
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.ResendExistingAccountEmail);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.AccountExists);
 }

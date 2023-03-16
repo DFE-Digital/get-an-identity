@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -90,5 +91,15 @@ public class AccountExists : BaseExistingEmailPageModel
         await DbContext.SaveChangesAsync();
 
         return user;
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (!authenticationState.ExistingAccountFound)
+        {
+            context.Result = new RedirectResult(LinkGenerator.RegisterDateOfBirth());
+        }
     }
 }

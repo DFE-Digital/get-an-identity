@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
@@ -36,5 +37,15 @@ public class Phone : BasePhonePageModel
         HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
 
         return Redirect(_linkGenerator.RegisterPhoneConfirmation());
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        var authenticationState = context.HttpContext.GetAuthenticationState();
+
+        if (!authenticationState.EmailAddressVerified)
+        {
+            context.Result = new RedirectResult(_linkGenerator.RegisterEmailConfirmation());
+        }
     }
 }

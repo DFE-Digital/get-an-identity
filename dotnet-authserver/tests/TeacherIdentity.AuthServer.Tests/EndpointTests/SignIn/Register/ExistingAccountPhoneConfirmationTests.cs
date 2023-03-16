@@ -48,46 +48,27 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/existing-account-phone-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Get, "/sign-in/register/existing-account-phone-confirmation");
     }
 
     [Fact]
-    public async Task Get_ExistingAccountChosenNotSet_RedirectsToCheckAccount()
+    public async Task Get_NullExistingAccountMobileNumber_RedirectsToExistingAccountConfirmEmail()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterExistingUserAccountMatch(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/account-exists", response.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task Get_ExistingAccountMobileNumberNull_RedirectsToCheckAccount()
-    {
-        // Arrange
         _existingUserAccount!.MobileNumber = null;
+        await GivenAuthenticationState_RedirectsTo(_currentPageAuthenticationState(_existingUserAccount), HttpMethod.Get, "/sign-in/register/existing-account-phone-confirmation", "/sign-in/register/existing-account-email-confirmation");
+    }
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterExistingUserAccountMatch(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Act
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/account-exists", response.Headers.Location?.OriginalString);
+    [Fact]
+    public async Task Get_ExistingAccountNotChosen_RedirectsToAccountExists()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Get, "/sign-in/register/existing-account-phone-confirmation", "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -121,7 +102,20 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/existing-account-phone-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Post, "/sign-in/register/existing-account-phone-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_NullExistingAccountMobileNumber_RedirectsToExistingAccountConfirmEmail()
+    {
+        _existingUserAccount!.MobileNumber = null;
+        await GivenAuthenticationState_RedirectsTo(_currentPageAuthenticationState(_existingUserAccount), HttpMethod.Post, "/sign-in/register/existing-account-phone-confirmation", "/sign-in/register/existing-account-email-confirmation");
+    }
+
+    [Fact]
+    public async Task Post_ExistingAccountNotChosen_RedirectsToAccountExists()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Post, "/sign-in/register/existing-account-phone-confirmation", "/sign-in/register/account-exists");
     }
 
     [Fact]
@@ -130,7 +124,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -152,7 +146,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // Arrange
         var pin = "0";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -174,7 +168,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // Arrange
         var pin = "0123345678";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -196,7 +190,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // Arrange
         var pin = "abc";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -221,7 +215,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -249,7 +243,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -274,7 +268,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -301,7 +295,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -324,7 +318,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: CustomScopes.StaffUserTypeScopes.First());
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -347,7 +341,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -382,6 +376,6 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         Assert.True(authStateHelper.AuthenticationState.MobileNumberVerified);
     }
 
-    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
-        configure.RegisterExistingUserAccountChosen(existingUserAccount: _existingUserAccount);
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.ExistingAccountPhoneConfirmation);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.AccountExists);
 }

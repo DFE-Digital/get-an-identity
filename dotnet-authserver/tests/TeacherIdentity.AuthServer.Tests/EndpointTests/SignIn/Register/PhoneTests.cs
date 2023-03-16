@@ -31,13 +31,19 @@ public class PhoneTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/phone");
+    }
+
+    [Fact]
+    public async Task Get_EmailNotVerified_RedirectsToEmailConfirmation()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/phone", "/sign-in/register/email-confirmation");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(c => c.EmailVerified(), "/sign-in/register/phone", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/phone", additionalScopes: null);
     }
 
     [Fact]
@@ -61,14 +67,20 @@ public class PhoneTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/phone");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/phone");
+    }
+
+    [Fact]
+    public async Task Post_EmailNotVerified_RedirectsToEmailConfirmation()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/phone", "/sign-in/register/email-confirmation");
     }
 
     [Fact]
     public async Task Post_ValidMobileNumberWithBlockedClient_ReturnsTooManyRequestsStatusCode()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var mobileNumber = Faker.Phone.Number();
 
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
@@ -93,7 +105,7 @@ public class PhoneTests : TestBase
     public async Task Post_EmptyMobileNumber_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -110,7 +122,7 @@ public class PhoneTests : TestBase
     public async Task Post_InvalidMobileNumber_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -130,7 +142,7 @@ public class PhoneTests : TestBase
     public async Task Post_ValidMobileNumber_SetsMobileNumberOnAuthenticationStateGeneratesPin()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var mobileNumber = Faker.Phone.Number();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone?{authStateHelper.ToQueryParam()}")
@@ -160,7 +172,7 @@ public class PhoneTests : TestBase
             .Setup(mock => mock.SendSms(It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new Exception("ValidationError"));
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var mobileNumber = Faker.Phone.Number();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone?{authStateHelper.ToQueryParam()}")
@@ -177,4 +189,7 @@ public class PhoneTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "MobileNumber", "Enter a valid mobile phone number");
     }
+
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Phone);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.EmailConfirmation);
 }

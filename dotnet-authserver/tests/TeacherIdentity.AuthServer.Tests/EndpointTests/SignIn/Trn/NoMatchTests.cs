@@ -53,7 +53,7 @@ public class NoMatchTests : TestBase
     [Theory]
     [MemberData(nameof(MissingAnswersData))]
     public async Task Get_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        AuthenticationStateConfiguration configureAuthStateHelper,
         string expectedRedirect)
     {
         // Arrange
@@ -335,7 +335,7 @@ public class NoMatchTests : TestBase
     [Theory]
     [MemberData(nameof(MissingAnswersData))]
     public async Task Post_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        AuthenticationStateConfiguration configureAuthStateHelper,
         string expectedRedirect)
     {
         // Arrange
@@ -451,7 +451,7 @@ public class NoMatchTests : TestBase
         s.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
     };
 
-    public static TheoryData<Func<Configure, Func<AuthenticationState, Task>>, string> MissingAnswersData
+    public static TheoryData<AuthenticationStateConfiguration, string> MissingAnswersData
     {
         get
         {

@@ -24,7 +24,13 @@ public class AccountExistsTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Get, "/sign-in/register/account-exists");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/account-exists");
+    }
+
+    [Fact]
+    public async Task Get_NullExistingAccountFound_RedirectsToDateOfBirth()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/account-exists", "/sign-in/register/date-of-birth");
     }
 
     [Fact]
@@ -60,14 +66,20 @@ public class AccountExistsTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, additionalScopes: null, HttpMethod.Post, "/sign-in/register/account-exists");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/account-exists");
+    }
+
+    [Fact]
+    public async Task Post_NullExistingAccountFound_RedirectsToDateOfBirth()
+    {
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/account-exists", "/sign-in/register/date-of-birth");
     }
 
     [Fact]
     public async Task Post_NullIsUserAccount_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -84,7 +96,7 @@ public class AccountExistsTests : TestBase
     public async Task Post_IsUserAccountTrue_DoesNotCreateNewUser()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
@@ -111,7 +123,7 @@ public class AccountExistsTests : TestBase
     public async Task Post_IsUserAccountFalse_CreatesNewUserAndRedirects()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
@@ -135,6 +147,6 @@ public class AccountExistsTests : TestBase
         });
     }
 
-    private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(AuthenticationStateHelper.Configure configure) =>
-        configure.RegisterExistingUserAccountMatch();
+    private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.AccountExists);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.DateOfBirth);
 }

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Oidc;
-using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
@@ -52,7 +51,7 @@ public class CheckAnswersTests : TestBase
     [Theory]
     [MemberData(nameof(MissingAnswersData))]
     public async Task Get_MissingAnswersAndNotFoundTrn_RedirectsToPageOfFirstMissingAnswer(
-        Func<Configure, Func<AuthenticationState, Task>> configureAuthStateHelper,
+        AuthenticationStateConfiguration configureAuthStateHelper,
         string expectedRedirect)
     {
         // Arrange
@@ -448,7 +447,7 @@ public class CheckAnswersTests : TestBase
         });
     }
 
-    public static TheoryData<Func<Configure, Func<AuthenticationState, Task>>, string> MissingAnswersData
+    public static TheoryData<AuthenticationStateConfiguration, string> MissingAnswersData
     {
         get
         {
