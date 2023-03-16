@@ -55,6 +55,7 @@ public partial class TestData
             {
                 email = email.Substring(0, 1 + email.IndexOf("@", StringComparison.Ordinal)) + suffix;
             }
+
         } while (_emails.Contains(email));
 
         _emails.Add(email);
