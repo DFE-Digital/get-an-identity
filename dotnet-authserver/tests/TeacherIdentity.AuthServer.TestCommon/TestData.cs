@@ -50,7 +50,7 @@ public partial class TestData
             if (prefix is not null)
             {
                 email = prefix + email.Substring(email.IndexOf("@", StringComparison.Ordinal));
-            } 
+            }
             else if (suffix is not null)
             {
                 email = email.Substring(0, 1 + email.IndexOf("@", StringComparison.Ordinal)) + suffix;
