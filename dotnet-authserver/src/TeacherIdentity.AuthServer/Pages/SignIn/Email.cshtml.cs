@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;

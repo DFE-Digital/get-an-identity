@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
-namespace TeacherIdentity.AuthServer.Pages.SignIn;
+namespace TeacherIdentity.AuthServer.Pages.Common;
 
 public abstract class BasePinVerificationPageModel : PageModel
 {

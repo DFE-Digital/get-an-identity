@@ -165,6 +165,63 @@ public class IndexTests : TestBase
         Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("admin")]
+    [InlineData("academy")]
+    public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
+    {
+        // Arrange
+        var returnUrl = "/_tests/empty";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
+    }
+
+    [Fact]
+    public async Task Post_EmailWithInvalidSuffix_ReturnsError()
+    {
+        // Arrange
+        var invalidSuffix = "myschool1231.sch.uk";
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            var establishmentDomain = new EstablishmentDomain
+            {
+                DomainName = invalidSuffix
+            };
+
+            dbContext.EstablishmentDomains.Add(establishmentDomain);
+            await dbContext.SaveChangesAsync();
+        });
+
+        var returnUrl = "/_tests/empty";
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Email", TestData.GenerateUniqueEmail(suffix: invalidSuffix) }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
+    }
+
     public static TheoryData<string, string> InvalidEmailData { get; } = new()
     {
         { "", "Enter your new email address" },
