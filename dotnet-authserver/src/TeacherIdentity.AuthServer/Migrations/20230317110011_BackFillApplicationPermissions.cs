@@ -12,7 +12,7 @@ namespace TeacherIdentity.AuthServer.Migrations
         {
             migrationBuilder.Sql("""
                 UPDATE applications
-                SET permissions = REPLACE(permissions, 'scp:email', 'scp:email, scp:phone');
+                SET permissions = REPLACE(permissions, '"scp:email"', '"scp:email", "scp:phone"');
                 """);
         }
 
@@ -21,7 +21,7 @@ namespace TeacherIdentity.AuthServer.Migrations
         {
             migrationBuilder.Sql("""
                 UPDATE applications
-                SET permissions = REPLACE(REPLACE(permissions, 'scp:phone, ', ''), ', scp:phone', '');
+                SET permissions = REPLACE(REPLACE(permissions, '"scp:phone", ', ''), ', "scp:phone"', '');
                 """);
         }
     }
