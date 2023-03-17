@@ -30,7 +30,7 @@
                     <govuk-summary-list-row-action href="#" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
-            @if (Model.HasTrn)
+            @if (Model.Trn is not null)
             {
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Official name</govuk-summary-list-row-key>
@@ -50,6 +50,13 @@
                     <govuk-summary-list-row-action href="#" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
+            @if (Model.Trn is not null)
+                {
+                    <govuk-summary-list-row>
+                        <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                        <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+                    </govuk-summary-list-row>
+                }
         </govuk-summary-list>
 
         <h3 class="govuk-heading-m">Sign in details</h3>
