@@ -209,7 +209,7 @@ public class EmailTests : TestBase
     public async Task Post_EmailWithInvalidSuffix_ReturnsError()
     {
         // Arrange
-        var invalidEmailSuffix = "myschool1231.sch.uk";
+        var invalidEmailSuffix = "invalid.sch.uk";
 
         await TestData.WithDbContext(async dbContext =>
         {
