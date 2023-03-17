@@ -116,6 +116,53 @@ public class IndexTests : TestBase
     }
 
     [Fact]
+    public async Task Get_ValidRequestForUserWithoutTrn_DoesNotShowTRNRow()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: false);
+        HostFixture.SetUserId(user.UserId);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.Null(doc.GetSummaryListRowForKey("TRN"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithTrn_DoesShowTRNRow()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+        HostFixture.SetUserId(user.UserId);
+
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = user.DateOfBirth!.Value,
+                FirstName = Faker.Name.First(),
+                LastName = Faker.Name.Last(),
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!
+            });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.Equal(user.Trn, doc.GetSummaryListValueForKey("TRN"));
+    }
+
+    [Fact]
     public async Task Get_ValidRequestWithClientIdAndRedirectUri_RendersBackLinks()
     {
         // Arrange

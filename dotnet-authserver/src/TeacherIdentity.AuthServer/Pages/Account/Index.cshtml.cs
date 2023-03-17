@@ -38,7 +38,7 @@ public class IndexModel : PageModel
     public DateOnly? DateOfBirth { get; set; }
     public string? Email { get; set; }
     public string? MobileNumber { get; set; }
-    public bool HasTrn { get; set; }
+    public string? Trn { get; set; }
 
     public async Task OnGet()
     {
@@ -61,12 +61,12 @@ public class IndexModel : PageModel
         DateOfBirth = user.DateOfBirth;
         Email = user.EmailAddress;
         MobileNumber = user.MobileNumber;
-        HasTrn = user.Trn is not null;
+        Trn = user.Trn;
 
-        if (HasTrn)
+        if (Trn is not null)
         {
-            var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!) ??
-                throw new Exception($"User with TRN '{user.Trn}' cannot be found in DQT.");
+            var dqtUser = await _dqtApiClient.GetTeacherByTrn(Trn) ??
+                throw new Exception($"User with TRN '{Trn}' cannot be found in DQT.");
 
             OfficialName = $"{dqtUser.FirstName} {dqtUser.LastName}";
         }
