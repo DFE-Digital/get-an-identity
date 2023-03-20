@@ -398,6 +398,7 @@ public class Program
                 options.RegisterScopes(
                     CustomScopes.All
                         .Append(Scopes.Email)
+                        .Append(Scopes.Phone)
                         .Append(Scopes.Profile)
                         .ToArray());
             });

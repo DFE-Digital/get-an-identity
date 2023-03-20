@@ -19,6 +19,7 @@ public record GetUserDetailResponse : UserInfo
             FirstName = "Kevin",
             LastName = "E",
             Trn = "2921020",
+            MobileNumber = "07890123456",
             Created = new DateTime(2022, 11, 2, 16, 19, 0),
             RegisteredWithClientId = "register-for-npq",
             RegisteredWithClientDisplayName = "Register for a National Professional Qualification"

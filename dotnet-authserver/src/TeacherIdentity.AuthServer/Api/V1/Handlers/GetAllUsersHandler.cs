@@ -46,7 +46,8 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersRequest, GetAllUser
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 DateOfBirth = u.DateOfBirth,
-                Trn = u.Trn
+                Trn = u.Trn,
+                MobileNumber = u.MobileNumber
             })
             .ToArrayAsync();
 

@@ -15,12 +15,14 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task GetPublicClaims_FromUser_ReturnsExpectedClaims(bool haveTrnScope)
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task GetPublicClaims_FromUser_ReturnsExpectedClaims(bool haveTrnScope, bool hasMobileNumber)
     {
         // Arrange
-        var user = await _dbFixture.TestData.CreateUser(hasTrn: haveTrnScope);
+        var user = await _dbFixture.TestData.CreateUser(hasTrn: haveTrnScope, hasMobileNumber: hasMobileNumber);
 
         using var dbContext = _dbFixture.GetDbContext();
         var userClaimHelper = new UserClaimHelper(dbContext);
@@ -48,6 +50,12 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         {
             expectedClaims.Add(new Claim(CustomClaims.Trn, user.Trn!));
             expectedClaims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
+        }
+
+        if (hasMobileNumber)
+        {
+            expectedClaims.Add(new Claim(Claims.PhoneNumber, user.MobileNumber!));
+            expectedClaims.Add(new Claim(Claims.PhoneNumberVerified, bool.TrueString));
         }
 
         Assert.Equal(expectedClaims.OrderBy(c => c.Type), result.OrderBy(c => c.Type), new ClaimTypeAndValueEqualityComparer());

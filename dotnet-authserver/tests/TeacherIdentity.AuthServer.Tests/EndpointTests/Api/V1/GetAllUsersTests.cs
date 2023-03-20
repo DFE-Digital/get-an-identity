@@ -59,6 +59,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
             Assert.Equal(modelUser.FirstName, responseUser.GetProperty("firstName").GetString());
             Assert.Equal(modelUser.LastName, responseUser.GetProperty("lastName").GetString());
             Assert.Equal(modelUser.Trn, responseUser.GetProperty("trn").GetString());
+            Assert.Equal(modelUser.MobileNumber, responseUser.GetProperty("mobileNumber").GetString());
         }
 
         Assert.Equal(allUsers.Length, responseObj.RootElement.GetProperty("total").GetInt32());

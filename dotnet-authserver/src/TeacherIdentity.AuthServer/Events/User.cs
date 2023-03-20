@@ -11,6 +11,7 @@ public record User
     public required DateOnly? DateOfBirth { get; init; }
     public required UserType UserType { get; init; }
     public required string? Trn { get; init; }
+    public required string? MobileNumber { get; init; }
     public required TrnAssociationSource? TrnAssociationSource { get; init; }
     public required string[] StaffRoles { get; init; } = Array.Empty<string>();
     public required TrnLookupStatus? TrnLookupStatus { get; init; }
@@ -23,6 +24,7 @@ public record User
         LastName = user.LastName,
         StaffRoles = user.StaffRoles,
         Trn = user.Trn,
+        MobileNumber = user.MobileNumber,
         TrnAssociationSource = user.TrnAssociationSource,
         TrnLookupStatus = user.TrnLookupStatus,
         UserId = user.UserId,

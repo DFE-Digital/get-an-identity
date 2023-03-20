@@ -369,6 +369,15 @@ public class AuthorizationController : Controller
 
                 yield break;
 
+            case Claims.PhoneNumber:
+            case Claims.PhoneNumberVerified:
+                if (principal.HasScope(Scopes.Phone))
+                {
+                    yield return Destinations.IdentityToken;
+                }
+
+                yield break;
+
             case CustomClaims.Trn:
             case CustomClaims.TrnLookupStatus:
 #pragma warning disable CS0618 // Type or member is obsolete

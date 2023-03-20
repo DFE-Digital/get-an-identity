@@ -14,7 +14,8 @@ public partial class TestData
             Guid? mergedWithUserId = null,
             TrnLookupStatus? trnLookupStatus = null,
             string? firstName = null,
-            string[]? staffRoles = null) =>
+            string[]? staffRoles = null,
+            bool? hasMobileNumber = true) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn == true && userType != UserType.Default)
@@ -46,7 +47,8 @@ public partial class TestData
                 throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
             }
 
-            var normalisedMobileNumber = Regex.Replace(Faker.Phone.Number(), @"^[^\d\+]|(?<=.)[^\d]", "");
+            var normalisedMobileNumber =
+                hasMobileNumber == true ? Regex.Replace(Faker.Phone.Number(), @"^[^\d\+]|(?<=.)[^\d]", "") : null;
 
             var user = new User()
             {

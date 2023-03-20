@@ -70,6 +70,12 @@ public class UserClaimHelper
             claims.Add(new Claim(Claims.Birthdate, dateOfBirth.ToString(CustomClaims.DateFormat)));
         }
 
+        if (user.MobileNumber is not null)
+        {
+            claims.Add(new Claim(Claims.PhoneNumber, user.MobileNumber));
+            claims.Add(new Claim(Claims.PhoneNumberVerified, bool.TrueString));
+        }
+
 #pragma warning disable CS0618 // Type or member is obsolete
         if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
