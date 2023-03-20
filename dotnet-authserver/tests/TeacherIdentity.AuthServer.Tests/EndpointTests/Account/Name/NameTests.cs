@@ -91,15 +91,12 @@ public class NameTests : TestBase
     public async Task Post_ValidName_RedirectsToConfirmPage()
     {
         // Arrange
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "FirstName", firstName },
-                { "LastName", lastName },
+                { "FirstName", Faker.Name.First() },
+                { "LastName", Faker.Name.Last() },
             }
         };
 
@@ -120,15 +117,12 @@ public class NameTests : TestBase
 
         var returnPath = UrlEncoder.Default.Encode($"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
 
-        var firstName = Faker.Name.First();
-        var lastName = Faker.Name.Last();
-
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name?returnPath={returnPath}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "FirstName", firstName },
-                { "LastName", lastName },
+                { "FirstName", Faker.Name.First() },
+                { "LastName", Faker.Name.Last() },
             }
         };
 
@@ -137,7 +131,6 @@ public class NameTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        var thing = response.Headers.Location?.OriginalString;
         Assert.Contains($"returnPath={returnPath}", response.Headers.Location?.OriginalString);
     }
 }
