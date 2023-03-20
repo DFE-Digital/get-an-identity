@@ -1,0 +1,20 @@
+@page "/account/name/confirm"
+@model TeacherIdentity.AuthServer.Pages.Account.Name.Confirm
+@{
+    ViewBag.Title = "Confirm change";
+
+}
+
+@section BeforeContent
+{
+    <govuk-back-link href="@LinkGenerator.AccountName(Model.ReturnPath)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.AccountNameConfirm(Model.FirstName!, Model.LastName!, Model.ReturnPath)" method="post" asp-antiforgery="true">
+            <govuk-button type="submit">Submit change</govuk-button>
+        </form>
+    </div>
+</div>
+

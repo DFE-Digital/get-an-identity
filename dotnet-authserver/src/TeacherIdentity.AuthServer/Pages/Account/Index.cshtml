@@ -1,7 +1,10 @@
 @page "/account"
+@using Microsoft.ApplicationInsights.AspNetCore.Extensions
 @model TeacherIdentity.AuthServer.Pages.Account.IndexModel
 @{
     ViewBag.Title = "DfE Identity account";
+
+    var returnPath = Request.GetUri().PathAndQuery;
 }
 
 @section BeforeContent
@@ -27,7 +30,7 @@
                 <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="#" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountName(returnPath)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             @if (Model.Trn is not null)
