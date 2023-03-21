@@ -15,7 +15,7 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
     {
     }
 
-    public async Task<PinGenerationResultAction> GenerateEmailPinForNewEmail(string email)
+    public async Task<PinGenerationResultAction> GenerateEmailPinForNewEmail(string email, string fieldName = "Email")
     {
         var emailPinGenerationFailedReasons = await GenerateEmailPin(email, true);
 
@@ -32,11 +32,11 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
                 });
 
             case EmailPinGenerationFailedReason.NonPersonalAddress:
-                ModelState.AddModelError(nameof(email), "Enter a personal email address not one from a work or education setting.");
+                ModelState.AddModelError(fieldName, "Enter a personal email address not one from a work or education setting.");
                 return PinGenerationResultAction.Failed(this.PageWithErrors());
 
             case EmailPinGenerationFailedReason.InvalidAddress:
-                ModelState.AddModelError(nameof(email), "Enter a valid email address");
+                ModelState.AddModelError(fieldName, "Enter a valid email address");
                 return PinGenerationResultAction.Failed(this.PageWithErrors());
 
             default:

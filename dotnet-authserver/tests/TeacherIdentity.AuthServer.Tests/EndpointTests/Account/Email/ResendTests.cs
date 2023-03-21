@@ -1,34 +1,33 @@
 using System.Text.Encodings.Web;
-using Flurl;
-using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Authenticated.UpdateEmail;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.Email;
 
-public class IndexTests : TestBase
+public class ResendTests : TestBase
 {
-    public IndexTests(HostFixture hostFixture)
+    private readonly ProtectedString _email;
+
+    public ResendTests(HostFixture hostFixture)
         : base(hostFixture)
     {
+        _email = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(Faker.Internet.Email());
     }
 
     [Fact]
-    public async Task Get_RendersPageSuccessfully()
+    public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default);
-        HostFixture.SetUserId(user.UserId);
-
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+        };
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        await AssertEx.HtmlResponseHasError(response, "NewEmail", "Enter your new email address");
     }
 
     [Theory]
@@ -39,13 +38,11 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", newEmail }
+                { "NewEmail", newEmail }
             }
         };
 
@@ -53,7 +50,7 @@ public class IndexTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", expectedErrorMessage);
+        await AssertEx.HtmlResponseHasError(response, "NewEmail", expectedErrorMessage);
     }
 
     [Fact]
@@ -66,13 +63,11 @@ public class IndexTests : TestBase
         var anotherUser = await TestData.CreateUser();
         var newEmail = anotherUser.EmailAddress;
 
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", newEmail }
+                { "NewEmail", newEmail }
             }
         };
 
@@ -80,7 +75,7 @@ public class IndexTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "This email address is already in use - Enter a different email address");
+        await AssertEx.HtmlResponseHasError(response, "NewEmail", "This email address is already in use - Enter a different email address");
     }
 
     [Fact]
@@ -90,13 +85,11 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", user.EmailAddress }
+                { "NewEmail", user.EmailAddress }
             }
         };
 
@@ -116,13 +109,11 @@ public class IndexTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", newEmail }
+                { "NewEmail", newEmail }
             }
         };
 
@@ -131,9 +122,34 @@ public class IndexTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal("/update-email/confirmation", new Url(response.Headers.Location?.OriginalString).Path);
+        Assert.StartsWith("/account/email/confirm", response.Headers.Location?.OriginalString);
 
         HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(newEmail), Times.Once);
+    }
+
+    [Fact]
+    public async Task Post_ValidRequest_RedirectsWithCorrectReturnUrl()
+    {
+        // Arrange
+        var client = TestClients.Client1;
+        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
+
+        var returnUrl = UrlEncoder.Default.Encode($"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}&returnUrl={returnUrl}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "NewEmail", Faker.Internet.Email() },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Contains($"returnUrl={returnUrl}", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -149,13 +165,11 @@ public class IndexTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", newEmail }
+                { "NewEmail", newEmail }
             }
         };
 
@@ -172,13 +186,11 @@ public class IndexTests : TestBase
     public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
     {
         // Arrange
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
+                { "NewEmail", TestData.GenerateUniqueEmail(emailPrefix) }
             }
         };
 
@@ -186,7 +198,7 @@ public class IndexTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
+        await AssertEx.HtmlResponseHasError(response, "NewEmail", "Enter a personal email address not one from a work or education setting.");
     }
 
     [Fact]
@@ -197,25 +209,20 @@ public class IndexTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            if (await dbContext.EstablishmentDomains.FirstOrDefaultAsync(e => e.DomainName == invalidSuffix) == null)
+            var establishmentDomain = new EstablishmentDomain
             {
-                var establishmentDomain = new EstablishmentDomain
-                {
-                    DomainName = invalidSuffix
-                };
+                DomainName = invalidSuffix
+            };
 
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
+            dbContext.EstablishmentDomains.Add(establishmentDomain);
+            await dbContext.SaveChangesAsync();
         });
 
-        var returnUrl = "/_tests/empty";
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/update-email?returnUrl={UrlEncoder.Default.Encode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", TestData.GenerateUniqueEmail(suffix: invalidSuffix) }
+                { "NewEmail", TestData.GenerateUniqueEmail(suffix: invalidSuffix) }
             }
         };
 
@@ -223,7 +230,7 @@ public class IndexTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
+        await AssertEx.HtmlResponseHasError(response, "NewEmail", "Enter a personal email address not one from a work or education setting.");
     }
 
     public static TheoryData<string, string> InvalidEmailData { get; } = new()
