@@ -149,6 +149,16 @@ public static class IdentityLinkGeneratorExtensions
             .SetQueryParam("returnUrl", returnUrl)
             .SetQueryParam("cancelUrl", cancelUrl);
 
+    public static string AccountName(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Index", authenticationJourneyRequired: false)
+            .SetQueryParam("returnUrl", returnUrl);
+
+    public static string AccountNameConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString firstName, ProtectedString lastName, string? returnUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("firstName", firstName.EncryptedValue)
+            .SetQueryParam("lastName", lastName.EncryptedValue)
+            .SetQueryParam("returnUrl", returnUrl);
+
     public static string Cookies(this IIdentityLinkGenerator linkGenerator) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
 
