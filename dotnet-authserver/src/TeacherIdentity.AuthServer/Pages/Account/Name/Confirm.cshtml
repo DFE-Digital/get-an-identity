@@ -13,6 +13,17 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.AccountNameConfirm(Model.FirstName!, Model.LastName!, Model.ReturnPath)" method="post" asp-antiforgery="true">
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.FirstName!.PlainValue @Model.LastName!.PlainValue</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountName(Model.ReturnPath)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+
             <govuk-button type="submit">Submit change</govuk-button>
         </form>
     </div>
