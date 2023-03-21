@@ -102,7 +102,7 @@ public class ConfirmTests : TestBase
         var client = TestClients.Client1;
         var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
 
-        var returnPath = $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}";
+        var returnUrl = $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}";
 
         var newFirstName = Faker.Name.First();
         var newLastName = Faker.Name.Last();
@@ -110,7 +110,7 @@ public class ConfirmTests : TestBase
         var protectedFirstName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newFirstName);
         var protectedLastName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newLastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}&lastName={UrlEncode(protectedLastName.EncryptedValue)}&returnPath={UrlEncode(returnPath)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}&lastName={UrlEncode(protectedLastName.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -120,7 +120,7 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(returnPath, response.Headers.Location?.OriginalString);
+        Assert.Equal(returnUrl, response.Headers.Location?.OriginalString);
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(newFirstName, user.FirstName);

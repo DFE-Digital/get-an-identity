@@ -109,15 +109,15 @@ public class NameTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidName_RedirectsToConfirmPageWithCorrectReturnPath()
+    public async Task Post_ValidName_RedirectsToConfirmPageWithCorrectReturnUrl()
     {
         // Arrange
         var client = TestClients.Client1;
         var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
 
-        var returnPath = UrlEncoder.Default.Encode($"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+        var returnUrl = UrlEncoder.Default.Encode($"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name?returnPath={returnPath}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name?returnUrl={returnUrl}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -131,6 +131,6 @@ public class NameTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Contains($"returnPath={returnPath}", response.Headers.Location?.OriginalString);
+        Assert.Contains($"returnUrl={returnUrl}", response.Headers.Location?.OriginalString);
     }
 }

@@ -27,9 +27,9 @@ public class Confirm : PageModel
     [FromQuery(Name = "lastName")]
     public ProtectedString? LastName { get; set; }
 
-    [FromQuery(Name = "returnPath")]
-    public string? ReturnPath { get; set; }
-    public string? SafeReturnPath { get; set; }
+    [FromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+    public string? SafeReturnUrl { get; set; }
 
 
     public void OnGet()
@@ -39,7 +39,7 @@ public class Confirm : PageModel
     public async Task<IActionResult> OnPost()
     {
         await UpdateUser(User.GetUserId()!.Value);
-        return Redirect(SafeReturnPath!);
+        return Redirect(SafeReturnUrl!);
     }
 
     private async Task UpdateUser(Guid userId)
@@ -93,6 +93,6 @@ public class Confirm : PageModel
             return;
         }
 
-        SafeReturnPath = !string.IsNullOrEmpty(ReturnPath) && Url.IsLocalUrl(ReturnPath) ? ReturnPath : "/account";
+        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
     }
 }

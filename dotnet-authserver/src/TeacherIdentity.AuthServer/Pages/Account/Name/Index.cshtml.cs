@@ -27,9 +27,9 @@ public class Name : PageModel
     [StringLength(200, ErrorMessage = "Last name must be 200 characters or less")]
     public string? LastName { get; set; }
 
-    [FromQuery(Name = "returnPath")]
-    public string? ReturnPath { get; set; }
-    public string? SafeReturnPath { get; set; }
+    [FromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+    public string? SafeReturnUrl { get; set; }
 
     public void OnGet()
     {
@@ -45,11 +45,11 @@ public class Name : PageModel
         var protectedFirstName = _protectedStringFactory.CreateFromPlainValue(FirstName!);
         var protectedLastName = _protectedStringFactory.CreateFromPlainValue(LastName!);
 
-        return Redirect(_linkGenerator.AccountNameConfirm(protectedFirstName, protectedLastName, ReturnPath));
+        return Redirect(_linkGenerator.AccountNameConfirm(protectedFirstName, protectedLastName, ReturnUrl));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        SafeReturnPath = !string.IsNullOrEmpty(ReturnPath) && Url.IsLocalUrl(ReturnPath) ? ReturnPath : "/account";
+        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
     }
 }
