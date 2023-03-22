@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -11,8 +12,9 @@ public class ResendPhoneConfirmationModel : BasePhonePageModel
 
     public ResendPhoneConfirmationModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator) :
-        base(userVerificationService)
+        IIdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext) :
+        base(userVerificationService, dbContext)
     {
         _linkGenerator = linkGenerator;
     }

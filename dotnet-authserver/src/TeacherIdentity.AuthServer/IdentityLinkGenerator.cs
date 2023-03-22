@@ -173,6 +173,20 @@ public static class IdentityLinkGeneratorExtensions
             .SetQueryParam("email", email.EncryptedValue)
             .SetQueryParam("returnUrl", returnUrl);
 
+    public static string AccountPhone(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Index", authenticationJourneyRequired: false)
+            .SetQueryParam("returnUrl", returnUrl);
+
+    public static string AccountPhoneResend(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, string? returnUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Resend", authenticationJourneyRequired: false)
+            .SetQueryParam("mobileNumber", mobileNumber.EncryptedValue)
+            .SetQueryParam("returnUrl", returnUrl);
+
+    public static string AccountPhoneConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, string? returnUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("mobileNumber", mobileNumber.EncryptedValue)
+            .SetQueryParam("returnUrl", returnUrl);
+
     public static string Cookies(this IIdentityLinkGenerator linkGenerator) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
 
