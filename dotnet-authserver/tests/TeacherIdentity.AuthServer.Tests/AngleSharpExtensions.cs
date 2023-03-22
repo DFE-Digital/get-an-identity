@@ -45,6 +45,24 @@ public static class AngleSharpExtensions
         return row?.QuerySelectorAll(".govuk-summary-list__actions>*").ToArray() ?? Array.Empty<IElement>();
     }
 
+    public static int GetSummaryListRowCountForKey(this IHtmlDocument doc, string key)
+    {
+        var count = 0;
+        var allRows = doc.QuerySelectorAll(".govuk-summary-list__row");
+
+        foreach (var row in allRows)
+        {
+            var rowKey = row.QuerySelector(".govuk-summary-list__key");
+
+            if (rowKey?.TextContent.Trim() == key)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     public static IElement? GetSummaryListRowForKey(this IHtmlDocument doc, string key)
     {
         var allRows = doc.QuerySelectorAll(".govuk-summary-list__row");

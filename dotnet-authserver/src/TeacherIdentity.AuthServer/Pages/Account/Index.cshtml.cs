@@ -39,6 +39,7 @@ public class IndexModel : PageModel
     public string? Email { get; set; }
     public string? MobileNumber { get; set; }
     public string? Trn { get; set; }
+    public DateOnly? DqtDateOfBirth { get; set; }
 
     public async Task OnGet()
     {
@@ -69,6 +70,7 @@ public class IndexModel : PageModel
                 throw new Exception($"User with TRN '{Trn}' cannot be found in DQT.");
 
             OfficialName = $"{dqtUser.FirstName} {dqtUser.LastName}";
+            DqtDateOfBirth = dqtUser.DateOfBirth;
         }
     }
 
