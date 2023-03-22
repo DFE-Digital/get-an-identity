@@ -1,4 +1,5 @@
 using System.Text.Encodings.Web;
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -53,15 +54,17 @@ public class ResendTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "NewEmail", expectedErrorMessage);
     }
 
-    [Fact]
-    public async Task Post_EmailInUse_RendersError()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_EmailInUse_RendersError(bool isOwnNumber)
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
         var anotherUser = await TestData.CreateUser();
-        var newEmail = anotherUser.EmailAddress;
+        var newEmail = isOwnNumber ? user.EmailAddress : anotherUser.EmailAddress;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
         {
@@ -75,29 +78,11 @@ public class ResendTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "NewEmail", "This email address is already in use - Enter a different email address");
-    }
+        var expectedMessage = isOwnNumber
+            ? "Enter a different email address. The one you’ve entered is the same as the one already on your account"
+            : "This email address is already in use - Enter a different email address";
 
-    [Fact]
-    public async Task Post_EmailMatchesCurrentEmail_DoesNotProduceError()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default);
-        HostFixture.SetUserId(user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "NewEmail", user.EmailAddress }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.True((int)response.StatusCode < 400);
+        await AssertEx.HtmlResponseHasError(response, "NewEmail", expectedMessage);
     }
 
     [Fact]
@@ -209,13 +194,16 @@ public class ResendTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            var establishmentDomain = new EstablishmentDomain
+            if (await dbContext.EstablishmentDomains.FirstOrDefaultAsync(e => e.DomainName == invalidSuffix) == null)
             {
-                DomainName = invalidSuffix
-            };
+                var establishmentDomain = new EstablishmentDomain
+                {
+                    DomainName = invalidSuffix
+                };
 
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
+                dbContext.EstablishmentDomains.Add(establishmentDomain);
+                await dbContext.SaveChangesAsync();
+            }
         });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")

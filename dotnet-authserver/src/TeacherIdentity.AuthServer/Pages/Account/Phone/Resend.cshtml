@@ -1,16 +1,16 @@
-@page "/sign-in/register/resend-phone-confirmation"
-@model TeacherIdentity.AuthServer.Pages.SignIn.Register.ResendPhoneConfirmationModel
+@page "/account/phone/resend"
+@model TeacherIdentity.AuthServer.Pages.Account.Phone.Resend
 @{
     ViewBag.Title = "Request a new security code";
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@LinkGenerator.RegisterPhoneConfirmation()" />
+    <govuk-back-link href="@LinkGenerator.AccountPhoneConfirm(Model.MobileNumber!, Model.ReturnUrl)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.RegisterResendPhoneConfirmation()" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountPhoneResend(Model.MobileNumber!, Model.ReturnUrl)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">Send new text message</h1>
 
             <p>Text messages sometimes take a few minutes to arrive. If you do not receive the text message, you can request a new one.</p>
@@ -18,11 +18,11 @@
             <govuk-details open="@(!ModelState.IsValid)">
                 <govuk-details-summary>Change where the text message is sent</govuk-details-summary>
                 <govuk-details-text>
-                    <govuk-input asp-for="MobileNumber" type="tel" autocomplete="tel" />
+                    <govuk-input asp-for="NewMobileNumber" type="tel" autocomplete="tel" />
                 </govuk-details-text>
             </govuk-details>
 
-            <govuk-button type="submit">Request a new code</govuk-button>
+            <govuk-button type="submit">Request security code</govuk-button>
         </form>
     </div>
 </div>

@@ -51,15 +51,17 @@ public class EmailTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "Email", expectedErrorMessage);
     }
 
-    [Fact]
-    public async Task Post_EmailInUse_RendersError()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_EmailInUse_RendersError(bool isOwnNumber)
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
         var anotherUser = await TestData.CreateUser();
-        var newEmail = anotherUser.EmailAddress;
+        var newEmail = isOwnNumber ? user.EmailAddress : anotherUser.EmailAddress;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email")
         {
@@ -73,30 +75,13 @@ public class EmailTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "This email address is already in use - Enter a different email address");
+        var expectedMessage = isOwnNumber
+            ? "Enter a different email address. The one you’ve entered is the same as the one already on your account"
+            : "This email address is already in use - Enter a different email address";
+
+        await AssertEx.HtmlResponseHasError(response, "Email", expectedMessage);
     }
 
-    [Fact]
-    public async Task Post_EmailMatchesCurrentEmail_DoesNotProduceError()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default);
-        HostFixture.SetUserId(user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "Email", user.EmailAddress }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.True((int)response.StatusCode < 400);
-    }
 
     [Fact]
     public async Task Post_ValidRequest_GeneratesPinAndRedirects()

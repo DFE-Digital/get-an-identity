@@ -5,27 +5,29 @@ using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
-namespace TeacherIdentity.AuthServer.Pages.Account.Email;
+namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 
 [BindProperties]
-public class EmailPage : BaseEmailPageModel
+public class PhonePage : BasePhonePageModel
 {
     private readonly ProtectedStringFactory _protectedStringFactory;
+    private IIdentityLinkGenerator _linkGenerator;
 
-    public EmailPage(
+    public PhonePage(
         IUserVerificationService userVerificationService,
         IIdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         ProtectedStringFactory protectedStringFactory) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _linkGenerator = linkGenerator;
         _protectedStringFactory = protectedStringFactory;
     }
 
-    [Display(Name = "Email address", Description = "We’ll use this to send you a code to confirm your email address. Do not use a work or university email that you might lose access to.")]
-    [Required(ErrorMessage = "Enter your new email address")]
-    [EmailAddress(ErrorMessage = "Enter a valid email address")]
-    public string? Email { get; set; }
+    [Display(Name = "Mobile number", Description = "For international numbers include the country code")]
+    [Required(ErrorMessage = "Enter your new mobile phone number")]
+    [Phone(ErrorMessage = "Enter a valid mobile phone number")]
+    public new string? MobileNumber { get; set; }
 
     [FromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
@@ -42,27 +44,27 @@ public class EmailPage : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        var existingUser = await FindUserByEmailAddress(Email!);
+        var existingUser = await FindUserByMobileNumber(MobileNumber!);
 
         if (existingUser is not null)
         {
             var errorMessage = existingUser.UserId == User.GetUserId()!.Value
-                ? "Enter a different email address. The one you’ve entered is the same as the one already on your account"
-                : "This email address is already in use - Enter a different email address";
-            ModelState.AddModelError(nameof(Email), errorMessage);
+                ? "Enter a different mobile phone number. The one you’ve entered is the same as the one already on your account"
+                : "This mobile phone number is already in use - Enter a different mobile phone number";
+            ModelState.AddModelError(nameof(MobileNumber), errorMessage);
             return this.PageWithErrors();
         }
 
-        var emailPinGenerationResult = await GenerateEmailPinForNewEmail(Email!);
+        var smsPinGenerationResult = await GenerateSmsPinForNewPhone(MobileNumber!);
 
-        if (!emailPinGenerationResult.Success)
+        if (!smsPinGenerationResult.Success)
         {
-            return emailPinGenerationResult.Result!;
+            return smsPinGenerationResult.Result!;
         }
 
-        var protectedEmail = _protectedStringFactory.CreateFromPlainValue(Email!);
+        var protectedMobileNumber = _protectedStringFactory.CreateFromPlainValue(MobileNumber!);
 
-        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ReturnUrl));
+        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ReturnUrl));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

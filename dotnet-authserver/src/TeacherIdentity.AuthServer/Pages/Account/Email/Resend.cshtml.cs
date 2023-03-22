@@ -45,9 +45,14 @@ public class Resend : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        if (await EmailExists(NewEmail!))
+        var existingUser = await FindUserByEmailAddress(NewEmail!);
+
+        if (existingUser is not null)
         {
-            ModelState.AddModelError(nameof(NewEmail), "This email address is already in use - Enter a different email address");
+            var errorMessage = existingUser.UserId == User.GetUserId()!.Value
+                ? "Enter a different email address. The one you’ve entered is the same as the one already on your account"
+                : "This email address is already in use - Enter a different email address";
+            ModelState.AddModelError(nameof(NewEmail), errorMessage);
             return this.PageWithErrors();
         }
 

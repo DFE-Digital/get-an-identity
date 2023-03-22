@@ -44,10 +44,9 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
         }
     }
 
-    public async Task<bool> EmailExists(string email)
+    public async Task<User?> FindUserByEmailAddress(string email)
     {
-        // Check if email is already in use
-        var userWithNewEmail = await DbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == email);
-        return userWithNewEmail is not null && userWithNewEmail.UserId != User.GetUserId()!.Value;
+        return await DbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == email);
+        // return userWithNewEmail is not null && userWithNewEmail.UserId != User.GetUserId()!.Value;
     }
 }
