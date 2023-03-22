@@ -47,9 +47,14 @@ public class Resend : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        if (await MobileNumberExists(NewMobileNumber!))
+        var existingUser = await FindUserByMobileNumber(NewMobileNumber!);
+
+        if (existingUser is not null)
         {
-            ModelState.AddModelError(nameof(NewMobileNumber), "This mobile phone number is already in use - Enter a different mobile phone number");
+            var errorMessage = existingUser.UserId == User.GetUserId()!.Value
+                ? "Enter a different mobile phone number. The one you’ve entered is the same as the one already on your account"
+                : "This mobile phone number is already in use - Enter a different mobile phone number";
+            ModelState.AddModelError(nameof(NewMobileNumber), errorMessage);
             return this.PageWithErrors();
         }
 

@@ -51,15 +51,17 @@ public class PhoneTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "MobileNumber", expectedErrorMessage);
     }
 
-    [Fact]
-    public async Task Post_MobileNumberInUse_RendersError()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_MobileNumberInUse_RendersError(bool isOwnNumber)
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
         var anotherUser = await TestData.CreateUser();
-        var newMobileNumber = anotherUser.MobileNumber;
+        var newMobileNumber = isOwnNumber ? user.MobileNumber : anotherUser.MobileNumber;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone")
         {
@@ -73,29 +75,11 @@ public class PhoneTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "MobileNumber", "This mobile phone number is already in use - Enter a different mobile phone number");
-    }
+        var expectedMessage = isOwnNumber
+            ? "Enter a different mobile phone number. The one you’ve entered is the same as the one already on your account"
+            : "This mobile phone number is already in use - Enter a different mobile phone number";
 
-    [Fact]
-    public async Task Post_MobileNumberMatchesCurrentMobileNumber_DoesNotProduceError()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default);
-        HostFixture.SetUserId(user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "MobileNumber", user.MobileNumber! }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.True((int)response.StatusCode < 400);
+        await AssertEx.HtmlResponseHasError(response, "MobileNumber", expectedMessage);
     }
 
     [Fact]

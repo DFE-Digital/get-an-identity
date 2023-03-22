@@ -52,11 +52,9 @@ public class BasePhonePageModel : PageModel
         }
     }
 
-    public async Task<bool> MobileNumberExists(string mobileNumber)
+    public async Task<User?> FindUserByMobileNumber(string mobileNumber)
     {
-        // Check if mobile number is already in use
         var formattedMobileNumber = PhoneHelper.FormatMobileNumber(mobileNumber);
-        var userWithMobileNumber = await _dbContext.Users.SingleOrDefaultAsync(u => u.MobileNumber == formattedMobileNumber);
-        return userWithMobileNumber is not null && userWithMobileNumber.UserId != User.GetUserId()!.Value;
+        return await _dbContext.Users.SingleOrDefaultAsync(u => u.MobileNumber == formattedMobileNumber);
     }
 }

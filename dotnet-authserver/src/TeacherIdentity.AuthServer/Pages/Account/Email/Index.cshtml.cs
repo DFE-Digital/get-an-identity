@@ -42,9 +42,14 @@ public class EmailPage : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        if (await EmailExists(Email!))
+        var existingUser = await FindUserByEmailAddress(Email!);
+
+        if (existingUser is not null)
         {
-            ModelState.AddModelError(nameof(Email), "This email address is already in use - Enter a different email address");
+            var errorMessage = existingUser.UserId == User.GetUserId()!.Value
+                ? "Enter a different email address. The one you’ve entered is the same as the one already on your account"
+                : "This email address is already in use - Enter a different email address";
+            ModelState.AddModelError(nameof(Email), errorMessage);
             return this.PageWithErrors();
         }
 
