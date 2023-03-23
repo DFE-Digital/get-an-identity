@@ -1,3 +1,4 @@
+using AngleSharp.Html.Dom;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account;
@@ -162,83 +163,29 @@ public class IndexTests : TestBase
         Assert.Equal(user.Trn, doc.GetSummaryListValueForKey("TRN"));
     }
 
-    [Fact]
-    public async Task Get_ValidRequestForUserWithoutDobConflict_DoesNotShowNotificationBanner()
+    [Theory]
+    [MemberData(nameof(DateOfBirthState))]
+    public async Task Get_ValidRequestForUser_ShowsCorrectDobSummaryRowElements(
+        bool hasTrn,
+        bool hasDobConflict,
+        bool hasPendingReview,
+        DobAccountPageElements dobAccountPageElements)
     {
         // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
+        var user = await TestData.CreateUser(hasTrn: hasTrn);
+        var userDateOfBirth = user.DateOfBirth!.Value;
         HostFixture.SetUserId(user.UserId);
 
         HostFixture.DqtApiClient
             .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TeacherInfo()
             {
-                DateOfBirth = user.DateOfBirth!.Value,
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        Assert.Null(doc.GetElementByTestId("dob-conflict-notification-banner"));
-        Assert.Equal(1, doc.GetSummaryListRowCountForKey("Date of birth"));
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestForUserWithDobConflict_DoesShowNotificationBannerAndDqtDobRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
-        HostFixture.SetUserId(user.UserId);
-
-        HostFixture.DqtApiClient
-            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = user.DateOfBirth!.Value.AddDays(1),
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        Assert.NotNull(doc.GetElementByTestId("dob-conflict-notification-banner"));
-        Assert.Equal(2, doc.GetSummaryListRowCountForKey("Date of birth"));
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestForUserWithPendingDobChange_DoesShowPendingTagHidesBanner()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
-        HostFixture.SetUserId(user.UserId);
-
-        HostFixture.DqtApiClient
-            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = user.DateOfBirth!.Value.AddDays(1),
+                DateOfBirth = hasDobConflict ? userDateOfBirth.AddDays(1) : userDateOfBirth,
                 FirstName = Faker.Name.First(),
                 LastName = Faker.Name.Last(),
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
-                PendingDateOfBirthChange = true,
+                PendingDateOfBirthChange = hasPendingReview,
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -248,10 +195,7 @@ public class IndexTests : TestBase
 
         // Assert
         var doc = await response.GetDocument();
-
-        Assert.Null(doc.GetElementByTestId("dob-conflict-notification-banner"));
-        Assert.NotNull(doc.GetElementByTestId("dob-pending-review-tag"));
-        Assert.Equal(2, doc.GetSummaryListRowCountForKey("Date of birth"));
+        AssertValidDobState(dobAccountPageElements, doc);
     }
 
     [Fact]
@@ -322,5 +266,39 @@ public class IndexTests : TestBase
 
         Assert.Null(doc.GetElementByTestId("BackLink"));
         Assert.Null(doc.GetElementByTestId("BackButton"));
+    }
+
+
+    public static TheoryData<bool, bool, bool, DobAccountPageElements> DateOfBirthState { get; } = new()
+    {
+        // hasTrn, hasDobConflicts, hasPendingReview
+        { false, false, false, DobAccountPageElements.ChangeLink },
+        { true, false, false, DobAccountPageElements.None },
+        { true, true, false, DobAccountPageElements.DqtSummaryRow | DobAccountPageElements.HintText | DobAccountPageElements.ChangeLink | DobAccountPageElements.NotificationBanner },
+        { true, true, true, DobAccountPageElements.DqtSummaryRow | DobAccountPageElements.HintText | DobAccountPageElements.PendingReviewTag },
+    };
+
+    [Flags]
+    public enum DobAccountPageElements
+    {
+        None = 0,
+        HintText = 1 << 0,
+        PendingReviewTag = 1 << 1,
+        DqtSummaryRow = 1 << 2,
+        ChangeLink = 1 << 3,
+        NotificationBanner = 1 << 4
+    }
+
+    private void AssertValidDobState(DobAccountPageElements dobElements, IHtmlDocument doc)
+    {
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.NotificationBanner), doc.GetElementByTestId("dob-conflict-notification-banner") != null);
+
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.PendingReviewTag), doc.GetElementByTestId("dob-pending-review-tag") != null);
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.ChangeLink), doc.GetElementByTestId("dob-change-link") != null);
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.HintText), doc.GetElementByTestId("dob-hint-text") != null);
+
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.DqtSummaryRow), doc.GetElementByTestId("dqt-dob-hint-text") != null);
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.ChangeLink) && dobElements.HasFlag(DobAccountPageElements.DqtSummaryRow), doc.GetElementByTestId("dqt-dob-change-link") != null);
+        Assert.Equal(dobElements.HasFlag(DobAccountPageElements.PendingReviewTag) && dobElements.HasFlag(DobAccountPageElements.DqtSummaryRow), doc.GetElementByTestId("dqt-dob-pending-review-tag") != null);
     }
 }
