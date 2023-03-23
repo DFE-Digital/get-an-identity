@@ -54,7 +54,7 @@ public static class AngleSharpExtensions
         {
             var rowKey = row.QuerySelector(".govuk-summary-list__key");
 
-            if (rowKey?.TextContent.Trim() == key)
+            if (rowKey.GetCleansedTextContent() == key)
             {
                 count++;
             }
@@ -71,7 +71,7 @@ public static class AngleSharpExtensions
         {
             var rowKey = row.QuerySelector(".govuk-summary-list__key");
 
-            if (rowKey?.TextContent.Trim() == key)
+            if (rowKey.GetCleansedTextContent() == key)
             {
                 return row;
             }
@@ -84,6 +84,12 @@ public static class AngleSharpExtensions
     {
         var row = GetSummaryListRowForKey(doc, key);
         var rowValue = row?.QuerySelector(".govuk-summary-list__value");
-        return rowValue?.TextContent.Trim();
+        return rowValue.GetCleansedTextContent();
     }
+
+    /// <summary>
+    /// Trims whitespace from an <see cref="INode"/>'s <see cref="INode.TextContent"/> and removes any
+    /// U+00AD (&amp;shy;) characters.
+    /// </summary>
+    private static string? GetCleansedTextContent(this INode? node) => node?.TextContent?.Trim()?.Replace("\u00ad", "");
 }

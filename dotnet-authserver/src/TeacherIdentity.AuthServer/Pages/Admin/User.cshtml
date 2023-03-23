@@ -42,7 +42,7 @@
             </govuk-summary-list-row>
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
-                <govuk-summary-list-row-value>@Model.EmailAddress</govuk-summary-list-row-value>
+                <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
                     <govuk-summary-list-row-action asp-page="EditUserEmail" asp-route-userId="@Model.UserId" visually-hidden-text="email address">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>

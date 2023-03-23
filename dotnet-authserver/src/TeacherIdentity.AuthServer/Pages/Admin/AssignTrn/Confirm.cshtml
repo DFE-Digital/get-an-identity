@@ -29,7 +29,7 @@
                         </govuk-summary-list-row>
                         <govuk-summary-list-row>
                             <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
-                            <govuk-summary-list-row-value>@Model.EmailAddress</govuk-summary-list-row-value>
+                            <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
                         </govuk-summary-list-row>
                     </govuk-summary-list>
                 </div>
