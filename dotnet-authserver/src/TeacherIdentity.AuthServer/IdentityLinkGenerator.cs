@@ -163,10 +163,10 @@ public static class IdentityLinkGeneratorExtensions
             linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
                 .SetQueryParam("returnUrl", returnUrl);
 
-        public static string AccountDateOfBirthConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString dateOfBirth, string? returnUrl) =>
-            linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
-                .SetQueryParam("dateOfBirth", dateOfBirth.EncryptedValue)
-                .SetQueryParam("returnUrl", returnUrl);
+    public static string AccountDateOfBirthConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString dateOfBirth, string? returnUrl) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("dateOfBirth", dateOfBirth.EncryptedValue)
+            .SetQueryParam("returnUrl", returnUrl);
 
     public static string AccountEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Index", authenticationJourneyRequired: false)
