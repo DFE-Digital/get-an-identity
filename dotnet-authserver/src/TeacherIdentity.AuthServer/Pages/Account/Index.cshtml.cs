@@ -40,6 +40,8 @@ public class IndexModel : PageModel
     public string? MobileNumber { get; set; }
     public string? Trn { get; set; }
     public DateOnly? DqtDateOfBirth { get; set; }
+    public bool PendingDqtNameChange { get; set; }
+    public bool PendingDqtDateOfBirthChange { get; set; }
 
     public async Task OnGet()
     {
@@ -71,6 +73,8 @@ public class IndexModel : PageModel
 
             OfficialName = $"{dqtUser.FirstName} {dqtUser.LastName}";
             DqtDateOfBirth = dqtUser.DateOfBirth;
+            PendingDqtNameChange = dqtUser.PendingNameChange;
+            PendingDqtDateOfBirthChange = dqtUser.PendingDateOfBirthChange;
         }
     }
 

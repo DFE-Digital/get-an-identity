@@ -7,4 +7,6 @@ public record TeacherInfo
     public required string LastName { get; init; }
     public required DateOnly DateOfBirth { get; init; }
     public required string? NationalInsuranceNumber { get; init; }
+    public bool PendingNameChange { get; init; }
+    public bool PendingDateOfBirthChange { get; init; }
 }

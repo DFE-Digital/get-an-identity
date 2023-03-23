@@ -223,6 +223,68 @@ public class IndexTests : TestBase
     }
 
     [Fact]
+    public async Task Get_ValidRequestForUserWithPendingDobChange_DoesShowPendingTagHidesBanner()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+        HostFixture.SetUserId(user.UserId);
+
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = user.DateOfBirth!.Value.AddDays(1),
+                FirstName = Faker.Name.First(),
+                LastName = Faker.Name.Last(),
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!,
+                PendingDateOfBirthChange = true,
+            });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.Null(doc.GetElementByTestId("dob-conflict-notification-banner"));
+        Assert.NotNull(doc.GetElementByTestId("dob-pending-review-tag"));
+        Assert.Equal(2, doc.GetSummaryListRowCountForKey("Date of birth"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithPendingNameChange_DoesShowPendingTag()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+        HostFixture.SetUserId(user.UserId);
+
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = user.DateOfBirth!.Value,
+                FirstName = Faker.Name.First(),
+                LastName = Faker.Name.Last(),
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!,
+                PendingNameChange = true,
+            });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.NotNull(doc.GetElementByTestId("name-pending-review-tag"));
+    }
+
+    [Fact]
     public async Task Get_ValidRequestWithClientIdAndRedirectUri_RendersBackLinks()
     {
         // Arrange

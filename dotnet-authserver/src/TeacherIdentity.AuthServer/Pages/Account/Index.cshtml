@@ -22,7 +22,7 @@
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        @if (dateOfBirthConflict)
+        @if (dateOfBirthConflict && !Model.PendingDqtDateOfBirthChange)
         {
             <govuk-notification-banner data-testid="dob-conflict-notification-banner">
                 <h3 class="govuk-notification-banner__heading">Confirm your correct date of birth</h3>
@@ -47,13 +47,24 @@
             {
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Official name</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>
-                        @Model.OfficialName
-                        <p class="govuk-hint govuk-!-font-size-14">Displayed on teaching certificates </p>
-                    </govuk-summary-list-row-value>
-                    <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="#" visually-hidden-text="official name">Change</govuk-summary-list-row-action>
-                    </govuk-summary-list-row-actions>
+                    @if (Model.PendingDqtNameChange)
+                    {
+                        <govuk-summary-list-row-value>
+                            @Model.OfficialName
+                            <p class="govuk-hint govuk-!-font-size-14">Displayed on teaching certificates </p>
+                            <govuk-tag class="govuk-tag--yellow" data-testid="name-pending-review-tag">PENDING REVIEW</govuk-tag>
+                        </govuk-summary-list-row-value>
+                    }
+                    else
+                    {
+                        <govuk-summary-list-row-value>
+                            @Model.OfficialName
+                            <p class="govuk-hint govuk-!-font-size-14">Displayed on teaching certificates </p>
+                        </govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action href="#" visually-hidden-text="official name">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    }
                 </govuk-summary-list-row>
             }
             <govuk-summary-list-row>
@@ -73,13 +84,24 @@
             {
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>
-                        @Model.DqtDateOfBirth?.ToString("dd MMMM yyyy")
-                        <p class="govuk-hint govuk-!-font-size-14">Date of birth already in our records</p>
-                    </govuk-summary-list-row-value>
-                    <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="#" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
-                    </govuk-summary-list-row-actions>
+                    @if (Model.PendingDqtDateOfBirthChange)
+                    {
+                        <govuk-summary-list-row-value>
+                            @Model.DqtDateOfBirth?.ToString("dd MMMM yyyy")
+                            <p class="govuk-hint govuk-!-font-size-14">Date of birth already in our records</p>
+                            <govuk-tag class="govuk-tag--yellow" data-testid="dob-pending-review-tag">PENDING REVIEW</govuk-tag>
+                        </govuk-summary-list-row-value>
+                    }
+                    else
+                    {
+                        <govuk-summary-list-row-value>
+                            @Model.DqtDateOfBirth?.ToString("dd MMMM yyyy")
+                            <p class="govuk-hint govuk-!-font-size-14">Date of birth already in our records</p>
+                        </govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action href="#" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    }
                 </govuk-summary-list-row>
             }
         </govuk-summary-list>
