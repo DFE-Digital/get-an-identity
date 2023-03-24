@@ -68,7 +68,7 @@ public class DateOfBirthPage : PageModel
 
     private async Task<bool> ChangeDateOfBirthEnabled()
     {
-        var trn = User.GetTrn();
+        var trn = User.GetTrn(false);
 
         if (trn is null)
         {
