@@ -98,27 +98,21 @@ public class Confirm : PageModel
 
     private async Task<bool> ChangeDateOfBirthEnabled()
     {
-        var userId = User.GetUserId()!.Value;
-
-        var user = await _dbContext.Users
-            .Where(u => u.UserId == userId)
-            .Select(u => new
-            {
-                u.DateOfBirth,
-                u.Trn
-            })
-            .SingleAsync();
-
-        var trn = user.Trn;
+        var trn = User.GetTrn();
 
         if (trn is null)
         {
             return true;
         }
 
+        var dateOfBirth = await _dbContext.Users
+            .Where(u => u.Trn == trn)
+            .Select(u => u.DateOfBirth)
+            .SingleAsync();
+
         var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn) ??
                       throw new Exception($"User with TRN '{trn}' cannot be found in DQT.");
 
-        return !user.DateOfBirth.Equals(dqtUser.DateOfBirth) && !dqtUser.PendingDateOfBirthChange;
+        return !dateOfBirth.Equals(dqtUser.DateOfBirth) && !dqtUser.PendingDateOfBirthChange;
     }
 }
