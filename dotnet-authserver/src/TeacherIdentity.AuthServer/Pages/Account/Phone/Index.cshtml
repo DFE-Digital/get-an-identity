@@ -5,12 +5,12 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@Model.SafeReturnUrl" />
+    <govuk-back-link href="@LinkGenerator.Account(Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountPhone(Model.ReturnUrl)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountPhone(Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>We’ll send a security code to this number by text message.</p>

@@ -4,17 +4,16 @@
 @{
     ViewBag.Title = "DfE Identity account";
 
-    var returnUrl = Request.GetUri().PathAndQuery;
     var dateOfBirthConflict = Model.DqtDateOfBirth is not null && !Model.DqtDateOfBirth.Equals(Model.DateOfBirth);
     var dateOfBirthChangeEnabled = Model.DqtDateOfBirth is null || (dateOfBirthConflict && !Model.PendingDqtDateOfBirthChange);
 }
 
 @section BeforeContent
 {
-    @if (Model.SafeRedirectUri is not null && Model.ClientDisplayName is not null)
+    @if (Model.ClientRedirectInfo is not null && Model.ClientDisplayName is not null)
     {
         <div class="gai-banner-bar">
-            <govuk-back-link href="@Model.SafeRedirectUri" data-testid="BackLink">
+            <govuk-back-link href="@Model.ClientRedirectInfo.RedirectUri" data-testid="BackLink">
                 Back to @Model.ClientDisplayName
             </govuk-back-link>
         </div>
@@ -41,7 +40,7 @@
                 <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountName(returnUrl)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountName(Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             @if (Model.Trn is not null)
@@ -84,7 +83,7 @@
                 @if (dateOfBirthChangeEnabled)
                 {
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.AccountDateOfBirth(returnUrl)" visually-hidden-text="date of birth" data-testid="dob-change-link">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountDateOfBirth(Model.ClientRedirectInfo)" visually-hidden-text="date of birth" data-testid="dob-change-link">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 }
             </govuk-summary-list-row>
@@ -130,21 +129,21 @@
                 <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.Email</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountEmail(returnUrl)" visually-hidden-text="email">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountEmail(Model.ClientRedirectInfo)" visually-hidden-text="email">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Mobile number</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.MobileNumber</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountPhone(returnUrl)" visually-hidden-text="mobile number">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountPhone(Model.ClientRedirectInfo)" visually-hidden-text="mobile number">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
         </govuk-summary-list>
 
-        @if (Model.SafeRedirectUri is not null && Model.ClientDisplayName is not null)
+        @if (Model.ClientRedirectInfo is not null && Model.ClientDisplayName is not null)
         {
-            <govuk-button-link href="@Model.SafeRedirectUri" data-testid="BackButton">
+            <govuk-button-link href="@Model.ClientRedirectInfo.RedirectUri" data-testid="BackButton">
                 Back to @Model.ClientDisplayName
             </govuk-button-link>
         }

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -28,14 +29,13 @@ public class DateOfBirthPage : PageModel
         _dqtApiClient = dqtApiClient;
     }
 
+    [BindNever]
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
+
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
     [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
     public DateOnly? DateOfBirth { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
-    public string? SafeReturnUrl { get; set; }
 
     public void OnGet()
     {
@@ -50,19 +50,17 @@ public class DateOfBirthPage : PageModel
 
         var protectedDateOfBirth = _protectedStringFactory.CreateFromPlainValue(DateOfBirth.ToString()!);
 
-        return Redirect(_linkGenerator.AccountDateOfBirthConfirm(protectedDateOfBirth, ReturnUrl));
+        return Redirect(_linkGenerator.AccountDateOfBirthConfirm(protectedDateOfBirth, ClientRedirectInfo));
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        var b = await ChangeDateOfBirthEnabled();
         if (!await ChangeDateOfBirthEnabled())
         {
             context.Result = BadRequest();
             return;
         }
 
-        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
         await next();
     }
 

@@ -9,27 +9,27 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 
 public class Confirm : PageModel
 {
-    private TeacherIdentityServerDbContext _dbContext;
-    private IClock _clock;
+    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IClock _clock;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
+        IIdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;
+        _linkGenerator = linkGenerator;
         _clock = clock;
     }
+
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "firstName")]
     public ProtectedString? FirstName { get; set; }
 
     [FromQuery(Name = "lastName")]
     public ProtectedString? LastName { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
-    public string? SafeReturnUrl { get; set; }
-
 
     public void OnGet()
     {
@@ -38,7 +38,7 @@ public class Confirm : PageModel
     public async Task<IActionResult> OnPost()
     {
         await UpdateUserName(User.GetUserId()!.Value);
-        return Redirect(SafeReturnUrl!);
+        return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
     private async Task UpdateUserName(Guid userId)
@@ -88,10 +88,7 @@ public class Confirm : PageModel
     {
         if (FirstName is null || LastName is null)
         {
-            context.Result = new BadRequestResult();
-            return;
+            context.Result = BadRequest();
         }
-
-        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
     }
 }

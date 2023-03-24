@@ -2,17 +2,16 @@
 @model TeacherIdentity.AuthServer.Pages.Account.Email.Confirm
 @{
     ViewBag.Title = "Confirm change";
-
 }
 
 @section BeforeContent
 {
-    <govuk-back-link href="@LinkGenerator.AccountEmail(Model.ReturnUrl)" />
+    <govuk-back-link href="@LinkGenerator.AccountEmail(Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountEmailConfirm(Model.Email!, Model.ReturnUrl)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountEmailConfirm(Model.Email!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>A confirmation code has been sent to <span data-testid="email">@Model.Email!.PlainValue</span></p>
@@ -22,7 +21,7 @@
             </govuk-input>
 
             <p>
-                <a href="@LinkGenerator.AccountEmailResend(Model.Email!, Model.ReturnUrl)">I have not received an email</a>
+                <a href="@LinkGenerator.AccountEmailResend(Model.Email!, Model.ClientRedirectInfo)">I have not received an email</a>
             </p>
 
             <govuk-button type="submit">Continue</govuk-button>

@@ -11,19 +11,24 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 
 public class Confirm : BasePinVerificationPageModel
 {
-    private TeacherIdentityServerDbContext _dbContext;
-    private IClock _clock;
+    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IClock _clock;
 
     public Confirm(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         TeacherIdentityServerDbContext dbContext,
+        IIdentityLinkGenerator linkGenerator,
         IClock clock) :
         base(userVerificationService, pinValidator)
     {
         _dbContext = dbContext;
+        _linkGenerator = linkGenerator;
         _clock = clock;
     }
+
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [BindProperty]
     [Display(Name = "Confirmation code")]
@@ -31,11 +36,6 @@ public class Confirm : BasePinVerificationPageModel
 
     [FromQuery(Name = "email")]
     public ProtectedString? Email { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
-    public string? SafeReturnUrl { get; set; }
-
 
     public void OnGet()
     {
@@ -59,7 +59,7 @@ public class Confirm : BasePinVerificationPageModel
         }
 
         await UpdateUserEmail(User.GetUserId()!.Value);
-        return Redirect(SafeReturnUrl!);
+        return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
     private async Task UpdateUserEmail(Guid userId)
@@ -102,11 +102,8 @@ public class Confirm : BasePinVerificationPageModel
     {
         if (Email is null)
         {
-            context.Result = new BadRequestResult();
-            return;
+            context.Result = BadRequest();
         }
-
-        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
     }
 
     protected override Task<PinGenerationResult> GeneratePin()

@@ -235,16 +235,13 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidForm_UpdatesNameEmitsEventAndRedirects()
+    public async Task Post_ValidForm_UpdatesNameEmitsEventAndRedirectsToAccountPage()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
-        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
-
-        var returnUrl = $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}";
+        var clientRedirectInfo = CreateClientRedirectInfo();
 
         var newEmail = Faker.Internet.Email();
         var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
@@ -253,7 +250,7 @@ public class ConfirmTests : TestBase
         var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/confirm?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/confirm?email={UrlEncode(protectedEmail.EncryptedValue)}&{clientRedirectInfo.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -266,7 +263,7 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(returnUrl, response.Headers.Location?.OriginalString);
+        Assert.Equal($"/account?{clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(newEmail, user.EmailAddress);

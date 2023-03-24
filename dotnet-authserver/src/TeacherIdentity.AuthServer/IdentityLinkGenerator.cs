@@ -149,52 +149,56 @@ public static class IdentityLinkGeneratorExtensions
             .SetQueryParam("returnUrl", returnUrl)
             .SetQueryParam("cancelUrl", cancelUrl);
 
-    public static string AccountName(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Index", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl);
+    public static string Account(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountNameConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString firstName, ProtectedString lastName, string? returnUrl) =>
+    public static string AccountName(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public static string AccountNameConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString firstName, ProtectedString lastName, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName.EncryptedValue)
             .SetQueryParam("lastName", lastName.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountDateOfBirth(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
-            linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
-                .SetQueryParam("returnUrl", returnUrl);
+    public static string AccountDateOfBirth(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
+        linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountDateOfBirthConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString dateOfBirth, string? returnUrl) =>
+    public static string AccountDateOfBirthConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("dateOfBirth", dateOfBirth.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
+    public static string AccountEmail(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Index", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountEmailResend(this IIdentityLinkGenerator linkGenerator, ProtectedString email, string? returnUrl) =>
+    public static string AccountEmailResend(this IIdentityLinkGenerator linkGenerator, ProtectedString email, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Resend", authenticationJourneyRequired: false)
             .SetQueryParam("email", email.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountEmailConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString email, string? returnUrl) =>
+    public static string AccountEmailConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString email, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("email", email.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountPhone(this IIdentityLinkGenerator linkGenerator, string? returnUrl) =>
+    public static string AccountPhone(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Index", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountPhoneResend(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, string? returnUrl) =>
+    public static string AccountPhoneResend(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Resend", authenticationJourneyRequired: false)
             .SetQueryParam("mobileNumber", mobileNumber.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public static string AccountPhoneConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, string? returnUrl) =>
+    public static string AccountPhoneConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("mobileNumber", mobileNumber.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
     public static string Cookies(this IIdentityLinkGenerator linkGenerator) =>
         linkGenerator.PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);

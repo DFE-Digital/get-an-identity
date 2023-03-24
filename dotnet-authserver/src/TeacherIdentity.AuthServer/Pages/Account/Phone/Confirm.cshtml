@@ -2,17 +2,16 @@
 @model TeacherIdentity.AuthServer.Pages.Account.Phone.Confirm
 @{
     ViewBag.Title = "Confirm change";
-
 }
 
 @section BeforeContent
 {
-    <govuk-back-link href="@LinkGenerator.AccountPhone(Model.ReturnUrl)" />
+    <govuk-back-link href="@LinkGenerator.AccountPhone(Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountPhoneConfirm(Model.MobileNumber!, Model.ReturnUrl)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountPhoneConfirm(Model.MobileNumber!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>We’ve sent you a text message with a security code to <b data-testid="mobileNumber">@Model.MobileNumber!.PlainValue</b></p>
@@ -22,11 +21,10 @@
             </govuk-input>
 
             <p>
-                <a href="@LinkGenerator.AccountPhoneResend(Model.MobileNumber!, Model.ReturnUrl)">I have not received an text message</a>
+                <a href="@LinkGenerator.AccountPhoneResend(Model.MobileNumber!, Model.ClientRedirectInfo)">I have not received an text message</a>
             </p>
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>
     </div>
 </div>
-

@@ -100,21 +100,18 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidForm_UpdatesDateOfBirthEmitsEventAndRedirects()
+    public async Task Post_ValidForm_UpdatesDateOfBirthEmitsEventAndRedirectsToAccountPage()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
-        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
-
-        var returnUrl = $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}";
+        var clientRedirectInfo = CreateClientRedirectInfo();
 
         var newDateOfBirth = new DateOnly(2000, 1, 1);
         var protectedDateOfBirth = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newDateOfBirth.ToString());
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(protectedDateOfBirth.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(protectedDateOfBirth.EncryptedValue)}&{clientRedirectInfo.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -124,7 +121,7 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(returnUrl, response.Headers.Location?.OriginalString);
+        Assert.Equal($"/account?{clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(newDateOfBirth, user.DateOfBirth);
