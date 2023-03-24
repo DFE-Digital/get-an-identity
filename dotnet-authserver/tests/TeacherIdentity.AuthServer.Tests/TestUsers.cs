@@ -55,7 +55,7 @@ public static class TestUsers
         Updated = DateTime.UtcNow,
         UserType = UserType.Default,
         StaffRoles = StaffRoles.None,
-        Trn = "7654321",
+        Trn = "7754311",
         TrnLookupStatus = TrnLookupStatus.Found,
     };
 
