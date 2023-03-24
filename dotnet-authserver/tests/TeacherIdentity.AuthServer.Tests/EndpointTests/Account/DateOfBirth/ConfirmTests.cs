@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.DateOfBirth;
 
@@ -55,6 +56,34 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task Post_DateOfBirthChangeDisabled_ReturnsBadRequest(bool hasDobConflict, bool hasPendingDobChange)
+    {
+        // Arrange
+        HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
+        MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasDobConflict, hasPendingDobChange);
+
+        var dateOfBirth = new DateOnly(2000, 1, 1);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "DateOfBirth.Day", dateOfBirth.Day.ToString() },
+                { "DateOfBirth.Month", dateOfBirth.Month.ToString() },
+                { "DateOfBirth.Year", dateOfBirth.Year.ToString() },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
     [Fact]
@@ -117,4 +146,18 @@ public class ConfirmTests : TestBase
     }
 
     private static string UrlEncode(string value) => UrlEncoder.Default.Encode(value);
+
+    private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDobChange)
+    {
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!,
+                PendingDateOfBirthChange = hasPendingDobChange
+            });
+    }
 }

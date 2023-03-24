@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 
@@ -11,13 +12,16 @@ public class Confirm : PageModel
 {
     private TeacherIdentityServerDbContext _dbContext;
     private IClock _clock;
+    private readonly IDqtApiClient _dqtApiClient;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
-        IClock clock)
+        IClock clock,
+        IDqtApiClient dqtApiClient)
     {
         _dbContext = dbContext;
         _clock = clock;
+        _dqtApiClient = dqtApiClient;
     }
 
     [FromQuery(Name = "dateOfBirth")]
@@ -73,8 +77,13 @@ public class Confirm : PageModel
         }
     }
 
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
+        if (!await ChangeDateOfBirthEnabled())
+        {
+            context.Result = BadRequest();
+        }
+
         if (DateOfBirth is null || !DateOnly.TryParse(DateOfBirth.PlainValue, out var newDateOfBirth))
         {
             context.Result = new BadRequestResult();
@@ -83,5 +92,27 @@ public class Confirm : PageModel
 
         NewDateOfBirth = newDateOfBirth;
         SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
+
+        await next();
+    }
+
+    private async Task<bool> ChangeDateOfBirthEnabled()
+    {
+        var trn = User.GetTrn(false);
+
+        if (trn is null)
+        {
+            return true;
+        }
+
+        var dateOfBirth = await _dbContext.Users
+            .Where(u => u.Trn == trn)
+            .Select(u => u.DateOfBirth)
+            .SingleAsync();
+
+        var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn) ??
+                      throw new Exception($"User with TRN '{trn}' cannot be found in DQT.");
+
+        return !dateOfBirth.Equals(dqtUser.DateOfBirth) && !dqtUser.PendingDateOfBirthChange;
     }
 }

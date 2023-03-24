@@ -44,9 +44,24 @@ public static class TestUsers
         StaffRoles = StaffRoles.None
     };
 
+    public static User DefaultUserWithTrn { get; } = new User()
+    {
+        UserId = new Guid("3828dc03-7500-402a-beeb-acd45b635fc3"),
+        Created = DateTime.UtcNow,
+        DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+        EmailAddress = Faker.Internet.Email(),
+        FirstName = Faker.Name.First(),
+        LastName = Faker.Name.Last(),
+        Updated = DateTime.UtcNow,
+        UserType = UserType.Default,
+        StaffRoles = StaffRoles.None,
+        Trn = "7754311",
+        TrnLookupStatus = TrnLookupStatus.Found,
+    };
+
     public static IReadOnlyCollection<User> All => Default.Concat(Staff).ToArray();
 
-    public static IReadOnlyCollection<User> Default => new[] { DefaultUser };
+    public static IReadOnlyCollection<User> Default => new[] { DefaultUser, DefaultUserWithTrn };
 
     public static IReadOnlyCollection<User> Staff => new[] { AdminUserWithAllRoles, AdminUserWithNoRoles };
 

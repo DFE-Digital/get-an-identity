@@ -2,19 +2,30 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 
 [BindProperties]
 public class DateOfBirthPage : PageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private readonly IIdentityLinkGenerator _linkGenerator;
     private readonly ProtectedStringFactory _protectedStringFactory;
+    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IDqtApiClient _dqtApiClient;
 
-    public DateOfBirthPage(IIdentityLinkGenerator linkGenerator, ProtectedStringFactory protectedStringFactory)
+    public DateOfBirthPage(
+        IIdentityLinkGenerator linkGenerator,
+        ProtectedStringFactory protectedStringFactory,
+        TeacherIdentityServerDbContext dbContext,
+        IDqtApiClient dqtApiClient)
     {
         _linkGenerator = linkGenerator;
         _protectedStringFactory = protectedStringFactory;
+        _dbContext = dbContext;
+        _dqtApiClient = dqtApiClient;
     }
 
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
@@ -42,8 +53,36 @@ public class DateOfBirthPage : PageModel
         return Redirect(_linkGenerator.AccountDateOfBirthConfirm(protectedDateOfBirth, ReturnUrl));
     }
 
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
+        var b = await ChangeDateOfBirthEnabled();
+        if (!await ChangeDateOfBirthEnabled())
+        {
+            context.Result = BadRequest();
+            return;
+        }
+
         SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
+        await next();
+    }
+
+    private async Task<bool> ChangeDateOfBirthEnabled()
+    {
+        var trn = User.GetTrn(false);
+
+        if (trn is null)
+        {
+            return true;
+        }
+
+        var dateOfBirth = await _dbContext.Users
+            .Where(u => u.Trn == trn)
+            .Select(u => u.DateOfBirth)
+            .SingleAsync();
+
+        var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn) ??
+                      throw new Exception($"User with TRN '{trn}' cannot be found in DQT.");
+
+        return !dateOfBirth.Equals(dqtUser.DateOfBirth) && !dqtUser.PendingDateOfBirthChange;
     }
 }
