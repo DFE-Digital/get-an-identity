@@ -518,6 +518,7 @@ public class Program
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
         app.UseMiddleware<Infrastructure.Middleware.AppendSessionIdToAnalyticsEventsMiddleware>();
+        app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/account"), x => x.UseMiddleware<Infrastructure.Middleware.ClientRedirectInfoMiddleware>());
 
         app.UseRouting();
 

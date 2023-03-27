@@ -5,12 +5,12 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@Model.SafeReturnUrl" />
+    <govuk-back-link href="@LinkGenerator.Account(Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountEmail(Model.ReturnUrl)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountEmail(Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <govuk-input asp-for="Email" type="email" autocomplete="email">

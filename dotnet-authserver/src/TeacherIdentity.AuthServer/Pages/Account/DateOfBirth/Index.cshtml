@@ -5,12 +5,12 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@Model.SafeReturnUrl" />
+    <govuk-back-link href="@LinkGenerator.Account(Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountDateOfBirth(Model.ReturnUrl)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountDateOfBirth(Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <govuk-date-input asp-for="DateOfBirth">
                 <govuk-date-input-fieldset>
                     <govuk-date-input-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl"/>

@@ -1,6 +1,4 @@
-using System.Text.Encodings.Web;
 using TeacherIdentity.AuthServer.Models;
-
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.DateOfBirth;
 
 public class DateOfBirthTests : TestBase
@@ -102,17 +100,14 @@ public class DateOfBirthTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidDateOfBirth_RedirectsToConfirmPageWithCorrectReturnUrl()
+    public async Task Post_ValidDateOfBirth_RedirectsToConfirmPageWithClientRedirectInfo()
     {
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var client = TestClients.Client1;
-        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
+        var clientRedirectInfo = CreateClientRedirectInfo();
 
-        var returnUrl = UrlEncoder.Default.Encode($"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth?returnUrl={returnUrl}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth?{clientRedirectInfo.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -127,7 +122,7 @@ public class DateOfBirthTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Contains($"returnUrl={returnUrl}", response.Headers.Location?.OriginalString);
+        Assert.Contains(clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
     }
 
     private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDobChange)

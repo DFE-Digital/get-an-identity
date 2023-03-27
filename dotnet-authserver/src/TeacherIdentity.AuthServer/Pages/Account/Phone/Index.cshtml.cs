@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -11,7 +11,7 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 public class PhonePage : BasePhonePageModel
 {
     private readonly ProtectedStringFactory _protectedStringFactory;
-    private IIdentityLinkGenerator _linkGenerator;
+    private readonly IIdentityLinkGenerator _linkGenerator;
 
     public PhonePage(
         IUserVerificationService userVerificationService,
@@ -24,14 +24,13 @@ public class PhonePage : BasePhonePageModel
         _protectedStringFactory = protectedStringFactory;
     }
 
+    [BindNever]
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
+
     [Display(Name = "Mobile number", Description = "For international numbers include the country code")]
     [Required(ErrorMessage = "Enter your new mobile phone number")]
     [Phone(ErrorMessage = "Enter a valid mobile phone number")]
     public new string? MobileNumber { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
-    public string? SafeReturnUrl { get; set; }
 
     public void OnGet()
     {
@@ -64,11 +63,6 @@ public class PhonePage : BasePhonePageModel
 
         var protectedMobileNumber = _protectedStringFactory.CreateFromPlainValue(MobileNumber!);
 
-        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ReturnUrl));
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
+        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ClientRedirectInfo));
     }
 }

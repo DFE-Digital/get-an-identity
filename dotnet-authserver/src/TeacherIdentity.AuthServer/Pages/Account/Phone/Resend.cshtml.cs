@@ -23,6 +23,8 @@ public class Resend : BasePhonePageModel
         _protectedStringFactory = protectedStringFactory;
     }
 
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
+
     [BindProperty]
     [Display(Name = "Mobile number")]
     [Required(ErrorMessage = "Enter your new mobile phone number")]
@@ -31,9 +33,6 @@ public class Resend : BasePhonePageModel
 
     [FromQuery(Name = "mobileNumber")]
     public new ProtectedString? MobileNumber { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
 
     public void OnGet()
     {
@@ -67,14 +66,14 @@ public class Resend : BasePhonePageModel
 
         var protectedMobileNumber = _protectedStringFactory.CreateFromPlainValue(NewMobileNumber!);
 
-        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ReturnUrl));
+        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
         if (MobileNumber is null)
         {
-            context.Result = new BadRequestResult();
+            context.Result = BadRequest();
         }
     }
 }

@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -24,14 +22,8 @@ public class IndexModel : PageModel
         _applicationManager = applicationManager;
     }
 
-    [FromQuery(Name = "client_id")]
-    public string? ClientId { get; set; }
-
-    [FromQuery(Name = "redirect_uri")]
-    public string? RedirectUri { get; set; }
-
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
     public string? ClientDisplayName { get; set; }
-    public string? SafeRedirectUri { get; set; }
 
     public string? Name { get; set; }
     public string? OfficialName { get; set; }
@@ -76,45 +68,11 @@ public class IndexModel : PageModel
             PendingDqtNameChange = dqtUser.PendingNameChange;
             PendingDqtDateOfBirthChange = dqtUser.PendingDateOfBirthChange;
         }
-    }
 
-    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
-    {
-        // Services link to this page from the 'Account' option in their nav.
-        // They pass a `redirect_uri` query parameter along with their `client_id` so we know where to send the user
-        // back to when they're done.
-        // Check that the `redirect_uri` provided is valid for the specified client.
-        //
-        // Alternatively, if there's no `client_id` but there is a `redirect_uri` then require that it's a local URL.
-
-        if (ClientId is not null && RedirectUri != null)
+        if (ClientRedirectInfo is not null)
         {
-            var client = await _applicationManager.FindByClientIdAsync(ClientId);
-
-            if (client is null || !await _applicationManager.ValidateRedirectUriDomain(client, RedirectUri))
-            {
-                context.Result = OnInvalidParameters();
-            }
-            else
-            {
-                SafeRedirectUri = RedirectUri;
-                ClientDisplayName = client.DisplayName;
-            }
+            var client = await _applicationManager.FindByClientIdAsync(ClientRedirectInfo.ClientId);
+            ClientDisplayName = await _applicationManager.GetDisplayNameAsync(client!);
         }
-        else if (!string.IsNullOrEmpty(RedirectUri))
-        {
-            if (Url.IsLocalUrl(RedirectUri))
-            {
-                SafeRedirectUri = RedirectUri;
-            }
-            else
-            {
-                context.Result = OnInvalidParameters();
-            }
-        }
-
-        await base.OnPageHandlerExecutionAsync(context, next);
-
-        IActionResult OnInvalidParameters() => BadRequest();
     }
 }

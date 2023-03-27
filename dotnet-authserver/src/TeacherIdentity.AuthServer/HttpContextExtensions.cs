@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
 
@@ -14,6 +15,9 @@ public static class HttpContextExtensions
         TryGetAuthenticationState(httpContext, out var authenticationState) ?
             authenticationState :
             throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
+
+    public static ClientRedirectInfo? GetClientRedirectInfo(this HttpContext httpContext) =>
+        httpContext.Features.Get<ClientRedirectInfoFeature>()?.ClientRedirectInfo;
 
     public static Task<ClaimsPrincipal> SignInCookies(
         this HttpContext httpContext,

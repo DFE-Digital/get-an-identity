@@ -10,28 +10,28 @@ namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 
 public class Confirm : PageModel
 {
-    private TeacherIdentityServerDbContext _dbContext;
-    private IClock _clock;
+    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IClock _clock;
     private readonly IDqtApiClient _dqtApiClient;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
+        IIdentityLinkGenerator linkGenerator,
         IClock clock,
         IDqtApiClient dqtApiClient)
     {
         _dbContext = dbContext;
+        _linkGenerator = linkGenerator;
         _clock = clock;
         _dqtApiClient = dqtApiClient;
     }
 
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
+
     [FromQuery(Name = "dateOfBirth")]
     public ProtectedString? DateOfBirth { get; set; }
     public DateOnly NewDateOfBirth { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
-    public string? SafeReturnUrl { get; set; }
-
 
     public void OnGet()
     {
@@ -40,7 +40,7 @@ public class Confirm : PageModel
     public async Task<IActionResult> OnPost()
     {
         await UpdateUserDateOfBirth(User.GetUserId()!.Value);
-        return Redirect(SafeReturnUrl!);
+        return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
     private async Task UpdateUserDateOfBirth(Guid userId)
@@ -86,12 +86,11 @@ public class Confirm : PageModel
 
         if (DateOfBirth is null || !DateOnly.TryParse(DateOfBirth.PlainValue, out var newDateOfBirth))
         {
-            context.Result = new BadRequestResult();
+            context.Result = BadRequest();
             return;
         }
 
         NewDateOfBirth = newDateOfBirth;
-        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
 
         await next();
     }

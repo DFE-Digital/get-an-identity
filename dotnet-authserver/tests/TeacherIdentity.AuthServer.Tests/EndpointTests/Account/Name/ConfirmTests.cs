@@ -93,16 +93,13 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidForm_UpdatesNameEmitsEventAndRedirects()
+    public async Task Post_ValidForm_UpdatesNameEmitsEventAndRedirectsToAccountPage()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
-        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
-
-        var returnUrl = $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}";
+        var clientRedirectInfo = CreateClientRedirectInfo();
 
         var newFirstName = Faker.Name.First();
         var newLastName = Faker.Name.Last();
@@ -110,7 +107,7 @@ public class ConfirmTests : TestBase
         var protectedFirstName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newFirstName);
         var protectedLastName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newLastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}&lastName={UrlEncode(protectedLastName.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}&lastName={UrlEncode(protectedLastName.EncryptedValue)}&{clientRedirectInfo.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -120,7 +117,7 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(returnUrl, response.Headers.Location?.OriginalString);
+        Assert.Equal($"/account?{clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         Assert.Equal(newFirstName, user.FirstName);

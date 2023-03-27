@@ -21,6 +21,8 @@ public class Resend : BaseEmailPageModel
         _protectedStringFactory = protectedStringFactory;
     }
 
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
+
     [BindProperty]
     [Display(Name = "Email address")]
     [Required(ErrorMessage = "Enter your new email address")]
@@ -29,9 +31,6 @@ public class Resend : BaseEmailPageModel
 
     [FromQuery(Name = "email")]
     public ProtectedString? Email { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
 
     public void OnGet()
     {
@@ -65,14 +64,14 @@ public class Resend : BaseEmailPageModel
 
         var protectedEmail = _protectedStringFactory.CreateFromPlainValue(NewEmail!);
 
-        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ReturnUrl));
+        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
         if (Email is null)
         {
-            context.Result = new BadRequestResult();
+            context.Result = BadRequest();
         }
     }
 }

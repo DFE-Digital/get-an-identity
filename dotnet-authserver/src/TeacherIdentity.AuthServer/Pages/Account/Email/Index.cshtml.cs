@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -22,14 +22,13 @@ public class EmailPage : BaseEmailPageModel
         _protectedStringFactory = protectedStringFactory;
     }
 
+    [BindNever]
+    public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
+
     [Display(Name = "Email address", Description = "We’ll use this to send you a code to confirm your email address. Do not use a work or university email that you might lose access to.")]
     [Required(ErrorMessage = "Enter your new email address")]
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
     public string? Email { get; set; }
-
-    [FromQuery(Name = "returnUrl")]
-    public string? ReturnUrl { get; set; }
-    public string? SafeReturnUrl { get; set; }
 
     public void OnGet()
     {
@@ -62,11 +61,6 @@ public class EmailPage : BaseEmailPageModel
 
         var protectedEmail = _protectedStringFactory.CreateFromPlainValue(Email!);
 
-        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ReturnUrl));
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        SafeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ? ReturnUrl : "/account";
+        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ClientRedirectInfo));
     }
 }

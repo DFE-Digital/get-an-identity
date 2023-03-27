@@ -1,3 +1,6 @@
+using Flurl;
+using Microsoft.AspNetCore.DataProtection;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account;
@@ -29,4 +32,17 @@ public partial class TestBase
     public HttpClient HttpClient { get; }
 
     public SpyRegistry SpyRegistry => HostFixture.SpyRegistry;
+
+    public ClientRedirectInfo CreateClientRedirectInfo() => CreateClientRedirectInfo(TestClients.Client1);
+
+    public ClientRedirectInfo CreateClientRedirectInfo(TeacherIdentityApplicationDescriptor client)
+    {
+        var dataProtectionProvider = HostFixture.Services.GetRequiredService<IDataProtectionProvider>();
+        var dataProtector = dataProtectionProvider.CreateProtector(nameof(ClientRedirectInfo));
+
+        var clientId = client.ClientId!;
+        string redirectUri = new Url(client.RedirectUris.First()).RemoveQuery();
+
+        return new(dataProtector, clientId, redirectUri);
+    }
 }
