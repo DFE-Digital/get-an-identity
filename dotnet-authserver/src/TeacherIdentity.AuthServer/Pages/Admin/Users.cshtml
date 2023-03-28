@@ -91,7 +91,7 @@
                         {
                             <tr class="govuk-table__row" data-testid="user-@user.UserId">
                                 <td class="govuk-table__cell"><a asp-page="User" asp-route-userId="@user.UserId">@user.Name</a></td>
-                                <td class="govuk-table__cell">@user.EmailAddress</td>
+                                <td class="govuk-table__cell empty-hyphens">@Html.ShyEmail(user.EmailAddress)</td>
                                 @if (user.Trn is null)
                                 {
                                     <td class="govuk-table__cell"><a asp-page="AssignTrn/Trn" asp-route-userId="@user.UserId">Add a DQT record</a></td>
