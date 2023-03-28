@@ -17,5 +17,6 @@ public enum ClientUpdatedEventChanges
     RedirectUris = 1 << 3,
     PostLogoutRedirectUris = 1 << 4,
     Scopes = 1 << 5,
-    GrantTypes = 1 << 6
+    GrantTypes = 1 << 6,
+    TrnRequirementType = 1 << 7,
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -12,9 +13,11 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230328143648_ApplicationTrnRequirementType")]
+    partial class ApplicationTrnRequirementType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -491,45 +494,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasDatabaseName("ix_tokens_application_id_status_subject_type");
 
                     b.ToTable("tokens", (string)null);
-                });
-
-            modelBuilder.Entity("TeacherIdentity.AuthServer.Models.TrnTokenModel", b =>
-                {
-                    b.Property<string>("TrnToken")
-                        .HasMaxLength(128)
-                        .HasColumnType("character(128)")
-                        .HasColumnName("trn_token")
-                        .IsFixedLength();
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_utc");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("email")
-                        .UseCollation("case_insensitive");
-
-                    b.Property<DateTime>("ExpiresUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_utc");
-
-                    b.Property<string>("Trn")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .HasColumnType("character(7)")
-                        .HasColumnName("trn")
-                        .IsFixedLength();
-
-                    b.HasKey("TrnToken")
-                        .HasName("pk_trn_tokens");
-
-                    b.HasIndex("Email")
-                        .HasDatabaseName("ix_trn_tokens_email_address");
-
-                    b.ToTable("trn_tokens", (string)null);
                 });
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.User", b =>

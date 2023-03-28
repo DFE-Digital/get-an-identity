@@ -23,7 +23,11 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
     {
         await base.PopulateAsync(application, descriptor, cancellationToken);
 
-        await Store.SetServiceUrlAsync(application, (descriptor as TeacherIdentityApplicationDescriptor)?.ServiceUrl);
+        if (descriptor is TeacherIdentityApplicationDescriptor teacherIdentityApplicationDescriptor)
+        {
+            await Store.SetServiceUrlAsync(application, teacherIdentityApplicationDescriptor.ServiceUrl);
+            await Store.SetTrnRequirementTypeAsync(application, teacherIdentityApplicationDescriptor.TrnRequirementType);
+        }
     }
 
     public override async ValueTask PopulateAsync(OpenIddictApplicationDescriptor descriptor, Application application, CancellationToken cancellationToken = default)
@@ -33,6 +37,7 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         if (descriptor is TeacherIdentityApplicationDescriptor teacherIdentityApplicationDescriptor)
         {
             teacherIdentityApplicationDescriptor.ServiceUrl = await Store.GetServiceUrlAsync(application);
+            teacherIdentityApplicationDescriptor.TrnRequirementType = await Store.GetTrnRequirementTypeAsync(application);
         }
     }
 

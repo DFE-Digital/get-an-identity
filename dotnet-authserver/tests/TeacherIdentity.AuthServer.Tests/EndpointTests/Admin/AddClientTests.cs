@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
@@ -95,6 +96,7 @@ public class AddClientTests : TestBase
         var clientSecret = "s3cret";
         var displayName = Faker.Company.Name();
         var serviceUrl = $"https://{Faker.Internet.DomainName()}/";
+        var trnRequirementType = TrnRequirementType.Required;
         var redirectUri1 = serviceUrl + "/callback";
         var redirectUri2 = serviceUrl + "/callback2";
         var postLogoutRedirectUri1 = serviceUrl + "/logout-callback";
@@ -110,6 +112,7 @@ public class AddClientTests : TestBase
                 { "ClientSecret", clientSecret },
                 { "DisplayName", displayName },
                 { "ServiceUrl", serviceUrl },
+                { "TrnRequired", trnRequirementType == TrnRequirementType.Required },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { redirectUri1, redirectUri2 }) },
                 { "PostLogoutRedirectUris", string.Join("\n", new[] { postLogoutRedirectUri1, postLogoutRedirectUri2 }) },
@@ -133,6 +136,7 @@ public class AddClientTests : TestBase
         Assert.Equal(clientId, application!.ClientId);
         Assert.Equal(displayName, application.DisplayName);
         Assert.Equal(serviceUrl, application.ServiceUrl);
+        Assert.Equal(trnRequirementType, application.TrnRequirementType);
         Assert.Collection(
             await applicationStore.GetRedirectUrisAsync(application, CancellationToken.None),
             uri => Assert.Equal(redirectUri1, uri),
@@ -158,6 +162,7 @@ public class AddClientTests : TestBase
                 Assert.Equal(clientId, clientAdded.Client.ClientId);
                 Assert.Equal(displayName, clientAdded.Client.DisplayName);
                 Assert.Equal(serviceUrl, clientAdded.Client.ServiceUrl);
+                Assert.Equal(trnRequirementType, clientAdded.Client.TrnRequirementType);
                 Assert.Collection(
                     clientAdded.Client.RedirectUris,
                     uri => Assert.Equal(redirectUri1, uri),

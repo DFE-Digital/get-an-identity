@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
@@ -38,6 +39,9 @@ public class AddClientModel : PageModel
 
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
+
+    [Display(Name = "TRN required", Description = "Whether the client requires a TRN")]
+    public bool? TrnRequired { get; set; }
 
     public bool EnableAuthorizationCodeFlow { get; set; }
 
@@ -100,6 +104,7 @@ public class AddClientModel : PageModel
             ClientSecret!,
             DisplayName!,
             ServiceUrl!,
+            TrnRequired == true ? TrnRequirementType.Required : TrnRequirementType.Optional,
             EnableAuthorizationCodeFlow,
             EnableClientCredentialsFlow,
             RedirectUris,

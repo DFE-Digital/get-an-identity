@@ -7,6 +7,7 @@ using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
@@ -40,6 +41,9 @@ public class EditClientModel : PageModel
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
 
+    [Display(Name = "TRN required")]
+    public TrnRequirementType? TrnRequired { get; set; }
+
     public bool EnableAuthorizationCodeFlow { get; set; }
 
     public bool EnableClientCredentialsFlow { get; set; }
@@ -64,6 +68,7 @@ public class EditClientModel : PageModel
 
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
+        TrnRequired = client.TrnRequirementType;
         EnableAuthorizationCodeFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         EnableClientCredentialsFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
         RedirectUris = client.GetRedirectUris();
@@ -150,6 +155,12 @@ public class EditClientModel : PageModel
         await _applicationStore.SetRedirectUrisAsync(client, RedirectUris.ToImmutableArray(), CancellationToken.None);
         await _applicationStore.SetPostLogoutRedirectUrisAsync(client, PostLogoutRedirectUris.ToImmutableArray(), CancellationToken.None);
         await _applicationStore.SetPermissionsAsync(client, permissions, CancellationToken.None);
+
+        if (TrnRequired is not null && TrnRequired != client.TrnRequirementType)
+        {
+            changes |= ClientUpdatedEventChanges.TrnRequirementType;
+            await _applicationStore.SetTrnRequirementTypeAsync(client, (TrnRequirementType)TrnRequired);
+        }
 
         if (!string.IsNullOrEmpty(ClientSecret))
         {

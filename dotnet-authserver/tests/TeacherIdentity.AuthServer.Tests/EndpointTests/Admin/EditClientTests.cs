@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
@@ -48,7 +49,7 @@ public class EditClientTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var clientId = await CreateClient();
+        var clientId = (await CreateClient()).ClientId;
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/clients/{clientId}");
 
@@ -94,11 +95,15 @@ public class EditClientTests : TestBase
     public async Task Post_ValidRequest_UpdatesClientEmitsEventAndRedirects()
     {
         // Arrange
-        var clientId = await CreateClient();
+        var client = await CreateClient();
+        var clientId = client.ClientId;
 
         var newClientSecret = "s3cret";
         var newDisplayName = Faker.Company.Name();
         var newServiceUrl = $"https://{Faker.Internet.DomainName()}/";
+        var newTrnRequirementType = client.TrnRequirementType != TrnRequirementType.Required
+            ? TrnRequirementType.Required
+            : TrnRequirementType.Optional;
         var newRedirectUri1 = newServiceUrl + "/callback";
         var newRedirectUri2 = newServiceUrl + "/callback2";
         var newPostLogoutRedirectUri1 = newServiceUrl + "/logout-callback";
@@ -113,6 +118,7 @@ public class EditClientTests : TestBase
                 { "ClientSecret", newClientSecret },
                 { "DisplayName", newDisplayName },
                 { "ServiceUrl", newServiceUrl },
+                { "TrnRequired", newTrnRequirementType },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { newRedirectUri1, newRedirectUri2 }) },
                 { "PostLogoutRedirectUris", string.Join("\n", new[] { newPostLogoutRedirectUri1, newPostLogoutRedirectUri2 }) },
@@ -135,6 +141,7 @@ public class EditClientTests : TestBase
         Assert.Equal(clientId, application!.ClientId);
         Assert.Equal(newDisplayName, application.DisplayName);
         Assert.Equal(newServiceUrl, application.ServiceUrl);
+        Assert.Equal(newTrnRequirementType, application.TrnRequirementType);
         Assert.Collection(
             await applicationStore.GetRedirectUrisAsync(application, CancellationToken.None),
             uri => Assert.Equal(newRedirectUri1, uri),
@@ -157,6 +164,7 @@ public class EditClientTests : TestBase
                 Assert.Equal(TestUsers.AdminUserWithAllRoles.UserId, clientUpdated.UpdatedByUserId);
                 Assert.Equal(Clock.UtcNow, clientUpdated.CreatedUtc);
                 Assert.Equal(newDisplayName, clientUpdated.Client.DisplayName);
+                Assert.Equal(newTrnRequirementType, clientUpdated.Client.TrnRequirementType);
                 Assert.Collection(
                     clientUpdated.Client.RedirectUris,
                     uri => Assert.Equal(newRedirectUri1, uri),
@@ -174,12 +182,13 @@ public class EditClientTests : TestBase
                         ClientUpdatedEventChanges.ServiceUrl |
                         ClientUpdatedEventChanges.RedirectUris |
                         ClientUpdatedEventChanges.PostLogoutRedirectUris |
-                        ClientUpdatedEventChanges.Scopes,
+                        ClientUpdatedEventChanges.Scopes |
+                        ClientUpdatedEventChanges.TrnRequirementType,
                     clientUpdated.Changes);
             });
     }
 
-    private async Task<string> CreateClient()
+    private async Task<TeacherIdentityApplicationDescriptor> CreateClient()
     {
         var clientId = RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
         var clientSecret = Guid.NewGuid().ToString();
@@ -189,19 +198,21 @@ public class EditClientTests : TestBase
         var postLogoutRedirectUri1 = serviceUrl + "/logout-callback";
         var scope1 = CustomScopes.UserRead;
 
-        var appManager = HostFixture.Services.GetRequiredService<TeacherIdentityApplicationManager>();
-        await appManager.CreateAsync(
-            TeacherIdentityApplicationDescriptor.Create(
-                clientId,
-                clientSecret,
-                displayName,
-                serviceUrl,
-                enableAuthorizationCodeGrant: true,
-                enableClientCredentialsGrant: false,
-                new[] { redirectUri1 },
-                new[] { postLogoutRedirectUri1 },
-                new[] { scope1 }));
+        var teacherIdentityApplicationDescriptor = TeacherIdentityApplicationDescriptor.Create(
+            clientId,
+            clientSecret,
+            displayName,
+            serviceUrl,
+            TrnRequirementType.Required,
+            enableAuthorizationCodeGrant: true,
+            enableClientCredentialsGrant: false,
+            new[] { redirectUri1 },
+            new[] { postLogoutRedirectUri1 },
+            new[] { scope1 });
 
-        return clientId;
+        var appManager = HostFixture.Services.GetRequiredService<TeacherIdentityApplicationManager>();
+        await appManager.CreateAsync(teacherIdentityApplicationDescriptor);
+
+        return teacherIdentityApplicationDescriptor;
     }
 }

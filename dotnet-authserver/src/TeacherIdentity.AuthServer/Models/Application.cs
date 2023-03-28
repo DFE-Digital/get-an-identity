@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.Json;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
@@ -9,6 +10,9 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
     private const string EmptyJsonArray = "[]";
 
     public string? ServiceUrl { get; set; }
+
+    [DefaultValue(TrnRequirementType.Legacy)]
+    public TrnRequirementType TrnRequirementType { get; set; }
 
     public string[] GetGrantTypes() => GetPermissions()
         .Where(p => p.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType))

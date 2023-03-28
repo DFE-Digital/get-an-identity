@@ -17,6 +17,13 @@
     <govuk-input asp-for="ServiceUrl" type="url" />
     <govuk-input asp-for="ClientSecret" input-class="govuk-input--width-20" />
 
+    <govuk-checkboxes asp-for="TrnRequired">
+        <govuk-checkboxes-fieldset>
+            <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m">TRN</govuk-checkboxes-fieldset-legend>
+            <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.TrnRequired)</govuk-checkboxes-item>
+        </govuk-checkboxes-fieldset>
+    </govuk-checkboxes>
+
     <h3 class="govuk-heading-m">Grants</h3>
 
     <govuk-checkboxes asp-for="EnableAuthorizationCodeFlow">
