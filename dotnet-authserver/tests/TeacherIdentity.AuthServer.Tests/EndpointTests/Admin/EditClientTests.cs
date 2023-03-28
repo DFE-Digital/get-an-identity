@@ -135,7 +135,7 @@ public class EditClientTests : TestBase
 
         using var scope = HostFixture.Services.CreateScope();
         var applicationStore = scope.ServiceProvider.GetRequiredService<TeacherIdentityApplicationStore>();
-        var application = await applicationStore.FindByClientIdAsync(clientId, CancellationToken.None);
+        var application = await applicationStore.FindByClientIdAsync(clientId!, CancellationToken.None);
 
         Assert.NotNull(application);
         Assert.Equal(clientId, application!.ClientId);
