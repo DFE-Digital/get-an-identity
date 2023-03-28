@@ -1,7 +1,7 @@
 using System.Net;
 using TeacherIdentity.AuthServer.Oidc;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.Users;
 
 [Collection(nameof(DisableParallelization))]
 public class GetAllUsersTests : TestBase, IAsyncLifetime

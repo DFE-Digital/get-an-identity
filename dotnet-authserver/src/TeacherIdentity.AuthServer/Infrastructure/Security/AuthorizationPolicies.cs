@@ -9,4 +9,5 @@ public static class AuthorizationPolicies
     public const string GetAnIdentitySupport = "GetAnIdentitySupport";
     public const string Staff = "Staff";
     public const string TrnLookupApi = "API:TrnLookup";
+    public const string TrnTokenApi = "API:TrnToken";
 }

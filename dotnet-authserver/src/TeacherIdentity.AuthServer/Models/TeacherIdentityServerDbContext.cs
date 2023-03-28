@@ -50,6 +50,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<EstablishmentDomain> EstablishmentDomains => Set<EstablishmentDomain>();
 
+    public DbSet<TrnTokenModel> TrnTokens => Set<TrnTokenModel>();
+
     public void AddEvent(EventBase @event)
     {
         Events.Add(Event.FromEventBase(@event));

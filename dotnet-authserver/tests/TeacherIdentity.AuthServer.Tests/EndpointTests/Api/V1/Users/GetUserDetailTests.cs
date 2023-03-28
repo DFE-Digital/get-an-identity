@@ -1,6 +1,6 @@
 using TeacherIdentity.AuthServer.Oidc;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.Users;
 
 public class GetUserDetailTests : TestBase
 {

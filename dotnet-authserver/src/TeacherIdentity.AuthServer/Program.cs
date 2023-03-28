@@ -240,6 +240,12 @@ public class Program
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
+                AuthorizationPolicies.TrnTokenApi,
+                policy => policy
+                    .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
+                    .RequireAuthenticatedUser());
+
+            options.AddPolicy(
                 AuthorizationPolicies.ApiUserRead,
                 policy => policy
                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
