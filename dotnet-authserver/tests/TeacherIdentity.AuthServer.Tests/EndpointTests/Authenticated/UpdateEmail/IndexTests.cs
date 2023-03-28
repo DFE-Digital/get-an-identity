@@ -179,7 +179,7 @@ public class IndexTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            if (await dbContext.EstablishmentDomains.FirstOrDefaultAsync(e => e.DomainName == invalidSuffix) == null)
+            try
             {
                 var establishmentDomain = new EstablishmentDomain
                 {
@@ -188,6 +188,9 @@ public class IndexTests : TestBase
 
                 dbContext.EstablishmentDomains.Add(establishmentDomain);
                 await dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
+            {
             }
         });
 
