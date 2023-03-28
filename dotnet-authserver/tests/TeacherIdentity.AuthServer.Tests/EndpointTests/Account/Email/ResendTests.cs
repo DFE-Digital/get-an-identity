@@ -190,7 +190,7 @@ public class ResendTests : TestBase
 
         await TestData.WithDbContext(async dbContext =>
         {
-            if (await dbContext.EstablishmentDomains.FirstOrDefaultAsync(e => e.DomainName == invalidSuffix) == null)
+            try
             {
                 var establishmentDomain = new EstablishmentDomain
                 {
@@ -199,6 +199,9 @@ public class ResendTests : TestBase
 
                 dbContext.EstablishmentDomains.Add(establishmentDomain);
                 await dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
+            {
             }
         });
 
