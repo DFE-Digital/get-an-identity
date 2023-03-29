@@ -10,12 +10,12 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;

@@ -8,9 +8,9 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [BindProperties]
 public class Name : PageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private IdentityLinkGenerator _linkGenerator;
 
-    public Name(IIdentityLinkGenerator linkGenerator)
+    public Name(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }

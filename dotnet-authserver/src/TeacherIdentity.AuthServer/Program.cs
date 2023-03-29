@@ -150,7 +150,7 @@ public class Program
                         ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
                     }
 
-                    var linkGenerator = ctx.HttpContext.RequestServices.GetRequiredService<IIdentityLinkGenerator>();
+                    var linkGenerator = ctx.HttpContext.RequestServices.GetRequiredService<IdentityLinkGenerator>();
                     ctx.Response.Redirect(authenticationState.GetNextHopUrl(linkGenerator));
 
                     return Task.CompletedTask;
@@ -471,7 +471,7 @@ public class Program
             .AddSingleton<IClock, SystemClock>()
             .AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>()
             .AddTransient<IRequestClientIpProvider, RequestClientIpProvider>()
-            .AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>()
+            .AddSingleton<IdentityLinkGenerator, MvcIdentityLinkGenerator>()
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()

@@ -8,10 +8,10 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 [BindProperties]
 public class Name : PageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly ProtectedStringFactory _protectedStringFactory;
 
-    public Name(IIdentityLinkGenerator linkGenerator, ProtectedStringFactory protectedStringFactory)
+    public Name(IdentityLinkGenerator linkGenerator, ProtectedStringFactory protectedStringFactory)
     {
         _linkGenerator = linkGenerator;
         _protectedStringFactory = protectedStringFactory;

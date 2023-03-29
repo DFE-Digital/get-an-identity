@@ -8,9 +8,9 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [AllowCompletedAuthenticationJourney]
 public class EmailExists : PageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private IdentityLinkGenerator _linkGenerator;
 
-    public EmailExists(IIdentityLinkGenerator linkGenerator)
+    public EmailExists(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }

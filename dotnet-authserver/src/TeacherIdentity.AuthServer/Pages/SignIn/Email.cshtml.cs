@@ -12,7 +12,7 @@ public class EmailModel : BaseEmailPageModel
 {
     public EmailModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     {

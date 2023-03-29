@@ -14,7 +14,7 @@ public class IndexModel : BaseEmailPageModel
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         ProtectedStringFactory protectedStringFactory,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
         : base(userVerificationService, linkGenerator, dbContext)
     {
         _protectedStringFactory = protectedStringFactory;

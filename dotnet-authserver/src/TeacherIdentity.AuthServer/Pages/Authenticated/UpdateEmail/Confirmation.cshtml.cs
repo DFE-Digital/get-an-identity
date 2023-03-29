@@ -14,14 +14,14 @@ public class ConfirmationModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserVerificationService _userVerificationService;
     private readonly PinValidator _pinValidator;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public ConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;

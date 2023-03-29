@@ -8,9 +8,9 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class ResetModel : PageModel
 {
     private readonly IClock _clock;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
-    public ResetModel(IClock clock, IIdentityLinkGenerator linkGenerator)
+    public ResetModel(IClock clock, IdentityLinkGenerator linkGenerator)
     {
         _clock = clock;
         _linkGenerator = linkGenerator;

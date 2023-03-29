@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Tests.Infrastructure;
 
-public class TestIdentityLinkGenerator : IIdentityLinkGenerator
+public class TestIdentityLinkGenerator : IdentityLinkGenerator
 {
     private readonly AuthenticationState _authenticationState;
     private readonly LinkGenerator _linkGenerator;
@@ -16,7 +16,7 @@ public class TestIdentityLinkGenerator : IIdentityLinkGenerator
         _linkGenerator = linkGenerator;
     }
 
-    public string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
+    protected override string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
     {
         return new Url(_linkGenerator.GetPathByPage(pageName))
             .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, _authenticationState.JourneyId);

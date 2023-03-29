@@ -6,9 +6,9 @@ namespace TeacherIdentity.AuthServer.Oidc;
 
 public class ProcessAuthorizationResponseHandler : IOpenIddictServerHandler<ApplyAuthorizationResponseContext>
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
-    public ProcessAuthorizationResponseHandler(IIdentityLinkGenerator linkGenerator)
+    public ProcessAuthorizationResponseHandler(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }

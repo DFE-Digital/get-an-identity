@@ -14,12 +14,12 @@ public sealed class AuthenticationStateHelper
 {
     private readonly Guid _journeyId;
     private readonly TestAuthenticationStateProvider _authenticationStateProvider;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     private AuthenticationStateHelper(
         Guid journeyId,
         TestAuthenticationStateProvider authenticationStateProvider,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _journeyId = journeyId;
         _authenticationStateProvider = authenticationStateProvider;

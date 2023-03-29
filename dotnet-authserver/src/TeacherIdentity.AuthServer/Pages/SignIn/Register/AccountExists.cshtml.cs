@@ -13,7 +13,7 @@ public class AccountExists : BaseExistingEmailPageModel
     private readonly IClock _clock;
 
     public AccountExists(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         IClock clock) :

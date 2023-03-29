@@ -8,11 +8,11 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 public class Phone : BasePhonePageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public Phone(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {

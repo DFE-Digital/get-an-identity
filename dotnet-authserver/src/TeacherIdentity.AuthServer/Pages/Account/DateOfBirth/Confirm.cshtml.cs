@@ -11,13 +11,13 @@ namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
     private readonly IDqtApiClient _dqtApiClient;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock,
         IDqtApiClient dqtApiClient)
     {

@@ -8,11 +8,11 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 public class ResendPhoneConfirmationModel : BasePhonePageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private IdentityLinkGenerator _linkGenerator;
 
     public ResendPhoneConfirmationModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {

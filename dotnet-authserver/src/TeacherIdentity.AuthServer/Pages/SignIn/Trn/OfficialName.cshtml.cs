@@ -9,7 +9,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 [RequireAuthenticationMilestone(AuthenticationMilestone.EmailVerified)]
 public class OfficialName : TrnLookupPageModel
 {
-    public OfficialName(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+    public OfficialName(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
         : base(linkGenerator, trnLookupHelper)
     {
     }

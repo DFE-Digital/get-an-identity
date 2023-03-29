@@ -11,11 +11,11 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 public class PhonePage : BasePhonePageModel
 {
     private readonly ProtectedStringFactory _protectedStringFactory;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public PhonePage(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         ProtectedStringFactory protectedStringFactory) :
         base(userVerificationService, dbContext)

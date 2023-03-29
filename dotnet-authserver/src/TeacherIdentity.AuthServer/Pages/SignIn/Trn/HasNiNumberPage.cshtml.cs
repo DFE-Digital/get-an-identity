@@ -8,7 +8,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class HasNiNumberPage : TrnLookupPageModel
 {
-    public HasNiNumberPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+    public HasNiNumberPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
         : base(linkGenerator, trnLookupHelper)
     {
     }

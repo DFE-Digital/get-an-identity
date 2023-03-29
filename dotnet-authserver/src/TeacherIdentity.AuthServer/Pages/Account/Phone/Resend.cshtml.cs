@@ -10,11 +10,11 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 public class Resend : BasePhonePageModel
 {
     private ProtectedStringFactory _protectedStringFactory;
-    private IIdentityLinkGenerator _linkGenerator;
+    private IdentityLinkGenerator _linkGenerator;
 
     public Resend(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         ProtectedStringFactory protectedStringFactory) :
         base(userVerificationService, dbContext)

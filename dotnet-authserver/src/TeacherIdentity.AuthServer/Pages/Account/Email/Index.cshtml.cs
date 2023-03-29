@@ -14,7 +14,7 @@ public class EmailPage : BaseEmailPageModel
 
     public EmailPage(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         ProtectedStringFactory protectedStringFactory) :
         base(userVerificationService, linkGenerator, dbContext)

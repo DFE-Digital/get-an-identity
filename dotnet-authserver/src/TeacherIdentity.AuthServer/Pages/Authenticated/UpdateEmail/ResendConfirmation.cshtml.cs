@@ -8,11 +8,11 @@ namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 public class ResendConfirmationModel : PageModel
 {
     private readonly IUserVerificationService _userVerificationService;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public ResendConfirmationModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _userVerificationService = userVerificationService;
         _linkGenerator = linkGenerator;

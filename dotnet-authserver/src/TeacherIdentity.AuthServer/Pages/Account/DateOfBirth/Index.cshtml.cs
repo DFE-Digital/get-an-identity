@@ -12,13 +12,13 @@ namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 [BindProperties]
 public class DateOfBirthPage : PageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly ProtectedStringFactory _protectedStringFactory;
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
 
     public DateOfBirthPage(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         ProtectedStringFactory protectedStringFactory,
         TeacherIdentityServerDbContext dbContext,
         IDqtApiClient dqtApiClient)

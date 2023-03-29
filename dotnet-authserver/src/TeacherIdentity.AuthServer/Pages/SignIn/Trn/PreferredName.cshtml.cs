@@ -9,9 +9,9 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class PreferredName : PageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
-    public PreferredName(IIdentityLinkGenerator linkGenerator)
+    public PreferredName(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }

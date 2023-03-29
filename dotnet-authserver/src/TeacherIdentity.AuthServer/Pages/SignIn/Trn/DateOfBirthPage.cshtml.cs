@@ -8,7 +8,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class DateOfBirthPage : TrnLookupPageModel
 {
-    public DateOfBirthPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+    public DateOfBirthPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
         : base(linkGenerator, trnLookupHelper)
     {
     }

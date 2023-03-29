@@ -7,11 +7,11 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 public class ResendExistingAccountPhone : BaseExistingPhonePageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private IdentityLinkGenerator _linkGenerator;
 
     public ResendExistingAccountPhone(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator) :
+        IdentityLinkGenerator linkGenerator) :
         base(userVerificationService)
     {
         _linkGenerator = linkGenerator;

@@ -8,9 +8,9 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [AllowCompletedAuthenticationJourney]
 public class PhoneExists : PageModel
 {
-    private IIdentityLinkGenerator _linkGenerator;
+    private IdentityLinkGenerator _linkGenerator;
 
-    public PhoneExists(IIdentityLinkGenerator linkGenerator)
+    public PhoneExists(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
     }

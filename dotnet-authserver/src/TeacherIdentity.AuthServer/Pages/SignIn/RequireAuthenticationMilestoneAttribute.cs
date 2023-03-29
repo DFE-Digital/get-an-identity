@@ -25,7 +25,7 @@ public class RequireAuthenticationMilestoneAttribute : Attribute, IPageFilter, I
 
         if (authenticationState.GetLastMilestone() != Milestone)
         {
-            var linkGenerator = context.HttpContext.RequestServices.GetRequiredService<IIdentityLinkGenerator>();
+            var linkGenerator = context.HttpContext.RequestServices.GetRequiredService<IdentityLinkGenerator>();
             context.Result = new RedirectResult(authenticationState.GetNextHopUrl(linkGenerator));
         }
     }

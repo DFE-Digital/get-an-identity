@@ -13,7 +13,7 @@ public class Resend : BaseEmailPageModel
 
     public Resend(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         ProtectedStringFactory protectedStringFactory) :
         base(userVerificationService, linkGenerator, dbContext)

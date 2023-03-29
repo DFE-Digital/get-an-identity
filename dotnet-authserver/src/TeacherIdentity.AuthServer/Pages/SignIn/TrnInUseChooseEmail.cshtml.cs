@@ -12,12 +12,12 @@ public class TrnInUseChooseEmailModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public TrnInUseChooseEmailModel(
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _dbContext = dbContext;
         _clock = clock;

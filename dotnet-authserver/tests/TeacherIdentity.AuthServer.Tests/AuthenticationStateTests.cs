@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Flurl;
+using Moq.Protected;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -223,11 +224,11 @@ public partial class AuthenticationStateTests
         AuthenticationState.AuthenticationMilestone expectedMilestone)
     {
         // Arrange
-        var linkGenerator = new Mock<IIdentityLinkGenerator>();
+        var linkGenerator = new Mock<IdentityLinkGenerator>();
 
         void ConfigureMockForPage(string pageName, string returnsPath)
         {
-            linkGenerator.Setup(mock => mock.PageWithAuthenticationJourneyId(pageName, /* authenticationJourneyRequired: */ true))
+            linkGenerator.Protected().Setup<string>("PageWithAuthenticationJourneyId", pageName, /* authenticationJourneyRequired: */ true)
                 .Returns(returnsPath.SetQueryParam("asid", authenticationState.JourneyId.ToString()));
         }
 
