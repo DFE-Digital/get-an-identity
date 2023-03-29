@@ -36,7 +36,8 @@ public class ConfirmationModel : PageModel
     public string? Code { get; set; }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    [VerifyInSignature]
+    public string? Email { get; set; }
 
     [FromQuery(Name = "cancelUrl")]
     public string? CancelUrl { get; set; }
@@ -58,7 +59,7 @@ public class ConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        var VerifyEmailPinFailedReasons = await _userVerificationService.VerifyEmailPin(Email!.PlainValue, Code!);
+        var VerifyEmailPinFailedReasons = await _userVerificationService.VerifyEmailPin(Email!, Code!);
 
         if (VerifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -73,7 +74,7 @@ public class ConfirmationModel : PageModel
 
             if (VerifyEmailPinFailedReasons.ShouldGenerateAnotherCode())
             {
-                var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
+                var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!);
 
                 if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
                 {
@@ -106,9 +107,9 @@ public class ConfirmationModel : PageModel
             ReturnUrl :
             "/";
 
-        if (user.EmailAddress != Email.PlainValue)
+        if (user.EmailAddress != Email)
         {
-            user.EmailAddress = Email.PlainValue;
+            user.EmailAddress = Email!;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new Events.UserUpdatedEvent()
@@ -125,7 +126,7 @@ public class ConfirmationModel : PageModel
 
             if (HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
-                authenticationState.OnEmailChanged(Email!.PlainValue);
+                authenticationState.OnEmailChanged(Email!);
 
                 // If we're inside an OAuth journey we need to redirect back to the authorize endpoint so the
                 // OpenIddict auth handler can SignIn again with the revised user details

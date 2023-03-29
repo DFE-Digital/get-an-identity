@@ -19,7 +19,8 @@ public class ResendConfirmationModel : PageModel
     }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    [VerifyInSignature]
+    public string? Email { get; set; }
 
     [FromQuery(Name = "cancelUrl")]
     public string? CancelUrl { get; set; }
@@ -33,7 +34,7 @@ public class ResendConfirmationModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!);
 
         if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
         {

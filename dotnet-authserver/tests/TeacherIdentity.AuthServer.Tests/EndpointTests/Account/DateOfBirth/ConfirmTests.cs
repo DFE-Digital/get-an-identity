@@ -2,7 +2,6 @@ using System.Text.Encodings.Web;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
-using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.DateOfBirth;
 
@@ -17,7 +16,9 @@ public class ConfirmTests : TestBase
     public async Task Get_NoDateOfBirth_ReturnsBadRequest()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/date-of-birth/confirm");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm", "dateOfBirth"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -30,10 +31,11 @@ public class ConfirmTests : TestBase
     public async Task Get_InvalidDateOfBirth_ReturnsBadRequest()
     {
         // Arrange
-        var dateOfBirthString = "";
-        var protectedDateOfBirthString = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(dateOfBirthString);
+        var dateOfBirth = (DateOnly?)null;
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(protectedDateOfBirthString.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(dateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty)}", "dateOfBirth"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -47,9 +49,9 @@ public class ConfirmTests : TestBase
     {
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var protectedDateOfBirth = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(dateOfBirth.ToString());
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(protectedDateOfBirth.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(dateOfBirth.ToString("yyyy-MM-dd"))}", "dateOfBirth"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -58,39 +60,13 @@ public class ConfirmTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, true)]
-    public async Task Post_DateOfBirthChangeDisabled_ReturnsBadRequest(bool hasDobConflict, bool hasPendingDobChange)
-    {
-        // Arrange
-        HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
-        MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasDobConflict, hasPendingDobChange);
-
-        var dateOfBirth = new DateOnly(2000, 1, 1);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "DateOfBirth.Day", dateOfBirth.Day.ToString() },
-                { "DateOfBirth.Month", dateOfBirth.Month.ToString() },
-                { "DateOfBirth.Year", dateOfBirth.Year.ToString() },
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-    }
-
     [Fact]
     public async Task Post_NoDateOfBirth_ReturnsBadRequest()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth/confirm");
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm", "dateOfBirth"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -109,9 +85,10 @@ public class ConfirmTests : TestBase
         var clientRedirectInfo = CreateClientRedirectInfo();
 
         var newDateOfBirth = new DateOnly(2000, 1, 1);
-        var protectedDateOfBirth = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newDateOfBirth.ToString());
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(protectedDateOfBirth.EncryptedValue)}&{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(newDateOfBirth.ToString("yyyy-MM-dd"))}&{clientRedirectInfo.ToQueryParam()}", "dateOfBirth"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -143,18 +120,4 @@ public class ConfirmTests : TestBase
     }
 
     private static string UrlEncode(string value) => UrlEncoder.Default.Encode(value);
-
-    private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDobChange)
-    {
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
-            {
-                DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!,
-                PendingDateOfBirthChange = hasPendingDobChange
-            });
-    }
 }

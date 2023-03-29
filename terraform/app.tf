@@ -54,7 +54,8 @@ locals {
       Zendesk__EndpointUri                         = lookup(local.infrastructure_secrets, "ZENDESK_ENDPOINT", ""),
       Zendesk__Token                               = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", ""),
       Zendesk__Username                            = lookup(local.infrastructure_secrets, "ZENDESK_USERNAME", ""),
-      Zendesk__UseFakeClient                       = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", "") == "" ? "true" : "false"
+      Zendesk__UseFakeClient                       = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", "") == "" ? "true" : "false",
+      QueryStringSignatureKey                      = local.infrastructure_secrets.QUERYSTRING_SIGNATURE_KEY
     }
   )
 

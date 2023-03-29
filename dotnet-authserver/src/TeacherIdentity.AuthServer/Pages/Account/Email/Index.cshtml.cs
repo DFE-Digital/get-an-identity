@@ -10,16 +10,12 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 [BindProperties]
 public class EmailPage : BaseEmailPageModel
 {
-    private readonly ProtectedStringFactory _protectedStringFactory;
-
     public EmailPage(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ProtectedStringFactory protectedStringFactory) :
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     {
-        _protectedStringFactory = protectedStringFactory;
     }
 
     [BindNever]
@@ -59,8 +55,6 @@ public class EmailPage : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        var protectedEmail = _protectedStringFactory.CreateFromPlainValue(Email!);
-
-        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ClientRedirectInfo));
+        return Redirect(LinkGenerator.AccountEmailConfirm(Email!, ClientRedirectInfo));
     }
 }

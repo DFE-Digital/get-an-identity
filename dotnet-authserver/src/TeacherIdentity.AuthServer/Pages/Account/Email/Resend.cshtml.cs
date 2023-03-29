@@ -9,16 +9,12 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 
 public class Resend : BaseEmailPageModel
 {
-    private ProtectedStringFactory _protectedStringFactory;
-
     public Resend(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ProtectedStringFactory protectedStringFactory) :
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     {
-        _protectedStringFactory = protectedStringFactory;
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
@@ -30,11 +26,12 @@ public class Resend : BaseEmailPageModel
     public string? NewEmail { get; set; }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    [VerifyInSignature]
+    public string? Email { get; set; }
 
     public void OnGet()
     {
-        NewEmail = Email!.PlainValue;
+        NewEmail = Email;
     }
 
     public async Task<IActionResult> OnPost()
@@ -62,9 +59,7 @@ public class Resend : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        var protectedEmail = _protectedStringFactory.CreateFromPlainValue(NewEmail!);
-
-        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ClientRedirectInfo));
+        return Redirect(LinkGenerator.AccountEmailConfirm(NewEmail!, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

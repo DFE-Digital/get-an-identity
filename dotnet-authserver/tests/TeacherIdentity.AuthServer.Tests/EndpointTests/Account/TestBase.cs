@@ -1,5 +1,6 @@
 using Flurl;
 using Microsoft.AspNetCore.DataProtection;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -44,5 +45,11 @@ public partial class TestBase
         string redirectUri = new Url(client.RedirectUris.First()).RemoveQuery();
 
         return new(dataProtector, clientId, redirectUri);
+    }
+
+    public string AppendQueryParameterSignature(Url url, params string[] parameterNames)
+    {
+        var queryStringSignatureHelper = HostFixture.Services.GetRequiredService<QueryStringSignatureHelper>();
+        return queryStringSignatureHelper.AppendSignature(url, parameterNames);
     }
 }

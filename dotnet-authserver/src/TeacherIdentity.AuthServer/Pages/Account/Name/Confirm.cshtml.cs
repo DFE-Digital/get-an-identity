@@ -26,10 +26,12 @@ public class Confirm : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "firstName")]
-    public ProtectedString? FirstName { get; set; }
+    [VerifyInSignature]
+    public string? FirstName { get; set; }
 
     [FromQuery(Name = "lastName")]
-    public ProtectedString? LastName { get; set; }
+    [VerifyInSignature]
+    public string? LastName { get; set; }
 
     public void OnGet()
     {
@@ -45,25 +47,22 @@ public class Confirm : PageModel
     {
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var newFirstName = FirstName!.PlainValue;
-        var newLastName = LastName!.PlainValue;
-
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (user.FirstName != newFirstName)
+        if (user.FirstName != FirstName)
         {
             changes |= UserUpdatedEventChanges.FirstName;
         }
 
-        if (user.LastName != newLastName)
+        if (user.LastName != LastName)
         {
             changes |= UserUpdatedEventChanges.LastName;
         }
 
         if (changes != UserUpdatedEventChanges.None)
         {
-            user.FirstName = newFirstName;
-            user.LastName = newLastName;
+            user.FirstName = FirstName!;
+            user.LastName = LastName!;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()

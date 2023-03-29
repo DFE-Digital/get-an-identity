@@ -14,7 +14,7 @@
         <form action="@LinkGenerator.AccountEmailConfirm(Model.Email!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
-            <p>A confirmation code has been sent to <span data-testid="email">@Model.Email!.PlainValue</span></p>
+            <p>A confirmation code has been sent to <span data-testid="email">@Model.Email</span></p>
 
             <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
                 <govuk-input-label class="govuk-label--s" />

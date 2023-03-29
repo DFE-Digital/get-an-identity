@@ -224,7 +224,7 @@ public partial class AuthenticationStateTests
         AuthenticationState.AuthenticationMilestone expectedMilestone)
     {
         // Arrange
-        var linkGenerator = new Mock<IdentityLinkGenerator>();
+        var linkGenerator = new Mock<IdentityLinkGenerator>(new Helpers.QueryStringSignatureHelper(key: "dummy"));
 
         void ConfigureMockForPage(string pageName, string returnsPath)
         {

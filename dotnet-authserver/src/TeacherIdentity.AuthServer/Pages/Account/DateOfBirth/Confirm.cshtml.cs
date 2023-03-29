@@ -30,8 +30,8 @@ public class Confirm : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "dateOfBirth")]
-    public ProtectedString? DateOfBirth { get; set; }
-    public DateOnly NewDateOfBirth { get; set; }
+    [VerifyInSignature]
+    public DateOnly? DateOfBirth { get; set; }
 
     public void OnGet()
     {
@@ -49,14 +49,14 @@ public class Confirm : PageModel
 
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (user.DateOfBirth != NewDateOfBirth)
+        if (user.DateOfBirth != DateOfBirth)
         {
             changes |= UserUpdatedEventChanges.DateOfBirth;
         }
 
         if (changes != UserUpdatedEventChanges.None)
         {
-            user.DateOfBirth = NewDateOfBirth;
+            user.DateOfBirth = DateOfBirth;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()
@@ -84,13 +84,11 @@ public class Confirm : PageModel
             context.Result = BadRequest();
         }
 
-        if (DateOfBirth is null || !DateOnly.TryParse(DateOfBirth.PlainValue, out var newDateOfBirth))
+        if (DateOfBirth is null)
         {
             context.Result = BadRequest();
             return;
         }
-
-        NewDateOfBirth = newDateOfBirth;
 
         await next();
     }

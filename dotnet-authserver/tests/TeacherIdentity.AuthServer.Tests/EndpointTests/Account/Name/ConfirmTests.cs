@@ -17,9 +17,10 @@ public class ConfirmTests : TestBase
     {
         // Arrange
         var lastName = Faker.Name.Last();
-        var protectedLastName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(lastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name/confirm?lastName={UrlEncode(protectedLastName.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/name/confirm?lastName={UrlEncode(lastName)}", "firstName", "lastName"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -31,10 +32,12 @@ public class ConfirmTests : TestBase
     [Fact]
     public async Task Get_NoLastName_ReturnsBadRequest()
     {
+        // Arrange
         var firstName = Faker.Name.First();
-        var protectedFirstName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(firstName);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}", "firstName", "lastName"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -46,13 +49,13 @@ public class ConfirmTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_ReturnsSuccess()
     {
+        // Arrange
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
 
-        var protectedFirstName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(firstName);
-        var protectedLastName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(lastName);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}&lastName={UrlEncode(protectedLastName.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}&lastName={UrlEncode(lastName)}", "firstName", "lastName"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -66,9 +69,10 @@ public class ConfirmTests : TestBase
     {
         // Arrange
         var lastName = Faker.Name.Last();
-        var protectedLastName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(lastName);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?lastName={UrlEncode(protectedLastName.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name/confirm?lastName={UrlEncode(lastName)}", "firstName", "lastName"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -80,10 +84,12 @@ public class ConfirmTests : TestBase
     [Fact]
     public async Task Post_NoLastName_ReturnsBadRequest()
     {
+        // Arrange
         var firstName = Faker.Name.First();
-        var protectedFirstName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(firstName);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}", "firstName", "lastName"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -104,10 +110,9 @@ public class ConfirmTests : TestBase
         var newFirstName = Faker.Name.First();
         var newLastName = Faker.Name.Last();
 
-        var protectedFirstName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newFirstName);
-        var protectedLastName = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newLastName);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name/confirm?firstName={UrlEncode(protectedFirstName.EncryptedValue)}&lastName={UrlEncode(protectedLastName.EncryptedValue)}&{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(newFirstName)}&lastName={UrlEncode(newLastName)}&{clientRedirectInfo.ToQueryParam()}", "firstName", "lastName"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };

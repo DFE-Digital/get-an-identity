@@ -35,7 +35,8 @@ public class Confirm : BasePinVerificationPageModel
     public override string? Code { get; set; }
 
     [FromQuery(Name = "mobileNumber")]
-    public ProtectedString? MobileNumber { get; set; }
+    [VerifyInSignature]
+    public string? MobileNumber { get; set; }
 
     public void OnGet()
     {
@@ -51,7 +52,7 @@ public class Confirm : BasePinVerificationPageModel
             return this.PageWithErrors();
         }
 
-        var smsPinFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!.PlainValue, Code!);
+        var smsPinFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!, Code!);
 
         if (smsPinFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -66,18 +67,16 @@ public class Confirm : BasePinVerificationPageModel
     {
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var newMobileNumber = MobileNumber!.PlainValue;
-
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (user.MobileNumber != newMobileNumber)
+        if (user.MobileNumber != MobileNumber)
         {
             changes |= UserUpdatedEventChanges.MobileNumber;
         }
 
         if (changes != UserUpdatedEventChanges.None)
         {
-            user.MobileNumber = newMobileNumber;
+            user.MobileNumber = MobileNumber;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()
@@ -108,6 +107,6 @@ public class Confirm : BasePinVerificationPageModel
 
     protected override Task<PinGenerationResult> GeneratePin()
     {
-        return UserVerificationService.GenerateSmsPin(MobileNumber!.PlainValue);
+        return UserVerificationService.GenerateSmsPin(MobileNumber!);
     }
 }

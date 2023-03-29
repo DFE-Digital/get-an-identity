@@ -9,12 +9,10 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 public class Name : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
-    private readonly ProtectedStringFactory _protectedStringFactory;
 
-    public Name(IdentityLinkGenerator linkGenerator, ProtectedStringFactory protectedStringFactory)
+    public Name(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
-        _protectedStringFactory = protectedStringFactory;
     }
 
     [BindNever]
@@ -41,9 +39,6 @@ public class Name : PageModel
             return this.PageWithErrors();
         }
 
-        var protectedFirstName = _protectedStringFactory.CreateFromPlainValue(FirstName!);
-        var protectedLastName = _protectedStringFactory.CreateFromPlainValue(LastName!);
-
-        return Redirect(_linkGenerator.AccountNameConfirm(protectedFirstName, protectedLastName, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountNameConfirm(FirstName!, LastName!, ClientRedirectInfo));
     }
 }

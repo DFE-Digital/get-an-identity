@@ -27,6 +27,7 @@ using Serilog;
 using StackExchange.Redis;
 using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.EventProcessing;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
@@ -426,7 +427,9 @@ public class Program
         {
             options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
 
-            options.ModelBinderProviders.Insert(0, new ProtectedStringModelBinderProvider());
+            options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
+
+            options.Filters.Add(new VerifySignedQueryParametersFilter());
         });
 
         builder.Services.AddCsp(nonceByteAmount: 32);
@@ -475,11 +478,13 @@ public class Program
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
-            .AddSingleton<ProtectedStringFactory>()
             .AddTransient<ClientScopedViewHelper>()
             .AddTransient<IActionContextAccessor, ActionContextAccessor>()
             .AddTransient<TrnLookupHelper>()
-            .AddTransient<UserClaimHelper>();
+            .AddTransient<UserClaimHelper>()
+            .AddSingleton(
+                new QueryStringSignatureHelper(
+                    builder.Configuration["QueryStringSignatureKey"] ?? throw new Exception("QueryStringSignatureKey missing from configuration.")));
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 

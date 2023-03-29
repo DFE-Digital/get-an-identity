@@ -9,18 +9,15 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 
 public class Resend : BasePhonePageModel
 {
-    private ProtectedStringFactory _protectedStringFactory;
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public Resend(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ProtectedStringFactory protectedStringFactory) :
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {
         _linkGenerator = linkGenerator;
-        _protectedStringFactory = protectedStringFactory;
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
@@ -32,11 +29,12 @@ public class Resend : BasePhonePageModel
     public string? NewMobileNumber { get; set; }
 
     [FromQuery(Name = "mobileNumber")]
-    public new ProtectedString? MobileNumber { get; set; }
+    [VerifyInSignature]
+    public new string? MobileNumber { get; set; }
 
     public void OnGet()
     {
-        NewMobileNumber = MobileNumber!.PlainValue;
+        NewMobileNumber = MobileNumber;
     }
 
     public async Task<IActionResult> OnPost()
@@ -64,9 +62,7 @@ public class Resend : BasePhonePageModel
             return smsPinGenerationResult.Result!;
         }
 
-        var protectedMobileNumber = _protectedStringFactory.CreateFromPlainValue(NewMobileNumber!);
-
-        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountPhoneConfirm(MobileNumber!, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
