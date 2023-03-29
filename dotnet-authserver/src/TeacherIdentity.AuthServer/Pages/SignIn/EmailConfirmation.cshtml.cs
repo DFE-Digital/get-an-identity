@@ -53,6 +53,16 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
         // If the UserType is not allowed then return an error
         if (user is not null && !permittedUserTypes.Contains(user.UserType))
         {
+            // The most common case is Staff users attempting to sign in to a 'regular' service.
+            if (user.UserType == UserType.Staff)
+            {
+                return new ViewResult()
+                {
+                    ViewName = "StaffUserForbidden",
+                    StatusCode = StatusCodes.Status403Forbidden
+                };
+            }
+
             return new ForbidResult();
         }
 
