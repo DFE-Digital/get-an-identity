@@ -238,6 +238,7 @@ public partial class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/TrnCallback", "/sign-in/trn/callback");
         ConfigureMockForPage("/SignIn/TrnInUse", "/sign-in/trn/different-email");
         ConfigureMockForPage("/SignIn/TrnInUseChooseEmail", "/sign-in/trn/choose-email");
+        ConfigureMockForPage("/SignIn/Register/Phone", "/sign-in/register/phone");
 
         // Act
         var nextHopUrl = authenticationState.GetNextHopUrl(linkGenerator.Object);
@@ -678,6 +679,14 @@ public partial class AuthenticationStateTests
             var clientId = "test";
             var postSignInUrl = "/callback";
 
+            var oAuthStateRequiringLegacyTrnLookup = new OAuthAuthorizationState(
+                clientId,
+                CustomScopes.DqtRead,
+                redirectUri: "https://example.com?callback")
+            {
+                TrnRequirementType = TrnRequirementType.Legacy
+            };
+
             // Helper method for creating an AuthenticationState object and modifying it via its On* methods
             static AuthenticationState S(AuthenticationState state, params Action<AuthenticationState>[] configure)
             {
@@ -694,6 +703,13 @@ public partial class AuthenticationStateTests
                 // No email address
                 {
                     S(new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow)),
+                    $"/sign-in/landing?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.None
+                },
+
+                // No email address (legacy TRN journey)
+                {
+                    S(new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: oAuthStateRequiringLegacyTrnLookup)),
                     $"/sign-in/email?asid={journeyId}",
                     AuthenticationState.AuthenticationMilestone.None
                 },
@@ -708,10 +724,21 @@ public partial class AuthenticationStateTests
                     AuthenticationState.AuthenticationMilestone.None
                 },
 
-                // Verified email, not completed TRN lookup yet
+                // New user with verified email
                 {
                     S(
-                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow),
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType, postSignInUrl, startedAt: DateTime.UtcNow),
+                        s => s.OnEmailSet("john.doe@example.com"),
+                        s => s.OnEmailVerified(user: null)
+                    ),
+                    $"/sign-in/register/phone?asid={journeyId}",
+                    AuthenticationState.AuthenticationMilestone.EmailVerified
+                },
+
+                // New user with verified email, not completed TRN lookup yet (legacy TRN journey)
+                {
+                    S(
+                        new AuthenticationState(journeyId, UserRequirements.DefaultUserType | UserRequirements.TrnHolder, postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: oAuthStateRequiringLegacyTrnLookup),
                         s => s.OnEmailSet("john.doe@example.com"),
                         s => s.OnEmailVerified(user: null)
                     ),
@@ -838,20 +865,6 @@ public partial class AuthenticationStateTests
                     ),
                     postSignInUrl,
                     AuthenticationState.AuthenticationMilestone.Complete
-                },
-
-                // User requesting authorization with admin scopes or trn scope
-                {
-                    S(AuthenticationState.FromUser(journeyId, UserRequirements.DefaultUserType, user: null, postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "user:read", null))),
-                    $"/sign-in/email?asid={journeyId}",
-                    AuthenticationState.AuthenticationMilestone.None
-                },
-
-                // User requesting authorization without admin scopes or trn scope
-                {
-                    S(AuthenticationState.FromUser(journeyId, UserRequirements.DefaultUserType, user: null, postSignInUrl, startedAt: DateTime.UtcNow, oAuthState: new OAuthAuthorizationState(clientId, "foo", null))),
-                    $"/sign-in/landing?asid={journeyId}",
-                    AuthenticationState.AuthenticationMilestone.None
                 },
             };
         }

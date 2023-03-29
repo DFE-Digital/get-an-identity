@@ -18,7 +18,7 @@ namespace TeacherIdentity.AuthServer.Controllers;
 
 public class AuthorizationController : Controller
 {
-    private readonly IOpenIddictApplicationManager _applicationManager;
+    private readonly TeacherIdentityApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IIdentityLinkGenerator _linkGenerator;
@@ -26,7 +26,7 @@ public class AuthorizationController : Controller
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public AuthorizationController(
-        IOpenIddictApplicationManager applicationManager,
+        TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
         IIdentityLinkGenerator linkGenerator,
@@ -89,6 +89,9 @@ public class AuthorizationController : Controller
 
             var sessionId = request["session_id"]?.Value as string;
 
+            var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
+            var trnRequirementType = client.TrnRequirementType;
+
             authenticationState = AuthenticationState.FromUser(
                 journeyId,
                 userRequirements,
@@ -96,7 +99,10 @@ public class AuthorizationController : Controller
                 GetCallbackUrl(journeyId),
                 startedAt: DateTime.UtcNow,
                 sessionId,
-                oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri),
+                oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri)
+                {
+                    TrnRequirementType = trnRequirementType
+                },
                 firstTimeSignInForEmail: authenticateResult.Succeeded != true);
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));

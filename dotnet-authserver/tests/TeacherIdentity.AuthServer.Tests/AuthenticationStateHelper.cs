@@ -59,7 +59,10 @@ public sealed class AuthenticationStateHelper
             userRequirements,
             authorizationUrl,
             startedAt: hostFixture.Services.GetRequiredService<IClock>().UtcNow,
-            oAuthState: new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri));
+            oAuthState: new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri)
+            {
+                TrnRequirementType = client.TrnRequirementType
+            });
 
         var configure = new Configure(hostFixture);
         await configureAuthenticationState.Invoke(configure)(authenticationState);

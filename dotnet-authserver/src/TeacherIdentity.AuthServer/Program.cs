@@ -127,12 +127,18 @@ public class Program
                 options.Events.OnRedirectToLogin = ctx =>
                 {
                     // If we get here then sign in is happening *outside* of an OAuth authorization flow.
-                    // Sign in any user; authorization is applied separately.
-                    var userRequirements = UserRequirements.None;
 
                     if (!ctx.HttpContext.TryGetAuthenticationState(out var authenticationState))
                     {
                         var returnUrl = QueryHelpers.ParseQuery(new Uri(ctx.RedirectUri).Query)["returnUrl"].ToString();
+
+                        // If we're signing in to an admin page, only allow Staff users to sign in.
+                        // This requirement has an effect on the journey the user sees (i.e. there's no 'Register' prompt).
+                        // Ideally we would infer this requirement from the policy but getting at the policy that
+                        // triggered this sign in is non-trivial.
+                        var userRequirements = new PathString(returnUrl).StartsWithSegments("/admin") ?
+                            UserRequirements.StaffUserType :
+                            UserRequirements.None;
 
                         authenticationState = new AuthenticationState(
                             journeyId: Guid.NewGuid(),
