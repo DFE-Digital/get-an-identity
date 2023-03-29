@@ -121,16 +121,27 @@ public class AuthenticationState
     [JsonInclude]
     public bool HaveResumedCompletedJourney { get; private set; }
 
+    [JsonIgnore]
     public bool EmailAddressSet => EmailAddress is not null;
+    [JsonIgnore]
     public bool MobileNumberSet => MobileNumber is not null;
+    [JsonIgnore]
     public bool HasTrnSet => HasTrn.HasValue;
+    [JsonIgnore]
     public bool PreferredNameSet => HasPreferredName.HasValue;
+    [JsonIgnore]
     public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
+    [JsonIgnore]
     public bool DateOfBirthSet => DateOfBirth.HasValue;
+    [JsonIgnore]
     public bool ExistingAccountFound => ExistingAccountUserId.HasValue;
+    [JsonIgnore]
     public bool HasNationalInsuranceNumberSet => HasNationalInsuranceNumber.HasValue;
+    [JsonIgnore]
     public bool NationalInsuranceNumberSet => NationalInsuranceNumber is not null;
+    [JsonIgnore]
     public bool AwardedQtsSet => AwardedQts.HasValue;
+    [JsonIgnore]
     public bool HasIttProviderSet => HasIttProvider.HasValue;
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
@@ -197,6 +208,23 @@ public class AuthenticationState
         return UserClaimHelper.GetInternalClaims(this);
     }
 
+    public AuthenticationJourneyType GetJourneyType()
+    {
+        if (UserRequirements.HasFlag(UserRequirements.StaffUserType))
+        {
+            return AuthenticationJourneyType.StaffSignIn;
+        }
+
+        if (TryGetOAuthState(out var oAuthState) &&
+            oAuthState.RequiresTrnLookup &&
+            oAuthState.TrnRequirementType == TrnRequirementType.Legacy)
+        {
+            return AuthenticationJourneyType.LegacyTrn;
+        }
+
+        return AuthenticationJourneyType.Core;
+    }
+
     public AuthenticationMilestone GetLastMilestone()
     {
         if (UserId.HasValue)
@@ -219,27 +247,25 @@ public class AuthenticationState
 
     public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
     {
-        if (ShouldRedirectToLandingPage())
-        {
-            return linkGenerator.Landing();
-        }
-
         var milestone = GetLastMilestone();
+        var journeyType = GetJourneyType();
 
         if (milestone == AuthenticationMilestone.None)
         {
-            return !EmailAddressSet ? linkGenerator.Email() : linkGenerator.EmailConfirmation();
+            return !EmailAddressSet ?
+                (journeyType == AuthenticationJourneyType.Core ? linkGenerator.Landing() : linkGenerator.Email()) :
+                linkGenerator.EmailConfirmation();
         }
 
         if (milestone == AuthenticationMilestone.EmailVerified)
         {
-            if (UserRequirements.HasFlag(UserRequirements.TrnHolder))
+            if (UserRequirements.HasFlag(UserRequirements.TrnHolder) && journeyType == AuthenticationJourneyType.LegacyTrn)
             {
                 return linkGenerator.Trn();
             }
             else
             {
-                throw new NotImplementedException();
+                return linkGenerator.RegisterPhone();
             }
         }
 
@@ -738,20 +764,6 @@ public class AuthenticationState
         EmailOfExistingAccountForTrnVerified = 4
     }
 
-    private bool ShouldRedirectToLandingPage()
-    {
-        if (OAuthState == null) { return false; }
-
-        List<String> ignoredScopes = new List<string>();
-        ignoredScopes.AddRange(CustomScopes.StaffUserTypeScopes);
-#pragma warning disable CS0618 // Type or member is obsolete
-        ignoredScopes.Add(CustomScopes.Trn);
-#pragma warning restore CS0618 // Type or member is obsolete
-        ignoredScopes.Add(CustomScopes.DqtRead);
-
-        return !OAuthState.HasAnyScope(ignoredScopes) && !UserId.HasValue;
-    }
-
     private void UpdateAuthenticationStateWithUserDetails(User user)
     {
         UserId = user.UserId;
@@ -789,6 +801,7 @@ public class OAuthAuthorizationState
     [JsonInclude]
     public string? AuthorizationResponseMode { get; private set; }
     public string? RedirectUri { get; }
+    public TrnRequirementType TrnRequirementType { get; init; }
 
     public string ResolveServiceUrl(Application application)
     {
@@ -810,6 +823,10 @@ public class OAuthAuthorizationState
     public bool HasScope(string scope) => GetScopes().Contains(scope);
 
     public bool HasAnyScope(IEnumerable<string> scopes) => GetScopes().Any(scopes.Contains);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+    public bool RequiresTrnLookup => HasScope(CustomScopes.Trn) || HasScope(CustomScopes.DqtRead);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public void SetAuthorizationResponse(
         IEnumerable<KeyValuePair<string, string>> responseParameters,
