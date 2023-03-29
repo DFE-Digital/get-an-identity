@@ -14,7 +14,6 @@
 
     <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20" />
     <govuk-input asp-for="ServiceUrl" type="url" />
-
     <govuk-checkboxes asp-for="ResetClientSecret">
         <govuk-checkboxes-item value="@true">
             @Html.DisplayNameFor(m => m.ResetClientSecret)
@@ -23,6 +22,15 @@
             </govuk-checkboxes-item-conditional>
         </govuk-checkboxes-item>
     </govuk-checkboxes>
+
+    <govuk-radios asp-for="TrnRequired">
+        <govuk-radios-fieldset>
+            <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m"/>
+            <govuk-radios-item value="@TrnRequirementType.Required">Yes, client requires a TRN</govuk-radios-item>
+            <govuk-radios-item value="@TrnRequirementType.Optional">No, client does not require a TRN</govuk-radios-item>
+            <govuk-radios-item value="@TrnRequirementType.Legacy">Use legacy TRN requirement</govuk-radios-item>
+        </govuk-radios-fieldset>
+    </govuk-radios>
 
     <h3 class="govuk-heading-m">Grants</h3>
 

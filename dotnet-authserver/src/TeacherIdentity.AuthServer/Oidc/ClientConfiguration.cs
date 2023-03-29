@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Models;
+
 namespace TeacherIdentity.AuthServer.Oidc;
 
 public class ClientConfiguration
@@ -10,5 +12,6 @@ public class ClientConfiguration
     public string[]? PostLogoutRedirectUris { get; set; }
     public required string DisplayName { get; set; }
     public string? ServiceUrl { get; set; }
+    public required TrnRequirementType TrnRequirementType { get; set; }
     public string[]? Scopes { get; set; }
 }

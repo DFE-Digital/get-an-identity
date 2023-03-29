@@ -1,4 +1,5 @@
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Events;
@@ -8,6 +9,7 @@ public record Client
     public required string ClientId { get; init; }
     public required string? DisplayName { get; init; }
     public required string? ServiceUrl { get; init; }
+    public required TrnRequirementType TrnRequirementType { get; init; }
     public required string[] RedirectUris { get; init; }
     public required string[] PostLogoutRedirectUris { get; init; }
     public required string[] Scopes { get; init; }
@@ -17,6 +19,7 @@ public record Client
         ClientId = descriptor.ClientId ?? throw new ArgumentException($"{nameof(descriptor.ClientId)} cannot be null."),
         DisplayName = descriptor.DisplayName,
         ServiceUrl = descriptor.ServiceUrl,
+        TrnRequirementType = descriptor.TrnRequirementType,
         RedirectUris = descriptor.RedirectUris.Select(u => u.ToString()).ToArray(),
         PostLogoutRedirectUris = descriptor.PostLogoutRedirectUris.Select(u => u.ToString()).ToArray(),
         Scopes = descriptor.Permissions
@@ -30,6 +33,7 @@ public record Client
         ClientId = model.ClientId!,
         DisplayName = model.DisplayName,
         ServiceUrl = model.ServiceUrl,
+        TrnRequirementType = model.TrnRequirementType,
         RedirectUris = model.GetRedirectUris(),
         PostLogoutRedirectUris = model.GetPostLogoutRedirectUris(),
         Scopes = model.GetScopes()

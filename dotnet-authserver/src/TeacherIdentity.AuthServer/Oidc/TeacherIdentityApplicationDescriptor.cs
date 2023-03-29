@@ -1,4 +1,5 @@
 using OpenIddict.Abstractions;
+using TeacherIdentity.AuthServer.Models;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Oidc;
@@ -24,12 +25,14 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
     public static string[] StandardScopes => _standardScopes;
 
     public string? ServiceUrl { get; set; }
+    public TrnRequirementType TrnRequirementType { get; set; }
 
     public static TeacherIdentityApplicationDescriptor Create(
         string clientId,
         string clientSecret,
         string? displayName,
         string? serviceUrl,
+        TrnRequirementType trnRequirementType,
         bool enableAuthorizationCodeGrant,
         bool enableClientCredentialsGrant,
         IEnumerable<string> redirectUris,
@@ -44,6 +47,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
             ConsentType = ConsentTypes.Implicit,
             DisplayName = displayName,
             ServiceUrl = serviceUrl,
+            TrnRequirementType = trnRequirementType,
             Requirements =
             {
                 OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange

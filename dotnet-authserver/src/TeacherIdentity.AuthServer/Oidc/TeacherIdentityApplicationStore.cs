@@ -38,4 +38,26 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
 
         return default;
     }
+
+    public ValueTask<TrnRequirementType> GetTrnRequirementTypeAsync(Application application)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        return new ValueTask<TrnRequirementType>(application.TrnRequirementType);
+    }
+
+    public ValueTask SetTrnRequirementTypeAsync(Application application, TrnRequirementType trnRequirementType)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        application.TrnRequirementType = trnRequirementType!;
+
+        return default;
+    }
 }
