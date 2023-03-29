@@ -15,31 +15,25 @@ public class QueryStringSignatureHelper
         _keyBytes = Encoding.UTF8.GetBytes(key);
     }
 
-    public Url AppendSignature(Url url, string[] parameterNames)
+    public Url AppendSignature(Url url)
     {
-        var sig = CalculateSignature(url, parameterNames);
+        var sig = CalculateSignature(url);
         return url.SetQueryParam(SignatureParameterName, sig);
     }
 
-    public bool VerifySignature(Url url, string[] parameterNames)
+    public bool VerifySignature(Url url)
     {
-        var sig = CalculateSignature(url, parameterNames);
-        return sig == url.QueryParams.SingleOrDefault(qp => qp.Name == SignatureParameterName).Value?.ToString();
+        var sig = CalculateSignature(url);
+        var provided = url.QueryParams.SingleOrDefault(qp => qp.Name == SignatureParameterName).Value?.ToString();
+        return sig == provided;
     }
 
-    private string CalculateSignature(Url url, string[] parameterNames)
+    private string CalculateSignature(Url url)
     {
-        var canonicalizedValues =
-            url.Path + "?" +
-            string.Join(
-                "&",
-                parameterNames.Distinct().Order().Select(n =>
-                {
-                    var value = url.QueryParams.SingleOrDefault(qp => qp.Name == n).Value?.ToString() ?? string.Empty;
-                    return $"{Uri.EscapeDataString(n.ToLower())}={Uri.EscapeDataString(value)}";
-                }));
+        var canonicalUrl = new Url(url.Path + "?" + url.Query)
+            .RemoveQueryParam(SignatureParameterName);
 
-        var canonicalizedValuesBytes = Encoding.UTF8.GetBytes(canonicalizedValues);
+        var canonicalizedValuesBytes = Encoding.UTF8.GetBytes(canonicalUrl);
 
         var hashBytes = HMACSHA256.HashData(_keyBytes, canonicalizedValuesBytes);
         var hash = Convert.ToHexString(hashBytes);

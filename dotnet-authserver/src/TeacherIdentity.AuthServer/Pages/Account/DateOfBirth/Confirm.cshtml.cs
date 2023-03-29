@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 
+[VerifyQueryParameterSignature]
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -30,7 +32,6 @@ public class Confirm : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "dateOfBirth")]
-    [VerifyInSignature]
     public DateOnly? DateOfBirth { get; set; }
 
     public void OnGet()

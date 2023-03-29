@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
+[VerifyQueryParameterSignature]
 public class ConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -36,7 +38,6 @@ public class ConfirmationModel : PageModel
     public string? Code { get; set; }
 
     [FromQuery(Name = "email")]
-    [VerifyInSignature]
     public string? Email { get; set; }
 
     [FromQuery(Name = "cancelUrl")]

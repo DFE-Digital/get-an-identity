@@ -47,7 +47,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"));
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -103,7 +103,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -132,7 +132,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -161,7 +161,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -190,7 +190,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -223,7 +223,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -259,7 +259,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -292,7 +292,7 @@ public class ConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}", "email"))
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

@@ -47,9 +47,9 @@ public partial class TestBase
         return new(dataProtector, clientId, redirectUri);
     }
 
-    public string AppendQueryParameterSignature(Url url, params string[] parameterNames)
+    public string AppendQueryParameterSignature(Url url)
     {
         var queryStringSignatureHelper = HostFixture.Services.GetRequiredService<QueryStringSignatureHelper>();
-        return queryStringSignatureHelper.AppendSignature(url, parameterNames);
+        return queryStringSignatureHelper.AppendSignature(url);
     }
 }

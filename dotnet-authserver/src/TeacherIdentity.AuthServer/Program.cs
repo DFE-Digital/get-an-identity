@@ -428,8 +428,6 @@ public class Program
             options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
 
             options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
-
-            options.Filters.Add(new VerifySignedQueryParametersFilter());
         });
 
         builder.Services.AddCsp(nonceByteAmount: 32);

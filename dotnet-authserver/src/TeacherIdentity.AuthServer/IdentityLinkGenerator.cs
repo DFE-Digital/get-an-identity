@@ -105,16 +105,16 @@ public abstract class IdentityLinkGenerator
     public string UpdateEmailConfirmation(string email, string? returnUrl, string? cancelUrl) =>
         PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Confirmation", authenticationJourneyRequired: false)
             .SetQueryParam("email", email)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "email")
             .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
+            .SetQueryParam("cancelUrl", cancelUrl)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string ResendUpdateEmailConfirmation(string email, string? returnUrl, string? cancelUrl) =>
         PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/ResendConfirmation", authenticationJourneyRequired: false)
             .SetQueryParam("email", email)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "email")
             .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
+            .SetQueryParam("cancelUrl", cancelUrl)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string UpdateName(string? returnUrl, string? cancelUrl) =>
         PageWithAuthenticationJourneyId("/Authenticated/UpdateName", authenticationJourneyRequired: false)
@@ -133,8 +133,8 @@ public abstract class IdentityLinkGenerator
         PageWithAuthenticationJourneyId("/Account/Name/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
             .SetQueryParam("lastName", lastName)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "firstName", "lastName")
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountDateOfBirth(ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
@@ -143,8 +143,8 @@ public abstract class IdentityLinkGenerator
     public string AccountDateOfBirthConfirm(DateOnly dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("dateOfBirth", dateOfBirth.ToString(DateOfBirthFormat))
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "dateOfBirth")
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountEmail(ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/Email/Index", authenticationJourneyRequired: false)
@@ -153,14 +153,14 @@ public abstract class IdentityLinkGenerator
     public string AccountEmailResend(string email, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/Email/Resend", authenticationJourneyRequired: false)
             .SetQueryParam("email", email)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "email")
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountEmailConfirm(string email, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/Email/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("email", email)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "email")
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountPhone(ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/Phone/Index", authenticationJourneyRequired: false)
@@ -169,14 +169,14 @@ public abstract class IdentityLinkGenerator
     public string AccountPhoneResend(string mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/Phone/Resend", authenticationJourneyRequired: false)
             .SetQueryParam("mobileNumber", mobileNumber)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "mobileNumber")
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountPhoneConfirm(string mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/Phone/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("mobileNumber", mobileNumber)
-            .AppendQueryStringSignature(QueryStringSignatureHelper, "mobileNumber")
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string Cookies() =>
         PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
@@ -233,9 +233,8 @@ file static class StringExtensions
 {
     public static Url AppendQueryStringSignature(
         this Url url,
-        QueryStringSignatureHelper queryStringSignatureHelper,
-        params string[] parameterNames)
+        QueryStringSignatureHelper queryStringSignatureHelper)
     {
-        return queryStringSignatureHelper.AppendSignature(url, parameterNames);
+        return queryStringSignatureHelper.AppendSignature(url);
     }
 }

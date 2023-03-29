@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 
+[VerifyQueryParameterSignature]
 public class Confirm : BasePinVerificationPageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -35,7 +37,6 @@ public class Confirm : BasePinVerificationPageModel
     public override string? Code { get; set; }
 
     [FromQuery(Name = "email")]
-    [VerifyInSignature]
     public string? Email { get; set; }
 
     public void OnGet()

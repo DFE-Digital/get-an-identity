@@ -1,12 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 
+[VerifyQueryParameterSignature]
 public class Resend : BaseEmailPageModel
 {
     public Resend(
@@ -26,7 +28,6 @@ public class Resend : BaseEmailPageModel
     public string? NewEmail { get; set; }
 
     [FromQuery(Name = "email")]
-    [VerifyInSignature]
     public string? Email { get; set; }
 
     public void OnGet()

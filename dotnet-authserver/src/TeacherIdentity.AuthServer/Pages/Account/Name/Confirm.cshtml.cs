@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 
+[VerifyQueryParameterSignature]
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -26,11 +28,9 @@ public class Confirm : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "firstName")]
-    [VerifyInSignature]
     public string? FirstName { get; set; }
 
     [FromQuery(Name = "lastName")]
-    [VerifyInSignature]
     public string? LastName { get; set; }
 
     public void OnGet()

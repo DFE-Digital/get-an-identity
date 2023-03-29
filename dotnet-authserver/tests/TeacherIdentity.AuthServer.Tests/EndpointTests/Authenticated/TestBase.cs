@@ -32,9 +32,9 @@ public partial class TestBase
 
     public HttpClient HttpClient { get; }
 
-    public string AppendQueryParameterSignature(Url url, params string[] parameterNames)
+    public string AppendQueryParameterSignature(Url url)
     {
         var queryStringSignatureHelper = HostFixture.Services.GetRequiredService<QueryStringSignatureHelper>();
-        return queryStringSignatureHelper.AppendSignature(url, parameterNames);
+        return queryStringSignatureHelper.AppendSignature(url);
     }
 }

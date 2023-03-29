@@ -17,7 +17,7 @@ public class ResendTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -39,7 +39,7 @@ public class ResendTests : TestBase
 
         var email = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -68,7 +68,7 @@ public class ResendTests : TestBase
         var anotherUser = await TestData.CreateUser();
         var newEmail = isOwnNumber ? user.EmailAddress : anotherUser.EmailAddress;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -97,7 +97,7 @@ public class ResendTests : TestBase
         var email = Faker.Internet.Email();
         var newEmail = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -124,7 +124,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/resend?email={email}&{clientRedirectInfo.ToQueryParam()}", "email"))
+            AppendQueryParameterSignature($"/account/email/resend?email={email}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -155,7 +155,7 @@ public class ResendTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -178,7 +178,7 @@ public class ResendTests : TestBase
         // Arrange
         var email = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -217,7 +217,7 @@ public class ResendTests : TestBase
             }
         });
 
-        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}", "email"))
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

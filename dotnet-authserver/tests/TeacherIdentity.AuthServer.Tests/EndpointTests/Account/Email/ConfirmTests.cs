@@ -20,7 +20,7 @@ public class ConfirmTests : TestBase
         // Arrange
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/email/confirm", "email"));
+            AppendQueryParameterSignature($"/account/email/confirm"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -37,7 +37,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(email)}", "email"));
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(email)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -52,7 +52,7 @@ public class ConfirmTests : TestBase
         // Arrange
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm", "email"));
+            AppendQueryParameterSignature($"/account/email/confirm"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -75,7 +75,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -102,7 +102,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -129,7 +129,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -156,7 +156,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -188,7 +188,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -223,7 +223,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -257,7 +257,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}&{clientRedirectInfo.ToQueryParam()}", "email"))
+            AppendQueryParameterSignature($"/account/email/confirm?email={UrlEncode(newEmail)}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

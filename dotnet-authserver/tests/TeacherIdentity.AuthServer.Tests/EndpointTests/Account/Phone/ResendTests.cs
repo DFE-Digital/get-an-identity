@@ -19,7 +19,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -43,7 +43,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -73,7 +73,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -105,7 +105,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -132,7 +132,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}&{clientRedirectInfo.ToQueryParam()}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -165,7 +165,7 @@ public class ResendTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

@@ -20,7 +20,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/name/confirm?lastName={UrlEncode(lastName)}", "firstName", "lastName"));
+            AppendQueryParameterSignature($"/account/name/confirm?lastName={UrlEncode(lastName)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -37,7 +37,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}", "firstName", "lastName"));
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -55,7 +55,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}&lastName={UrlEncode(lastName)}", "firstName", "lastName"));
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}&lastName={UrlEncode(lastName)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -72,7 +72,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/name/confirm?lastName={UrlEncode(lastName)}", "firstName", "lastName"));
+            AppendQueryParameterSignature($"/account/name/confirm?lastName={UrlEncode(lastName)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -89,7 +89,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}", "firstName", "lastName"));
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(firstName)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -112,7 +112,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(newFirstName)}&lastName={UrlEncode(newLastName)}&{clientRedirectInfo.ToQueryParam()}", "firstName", "lastName"))
+            AppendQueryParameterSignature($"/account/name/confirm?firstName={UrlEncode(newFirstName)}&lastName={UrlEncode(newLastName)}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };

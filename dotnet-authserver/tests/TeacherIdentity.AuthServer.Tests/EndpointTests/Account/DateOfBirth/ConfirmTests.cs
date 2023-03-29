@@ -18,7 +18,7 @@ public class ConfirmTests : TestBase
         // Arrange
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/date-of-birth/confirm", "dateOfBirth"));
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -35,7 +35,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(dateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty)}", "dateOfBirth"));
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(dateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -51,7 +51,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(dateOfBirth.ToString("yyyy-MM-dd"))}", "dateOfBirth"));
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(dateOfBirth.ToString("yyyy-MM-dd"))}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -66,7 +66,7 @@ public class ConfirmTests : TestBase
         // Arrange
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/date-of-birth/confirm", "dateOfBirth"));
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -88,7 +88,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(newDateOfBirth.ToString("yyyy-MM-dd"))}&{clientRedirectInfo.ToQueryParam()}", "dateOfBirth"))
+            AppendQueryParameterSignature($"/account/date-of-birth/confirm?dateOfBirth={UrlEncode(newDateOfBirth.ToString("yyyy-MM-dd"))}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };

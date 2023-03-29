@@ -35,7 +35,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(mobileNumber)}", "mobileNumber"));
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(mobileNumber)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -71,7 +71,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -98,7 +98,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -125,7 +125,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -152,7 +152,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -184,7 +184,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -219,7 +219,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -253,7 +253,7 @@ public class ConfirmTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}&{clientRedirectInfo.ToQueryParam()}", "mobileNumber"))
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
