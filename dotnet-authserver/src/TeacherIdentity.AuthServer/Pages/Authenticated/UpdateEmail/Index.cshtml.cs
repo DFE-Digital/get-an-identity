@@ -8,16 +8,12 @@ namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
 public class IndexModel : BaseEmailPageModel
 {
-    private readonly ProtectedStringFactory _protectedStringFactory;
-
     public IndexModel(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        ProtectedStringFactory protectedStringFactory,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
         : base(userVerificationService, linkGenerator, dbContext)
     {
-        _protectedStringFactory = protectedStringFactory;
     }
 
     [BindProperty]
@@ -61,8 +57,6 @@ public class IndexModel : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        var protectedEmail = _protectedStringFactory.CreateFromPlainValue(Email!);
-
-        return Redirect(LinkGenerator.UpdateEmailConfirmation(protectedEmail, ReturnUrl, CancelUrl));
+        return Redirect(LinkGenerator.UpdateEmailConfirmation(Email!, ReturnUrl, CancelUrl));
     }
 }

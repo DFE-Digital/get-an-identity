@@ -12,7 +12,7 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
 {
     public ResendEmailConfirmationModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     {

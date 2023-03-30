@@ -11,7 +11,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 public class NoMatch : TrnCreateUserPageModel
 {
     public NoMatch(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IUserVerificationService userVerificationService,

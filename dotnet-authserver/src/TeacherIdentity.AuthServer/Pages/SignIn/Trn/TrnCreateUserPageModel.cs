@@ -12,7 +12,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 public class TrnCreateUserPageModel : PageModel
 {
-    protected readonly IIdentityLinkGenerator LinkGenerator;
+    protected readonly IdentityLinkGenerator LinkGenerator;
 
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
@@ -20,7 +20,7 @@ public class TrnCreateUserPageModel : PageModel
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
 
     public TrnCreateUserPageModel(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IUserVerificationService userVerificationService,

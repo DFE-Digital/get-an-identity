@@ -10,18 +10,15 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 [BindProperties]
 public class PhonePage : BasePhonePageModel
 {
-    private readonly ProtectedStringFactory _protectedStringFactory;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public PhonePage(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ProtectedStringFactory protectedStringFactory) :
+        IdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {
         _linkGenerator = linkGenerator;
-        _protectedStringFactory = protectedStringFactory;
     }
 
     [BindNever]
@@ -61,8 +58,6 @@ public class PhonePage : BasePhonePageModel
             return smsPinGenerationResult.Result!;
         }
 
-        var protectedMobileNumber = _protectedStringFactory.CreateFromPlainValue(MobileNumber!);
-
-        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountPhoneConfirm(MobileNumber!, ClientRedirectInfo));
     }
 }

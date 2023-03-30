@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
@@ -14,12 +15,12 @@ public sealed class AuthenticationStateHelper
 {
     private readonly Guid _journeyId;
     private readonly TestAuthenticationStateProvider _authenticationStateProvider;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     private AuthenticationStateHelper(
         Guid journeyId,
         TestAuthenticationStateProvider authenticationStateProvider,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _journeyId = journeyId;
         _authenticationStateProvider = authenticationStateProvider;
@@ -69,8 +70,9 @@ public sealed class AuthenticationStateHelper
 
         authenticationStateProvider.SetAuthenticationState(httpContext: null, authenticationState);
 
+        var queryStringSignatureHelper = hostFixture.Services.GetRequiredService<QueryStringSignatureHelper>();
         var linkGenerator = hostFixture.Services.GetRequiredService<LinkGenerator>();
-        var identityLinkGenerator = new TestIdentityLinkGenerator(authenticationState, linkGenerator);
+        var identityLinkGenerator = new TestIdentityLinkGenerator(queryStringSignatureHelper, authenticationState, linkGenerator);
 
         return new AuthenticationStateHelper(journeyId, authenticationStateProvider, identityLinkGenerator);
     }

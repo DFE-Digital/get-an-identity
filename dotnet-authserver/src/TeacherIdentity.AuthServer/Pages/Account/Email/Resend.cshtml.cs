@@ -1,24 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 
+[VerifyQueryParameterSignature]
 public class Resend : BaseEmailPageModel
 {
-    private ProtectedStringFactory _protectedStringFactory;
-
     public Resend(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ProtectedStringFactory protectedStringFactory) :
+        IdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     {
-        _protectedStringFactory = protectedStringFactory;
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
@@ -30,11 +28,11 @@ public class Resend : BaseEmailPageModel
     public string? NewEmail { get; set; }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    public string? Email { get; set; }
 
     public void OnGet()
     {
-        NewEmail = Email!.PlainValue;
+        NewEmail = Email;
     }
 
     public async Task<IActionResult> OnPost()
@@ -62,9 +60,7 @@ public class Resend : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        var protectedEmail = _protectedStringFactory.CreateFromPlainValue(NewEmail!);
-
-        return Redirect(LinkGenerator.AccountEmailConfirm(protectedEmail, ClientRedirectInfo));
+        return Redirect(LinkGenerator.AccountEmailConfirm(NewEmail!, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

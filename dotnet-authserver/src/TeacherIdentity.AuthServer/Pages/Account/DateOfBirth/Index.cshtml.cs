@@ -12,19 +12,16 @@ namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 [BindProperties]
 public class DateOfBirthPage : PageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
-    private readonly ProtectedStringFactory _protectedStringFactory;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
 
     public DateOfBirthPage(
-        IIdentityLinkGenerator linkGenerator,
-        ProtectedStringFactory protectedStringFactory,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IDqtApiClient dqtApiClient)
     {
         _linkGenerator = linkGenerator;
-        _protectedStringFactory = protectedStringFactory;
         _dbContext = dbContext;
         _dqtApiClient = dqtApiClient;
     }
@@ -48,9 +45,7 @@ public class DateOfBirthPage : PageModel
             return this.PageWithErrors();
         }
 
-        var protectedDateOfBirth = _protectedStringFactory.CreateFromPlainValue(DateOfBirth.ToString()!);
-
-        return Redirect(_linkGenerator.AccountDateOfBirthConfirm(protectedDateOfBirth, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountDateOfBirthConfirm(DateOfBirth!.Value, ClientRedirectInfo));
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)

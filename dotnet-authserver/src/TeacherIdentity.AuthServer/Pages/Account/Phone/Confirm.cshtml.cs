@@ -3,23 +3,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 
+[VerifyQueryParameterSignature]
 public class Confirm : BasePinVerificationPageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public Confirm(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock) :
         base(userVerificationService, pinValidator)
     {
@@ -35,7 +37,7 @@ public class Confirm : BasePinVerificationPageModel
     public override string? Code { get; set; }
 
     [FromQuery(Name = "mobileNumber")]
-    public ProtectedString? MobileNumber { get; set; }
+    public string? MobileNumber { get; set; }
 
     public void OnGet()
     {
@@ -51,7 +53,7 @@ public class Confirm : BasePinVerificationPageModel
             return this.PageWithErrors();
         }
 
-        var smsPinFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!.PlainValue, Code!);
+        var smsPinFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!, Code!);
 
         if (smsPinFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -66,18 +68,16 @@ public class Confirm : BasePinVerificationPageModel
     {
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var newMobileNumber = MobileNumber!.PlainValue;
-
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (user.MobileNumber != newMobileNumber)
+        if (user.MobileNumber != MobileNumber)
         {
             changes |= UserUpdatedEventChanges.MobileNumber;
         }
 
         if (changes != UserUpdatedEventChanges.None)
         {
-            user.MobileNumber = newMobileNumber;
+            user.MobileNumber = MobileNumber;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()
@@ -108,6 +108,6 @@ public class Confirm : BasePinVerificationPageModel
 
     protected override Task<PinGenerationResult> GeneratePin()
     {
-        return UserVerificationService.GenerateSmsPin(MobileNumber!.PlainValue);
+        return UserVerificationService.GenerateSmsPin(MobileNumber!);
     }
 }

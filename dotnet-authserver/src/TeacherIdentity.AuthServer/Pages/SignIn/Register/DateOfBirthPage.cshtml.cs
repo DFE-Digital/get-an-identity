@@ -11,13 +11,13 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [BindProperties]
 public class DateOfBirthPage : PageModel
 {
-    IIdentityLinkGenerator _linkGenerator;
+    IdentityLinkGenerator _linkGenerator;
     private TeacherIdentityServerDbContext _dbContext;
     private IClock _clock;
     private readonly IUserSearchService _userSearchService;
 
     public DateOfBirthPage(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IUserSearchService userSearchService)

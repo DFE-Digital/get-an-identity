@@ -6,19 +6,18 @@ namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.Email;
 
 public class ResendTests : TestBase
 {
-    private readonly ProtectedString _email;
-
     public ResendTests(HostFixture hostFixture)
         : base(hostFixture)
     {
-        _email = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(Faker.Internet.Email());
     }
 
     [Fact]
     public async Task Post_EmptyEmail_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -38,7 +37,9 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -62,10 +63,12 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
+        var email = Faker.Internet.Email();
+
         var anotherUser = await TestData.CreateUser();
         var newEmail = isOwnNumber ? user.EmailAddress : anotherUser.EmailAddress;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -91,9 +94,10 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
+        var email = Faker.Internet.Email();
         var newEmail = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -116,8 +120,11 @@ public class ResendTests : TestBase
     {
         // Arrange
         var clientRedirectInfo = CreateClientRedirectInfo();
+        var email = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}&{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/email/resend?email={email}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -140,13 +147,15 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
+        var email = Faker.Internet.Email();
+
         HostFixture.RateLimitStore
             .Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress))
             .ReturnsAsync(true);
 
         var newEmail = Faker.Internet.Email();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -167,7 +176,9 @@ public class ResendTests : TestBase
     public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var email = Faker.Internet.Email();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -187,6 +198,7 @@ public class ResendTests : TestBase
     {
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
+        var email = Faker.Internet.Email();
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -205,7 +217,7 @@ public class ResendTests : TestBase
             }
         });
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email/resend?email={_email}")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

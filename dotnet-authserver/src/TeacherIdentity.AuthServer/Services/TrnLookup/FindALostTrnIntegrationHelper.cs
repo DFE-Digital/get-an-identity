@@ -11,13 +11,13 @@ public class FindALostTrnIntegrationHelper
     private readonly IOptions<FindALostTrnIntegrationOptions> _optionsAccessor;
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public FindALostTrnIntegrationHelper(
         IOptions<FindALostTrnIntegrationOptions> optionsAccessor,
         IOpenIddictApplicationManager applicationManager,
         IHttpContextAccessor httpContextAccessor,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _optionsAccessor = optionsAccessor;
         _applicationManager = applicationManager;

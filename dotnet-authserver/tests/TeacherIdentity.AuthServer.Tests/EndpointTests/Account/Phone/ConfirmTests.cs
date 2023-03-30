@@ -30,10 +30,12 @@ public class ConfirmTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_ReturnsSuccess()
     {
+        // Arrange
         var mobileNumber = Faker.Phone.Number();
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(mobileNumber);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(mobileNumber)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -67,9 +69,9 @@ public class ConfirmTests : TestBase
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var protectedMobilePhone = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobilePhone.EncryptedValue)}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -94,9 +96,9 @@ public class ConfirmTests : TestBase
         var newMobileNumber = Faker.Phone.Number();
         var pin = "0";
 
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -121,9 +123,9 @@ public class ConfirmTests : TestBase
         var newMobileNumber = Faker.Phone.Number();
         var pin = "0123345678";
 
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -148,9 +150,9 @@ public class ConfirmTests : TestBase
         var newMobileNumber = Faker.Phone.Number();
         var pin = "abc";
 
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -180,9 +182,9 @@ public class ConfirmTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -215,9 +217,9 @@ public class ConfirmTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -244,13 +246,14 @@ public class ConfirmTests : TestBase
         var clientRedirectInfo = CreateClientRedirectInfo();
 
         var newMobileNumber = Faker.Phone.Number();
-        var protectedMobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newMobileNumber);
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateSmsPin(newMobileNumber);
         Assert.True(pinResult.Succeeded);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/confirm?mobileNumber={UrlEncode(protectedMobileNumber.EncryptedValue)}&{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/confirm?mobileNumber={UrlEncode(newMobileNumber)}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

@@ -8,14 +8,14 @@ public abstract class TrnLookupPageModel : PageModel
     private readonly TrnLookupHelper _trnLookupHelper;
 
     protected TrnLookupPageModel(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TrnLookupHelper trnLookupHelper)
     {
         LinkGenerator = linkGenerator;
         _trnLookupHelper = trnLookupHelper;
     }
 
-    public IIdentityLinkGenerator LinkGenerator { get; }
+    public IdentityLinkGenerator LinkGenerator { get; }
 
     protected async Task<IActionResult?> TryFindTrn()
     {

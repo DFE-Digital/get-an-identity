@@ -27,6 +27,7 @@ using Serilog;
 using StackExchange.Redis;
 using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.EventProcessing;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
@@ -150,7 +151,7 @@ public class Program
                         ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
                     }
 
-                    var linkGenerator = ctx.HttpContext.RequestServices.GetRequiredService<IIdentityLinkGenerator>();
+                    var linkGenerator = ctx.HttpContext.RequestServices.GetRequiredService<IdentityLinkGenerator>();
                     ctx.Response.Redirect(authenticationState.GetNextHopUrl(linkGenerator));
 
                     return Task.CompletedTask;
@@ -426,7 +427,7 @@ public class Program
         {
             options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
 
-            options.ModelBinderProviders.Insert(0, new ProtectedStringModelBinderProvider());
+            options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
         });
 
         builder.Services.AddCsp(nonceByteAmount: 32);
@@ -471,15 +472,17 @@ public class Program
             .AddSingleton<IClock, SystemClock>()
             .AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>()
             .AddTransient<IRequestClientIpProvider, RequestClientIpProvider>()
-            .AddSingleton<IIdentityLinkGenerator, IdentityLinkGenerator>()
+            .AddSingleton<IdentityLinkGenerator, MvcIdentityLinkGenerator>()
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
             .AddTransient<ICurrentClientProvider, AuthenticationStateCurrentClientProvider>()
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
-            .AddSingleton<ProtectedStringFactory>()
             .AddTransient<ClientScopedViewHelper>()
             .AddTransient<IActionContextAccessor, ActionContextAccessor>()
             .AddTransient<TrnLookupHelper>()
-            .AddTransient<UserClaimHelper>();
+            .AddTransient<UserClaimHelper>()
+            .AddSingleton(
+                new QueryStringSignatureHelper(
+                    builder.Configuration["QueryStringSignatureKey"] ?? throw new Exception("QueryStringSignatureKey missing from configuration.")));
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 

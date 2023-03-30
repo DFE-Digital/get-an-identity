@@ -43,13 +43,11 @@ public class ConfirmationTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}");
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -101,13 +99,11 @@ public class ConfirmationTests : TestBase
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -132,13 +128,11 @@ public class ConfirmationTests : TestBase
         var newEmail = Faker.Internet.Email();
         var pin = "0";
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -163,13 +157,11 @@ public class ConfirmationTests : TestBase
         var newEmail = Faker.Internet.Email();
         var pin = "0123345678";
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -194,13 +186,11 @@ public class ConfirmationTests : TestBase
         var newEmail = Faker.Internet.Email();
         var pin = "abc";
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -229,13 +219,11 @@ public class ConfirmationTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -267,13 +255,11 @@ public class ConfirmationTests : TestBase
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -302,13 +288,11 @@ public class ConfirmationTests : TestBase
         var pinResult = await userVerificationService.GenerateEmailPin(newEmail);
         Assert.True(pinResult.Succeeded);
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}")
+            AppendQueryParameterSignature($"/update-email/confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

@@ -1,25 +1,209 @@
 using Flurl;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer;
 
-public interface IIdentityLinkGenerator
+public abstract class IdentityLinkGenerator
 {
-    string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true);
+    protected const string DateOfBirthFormat = Infrastructure.ModelBinding.DateOnlyModelBinder.Format;
+
+    protected IdentityLinkGenerator(QueryStringSignatureHelper queryStringSignatureHelper)
+    {
+        QueryStringSignatureHelper = queryStringSignatureHelper;
+    }
+
+    protected QueryStringSignatureHelper QueryStringSignatureHelper { get; }
+
+    protected abstract string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true);
+
+    public string CompleteAuthorization() => PageWithAuthenticationJourneyId("/SignIn/Complete");
+
+    public string Reset() => PageWithAuthenticationJourneyId("/SignIn/Reset");
+
+    public string Email() => PageWithAuthenticationJourneyId("/SignIn/Email");
+
+    public string EmailConfirmation() => PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");
+
+    public string ResendEmailConfirmation() => PageWithAuthenticationJourneyId("/SignIn/ResendEmailConfirmation");
+
+    public string ResendTrnOwnerEmailConfirmation() => PageWithAuthenticationJourneyId("/SignIn/ResendTrnOwnerEmailConfirmation");
+
+    public string Trn() => PageWithAuthenticationJourneyId("/SignIn/Trn");
+
+    public string TrnInUse() => PageWithAuthenticationJourneyId("/SignIn/TrnInUse");
+
+    public string TrnInUseChooseEmail() => PageWithAuthenticationJourneyId("/SignIn/TrnInUseChooseEmail");
+
+    public string TrnInUseCannotAccessEmail() => PageWithAuthenticationJourneyId("/SignIn/TrnInUseCannotAccessEmail");
+
+    public string TrnCallback() => PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
+
+    public string TrnHasTrn() => PageWithAuthenticationJourneyId("/SignIn/Trn/HasTrnPage");
+
+    public string TrnOfficialName() => PageWithAuthenticationJourneyId("/SignIn/Trn/OfficialName");
+
+    public string TrnPreferredName() => PageWithAuthenticationJourneyId("/SignIn/Trn/PreferredName");
+
+    public string TrnDateOfBirth() => PageWithAuthenticationJourneyId("/SignIn/Trn/DateOfBirthPage");
+
+    public string TrnHasNiNumber() => PageWithAuthenticationJourneyId("/SignIn/Trn/HasNiNumberPage");
+
+    public string TrnNiNumber() => PageWithAuthenticationJourneyId("/SignIn/Trn/NiNumberPage");
+
+    public string TrnAwardedQts() => PageWithAuthenticationJourneyId("/SignIn/Trn/AwardedQtsPage");
+
+    public string TrnIttProvider() => PageWithAuthenticationJourneyId("/SignIn/Trn/IttProvider");
+
+    public string TrnCheckAnswers() => PageWithAuthenticationJourneyId("/SignIn/Trn/CheckAnswers");
+
+    public string TrnNoMatch() => PageWithAuthenticationJourneyId("/SignIn/Trn/NoMatch");
+
+    public string Landing() => PageWithAuthenticationJourneyId("/SignIn/Landing");
+
+    public string Register() => PageWithAuthenticationJourneyId("/SignIn/Register/Index");
+
+    public string RegisterEmail() => PageWithAuthenticationJourneyId("/SignIn/Register/Email");
+
+    public string RegisterEmailConfirmation() => PageWithAuthenticationJourneyId("/SignIn/Register/EmailConfirmation");
+
+    public string RegisterEmailExists() => PageWithAuthenticationJourneyId("/SignIn/Register/EmailExists");
+
+    public string RegisterPhone() => PageWithAuthenticationJourneyId("/SignIn/Register/Phone");
+
+    public string RegisterPhoneConfirmation() => PageWithAuthenticationJourneyId("/SignIn/Register/PhoneConfirmation");
+
+    public string RegisterResendPhoneConfirmation() => PageWithAuthenticationJourneyId("/SignIn/Register/ResendPhoneConfirmation");
+
+    public string RegisterPhoneExists() => PageWithAuthenticationJourneyId("/SignIn/Register/PhoneExists");
+
+    public string RegisterName() => PageWithAuthenticationJourneyId("/SignIn/Register/Name");
+
+    public string RegisterDateOfBirth() => PageWithAuthenticationJourneyId("/SignIn/Register/DateOfBirthPage");
+
+    public string RegisterAccountExists() => PageWithAuthenticationJourneyId("/SignIn/Register/AccountExists");
+
+    public string RegisterExistingAccountEmailConfirmation() => PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountEmailConfirmation");
+
+    public string RegisterResendEmailConfirmation() => PageWithAuthenticationJourneyId("/SignIn/Register/ResendEmailConfirmation");
+
+    public string RegisterResendExistingAccountEmail() => PageWithAuthenticationJourneyId("/SignIn/Register/ResendExistingAccountEmail");
+
+    public string RegisterExistingAccountPhone() => PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhone");
+
+    public string RegisterResendExistingAccountPhone() => PageWithAuthenticationJourneyId("/SignIn/Register/ResendExistingAccountPhone");
+
+    public string RegisterExistingAccountPhoneConfirmation() => PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhoneConfirmation");
+
+    public string RegisterChangeEmailRequest() => PageWithAuthenticationJourneyId("/SignIn/Register/ChangeEmailRequest");
+
+    public string UpdateEmail(string? returnUrl, string? cancelUrl) =>
+        PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl);
+
+    public string UpdateEmailConfirmation(string email, string? returnUrl, string? cancelUrl) =>
+        PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Confirmation", authenticationJourneyRequired: false)
+            .SetQueryParam("email", email)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string ResendUpdateEmailConfirmation(string email, string? returnUrl, string? cancelUrl) =>
+        PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/ResendConfirmation", authenticationJourneyRequired: false)
+            .SetQueryParam("email", email)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string UpdateName(string? returnUrl, string? cancelUrl) =>
+        PageWithAuthenticationJourneyId("/Authenticated/UpdateName", authenticationJourneyRequired: false)
+            .SetQueryParam("returnUrl", returnUrl)
+            .SetQueryParam("cancelUrl", cancelUrl);
+
+    public string Account(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountName(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Name/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountNameConfirm(string firstName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Name/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("firstName", firstName)
+            .SetQueryParam("lastName", lastName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountDateOfBirth(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountDateOfBirthConfirm(DateOnly dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("dateOfBirth", dateOfBirth.ToString(DateOfBirthFormat))
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountEmail(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Email/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountEmailResend(string email, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Email/Resend", authenticationJourneyRequired: false)
+            .SetQueryParam("email", email)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountEmailConfirm(string email, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Email/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("email", email)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountPhone(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Phone/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountPhoneResend(string mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Phone/Resend", authenticationJourneyRequired: false)
+            .SetQueryParam("mobileNumber", mobileNumber)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountPhoneConfirm(string mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/Phone/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("mobileNumber", mobileNumber)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string Cookies() =>
+        PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
+
+    public string Privacy() =>
+        PageWithAuthenticationJourneyId("/Privacy", authenticationJourneyRequired: false);
+
+    public string Accessibility() =>
+        PageWithAuthenticationJourneyId("/Accessibility", authenticationJourneyRequired: false);
 }
 
-public class IdentityLinkGenerator : IIdentityLinkGenerator
+public class MvcIdentityLinkGenerator : IdentityLinkGenerator
 {
     private readonly LinkGenerator _linkGenerator;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public IdentityLinkGenerator(LinkGenerator linkGenerator, IHttpContextAccessor httpContextAccessor)
+    public MvcIdentityLinkGenerator(
+        QueryStringSignatureHelper queryStringSignatureHelper,
+        LinkGenerator linkGenerator,
+        IHttpContextAccessor httpContextAccessor)
+        : base(queryStringSignatureHelper)
     {
         _linkGenerator = linkGenerator;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
+    protected override string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
     {
         var httpContext = _httpContextAccessor.HttpContext ?? throw new InvalidOperationException("No HttpContext.");
 
@@ -45,165 +229,12 @@ public class IdentityLinkGenerator : IIdentityLinkGenerator
     }
 }
 
-public static class IdentityLinkGeneratorExtensions
+file static class StringExtensions
 {
-    public static string CompleteAuthorization(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Complete");
-
-    public static string Reset(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Reset");
-
-    public static string Email(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Email");
-
-    public static string EmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/EmailConfirmation");
-
-    public static string ResendEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/ResendEmailConfirmation");
-
-    public static string ResendTrnOwnerEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/ResendTrnOwnerEmailConfirmation");
-
-    public static string Trn(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn");
-
-    public static string TrnInUse(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnInUse");
-
-    public static string TrnInUseChooseEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnInUseChooseEmail");
-
-    public static string TrnInUseCannotAccessEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnInUseCannotAccessEmail");
-
-    public static string TrnCallback(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/TrnCallback");
-
-    public static string TrnHasTrn(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/HasTrnPage");
-
-    public static string TrnOfficialName(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/OfficialName");
-
-    public static string TrnPreferredName(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/PreferredName");
-
-    public static string TrnDateOfBirth(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/DateOfBirthPage");
-
-    public static string TrnHasNiNumber(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/HasNiNumberPage");
-
-    public static string TrnNiNumber(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/NiNumberPage");
-
-    public static string TrnAwardedQts(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/AwardedQtsPage");
-
-    public static string TrnIttProvider(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/IttProvider");
-
-    public static string TrnCheckAnswers(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/CheckAnswers");
-
-    public static string TrnNoMatch(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Trn/NoMatch");
-
-    public static string Landing(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Landing");
-
-    public static string RegisterEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/Email");
-
-    public static string RegisterEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/EmailConfirmation");
-
-    public static string RegisterEmailExists(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/EmailExists");
-
-    public static string RegisterPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/Phone");
-
-    public static string RegisterPhoneConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/PhoneConfirmation");
-
-    public static string RegisterResendPhoneConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendPhoneConfirmation");
-
-    public static string RegisterPhoneExists(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/PhoneExists");
-
-    public static string RegisterName(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/Name");
-
-    public static string RegisterDateOfBirth(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/DateOfBirthPage");
-
-    public static string RegisterAccountExists(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/AccountExists");
-
-    public static string RegisterExistingAccountEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountEmailConfirmation");
-
-    public static string RegisterResendEmailConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendEmailConfirmation");
-
-    public static string RegisterResendExistingAccountEmail(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendExistingAccountEmail");
-
-    public static string RegisterExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhone");
-
-    public static string RegisterResendExistingAccountPhone(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ResendExistingAccountPhone");
-
-    public static string RegisterExistingAccountPhoneConfirmation(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ExistingAccountPhoneConfirmation");
-
-    public static string RegisterChangeEmailRequest(this IIdentityLinkGenerator linkGenerator) => linkGenerator.PageWithAuthenticationJourneyId("/SignIn/Register/ChangeEmailRequest");
-
-    public static string UpdateEmail(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
-
-    public static string UpdateEmailConfirmation(this IIdentityLinkGenerator linkGenerator, ProtectedString email, string? returnUrl, string? cancelUrl) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/Confirmation", authenticationJourneyRequired: false)
-            .SetQueryParam("email", email.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
-
-    public static string ResendUpdateEmailConfirmation(this IIdentityLinkGenerator linkGenerator, ProtectedString email, string? returnUrl, string? cancelUrl) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateEmail/ResendConfirmation", authenticationJourneyRequired: false)
-            .SetQueryParam("email", email.EncryptedValue)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
-
-    public static string UpdateName(this IIdentityLinkGenerator linkGenerator, string? returnUrl, string? cancelUrl) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Authenticated/UpdateName", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
-
-    public static string Account(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountName(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountNameConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString firstName, ProtectedString lastName, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Name/Confirm", authenticationJourneyRequired: false)
-            .SetQueryParam("firstName", firstName.EncryptedValue)
-            .SetQueryParam("lastName", lastName.EncryptedValue)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountDateOfBirth(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountDateOfBirthConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
-            .SetQueryParam("dateOfBirth", dateOfBirth.EncryptedValue)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountEmail(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountEmailResend(this IIdentityLinkGenerator linkGenerator, ProtectedString email, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Resend", authenticationJourneyRequired: false)
-            .SetQueryParam("email", email.EncryptedValue)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountEmailConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString email, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Email/Confirm", authenticationJourneyRequired: false)
-            .SetQueryParam("email", email.EncryptedValue)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountPhone(this IIdentityLinkGenerator linkGenerator, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountPhoneResend(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Resend", authenticationJourneyRequired: false)
-            .SetQueryParam("mobileNumber", mobileNumber.EncryptedValue)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string AccountPhoneConfirm(this IIdentityLinkGenerator linkGenerator, ProtectedString mobileNumber, ClientRedirectInfo? clientRedirectInfo) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Account/Phone/Confirm", authenticationJourneyRequired: false)
-            .SetQueryParam("mobileNumber", mobileNumber.EncryptedValue)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
-
-    public static string Cookies(this IIdentityLinkGenerator linkGenerator) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
-
-    public static string Privacy(this IIdentityLinkGenerator linkGenerator) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Privacy", authenticationJourneyRequired: false);
-
-    public static string Accessibility(this IIdentityLinkGenerator linkGenerator) =>
-        linkGenerator.PageWithAuthenticationJourneyId("/Accessibility", authenticationJourneyRequired: false);
+    public static Url AppendQueryStringSignature(
+        this Url url,
+        QueryStringSignatureHelper queryStringSignatureHelper)
+    {
+        return queryStringSignatureHelper.AppendSignature(url);
+    }
 }

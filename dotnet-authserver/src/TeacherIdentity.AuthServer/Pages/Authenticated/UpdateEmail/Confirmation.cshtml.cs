@@ -4,24 +4,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
+[VerifyQueryParameterSignature]
 public class ConfirmationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserVerificationService _userVerificationService;
     private readonly PinValidator _pinValidator;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public ConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;
@@ -36,7 +38,7 @@ public class ConfirmationModel : PageModel
     public string? Code { get; set; }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    public string? Email { get; set; }
 
     [FromQuery(Name = "cancelUrl")]
     public string? CancelUrl { get; set; }
@@ -58,7 +60,7 @@ public class ConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        var VerifyEmailPinFailedReasons = await _userVerificationService.VerifyEmailPin(Email!.PlainValue, Code!);
+        var VerifyEmailPinFailedReasons = await _userVerificationService.VerifyEmailPin(Email!, Code!);
 
         if (VerifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -73,7 +75,7 @@ public class ConfirmationModel : PageModel
 
             if (VerifyEmailPinFailedReasons.ShouldGenerateAnotherCode())
             {
-                var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
+                var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!);
 
                 if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
                 {
@@ -106,9 +108,9 @@ public class ConfirmationModel : PageModel
             ReturnUrl :
             "/";
 
-        if (user.EmailAddress != Email.PlainValue)
+        if (user.EmailAddress != Email)
         {
-            user.EmailAddress = Email.PlainValue;
+            user.EmailAddress = Email!;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new Events.UserUpdatedEvent()
@@ -125,7 +127,7 @@ public class ConfirmationModel : PageModel
 
             if (HttpContext.TryGetAuthenticationState(out var authenticationState))
             {
-                authenticationState.OnEmailChanged(Email!.PlainValue);
+                authenticationState.OnEmailChanged(Email!);
 
                 // If we're inside an OAuth journey we need to redirect back to the authorize endpoint so the
                 // OpenIddict auth handler can SignIn again with the revised user details

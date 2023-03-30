@@ -3,21 +3,23 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 
+[VerifyQueryParameterSignature]
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
     private readonly IDqtApiClient _dqtApiClient;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock,
         IDqtApiClient dqtApiClient)
     {
@@ -30,8 +32,7 @@ public class Confirm : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "dateOfBirth")]
-    public ProtectedString? DateOfBirth { get; set; }
-    public DateOnly NewDateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
 
     public void OnGet()
     {
@@ -49,14 +50,14 @@ public class Confirm : PageModel
 
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (user.DateOfBirth != NewDateOfBirth)
+        if (user.DateOfBirth != DateOfBirth)
         {
             changes |= UserUpdatedEventChanges.DateOfBirth;
         }
 
         if (changes != UserUpdatedEventChanges.None)
         {
-            user.DateOfBirth = NewDateOfBirth;
+            user.DateOfBirth = DateOfBirth;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()
@@ -84,13 +85,11 @@ public class Confirm : PageModel
             context.Result = BadRequest();
         }
 
-        if (DateOfBirth is null || !DateOnly.TryParse(DateOfBirth.PlainValue, out var newDateOfBirth))
+        if (DateOfBirth is null)
         {
             context.Result = BadRequest();
             return;
         }
-
-        NewDateOfBirth = newDateOfBirth;
 
         await next();
     }

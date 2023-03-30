@@ -10,7 +10,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 public class CheckAnswers : TrnCreateUserPageModel
 {
     public CheckAnswers(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IUserVerificationService userVerificationService,

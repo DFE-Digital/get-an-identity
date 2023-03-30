@@ -3,23 +3,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 
+[VerifyQueryParameterSignature]
 public class Confirm : BasePinVerificationPageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public Confirm(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock) :
         base(userVerificationService, pinValidator)
     {
@@ -35,7 +37,7 @@ public class Confirm : BasePinVerificationPageModel
     public override string? Code { get; set; }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    public string? Email { get; set; }
 
     public void OnGet()
     {
@@ -51,7 +53,7 @@ public class Confirm : BasePinVerificationPageModel
             return this.PageWithErrors();
         }
 
-        var verifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!.PlainValue, Code!);
+        var verifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
 
         if (verifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -66,7 +68,7 @@ public class Confirm : BasePinVerificationPageModel
     {
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var newEmail = Email!.PlainValue;
+        var newEmail = Email!;
 
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
@@ -108,6 +110,6 @@ public class Confirm : BasePinVerificationPageModel
 
     protected override Task<PinGenerationResult> GeneratePin()
     {
-        return UserVerificationService.GenerateEmailPin(Email!.PlainValue);
+        return UserVerificationService.GenerateEmailPin(Email!);
     }
 }

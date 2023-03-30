@@ -41,13 +41,11 @@ public class ResendConfirmationTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            $"/update-email/resend-confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}");
+            AppendQueryParameterSignature($"/update-email/resend-confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -67,7 +65,7 @@ public class ResendConfirmationTests : TestBase
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/resend-confirmation?returnUrl={UrlEncode(returnUrl)}");
+            AppendQueryParameterSignature($"/update-email/resend-confirmation?returnUrl={UrlEncode(returnUrl)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -89,13 +87,11 @@ public class ResendConfirmationTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/resend-confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}");
+            AppendQueryParameterSignature($"/update-email/resend-confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -113,13 +109,11 @@ public class ResendConfirmationTests : TestBase
 
         var newEmail = Faker.Internet.Email();
 
-        var protectedEmail = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(newEmail);
-
         var returnUrl = "/_tests/empty";
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/update-email/resend-confirmation?email={UrlEncode(protectedEmail.EncryptedValue)}&returnUrl={UrlEncode(returnUrl)}");
+            AppendQueryParameterSignature($"/update-email/resend-confirmation?email={UrlEncode(newEmail)}&returnUrl={UrlEncode(returnUrl)}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);

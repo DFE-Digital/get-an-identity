@@ -9,11 +9,11 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class ResendTrnOwnerEmailConfirmationModel : PageModel
 {
     private readonly IUserVerificationService _userVerificationService;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public ResendTrnOwnerEmailConfirmationModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _userVerificationService = userVerificationService;
         _linkGenerator = linkGenerator;

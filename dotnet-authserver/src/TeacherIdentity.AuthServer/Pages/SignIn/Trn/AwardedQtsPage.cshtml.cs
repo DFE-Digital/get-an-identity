@@ -9,7 +9,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
 public class AwardedQtsPage : TrnLookupPageModel
 {
-    public AwardedQtsPage(IIdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
+    public AwardedQtsPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
         : base(linkGenerator, trnLookupHelper)
     {
     }

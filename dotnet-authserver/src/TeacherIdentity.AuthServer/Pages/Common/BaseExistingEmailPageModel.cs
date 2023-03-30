@@ -8,7 +8,7 @@ public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
 {
     public BaseExistingEmailPageModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     { }

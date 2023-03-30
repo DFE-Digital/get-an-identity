@@ -245,7 +245,7 @@ public class AuthenticationState
         return AuthenticationMilestone.None;
     }
 
-    public string GetNextHopUrl(IIdentityLinkGenerator linkGenerator)
+    public string GetNextHopUrl(IdentityLinkGenerator linkGenerator)
     {
         var milestone = GetLastMilestone();
         var journeyType = GetJourneyType();

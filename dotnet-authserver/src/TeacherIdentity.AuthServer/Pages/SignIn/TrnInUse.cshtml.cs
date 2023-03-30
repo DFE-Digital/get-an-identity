@@ -8,12 +8,12 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.TrnLookupCompleted)]
 public class TrnInUseModel : BaseEmailConfirmationPageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public TrnInUseModel(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
         : base(userVerificationService, pinValidator)
     {
         _linkGenerator = linkGenerator;

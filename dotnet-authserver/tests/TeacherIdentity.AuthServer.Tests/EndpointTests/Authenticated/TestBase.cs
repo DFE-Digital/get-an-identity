@@ -1,3 +1,5 @@
+using Flurl;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Authenticated;
@@ -29,4 +31,10 @@ public partial class TestBase
     public TestData TestData => HostFixture.Services.GetRequiredService<TestData>();
 
     public HttpClient HttpClient { get; }
+
+    public string AppendQueryParameterSignature(Url url)
+    {
+        var queryStringSignatureHelper = HostFixture.Services.GetRequiredService<QueryStringSignatureHelper>();
+        return queryStringSignatureHelper.AppendSignature(url);
+    }
 }

@@ -18,12 +18,12 @@ public class RequireAuthenticationStateFilterFactory : IFilterFactory
 
 public class RequireAuthenticationStateFilter : IAuthorizationFilter
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly ILogger<RequireAuthenticationStateFilter> _logger;
     private readonly IClock _clock;
 
     public RequireAuthenticationStateFilter(
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         ILogger<RequireAuthenticationStateFilter> logger,
         IClock clock)
     {

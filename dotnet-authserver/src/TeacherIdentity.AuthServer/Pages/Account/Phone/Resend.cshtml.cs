@@ -1,26 +1,25 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 
+[VerifyQueryParameterSignature]
 public class Resend : BasePhonePageModel
 {
-    private ProtectedStringFactory _protectedStringFactory;
-    private IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public Resend(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        ProtectedStringFactory protectedStringFactory) :
+        IdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {
         _linkGenerator = linkGenerator;
-        _protectedStringFactory = protectedStringFactory;
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
@@ -32,11 +31,11 @@ public class Resend : BasePhonePageModel
     public string? NewMobileNumber { get; set; }
 
     [FromQuery(Name = "mobileNumber")]
-    public new ProtectedString? MobileNumber { get; set; }
+    public new string? MobileNumber { get; set; }
 
     public void OnGet()
     {
-        NewMobileNumber = MobileNumber!.PlainValue;
+        NewMobileNumber = MobileNumber;
     }
 
     public async Task<IActionResult> OnPost()
@@ -64,9 +63,7 @@ public class Resend : BasePhonePageModel
             return smsPinGenerationResult.Result!;
         }
 
-        var protectedMobileNumber = _protectedStringFactory.CreateFromPlainValue(NewMobileNumber!);
-
-        return Redirect(_linkGenerator.AccountPhoneConfirm(protectedMobileNumber, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountPhoneConfirm(MobileNumber!, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

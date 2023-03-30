@@ -6,19 +6,20 @@ namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.Phone;
 
 public class ResendTests : TestBase
 {
-    private readonly ProtectedString _mobileNumber;
-
     public ResendTests(HostFixture hostFixture)
         : base(hostFixture)
     {
-        _mobileNumber = HostFixture.Services.GetRequiredService<ProtectedStringFactory>().CreateFromPlainValue(Faker.Phone.Number());
     }
 
     [Fact]
     public async Task Post_EmptyMobileNumber_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/resend?mobileNumber={_mobileNumber}")
+        var mobileNumber = Faker.Phone.Number();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -38,7 +39,11 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/resend?mobileNumber={_mobileNumber}")
+        var mobileNumber = Faker.Phone.Number();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -62,10 +67,13 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
+        var mobileNumber = Faker.Phone.Number();
         var anotherUser = await TestData.CreateUser();
         var newMobileNumber = isOwnNumber ? user.MobileNumber : anotherUser.MobileNumber;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/resend?mobileNumber={_mobileNumber}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -91,10 +99,13 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
+        var mobileNumber = Faker.Phone.Number();
         var newMobileNumber = Faker.Phone.Number();
         var formattedMobileNumber = PhoneHelper.FormatMobileNumber(newMobileNumber);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/resend?mobileNumber={_mobileNumber}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -117,8 +128,11 @@ public class ResendTests : TestBase
     {
         // Arrange
         var clientRedirectInfo = CreateClientRedirectInfo();
+        var mobileNumber = Faker.Phone.Number();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/resend?mobileNumber={_mobileNumber}&{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}&{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -141,13 +155,17 @@ public class ResendTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
+        var mobileNumber = Faker.Phone.Number();
+
         HostFixture.RateLimitStore
             .Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress))
             .ReturnsAsync(true);
 
         var newMobileNumber = Faker.Phone.Number();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone/resend?mobileNumber={_mobileNumber}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/phone/resend?mobileNumber={mobileNumber}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

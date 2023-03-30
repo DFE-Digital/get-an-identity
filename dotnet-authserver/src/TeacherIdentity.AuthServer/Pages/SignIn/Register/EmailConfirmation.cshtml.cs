@@ -10,13 +10,13 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public EmailConfirmationModel(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext)
         : base(userVerificationService, pinValidator)
     {

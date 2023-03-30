@@ -17,7 +17,7 @@ public class IttProvider : TrnLookupPageModel
 
     public IttProvider(
         IMemoryCache cache,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IDqtApiClient dqtApiClient,
         TrnLookupHelper trnLookupHelper)
         : base(linkGenerator, trnLookupHelper)

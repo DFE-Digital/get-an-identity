@@ -1,25 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
+[VerifyQueryParameterSignature]
 public class ResendConfirmationModel : PageModel
 {
     private readonly IUserVerificationService _userVerificationService;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public ResendConfirmationModel(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator)
+        IdentityLinkGenerator linkGenerator)
     {
         _userVerificationService = userVerificationService;
         _linkGenerator = linkGenerator;
     }
 
     [FromQuery(Name = "email")]
-    public ProtectedString? Email { get; set; }
+    public string? Email { get; set; }
 
     [FromQuery(Name = "cancelUrl")]
     public string? CancelUrl { get; set; }
@@ -33,7 +35,7 @@ public class ResendConfirmationModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!.PlainValue);
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(Email!);
 
         if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
         {

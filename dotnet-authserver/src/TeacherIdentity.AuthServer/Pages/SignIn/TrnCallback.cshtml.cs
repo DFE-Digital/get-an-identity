@@ -11,14 +11,14 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class TrnCallbackModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
     private readonly IUserVerificationService _userVerificationService;
     private readonly ILogger<TrnCallbackModel> _logger;
 
     public TrnCallbackModel(
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock,
         IUserVerificationService userVerificationService,
         ILogger<TrnCallbackModel> logger)

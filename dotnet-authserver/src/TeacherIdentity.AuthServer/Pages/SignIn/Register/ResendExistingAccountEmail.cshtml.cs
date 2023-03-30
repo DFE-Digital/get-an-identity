@@ -10,7 +10,7 @@ public class ResendExistingAccountEmail : BaseExistingEmailPageModel
 {
     public ResendExistingAccountEmail(
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, linkGenerator, dbContext)
     {

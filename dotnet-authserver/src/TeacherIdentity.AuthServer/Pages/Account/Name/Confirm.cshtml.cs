@@ -3,19 +3,21 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 
+[VerifyQueryParameterSignature]
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
     private readonly IClock _clock;
 
     public Confirm(
         TeacherIdentityServerDbContext dbContext,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         IClock clock)
     {
         _dbContext = dbContext;
@@ -26,10 +28,10 @@ public class Confirm : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
     [FromQuery(Name = "firstName")]
-    public ProtectedString? FirstName { get; set; }
+    public string? FirstName { get; set; }
 
     [FromQuery(Name = "lastName")]
-    public ProtectedString? LastName { get; set; }
+    public string? LastName { get; set; }
 
     public void OnGet()
     {
@@ -45,25 +47,22 @@ public class Confirm : PageModel
     {
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var newFirstName = FirstName!.PlainValue;
-        var newLastName = LastName!.PlainValue;
-
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
 
-        if (user.FirstName != newFirstName)
+        if (user.FirstName != FirstName)
         {
             changes |= UserUpdatedEventChanges.FirstName;
         }
 
-        if (user.LastName != newLastName)
+        if (user.LastName != LastName)
         {
             changes |= UserUpdatedEventChanges.LastName;
         }
 
         if (changes != UserUpdatedEventChanges.None)
         {
-            user.FirstName = newFirstName;
-            user.LastName = newLastName;
+            user.FirstName = FirstName!;
+            user.LastName = LastName!;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()

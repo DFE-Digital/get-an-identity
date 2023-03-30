@@ -11,12 +11,12 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IIdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public EmailConfirmationModel(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        IIdentityLinkGenerator linkGenerator,
+        IdentityLinkGenerator linkGenerator,
         PinValidator pinValidator)
         : base(userVerificationService, pinValidator)
     {

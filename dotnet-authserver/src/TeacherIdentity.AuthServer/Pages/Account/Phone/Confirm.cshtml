@@ -14,7 +14,7 @@
         <form action="@LinkGenerator.AccountPhoneConfirm(Model.MobileNumber!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
-            <p>We’ve sent you a text message with a security code to <b data-testid="mobileNumber">@Model.MobileNumber!.PlainValue</b></p>
+            <p>We’ve sent you a text message with a security code to <b data-testid="mobileNumber">@Model.MobileNumber</b></p>
 
             <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
                 <govuk-input-label class="govuk-label--s" />
