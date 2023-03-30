@@ -1,3 +1,4 @@
+using Dfe.Analytics.AspNetCore;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -34,6 +35,7 @@ public class IndexModel : PageModel
     public DateOnly? DqtDateOfBirth { get; set; }
     public bool PendingDqtNameChange { get; set; }
     public bool PendingDqtDateOfBirthChange { get; set; }
+    public bool DateOfBirthConflict { get; set; }
 
     public async Task OnGet()
     {
@@ -67,6 +69,12 @@ public class IndexModel : PageModel
             DqtDateOfBirth = dqtUser.DateOfBirth;
             PendingDqtNameChange = dqtUser.PendingNameChange;
             PendingDqtDateOfBirthChange = dqtUser.PendingDateOfBirthChange;
+
+            if (!DqtDateOfBirth.Equals(DateOfBirth))
+            {
+                DateOfBirthConflict = true;
+                HttpContext.Features.Get<WebRequestEventFeature>()?.Event.AddTag("DateOfBirthConflict");
+            }
         }
 
         if (ClientRedirectInfo is not null)
