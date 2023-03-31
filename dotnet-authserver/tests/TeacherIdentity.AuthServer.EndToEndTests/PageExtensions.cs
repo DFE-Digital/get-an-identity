@@ -45,8 +45,8 @@ public static class PageExtensions
 
     public static async Task SubmitEmailPage(this IPage page, string email)
     {
-        await page.WaitForSelectorAsync("h1:text-is('Your email address')");
-        await page.FillAsync("text=Enter your email address", email);
+        await page.WaitForSelectorAsync(":text-is('Your email address')");
+        await page.FillAsync("input[type='email']", email);
         await page.ClickAsync("button:text-is('Continue')");
     }
 
