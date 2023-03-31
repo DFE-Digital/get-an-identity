@@ -1,0 +1,20 @@
+@page "/account/official-name"
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialName.OfficialName
+@{
+    ViewBag.Title = "Change official name";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.Account(Model.ClientRedirectInfo)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+        <p>If you’ve changed your name, you’ll need to provide evidence to update it.</p>
+        <p>We'll give you detailed information about providing evidence. Changes can take up to 5 working days.</p>
+        <p>We'll email you to confirm that we've made the changes.</p>
+        <govuk-button-link href="@LinkGenerator.AccountOfficialNameDetails(Model.ClientRedirectInfo)">Continue</govuk-button-link>
+    </div>
+</div>
+

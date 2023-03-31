@@ -1,5 +1,6 @@
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Establishment;
 using TeacherIdentity.AuthServer.Services.EventPublishing;
 using TeacherIdentity.AuthServer.Services.Notification;
@@ -22,6 +23,7 @@ public static class ServiceCollectionExtensions
             .AddBackgroundJobs(environment, postgresConnectionString)
             .AddGias(environment, configuration)
             .AddUserImport(environment, configuration)
+            .AddDqtEvidence(environment, configuration)
             .AddDqtApi(environment, configuration)
             .AddEmail(environment, configuration)
             .AddUserVerification(environment, configuration)

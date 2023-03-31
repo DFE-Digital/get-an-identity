@@ -188,7 +188,7 @@ public class EditClientModel : PageModel
                 await txn.CommitAsync();
             }
 
-            TempData.SetFlashSuccess("Client updated");
+            TempData.SetFlashSuccess(new FlashSuccessData("Client updated"));
         }
 
         return RedirectToPage("Clients");

@@ -109,7 +109,7 @@ public class EditStaffUserModel : PageModel
                 return this.PageWithErrors();
             }
 
-            TempData.SetFlashSuccess("Staff user updated");
+            TempData.SetFlashSuccess(new FlashSuccessData("Staff user updated"));
         }
 
         return RedirectToPage("Staff");

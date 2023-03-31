@@ -111,7 +111,7 @@ public class UpdateNameModel : PageModel
                 safeReturnUrl = authenticationState.PostSignInUrl;
             }
 
-            TempData.SetFlashSuccess("Name updated");
+            TempData.SetFlashSuccess(new FlashSuccessData("Name updated"));
         }
 
         return Redirect(safeReturnUrl);

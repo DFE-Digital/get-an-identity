@@ -178,6 +178,33 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
+    public string AccountOfficialName(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/OfficialName/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountOfficialNameDetails(ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/OfficialName/Details", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountOfficialNameEvidence(string firstName, string middleName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/OfficialName/Evidence", authenticationJourneyRequired: false)
+            .SetQueryParam("firstName", firstName)
+            .SetQueryParam("middleName", middleName)
+            .SetQueryParam("lastName", lastName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    // refactor this!
+    public string AccountOfficialNameConfirm(string firstName, string middleName, string lastName, string fileId, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
+        PageWithAuthenticationJourneyId("/Account/OfficialName/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("firstName", firstName)
+            .SetQueryParam("middleName", middleName)
+            .SetQueryParam("lastName", lastName)
+            .SetQueryParam("fileId", fileId)
+            .SetQueryParam("fileName", fileName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
     public string Cookies() =>
         PageWithAuthenticationJourneyId("/Cookies", authenticationJourneyRequired: false);
 

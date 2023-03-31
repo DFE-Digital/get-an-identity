@@ -137,7 +137,7 @@ public class AddClientModel : PageModel
             await txn.CommitAsync();
         }
 
-        TempData.SetFlashSuccess("Client added");
+        TempData.SetFlashSuccess(new FlashSuccessData("Client added"));
         return RedirectToPage("Clients");
     }
 }

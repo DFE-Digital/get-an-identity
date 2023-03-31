@@ -62,10 +62,16 @@
 
 @if (TempData.ContainsKey(TempDataKeys.FlashSuccess))
 {
+    var flashSuccessData = FlashSuccessData.Deserialize((string)TempData[TempDataKeys.FlashSuccess]!);
+    var heading = flashSuccessData.Heading;
+    var message = flashSuccessData.Message;
+
     <govuk-notification-banner type="Success">
-        <p class="govuk-notification-banner__heading">
-            @TempData[TempDataKeys.FlashSuccess]
-        </p>
+        <p class="govuk-notification-banner__heading">@heading</p>
+        @if (message is not null)
+        {
+            <p>@message</p>
+        }
     </govuk-notification-banner>
 }
 

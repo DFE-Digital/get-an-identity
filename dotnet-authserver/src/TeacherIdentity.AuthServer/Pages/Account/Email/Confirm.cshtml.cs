@@ -96,7 +96,7 @@ public class Confirm : BasePinVerificationPageModel
 
             await HttpContext.SignInCookies(user, resetIssued: false);
 
-            TempData.SetFlashSuccess("Your email address has been updated");
+            TempData.SetFlashSuccess(new FlashSuccessData("Your email address has been updated"));
         }
     }
 

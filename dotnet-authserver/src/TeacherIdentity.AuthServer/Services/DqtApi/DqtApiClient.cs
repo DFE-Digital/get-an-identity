@@ -32,6 +32,7 @@ public class DqtApiClient : IDqtApiClient
 
     public async Task<TeacherInfo?> GetTeacherByTrn(string trn, CancellationToken cancellationToken)
     {
+
         var response = await _client.GetAsync($"/v2/teachers/{trn}", cancellationToken);
 
         if ((int)response.StatusCode == StatusCodes.Status404NotFound)

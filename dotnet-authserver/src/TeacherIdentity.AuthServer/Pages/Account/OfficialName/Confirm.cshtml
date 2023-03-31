@@ -1,0 +1,38 @@
+@page "/account/official-name/confirm"
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialName.Confirm
+@{
+    ViewBag.Title = "Confirm change";
+}
+
+@section BeforeContent
+{
+    <govuk-back-link href="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName ?? String.Empty, Model.LastName!, Model.ClientRedirectInfo)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.AccountOfficialNameConfirm(Model.FirstName!, Model.MiddleName ?? String.Empty, Model.LastName!, Model.FileId!, Model.FileName!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Official name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.FirstName @Model.MiddleName @Model.LastName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialNameDetails(Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>File upload</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.FileName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName, Model.MiddleName, Model.LastName, Model.ClientRedirectInfo)" visually-hidden-text="file name">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+
+            <govuk-button type="submit">Submit change</govuk-button>
+        </form>
+    </div>
+</div>
+

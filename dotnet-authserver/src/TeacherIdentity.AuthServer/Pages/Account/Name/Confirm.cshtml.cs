@@ -16,12 +16,12 @@ public class Confirm : PageModel
     private readonly IClock _clock;
 
     public Confirm(
-        TeacherIdentityServerDbContext dbContext,
         IdentityLinkGenerator linkGenerator,
+        TeacherIdentityServerDbContext dbContext,
         IClock clock)
     {
-        _dbContext = dbContext;
         _linkGenerator = linkGenerator;
+        _dbContext = dbContext;
         _clock = clock;
     }
 
@@ -79,7 +79,7 @@ public class Confirm : PageModel
 
             await HttpContext.SignInCookies(user, resetIssued: false);
 
-            TempData.SetFlashSuccess("Your name has been updated");
+            TempData.SetFlashSuccess(new FlashSuccessData("Your name has been updated"));
         }
     }
 

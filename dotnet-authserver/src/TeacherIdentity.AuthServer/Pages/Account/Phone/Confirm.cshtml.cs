@@ -94,7 +94,7 @@ public class Confirm : BasePinVerificationPageModel
 
             await HttpContext.SignInCookies(user, resetIssued: false);
 
-            TempData.SetFlashSuccess("Your mobile number has been updated");
+            TempData.SetFlashSuccess(new FlashSuccessData("Your mobile number has been updated"));
         }
     }
 

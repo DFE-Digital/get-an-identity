@@ -73,7 +73,7 @@ public class EditUserNameModel : PageModel
 
             await _dbContext.SaveChangesAsync();
 
-            TempData.SetFlashSuccess("Name changed successfully");
+            TempData.SetFlashSuccess(new FlashSuccessData("Name changed successfully"));
         }
 
         return RedirectToPage("User", new { UserId });

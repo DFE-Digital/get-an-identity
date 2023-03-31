@@ -1,0 +1,38 @@
+@page "/account/official-name/evidence"
+@using TeacherIdentity.AuthServer.Pages.Account.OfficialName
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialName.Evidence
+@{
+    ViewBag.Title = "Provide your evidence";
+}
+
+@section BeforeContent
+{
+    <govuk-back-link href="@LinkGenerator.AccountOfficialNameDetails(Model.ClientRedirectInfo)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName ?? String.Empty, Model.LastName!, Model.ClientRedirectInfo)" method="post" enctype="multipart/form-data" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>Your evidence must be in pdf or jpeg format and be a scan of 1 of the following:</p>
+
+            <ul class="govuk-list govuk-list--bullet">
+                <li>marriage certificate</li>
+                <li>civil partnership certificate</li>
+                <li>decree absolute and birth certificate</li>
+                <li>statutory declaration</li>
+                <li>deed poll</li>
+            </ul>
+
+            <p>Your scan must be readable and smaller than @Evidence.MaxFileSizeMb MB.</p>
+
+            <govuk-file-upload asp-for="EvidenceFile" input-accept=".csv, .jpg, .jpeg">
+                <govuk-file-upload-label>Upload a file</govuk-file-upload-label>
+            </govuk-file-upload>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

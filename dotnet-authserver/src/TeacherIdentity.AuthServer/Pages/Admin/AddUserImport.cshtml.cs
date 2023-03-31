@@ -29,8 +29,9 @@ public class AddUserImportModel : PageModel
         _backgroundJobScheduler = backgroundJobScheduler;
     }
 
-    [Required(ErrorMessage = "Select a file")]
     [BindProperty]
+    [Required(ErrorMessage = "Select a file")]
+    [FileExtensions(".csv", ErrorMessage = "The selected file must be a CSV")]
     public IFormFile? Upload { get; set; }
 
     public void OnGet()
@@ -44,15 +45,8 @@ public class AddUserImportModel : PageModel
             return this.PageWithErrors();
         }
 
-        // Validate that it is a CSV file (although should be blocked by accept=".csv" on modern browsers).
-        if (!Upload!.FileName.EndsWith(".csv"))
-        {
-            ModelState.AddModelError(nameof(Upload), "The selected file must be a CSV");
-            return this.PageWithErrors();
-        }
-
         // Validate that file is not empty
-        if (Upload.Length == 0)
+        if (Upload!.Length == 0)
         {
             ModelState.AddModelError(nameof(Upload), "The selected file contains no records");
             return this.PageWithErrors();
@@ -109,7 +103,7 @@ public class AddUserImportModel : PageModel
 
         await _backgroundJobScheduler.Enqueue<IUserImportProcessor>(p => p.Process(userImportJobId));
 
-        TempData.SetFlashSuccess($"CSV {Upload?.FileName} uploaded");
+        TempData.SetFlashSuccess(new FlashSuccessData($"CSV {Upload?.FileName} uploaded"));
         return RedirectToPage("UserImports");
     }
 }
