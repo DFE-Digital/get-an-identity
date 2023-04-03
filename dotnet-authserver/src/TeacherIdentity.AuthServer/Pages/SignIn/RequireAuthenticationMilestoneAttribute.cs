@@ -12,7 +12,7 @@ public class RequireAuthenticationMilestoneAttribute : Attribute, IPageFilter, I
     }
 
     public AuthenticationState.AuthenticationMilestone Milestone { get; }
-    
+
     public int Order => int.MinValue;
 
     public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
