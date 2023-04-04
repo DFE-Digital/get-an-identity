@@ -124,8 +124,11 @@ public class TrnTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
@@ -155,8 +158,11 @@ public class TrnTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
@@ -213,8 +219,11 @@ public class TrnTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
@@ -245,8 +254,11 @@ public class TrnTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")

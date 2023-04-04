@@ -24,8 +24,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
@@ -43,8 +46,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
@@ -63,8 +69,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{userId}/assign-trn/{trn}");
@@ -89,8 +98,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
@@ -138,9 +150,12 @@ public class ConfirmTests : TestBase
             {
                 DateOfBirth = dqtDateOfBirth,
                 FirstName = dqtFirstName,
+                MiddleName = "",
                 LastName = dqtLastName,
                 NationalInsuranceNumber = dqtNino,
-                Trn = trn
+                Trn = trn,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
@@ -172,8 +187,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         await UnauthenticatedUser_RedirectsToSignIn(
@@ -197,8 +215,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(
@@ -223,8 +244,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{userId}/assign-trn/{trn}")
@@ -255,8 +279,11 @@ public class ConfirmTests : TestBase
                 Trn = trn,
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber()
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
@@ -316,9 +343,12 @@ public class ConfirmTests : TestBase
             {
                 DateOfBirth = dqtDateOfBirth,
                 FirstName = dqtFirstName,
+                MiddleName = "",
                 LastName = dqtLastName,
                 NationalInsuranceNumber = dqtNino,
-                Trn = trn
+                Trn = trn,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
@@ -350,9 +380,12 @@ public class ConfirmTests : TestBase
             {
                 DateOfBirth = dqtDateOfBirth,
                 FirstName = dqtFirstName,
+                MiddleName = "",
                 LastName = dqtLastName,
                 NationalInsuranceNumber = dqtNino,
-                Trn = trn
+                Trn = trn,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
@@ -397,9 +430,12 @@ public class ConfirmTests : TestBase
             {
                 DateOfBirth = dqtDateOfBirth,
                 FirstName = dqtFirstName,
+                MiddleName = "",
                 LastName = dqtLastName,
                 NationalInsuranceNumber = dqtNino,
-                Trn = trn
+                Trn = trn,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")

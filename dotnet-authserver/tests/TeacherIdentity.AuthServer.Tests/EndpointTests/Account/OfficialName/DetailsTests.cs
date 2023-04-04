@@ -137,6 +137,7 @@ public class DetailsTests : TestBase
                 LastName = user.LastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
+                PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange
             });
     }

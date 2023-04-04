@@ -56,9 +56,11 @@ public class OfficialNameTests : TestBase
             {
                 DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
+                MiddleName = "",
                 LastName = user.LastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
+                PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange
             });
     }

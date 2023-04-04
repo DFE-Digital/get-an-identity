@@ -129,9 +129,12 @@ public class IndexTests : TestBase
             {
                 DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = officialFirstName,
+                MiddleName = "",
                 LastName = officialLastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -178,9 +181,12 @@ public class IndexTests : TestBase
             {
                 DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -213,9 +219,11 @@ public class IndexTests : TestBase
             {
                 DateOfBirth = hasDobConflict ? userDateOfBirth.AddDays(1) : userDateOfBirth,
                 FirstName = Faker.Name.First(),
+                MiddleName = "",
                 LastName = Faker.Name.Last(),
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
+                PendingNameChange = false,
                 PendingDateOfBirthChange = hasPendingReview,
             });
 
@@ -243,9 +251,11 @@ public class IndexTests : TestBase
                 DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = Faker.Name.First(),
                 LastName = Faker.Name.Last(),
+                MiddleName = "",
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingNameChange = true,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
