@@ -11,20 +11,22 @@ public sealed record ClientRedirectInfo
 
     private readonly string _encoded;
 
-    public ClientRedirectInfo(IDataProtector dataProtector, string clientId, string redirectUri)
-        : this(Encode(clientId, redirectUri, dataProtector), clientId, redirectUri)
+    public ClientRedirectInfo(IDataProtector dataProtector, string clientId, string redirectUri, string signOutUri)
+        : this(Encode(clientId, redirectUri, signOutUri, dataProtector), clientId, redirectUri, signOutUri)
     {
     }
 
-    private ClientRedirectInfo(string encoded, string clientId, string redirectUri)
+    private ClientRedirectInfo(string encoded, string clientId, string redirectUri, string signOutUri)
     {
         ClientId = clientId;
         RedirectUri = redirectUri;
+        SignOutUri = signOutUri;
         _encoded = encoded;
     }
 
     public string ClientId { get; }
     public string RedirectUri { get; }
+    public string SignOutUri { get; }
 
     public static bool TryDecode(string encoded, IDataProtector dataProtector, [NotNullWhen(true)] out ClientRedirectInfo? clientRedirectInfo)
     {
@@ -42,16 +44,18 @@ public sealed record ClientRedirectInfo
         var asQueryParams = QueryHelpers.ParseQuery(unprotected);
         var clientId = asQueryParams[nameof(ClientId)].ToString();
         var redirectUri = asQueryParams[nameof(RedirectUri)].ToString();
+        var signOutUri = asQueryParams[nameof(SignOutUri)].ToString();
 
-        clientRedirectInfo = new ClientRedirectInfo(encoded, clientId, redirectUri);
+        clientRedirectInfo = new ClientRedirectInfo(encoded, clientId, redirectUri, signOutUri);
         return true;
     }
 
-    private static string Encode(string clientId, string redirectUri, IDataProtector dataProtector)
+    private static string Encode(string clientId, string redirectUri, string signOutUri, IDataProtector dataProtector)
     {
         var asQueryParams = QueryString
            .Create(nameof(ClientId), clientId)
            .Add(nameof(RedirectUri), redirectUri)
+           .Add(nameof(SignOutUri), signOutUri)
            .Value!;
 
         return dataProtector.Protect(asQueryParams);

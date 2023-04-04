@@ -19,7 +19,7 @@ public class TestIdentityLinkGenerator : IdentityLinkGenerator
         _linkGenerator = linkGenerator;
     }
 
-    protected override string PageWithAuthenticationJourneyId(string pageName, bool authenticationJourneyRequired = true)
+    protected override string Page(string pageName, bool authenticationJourneyRequired = true)
     {
         return new Url(_linkGenerator.GetPathByPage(pageName))
             .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, _authenticationState.JourneyId);

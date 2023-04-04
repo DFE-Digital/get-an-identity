@@ -9,53 +9,96 @@ public class SignOut : IClassFixture<HostFixture>
     public SignOut(HostFixture hostFixture)
     {
         _hostFixture = hostFixture;
+        _hostFixture.OnTestStarting();
     }
 
     [Fact]
-    public async Task User_CanSignOut()
+    public async Task SignOutFromClient()
     {
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        // Start on the client app and try to access a protected area
+        await page.StartOAuthJourney();
 
-        await page.GotoAsync("/");
-        await page.ClickAsync("text=Profile");
+        await page.SignInFromLandingPage();
 
-        // Fill in the sign in form (email + PIN)
+        await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.FillAsync("text=Enter your email address", user.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SubmitCompletePageForExistingUser();
 
-        // Should now be on the confirmation page
+        await page.AssertSignedInOnTestClient(user);
 
-        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SignOutFromTestClient();
 
-        // Should now be back at the client, signed in
+        await page.AssertOnTestClient();
 
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => Assert.IsType<Events.UserSignedInEvent>(e),
+            e =>
+            {
+                var userSignedOut = Assert.IsType<Events.UserSignedOutEvent>(e);
+                Assert.Equal(DateTime.UtcNow, userSignedOut.CreatedUtc, TimeSpan.FromSeconds(10));
+                Assert.Equal(user.UserId, userSignedOut.User.UserId);
+                Assert.Equal(_hostFixture.TestClientId, userSignedOut.ClientId);
+            });
+    }
 
-        // Hit the sign out link
-        await page.RunAndWaitForResponseAsync(
-            () => page.ClickAsync("text=Sign out"),
-            resp => resp.Status == 200 && resp.Url == HostFixture.ClientBaseUrl + "/");
+    [Fact]
+    public async Task SignOutFromIdDirectly()
+    {
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
-        // Should now be back at the client, signed out
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
 
-        clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
+        await page.GoToAccountPage();
 
-        // Check events have been emitted
+        await page.SignInFromLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+
+        await page.SignOutFromAccountPageWithoutClientContext();
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            //e => Assert.IsType<Events.UserSignedInEvent>(e),
+            e =>
+            {
+                var userSignedOut = Assert.IsType<Events.UserSignedOutEvent>(e);
+                Assert.Equal(DateTime.UtcNow, userSignedOut.CreatedUtc, TimeSpan.FromSeconds(10));
+                Assert.Equal(user.UserId, userSignedOut.User.UserId);
+                Assert.Null(userSignedOut.ClientId);
+            });
+    }
+
+    [Fact]
+    public async Task SignOutViaAccountPageWithClientContext()
+    {
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.SignInFromLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user);
+
+        await page.GoToAccountPageFromTestClient();
+
+        await page.SignOutFromAccountPageWithClientContext();
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => Assert.IsType<Events.UserSignedInEvent>(e),

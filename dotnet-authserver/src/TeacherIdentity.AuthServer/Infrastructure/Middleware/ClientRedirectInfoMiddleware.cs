@@ -33,9 +33,10 @@ public class ClientRedirectInfoMiddleware
                 return;
             }
         }
-        // No encoded query parameter found, check for unencoded client_id and redirect_uri
+        // No encoded query parameter found, check for unencoded client_id, redirect_uri and signout_uri
         else if (context.Request.Query.TryGetValue("client_id", out var clientId) &&
-            context.Request.Query.TryGetValue("redirect_uri", out var redirectUri))
+            context.Request.Query.TryGetValue("redirect_uri", out var redirectUri) &&
+            context.Request.Query.TryGetValue("sign_out_uri", out var signOutUri))
         {
             var client = await applicationManager.FindByClientIdAsync(clientId!);
 
@@ -53,7 +54,14 @@ public class ClientRedirectInfoMiddleware
                 return;
             }
 
-            clientRedirectInfo = new ClientRedirectInfo(_dataProtector, clientId!, redirectUri!);
+            if (!await applicationManager.ValidateRedirectUriDomain(client, signOutUri!))
+            {
+                _logger.LogDebug("Invalid sign out URI '{SignOutUri}' specified for client: '{ClientId}'.", signOutUri!, clientId!);
+                OnInvalidRequest();
+                return;
+            }
+
+            clientRedirectInfo = new ClientRedirectInfo(_dataProtector, clientId!, redirectUri!, signOutUri!);
         }
 
         if (clientRedirectInfo is not null)

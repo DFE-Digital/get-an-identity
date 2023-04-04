@@ -42,9 +42,11 @@ public partial class TestBase
         var dataProtector = dataProtectionProvider.CreateProtector(nameof(ClientRedirectInfo));
 
         var clientId = client.ClientId!;
-        string redirectUri = new Url(client.RedirectUris.First()).RemoveQuery();
+        string clientDomain = new Url(client.RedirectUris.First()).RemoveQuery();
+        var redirectUri = clientDomain;
+        var signOutUri = redirectUri + "/sign-out";
 
-        return new(dataProtector, clientId, redirectUri);
+        return new(dataProtector, clientId, redirectUri, signOutUri);
     }
 
     public string AppendQueryParameterSignature(Url url)
