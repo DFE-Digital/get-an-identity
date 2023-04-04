@@ -186,7 +186,7 @@ public abstract class IdentityLinkGenerator
         PageWithAuthenticationJourneyId("/Account/OfficialName/Details", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public string AccountOfficialNameEvidence(string firstName, string middleName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialNameEvidence(string firstName, string? middleName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/OfficialName/Evidence", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
             .SetQueryParam("middleName", middleName)
@@ -195,7 +195,7 @@ public abstract class IdentityLinkGenerator
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     // refactor this!
-    public string AccountOfficialNameConfirm(string firstName, string middleName, string lastName, string fileId, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileId, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
         PageWithAuthenticationJourneyId("/Account/OfficialName/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
             .SetQueryParam("middleName", middleName)
