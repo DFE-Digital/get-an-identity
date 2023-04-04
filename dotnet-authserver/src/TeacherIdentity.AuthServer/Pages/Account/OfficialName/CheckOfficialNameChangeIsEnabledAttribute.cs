@@ -11,7 +11,7 @@ public class CheckOfficialNameChangeIsEnabledAttribute : Attribute, IAsyncPageFi
 
     public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        var dqtApiClient =  context.HttpContext.RequestServices.GetRequiredService<IDqtApiClient>();
+        var dqtApiClient = context.HttpContext.RequestServices.GetRequiredService<IDqtApiClient>();
         if (!await OfficialNameChangeEnabled(context.HttpContext, dqtApiClient))
         {
             context.Result = new BadRequestResult();
