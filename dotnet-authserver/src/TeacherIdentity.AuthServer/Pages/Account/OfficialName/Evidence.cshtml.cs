@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Services.DqtEvidence;
-using TeacherIdentity.AuthServer.Services.UserImport;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
 

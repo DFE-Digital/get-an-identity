@@ -10,14 +10,10 @@ namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
 public class Details : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
-    private readonly IDqtApiClient _dqtApiClient;
 
-    public Details(
-        IdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient)
+    public Details(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
-        _dqtApiClient = dqtApiClient;
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
