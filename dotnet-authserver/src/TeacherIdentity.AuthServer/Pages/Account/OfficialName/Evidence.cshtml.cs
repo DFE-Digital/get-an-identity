@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
+using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.UserImport;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
 
 [VerifyQueryParameterSignature]
-[OfficialNameChangeEnabled]
+[CheckOfficialNameChangeIsEnabled]
 public class Evidence : PageModel
 {
     public const int MaxFileSizeMb = 3;
@@ -37,7 +38,7 @@ public class Evidence : PageModel
 
     [BindProperty]
     [Required(ErrorMessage = "Select a file")]
-    [FileExtensions(".csv,.jpg,.jpeg", ErrorMessage = "The selected file must be a CSV or JPEG")]
+    [FileExtensions(".csv", ".jpg", ".jpeg", ErrorMessage = "The selected file must be a CSV or JPEG")]
     [FileSize(MaxFileSizeMb * 1024 * 1024, ErrorMessage = "The selected file must be smaller than 3MB")]
     public IFormFile? EvidenceFile { get; set; }
 

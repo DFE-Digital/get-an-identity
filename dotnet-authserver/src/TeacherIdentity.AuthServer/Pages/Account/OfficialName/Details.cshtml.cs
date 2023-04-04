@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
-
 namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
 
+[CheckOfficialNameChangeIsEnabled]
 public class Details : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
@@ -64,30 +64,16 @@ public class Details : PageModel
         return Redirect(_linkGenerator.AccountOfficialNameEvidence(FirstName!, MiddleName ?? String.Empty, LastName!, ClientRedirectInfo));
     }
 
-    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (!await OfficialNameChangeEnabled())
+        if (context.HttpContext.Items["DqtUser"] is TeacherInfo dqtUser)
         {
-            context.Result = BadRequest();
-            return;
+            DqtUser = dqtUser;
         }
-
-        await next();
-    }
-
-    private async Task<bool> OfficialNameChangeEnabled()
-    {
-        var trn = User.GetTrn(false);
-
-        if (trn is null)
+        else
         {
-            return false;
+            context.Result = new BadRequestResult();
         }
-
-        DqtUser = await _dqtApiClient.GetTeacherByTrn(trn) ??
-                      throw new Exception($"User with TRN '{trn}' cannot be found in DQT.");
-
-        return !DqtUser.PendingNameChange;
     }
 
     private bool NamesUnchanged()

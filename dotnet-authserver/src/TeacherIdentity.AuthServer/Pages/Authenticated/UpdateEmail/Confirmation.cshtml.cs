@@ -138,7 +138,7 @@ public class ConfirmationModel : PageModel
                 safeReturnUrl = authenticationState.PostSignInUrl;
             }
 
-            TempData.SetFlashSuccess(new FlashSuccessData("Email address updated"));
+            TempData.SetFlashSuccess("Email address updated");
         }
 
         return Redirect(safeReturnUrl);

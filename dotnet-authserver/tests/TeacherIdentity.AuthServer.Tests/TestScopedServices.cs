@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Notification;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.UserVerification;

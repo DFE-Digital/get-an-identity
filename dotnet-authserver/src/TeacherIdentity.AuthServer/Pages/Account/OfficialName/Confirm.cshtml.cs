@@ -6,7 +6,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Filters;
 namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
 
 [VerifyQueryParameterSignature]
-[OfficialNameChangeEnabled]
+[CheckOfficialNameChangeIsEnabled]
 public class Confirm : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
@@ -40,9 +40,9 @@ public class Confirm : PageModel
 
     public IActionResult OnPost()
     {
-        TempData.SetFlashSuccess(new FlashSuccessData(
+        TempData.SetFlashSuccess(
             "We’ve received your request to change your official name",
-            "We’ll review it and get back to you within 5 working days."));
+            "We’ll review it and get back to you within 5 working days.");
 
         return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }

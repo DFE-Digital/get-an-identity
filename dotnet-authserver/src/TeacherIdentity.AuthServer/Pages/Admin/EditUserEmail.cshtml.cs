@@ -70,7 +70,7 @@ public class EditUserEmailModel : PageModel
                 return this.PageWithErrors();
             }
 
-            TempData.SetFlashSuccess(new FlashSuccessData("Email changed successfully"));
+            TempData.SetFlashSuccess("Email changed successfully");
         }
 
         return RedirectToPage("User", new { UserId });

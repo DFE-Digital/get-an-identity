@@ -74,7 +74,7 @@ public class Confirm : PageModel
 
             await HttpContext.SignInCookies(user, resetIssued: false);
 
-            TempData.SetFlashSuccess(new FlashSuccessData("Your date of birth has been updated"));
+            TempData.SetFlashSuccess("Your date of birth has been updated");
         }
     }
 

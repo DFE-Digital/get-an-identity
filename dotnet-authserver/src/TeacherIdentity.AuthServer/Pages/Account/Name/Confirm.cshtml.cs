@@ -79,7 +79,7 @@ public class Confirm : PageModel
 
             await HttpContext.SignInCookies(user, resetIssued: false);
 
-            TempData.SetFlashSuccess(new FlashSuccessData("Your name has been updated"));
+            TempData.SetFlashSuccess("Your name has been updated");
         }
     }
 

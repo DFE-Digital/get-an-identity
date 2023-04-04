@@ -103,7 +103,7 @@ public class AddUserImportModel : PageModel
 
         await _backgroundJobScheduler.Enqueue<IUserImportProcessor>(p => p.Process(userImportJobId));
 
-        TempData.SetFlashSuccess(new FlashSuccessData($"CSV {Upload?.FileName} uploaded"));
+        TempData.SetFlashSuccess($"CSV {Upload?.FileName} uploaded");
         return RedirectToPage("UserImports");
     }
 }

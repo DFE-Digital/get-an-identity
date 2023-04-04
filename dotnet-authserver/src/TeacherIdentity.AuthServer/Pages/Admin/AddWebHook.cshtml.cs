@@ -66,7 +66,7 @@ public class AddWebHookModel : PageModel
 
         await _dbContext.SaveChangesAsync();
 
-        TempData.SetFlashSuccess(new FlashSuccessData("Web hook added"));
+        TempData.SetFlashSuccess("Web hook added");
         return RedirectToPage("EditWebHook", new { webHookId = webHookId });
     }
 }

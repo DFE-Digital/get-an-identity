@@ -6,7 +6,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class OfficialNameChangeEnabledAttribute : Attribute, IAsyncPageFilter, IOrderedFilter
+public class CheckOfficialNameChangeIsEnabledAttribute : Attribute, IAsyncPageFilter, IOrderedFilter
 {
     public int Order => int.MinValue;
 
@@ -14,7 +14,7 @@ public class OfficialNameChangeEnabledAttribute : Attribute, IAsyncPageFilter, I
     {
         var dqtApiClient =  context.HttpContext.RequestServices.GetRequiredService<IDqtApiClient>();
 
-        if (!await OfficialNameChangeEnabled(context.HttpContext.User, dqtApiClient))
+        if (!await OfficialNameChangeEnabled(context.HttpContext, dqtApiClient))
         {
             context.Result = new BadRequestResult();
             return;
@@ -28,9 +28,9 @@ public class OfficialNameChangeEnabledAttribute : Attribute, IAsyncPageFilter, I
         return Task.CompletedTask;
     }
 
-    private async Task<bool> OfficialNameChangeEnabled(ClaimsPrincipal user, IDqtApiClient dqtApiClient)
+    private async Task<bool> OfficialNameChangeEnabled(HttpContext httpContext, IDqtApiClient dqtApiClient)
     {
-        var trn = user.GetTrn(false);
+        var trn = httpContext.User.GetTrn(false);
 
         if (trn is null)
         {
@@ -40,6 +40,7 @@ public class OfficialNameChangeEnabledAttribute : Attribute, IAsyncPageFilter, I
         var dqtUser = await dqtApiClient.GetTeacherByTrn(trn) ??
                       throw new Exception($"User with TRN '{trn}' cannot be found in DQT.");
 
+        httpContext.Items["DqtUser"] = dqtUser;
         return !dqtUser.PendingNameChange;
     }
 }

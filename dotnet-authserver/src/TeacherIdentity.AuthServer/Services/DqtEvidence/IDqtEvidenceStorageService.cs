@@ -1,4 +1,4 @@
-namespace TeacherIdentity.AuthServer.Services.UserImport;
+namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
 
 public interface IDqtEvidenceStorageService
 {

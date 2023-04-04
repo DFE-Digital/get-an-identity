@@ -79,9 +79,9 @@ public class FileExtensionsAttribute : ValidationAttribute
 {
     private List<string> AllowedExtensions { get; set; }
 
-    public FileExtensionsAttribute(string fileExtensions)
+    public FileExtensionsAttribute(params string[] fileExtensions)
     {
-        AllowedExtensions = fileExtensions.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        AllowedExtensions = fileExtensions.ToList();
     }
 
     public override bool IsValid(object value)
