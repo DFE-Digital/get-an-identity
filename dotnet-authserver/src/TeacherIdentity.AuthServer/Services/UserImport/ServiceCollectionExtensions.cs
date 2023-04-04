@@ -19,15 +19,6 @@ public static class ServiceCollectionExtensions
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            services.AddAzureClients(builder =>
-            {
-                builder.AddClient<BlobServiceClient, BlobClientOptions>((options, sp) =>
-                {
-                    var userImportOptions = sp.GetRequiredService<IOptions<UserImportOptions>>();
-                    return new BlobServiceClient(userImportOptions.Value.StorageConnectionString, options);
-                });
-            });
-
             services.AddSingleton<IUserImportStorageService, BlobStorageUserImportStorageService>();
         }
 
