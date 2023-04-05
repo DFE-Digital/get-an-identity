@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Flurl;
 
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
@@ -48,5 +50,14 @@ public class DqtApiClient : IDqtApiClient
         var response = await _client.GetAsync($"/v2/itt-providers", cancellationToken);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<GetIttProvidersResponse>(cancellationToken: cancellationToken))!;
+    }
+
+    public async Task PostTeacherNameChange(TeacherNameChangeRequest request, CancellationToken cancellationToken = default)
+    {
+        string json = JsonSerializer.Serialize(request);
+        HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _client.PostAsync("/v3/teachers/name-changes", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
     }
 }

@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
 using Microsoft.Extensions.Options;
 
 namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
@@ -18,12 +19,34 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
 
     public async Task Upload(IFormFile file, string blobName)
     {
-        var blobContainerClient = await GetBlobContainerClient();
-        var blobClient = blobContainerClient.GetBlobClient(blobName);
+        var blobClient = await GetBlobClient(blobName);
 
         await using var stream = file.OpenReadStream();
         await blobClient.UploadAsync(stream);
     }
+
+    public async Task<string> GetSasConnectionString(string blobName, int minutes)
+    {
+        var blobClient = await GetBlobClient(blobName);
+
+        var sasBuilder = new BlobSasBuilder()
+        {
+            BlobContainerName = _dqtEvidenceContainerName,
+            BlobName = blobName,
+            ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(minutes),
+            Protocol = SasProtocol.Https,
+        };
+
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+        return blobClient.GenerateSasUri(sasBuilder).ToString();
+    }
+
+    private async Task<BlobClient> GetBlobClient(string blobName)
+    {
+        var blobContainerClient = await GetBlobContainerClient();
+        return blobContainerClient.GetBlobClient(blobName);
+    }
+
 
     private async Task<BlobContainerClient> GetBlobContainerClient()
     {
