@@ -1,6 +1,5 @@
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
 

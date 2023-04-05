@@ -1,5 +1,3 @@
-using TeacherIdentity.AuthServer.Services.DqtApi;
-
 namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
 
 public static class ServiceCollectionExtensions
