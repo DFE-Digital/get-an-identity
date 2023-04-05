@@ -37,9 +37,6 @@ public class Confirm : PageModel
     [FromQuery(Name = "lastName")]
     public string? LastName { get; set; }
 
-    [FromQuery(Name = "fileId")]
-    public string? FileId { get; set; }
-
     [FromQuery(Name = "fileName")]
     public string? FileName { get; set; }
 
@@ -72,7 +69,7 @@ public class Confirm : PageModel
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (FirstName is null || LastName is null || FileId is null || FileName is null)
+        if (FirstName is null || LastName is null || FileName is null)
         {
             context.Result = BadRequest();
         }

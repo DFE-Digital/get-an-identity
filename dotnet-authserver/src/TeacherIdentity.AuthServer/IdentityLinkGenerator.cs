@@ -197,12 +197,11 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
-    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileId, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialName/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
             .SetQueryParam("middleName", middleName)
             .SetQueryParam("lastName", lastName)
-            .SetQueryParam("fileId", fileId)
             .SetQueryParam("fileName", fileName)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
