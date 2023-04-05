@@ -1,5 +1,3 @@
-using System.Text;
-using System.Text.Json;
 using Flurl;
 
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
