@@ -33,6 +33,8 @@
 <body class="govuk-template__body ">
   <govuk-skip-link />
 
+  <span data-testid="SignedIn" style="display:none">@(User.Identity?.IsAuthenticated ?? false)</span>
+
   <header class="govuk-header " role="banner" data-module="govuk-header">
     <div class="govuk-header__container govuk-width-container">
       <div class="govuk-header__logo">

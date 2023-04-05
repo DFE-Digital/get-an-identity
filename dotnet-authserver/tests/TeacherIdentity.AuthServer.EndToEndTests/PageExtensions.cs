@@ -29,6 +29,14 @@ public static class PageExtensions
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
     }
 
+    public static async Task AssertSignedOutOnTestClient(this IPage page)
+    {
+        await page.AssertOnTestClient();
+
+        var signedInMarker = await page.GetByTestId("SignedIn").InnerTextAsync();
+        Assert.Equal(bool.FalseString, signedInMarker);
+    }
+
     public static async Task SignInFromLandingPage(this IPage page)
     {
         await page.WaitForSelectorAsync("h1:text-is('Create a Teaching services account')");

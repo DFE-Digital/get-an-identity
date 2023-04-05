@@ -34,7 +34,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SignOutFromTestClient();
 
-        await page.AssertOnTestClient();
+        await page.AssertSignedOutOnTestClient();
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => Assert.IsType<Events.UserSignedInEvent>(e),
@@ -99,6 +99,8 @@ public class SignOut : IClassFixture<HostFixture>
         await page.GoToAccountPageFromTestClient();
 
         await page.SignOutFromAccountPageWithClientContext();
+
+        await page.AssertSignedOutOnTestClient();
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => Assert.IsType<Events.UserSignedInEvent>(e),
