@@ -52,3 +52,47 @@ public class IsPastDateAttribute : RangeAttribute
     {
     }
 }
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class FileSizeAttribute : ValidationAttribute
+{
+    private readonly int _maxFileSize;
+
+    public FileSizeAttribute(int maxFileSize)
+    {
+        _maxFileSize = maxFileSize;
+    }
+
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+    {
+        if (value is IFormFile file && file.Length > _maxFileSize)
+        {
+            return new ValidationResult(ErrorMessage);
+        }
+
+        return ValidationResult.Success!;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class FileExtensionsAttribute : ValidationAttribute
+{
+    private List<string> AllowedExtensions { get; set; }
+
+    public FileExtensionsAttribute(params string[] fileExtensions)
+    {
+        AllowedExtensions = fileExtensions.ToList();
+    }
+
+    public override bool IsValid(object? value)
+    {
+        if (value is IFormFile file)
+        {
+            var fileName = file.FileName;
+
+            return AllowedExtensions.Any(extension => fileName.EndsWith(extension));
+        }
+
+        return true;
+    }
+}

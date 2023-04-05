@@ -1,3 +1,4 @@
+@using Humanizer
 @inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @inject ClientScopedViewHelper ClientScopedViewHelper
 @{
@@ -60,12 +61,14 @@
     @RenderSection("BeforeContent", required: false)
 }
 
-@if (TempData.ContainsKey(TempDataKeys.FlashSuccess))
+@if (TempData.TryGetFlashSuccess(out (string heading, string? message)? flashSuccess))
 {
     <govuk-notification-banner type="Success">
-        <p class="govuk-notification-banner__heading">
-            @TempData[TempDataKeys.FlashSuccess]
-        </p>
+        <p class="govuk-notification-banner__heading">@flashSuccess.Value.heading</p>
+        @if (flashSuccess.Value.message is not null)
+        {
+            <p>@flashSuccess.Value.message</p>
+        }
     </govuk-notification-banner>
 }
 

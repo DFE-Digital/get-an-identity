@@ -13,6 +13,7 @@ using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Notification;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -51,6 +52,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public SpyRegistry SpyRegistry => TestScopedServices.Current.SpyRegistry;
 
     public Mock<IUserImportStorageService> UserImportCsvStorageService => TestScopedServices.Current.UserImportCsvStorageService;
+
+    public Mock<IDqtEvidenceStorageService> DqtEvidenceStorageService => TestScopedServices.Current.DqtEvidenceStorageService;
 
     public Spy<IUserVerificationService> UserVerificationService => SpyRegistry.Get<IUserVerificationService>();
 
@@ -153,6 +156,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.Decorate<IUserVerificationService>(inner => SpyRegistry.Get<IUserVerificationService>().Wrap(inner));
             services.AddTransient(_ => ZendeskApiWrapper.Object);
             services.AddTransient(_ => UserImportCsvStorageService.Object);
+            services.AddTransient(_ => DqtEvidenceStorageService.Object);
         });
     }
 

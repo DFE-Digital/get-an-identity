@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Notification;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -18,6 +19,7 @@ public class TestScopedServices
         RateLimitStore = new();
         SpyRegistry = new();
         UserImportCsvStorageService = new();
+        DqtEvidenceStorageService = new();
         ZendeskApiWrapper = new();
 
         DqtApiClient.Setup(mock => mock.FindTeachers(It.IsAny<FindTeachersRequest>(), It.IsAny<CancellationToken>()))
@@ -37,6 +39,8 @@ public class TestScopedServices
     public SpyRegistry SpyRegistry { get; }
 
     public Mock<IUserImportStorageService> UserImportCsvStorageService { get; }
+
+    public Mock<IDqtEvidenceStorageService> DqtEvidenceStorageService { get; }
 
     public Mock<IZendeskApiWrapper> ZendeskApiWrapper { get; }
 }

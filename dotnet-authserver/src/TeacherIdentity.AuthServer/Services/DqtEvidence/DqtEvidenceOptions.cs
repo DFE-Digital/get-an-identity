@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TeacherIdentity.AuthServer.Services.UserImport;
+namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
 
-public class UserImportOptions
+public class DqtEvidenceOptions
 {
     [Required]
     public required string StorageContainerName { get; init; }

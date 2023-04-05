@@ -42,6 +42,12 @@ resource "azurerm_storage_container" "user_imports" {
   container_access_type = "private"
 }
 
+resource "azurerm_storage_container" "dqt_evidence" {
+  name                  = "dqt-evidence"
+  storage_account_name  = azurerm_storage_account.data-protection.name
+  container_access_type = "private"
+}
+
 resource "azurerm_monitor_diagnostic_setting" "data-protection-storage-diagnostics" {
   name                       = "${var.data_protection_storage_account_name}-diagnostics"
   target_resource_id         = azurerm_storage_account.data-protection.id
