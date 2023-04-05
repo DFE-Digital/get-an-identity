@@ -54,9 +54,7 @@ public class DqtApiClient : IDqtApiClient
 
     public async Task PostTeacherNameChange(TeacherNameChangeRequest request, CancellationToken cancellationToken = default)
     {
-        string json = JsonSerializer.Serialize(request);
-        HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-
+        HttpContent content = JsonContent.Create(request);
         var response = await _client.PostAsync("/v3/teachers/name-changes", content, cancellationToken);
         response.EnsureSuccessStatusCode();
     }

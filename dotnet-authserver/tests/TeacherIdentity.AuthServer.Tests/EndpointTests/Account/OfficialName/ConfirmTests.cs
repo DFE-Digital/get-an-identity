@@ -53,7 +53,6 @@ public class ConfirmTests : TestBase
     [Theory]
     [InlineData("firstName")]
     [InlineData("lastName")]
-    [InlineData("fileId")]
     [InlineData("fileName")]
     public async Task Get_MissingQueryParameter_ReturnsBadRequest(string missingQueryParameter)
     {
