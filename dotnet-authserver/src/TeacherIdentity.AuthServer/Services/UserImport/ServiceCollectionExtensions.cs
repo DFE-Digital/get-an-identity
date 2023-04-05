@@ -1,6 +1,3 @@
-using Azure.Storage.Blobs;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Services.UserImport;
