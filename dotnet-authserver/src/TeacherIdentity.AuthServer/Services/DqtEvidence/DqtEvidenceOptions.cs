@@ -1,12 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TeacherIdentity.AuthServer.Services.DqtApi;
+namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
 
 public class DqtEvidenceOptions
 {
-    [Required]
-    public required string StorageConnectionString { get; init; }
-
     [Required]
     public required string StorageContainerName { get; init; }
 }
