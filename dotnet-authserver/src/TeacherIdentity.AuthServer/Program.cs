@@ -164,13 +164,21 @@ public class Program
                     ClaimsPrincipal? user = null;
                     string? clientId = null;
 
-                    var oidcAuthenticateResult = await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-                    if (oidcAuthenticateResult.Succeeded)
+                    try
                     {
-                        user = oidcAuthenticateResult.Principal;
-                        clientId = user.FindFirstValue(Claims.Audience);
+                        var oidcAuthenticateResult = await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                        if (oidcAuthenticateResult.Succeeded)
+                        {
+                            user = oidcAuthenticateResult.Principal;
+                            clientId = user.FindFirstValue(Claims.Audience);
+                        }
                     }
-                    else
+                    catch (InvalidOperationException)
+                    {
+                        // OIDC handler will throw when AuthenticateAsync is called if it's not an endpoint it manages
+                    }
+
+                    if (user is null)
                     {
                         var cookiesAuthenticateResult = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                         if (cookiesAuthenticateResult.Succeeded)

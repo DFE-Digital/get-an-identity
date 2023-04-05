@@ -27,13 +27,16 @@ public class HomeController : Controller
     }
 
     [HttpGet("sign-out")]
-    public async Task<IActionResult> SignOut(string returnUrl)
+    public new IActionResult SignOut() => View();
+
+    [HttpPost("sign-out")]
+    public async Task<IActionResult> SignOutPost()
     {
         await HttpContext.SignOutAsync(scheme: "Cookies");
 
         var properties = new AuthenticationProperties()
         {
-            RedirectUri = Url.IsLocalUrl(returnUrl) ? returnUrl : "/"
+            RedirectUri = "/"
         };
 
         return SignOut(properties, "oidc");

@@ -1,7 +1,14 @@
 @using Microsoft.AspNetCore.Http.Extensions;
 @inject IConfiguration Configuration
 @{
-    var accountLink = $"{Configuration["SignInAuthority"]}/account?client_id={Uri.EscapeDataString(Configuration["ClientId"]!)}&redirect_uri={Uri.EscapeDataString(Context.Request.GetEncodedUrl())}";
+    var clientId = Configuration["ClientId"]!;
+    var redirectUri = $"{Context.Request.Scheme}://{Context.Request.Host.Value}{Url.Action("Profile", "Home")}";
+    var signOutUri = $"{Context.Request.Scheme}://{Context.Request.Host.Value}{Url.Action("SignOut", "Home")}";
+
+    var accountLink = $"{Configuration["SignInAuthority"]}/account" +
+        $"?client_id={Uri.EscapeDataString(clientId)}" +
+        $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+        $"&sign_out_uri={Uri.EscapeDataString(signOutUri)}";
 }
 <!DOCTYPE html>
 <html lang="en" class="govuk-template ">
@@ -25,6 +32,8 @@
 
 <body class="govuk-template__body ">
   <govuk-skip-link />
+
+  <span data-testid="SignedIn" style="display:none">@(User.Identity?.IsAuthenticated ?? false)</span>
 
   <header class="govuk-header " role="banner" data-module="govuk-header">
     <div class="govuk-header__container govuk-width-container">

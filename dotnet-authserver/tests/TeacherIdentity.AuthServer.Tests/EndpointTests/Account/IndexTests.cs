@@ -17,7 +17,13 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser();
         HostFixture.SetUserId(user.UserId);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account?client_id=not_a_real_client_id&redirect_uri={{Uri.EscapeDataString(\"https://google.com\")");
+        var client = TestClients.Client1;
+        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
+        var signOutUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority) + "/sign-out";
+
+        var request = new HttpRequestMessage(
+        HttpMethod.Get,
+            $"/account?client_id=not_a_real_client_id&redirect_uri={Uri.EscapeDataString(redirectUri)}&sign_out_uri={Uri.EscapeDataString(signOutUri)}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -34,7 +40,32 @@ public class IndexTests : TestBase
         HostFixture.SetUserId(user.UserId);
 
         var client = TestClients.Client1;
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString("https://google.com")}");
+        var signOutUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority) + "/sign-out";
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString("https://google.com")}&sign_out_uri={Uri.EscapeDataString(signOutUri)}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_InvalidSignOutUriDomain_ReturnsBadRequest()
+    {
+        // Arrange
+        var user = await TestData.CreateUser();
+        HostFixture.SetUserId(user.UserId);
+
+        var client = TestClients.Client1;
+        var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&sign_out_uri={Uri.EscapeDataString("https://google.com")}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -229,7 +260,7 @@ public class IndexTests : TestBase
     }
 
     [Fact]
-    public async Task Get_ValidRequestWithClientIdAndRedirectUri_RendersBackLinks()
+    public async Task Get_ValidRequestWithClientIdRedirectUriAndSignOutUri_RendersBackLinks()
     {
         // Arrange
         var user = await TestData.CreateUser();
@@ -237,7 +268,11 @@ public class IndexTests : TestBase
 
         var client = TestClients.Client1;
         var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+        var signOutUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority) + "/sign-out";
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/account?client_id={client.ClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&sign_out_uri={Uri.EscapeDataString(signOutUri)}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
