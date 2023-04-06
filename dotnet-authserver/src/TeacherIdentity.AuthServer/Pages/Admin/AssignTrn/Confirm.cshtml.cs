@@ -83,7 +83,7 @@ public class ConfirmModel : PageModel
 
         await _dbContext.SaveChangesAsync();
 
-        TempData[TempDataKeys.FlashSuccess] = "DQT record added";
+        TempData.SetFlashSuccess("DQT record added");
         return RedirectToPage("/Admin/User", new { UserId });
     }
 
