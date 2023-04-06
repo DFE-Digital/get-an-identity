@@ -134,14 +134,14 @@ public class NameTests : TestBase
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name");
-       
+
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
         var doc = await response.GetDocument();
 
-        Assert.True(doc.GetElementById("FirstName")?.GetAttribute("value")?.Length >0);
+        Assert.True(doc.GetElementById("FirstName")?.GetAttribute("value")?.Length > 0);
         Assert.True(doc.GetElementById("LastName")?.GetAttribute("value")?.Length > 0);
     }
 }

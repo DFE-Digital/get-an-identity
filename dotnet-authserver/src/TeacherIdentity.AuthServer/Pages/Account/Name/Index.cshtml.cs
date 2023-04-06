@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 
@@ -10,7 +9,7 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 public class Name : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
-   
+
     public Name(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;
