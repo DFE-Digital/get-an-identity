@@ -30,6 +30,8 @@ public class Name : PageModel
 
     public void OnGet()
     {
+        FirstName = User.GetFirstName();
+        LastName = User.GetLastName();
     }
 
     public IActionResult OnPost()
