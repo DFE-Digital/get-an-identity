@@ -128,4 +128,20 @@ public class NameTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Contains(clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
     }
+
+    [Fact]
+    public async Task Get_Prepopulates_FirstandLastName()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name");
+       
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.True(doc.GetElementById("FirstName")?.GetAttribute("value")?.Length >0);
+        Assert.True(doc.GetElementById("LastName")?.GetAttribute("value")?.Length > 0);
+    }
 }
