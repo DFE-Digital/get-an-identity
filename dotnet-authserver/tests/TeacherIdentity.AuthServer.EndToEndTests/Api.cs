@@ -27,7 +27,7 @@ public class Api : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", adminUser.EmailAddress);
+        await page.FillAsync("text=Your email address", adminUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
@@ -89,7 +89,7 @@ public class Api : IClassFixture<HostFixture>
 
         // Fill in the sign in form (email + PIN)
 
-        await page.FillAsync("text=Enter your email address", adminUser.EmailAddress);
+        await page.FillAsync("text=Your email address", adminUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
         var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
