@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialDateOfBirth;
