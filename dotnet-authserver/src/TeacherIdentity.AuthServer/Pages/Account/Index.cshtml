@@ -18,17 +18,19 @@
     }
 }
 
+@if (Model.DateOfBirthConflict && !Model.PendingDqtDateOfBirthChange)
+{
+    <govuk-notification-banner data-testid="dob-conflict-notification-banner">
+        <h3 class="govuk-notification-banner__heading">Confirm your correct date of birth</h3>
+        <p>
+            We’ve got two different dates of birth for you. The one you entered when you created your DfE Identity
+            account is different to the one already in our records. Change the incorrect date of birth.
+        </p>
+    </govuk-notification-banner>
+}
+
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        @if (Model.DateOfBirthConflict && !Model.PendingDqtDateOfBirthChange)
-        {
-            <govuk-notification-banner data-testid="dob-conflict-notification-banner">
-                <h3 class="govuk-notification-banner__heading">Confirm your correct date of birth</h3>
-                <p>We’ve got two different dates of birth for you. The one you entered when you created your DfE Identity
-                    account is different to the one already in our records. Change the incorrect date of birth.</p>
-            </govuk-notification-banner>
-        }
-
         <span class="govuk-caption-xl">DfE Identity account</span>
         <h1 class="govuk-heading-xl">Your details</h1>
 
