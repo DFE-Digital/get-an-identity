@@ -153,7 +153,6 @@ public class EvidenceTests : TestBase
         Assert.StartsWith($"/account/official-name/confirm", response.Headers.Location?.OriginalString);
 
         Assert.Contains(_clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
-        Assert.Contains("fileId=", response.Headers.Location?.OriginalString);
         Assert.Contains("fileName=", response.Headers.Location?.OriginalString);
 
         HostFixture.DqtEvidenceStorageService.Verify(s => s.Upload(It.IsAny<IFormFile>(), It.Is<string>(arg => arg.StartsWith($"{user.UserId}/"))));

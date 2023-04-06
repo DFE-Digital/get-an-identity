@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialName;
@@ -52,7 +53,6 @@ public class ConfirmTests : TestBase
     [Theory]
     [InlineData("firstName")]
     [InlineData("lastName")]
-    [InlineData("fileId")]
     [InlineData("fileName")]
     public async Task Get_MissingQueryParameter_ReturnsBadRequest(string missingQueryParameter)
     {
@@ -95,6 +95,9 @@ public class ConfirmTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal($"/account?{_clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
+
+        HostFixture.DqtEvidenceStorageService.Verify(s => s.GetSasConnectionString(It.IsAny<string>(), It.IsAny<int>()));
+        HostFixture.DqtApiClient.Verify(s => s.PostTeacherNameChange(It.IsAny<TeacherNameChangeRequest>(), It.IsAny<CancellationToken>()));
 
         var redirectedResponse = await response.FollowRedirect(HttpClient);
         var redirectedDoc = await redirectedResponse.GetDocument();

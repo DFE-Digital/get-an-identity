@@ -53,11 +53,12 @@ public class Evidence : PageModel
         }
 
         var fileId = Guid.NewGuid();
-        var fileName = $"{User.GetUserId()}/{fileId}";
+        var extension = Path.GetExtension(EvidenceFile!.FileName);
 
+        var fileName = $"{User.GetUserId()}/{fileId}{extension}";
         await _dqtEvidenceStorage.Upload(EvidenceFile!, fileName);
 
-        return Redirect(_linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName ?? String.Empty, LastName!, fileId.ToString(), fileName, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName, LastName!, fileName, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
