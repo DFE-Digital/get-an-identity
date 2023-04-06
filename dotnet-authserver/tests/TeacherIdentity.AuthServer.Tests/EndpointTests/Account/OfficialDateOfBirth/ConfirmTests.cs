@@ -1,8 +1,7 @@
 using System.Text.RegularExpressions;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 using User = TeacherIdentity.AuthServer.Models.User;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialName;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialDateOfBirth;
 
 public class ConfirmTests : TestBase
 {
@@ -15,33 +14,34 @@ public class ConfirmTests : TestBase
         var user = TestUsers.DefaultUserWithTrn;
 
         HostFixture.SetUserId(user.UserId);
-        MockDqtApiResponse(user, hasPendingNameChange: false);
+        MockDqtApiResponse(user, hasDobConflict: true, hasPendingDateOfBirthChange: false);
 
         _clientRedirectInfo = CreateClientRedirectInfo();
         var guid = Guid.NewGuid();
 
+        var dateOfBirth = new DateOnly(2000, 1, 1);
+
         _validRequestUrl =
             AppendQueryParameterSignature(
-                $"/account/official-name/confirm?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}&fileId={guid}&fileName={user.UserId}/{guid}");
+                $"/account/official-date-of-birth/confirm?{_clientRedirectInfo.ToQueryParam()}&dateOfBirth={dateOfBirth.ToString("yyyy-MM-dd")}&fileId={guid}&fileName={user.UserId}/{guid}");
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Get_OfficialNameChangeDisabled_ReturnsBadRequest(bool hasTrn)
+    [MemberData(nameof(InvalidDateOfBirthState))]
+    public async Task Get_OfficialDateOfBirthChangeDisabled_ReturnsBadRequest(bool hasTrn, bool hasDobConflict, bool hasPendingDobChange)
     {
         // Arrange
         if (hasTrn)
         {
             HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
-            MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasPendingNameChange: true);
+            MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasDobConflict: hasDobConflict, hasPendingDateOfBirthChange: hasPendingDobChange);
         }
         else
         {
             HostFixture.SetUserId(TestUsers.DefaultUser.UserId);
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-name/confirm");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-date-of-birth");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -51,14 +51,14 @@ public class ConfirmTests : TestBase
     }
 
     [Theory]
-    [InlineData("firstName")]
-    [InlineData("lastName")]
+    [InlineData("dateOfBirth")]
     [InlineData("fileName")]
     public async Task Get_MissingQueryParameter_ReturnsBadRequest(string missingQueryParameter)
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var requestUrl = $"/account/official-name/confirm?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}&fileName=1/{guid}";
+        var dateOfBirth = new DateOnly(2000, 1, 1);
+        var requestUrl = $"/account/official-date-of-birth/confirm?{_clientRedirectInfo.ToQueryParam()}&dateOfBirth={dateOfBirth.ToString("yyyy-MM-dd")}&fileName=1/{guid}";
         var invalidRequestUrl = new Regex($@"[\?&]{missingQueryParameter}=[^&]*").Replace(requestUrl, "");
 
         var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature(invalidRequestUrl));
@@ -96,25 +96,30 @@ public class ConfirmTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal($"/account?{_clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
-        HostFixture.DqtEvidenceStorageService.Verify(s => s.GetSasConnectionString(It.IsAny<string>(), It.IsAny<int>()));
-        HostFixture.DqtApiClient.Verify(s => s.PostTeacherNameChange(It.IsAny<TeacherNameChangeRequest>(), It.IsAny<CancellationToken>()));
-
         var redirectedResponse = await response.FollowRedirect(HttpClient);
         var redirectedDoc = await redirectedResponse.GetDocument();
-        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "We’ve received your request to change your official name");
+        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "We’ve received your request to change your date of birth");
     }
 
-    private void MockDqtApiResponse(User user, bool hasPendingNameChange)
+    private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDateOfBirthChange)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
             {
-                DateOfBirth = user.DateOfBirth!.Value,
+                DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
-                PendingNameChange = hasPendingNameChange
+                PendingDateOfBirthChange = hasPendingDateOfBirthChange
             });
     }
+
+    public static TheoryData<bool, bool, bool> InvalidDateOfBirthState { get; } = new()
+    {
+        // hasTrn, hasDobConflicts, hasPendingDobChange
+        { false, false, false },
+        { true, false, false },
+        { true, true, true },
+    };
 }

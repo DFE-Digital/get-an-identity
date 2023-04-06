@@ -103,7 +103,7 @@
                     @if (dateOfBirthChangeEnabled)
                     {
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="#" visually-hidden-text="date of birth" data-testid="dqt-dob-change-link">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialDateOfBirth(Model.ClientRedirectInfo)" visually-hidden-text="date of birth" data-testid="dqt-dob-change-link">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     }
                 </govuk-summary-list-row>

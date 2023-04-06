@@ -1,0 +1,19 @@
+@page "/account/official-date-of-birth"
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialDateOfBirth.OfficialDateOfBirth
+@{
+    ViewBag.Title = "Change date of birth";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.Account(Model.ClientRedirectInfo)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+        <p>If the date of birth in our records is wrong, you’ll need to provide evidence to update it.</p>
+        <p>We'll give you detailed information about providing evidence . Changes can take up to 5 working days.</p>
+        <govuk-button-link href="@LinkGenerator.AccountOfficialDateOfBirthDetails(Model.ClientRedirectInfo)">Continue</govuk-button-link>
+    </div>
+</div>
+

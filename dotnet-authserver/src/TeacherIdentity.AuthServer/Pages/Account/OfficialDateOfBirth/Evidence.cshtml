@@ -1,29 +1,26 @@
-@page "/account/official-name/evidence"
-@using TeacherIdentity.AuthServer.Pages.Account.OfficialName
+@page "/account/official-date-of-birth/evidence"
 @using TeacherIdentity.AuthServer.Pages.Account
-@model TeacherIdentity.AuthServer.Pages.Account.OfficialName.Evidence
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialDateOfBirth.Evidence
 @{
     ViewBag.Title = "Provide your evidence";
 }
 
 @section BeforeContent
 {
-    <govuk-back-link href="@LinkGenerator.AccountOfficialNameDetails(Model.ClientRedirectInfo)" />
+    <govuk-back-link href="@LinkGenerator.AccountOfficialDateOfBirthDetails(Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName ?? String.Empty, Model.LastName!, Model.ClientRedirectInfo)" method="post" enctype="multipart/form-data" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountOfficialDateOfBirthEvidence((DateOnly)Model.DateOfBirth!, Model.ClientRedirectInfo)" method="post" enctype="multipart/form-data" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <p>Your evidence must be in pdf or jpeg format and be a scan of 1 of the following:</p>
 
             <ul class="govuk-list govuk-list--bullet">
-                <li>marriage certificate</li>
-                <li>civil partnership certificate</li>
-                <li>decree absolute and birth certificate</li>
-                <li>statutory declaration</li>
-                <li>deed poll</li>
+                <li>birth certificate</li>
+                <li>valid passport</li>
+                <li>valid driving licence</li>
             </ul>
 
             <p>Your scan must be readable and smaller than @BaseEvidencePage.MaxFileSizeMb MB.</p>
