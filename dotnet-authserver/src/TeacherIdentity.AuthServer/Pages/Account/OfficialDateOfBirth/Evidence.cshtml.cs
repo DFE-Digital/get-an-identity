@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Services.DqtEvidence;
 
-namespace TeacherIdentity.AuthServer.Pages.Account.OfficialName;
+namespace TeacherIdentity.AuthServer.Pages.Account.OfficialDateOfBirth;
 
 [VerifyQueryParameterSignature]
-[CheckOfficialNameChangeIsEnabled]
+[CheckOfficialDateOfBirthChangeIsEnabled]
 public class Evidence : BaseEvidencePage
 {
     private readonly IdentityLinkGenerator _linkGenerator;
@@ -21,14 +21,8 @@ public class Evidence : BaseEvidencePage
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
-    [FromQuery(Name = "firstName")]
-    public string? FirstName { get; set; }
-
-    [FromQuery(Name = "middleName")]
-    public string? MiddleName { get; set; }
-
-    [FromQuery(Name = "lastName")]
-    public string? LastName { get; set; }
+    [FromQuery(Name = "dateOfBirth")]
+    public DateOnly? DateOfBirth { get; set; }
 
     public void OnGet()
     {
@@ -42,12 +36,12 @@ public class Evidence : BaseEvidencePage
         }
 
         var fileName = await UploadEvidence();
-        return Redirect(_linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName, LastName!, fileName, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountOfficialDateOfBirthConfirm((DateOnly)DateOfBirth!, fileName, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (FirstName is null || LastName is null)
+        if (DateOfBirth is null)
         {
             context.Result = BadRequest();
         }

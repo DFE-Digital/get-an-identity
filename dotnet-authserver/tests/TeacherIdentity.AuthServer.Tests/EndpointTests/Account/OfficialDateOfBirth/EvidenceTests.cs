@@ -1,8 +1,6 @@
-using System.Text.Encodings.Web;
-using System.Text.RegularExpressions;
 using User = TeacherIdentity.AuthServer.Models.User;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialName;
+namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialDateOfBirth;
 
 public class EvidenceTests : TestBase
 {
@@ -13,31 +11,32 @@ public class EvidenceTests : TestBase
         : base(hostFixture)
     {
         HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
-        MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasPendingNameChange: false);
+        MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasDobConflict: true, hasPendingDateOfBirthChange: false);
 
         _clientRedirectInfo = CreateClientRedirectInfo();
 
+        var dateOfBirth = new DateOnly(2000, 1, 1);
+
         _validRequestUrl =
-            AppendQueryParameterSignature($"/account/official-name/evidence?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}");
+            AppendQueryParameterSignature($"/account/official-date-of-birth/evidence?{_clientRedirectInfo.ToQueryParam()}&dateOfBirth={dateOfBirth.ToString("yyyy-MM-dd")}");
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Get_OfficialNameChangeDisabled_ReturnsBadRequest(bool hasTrn)
+    [MemberData(nameof(InvalidDateOfBirthState))]
+    public async Task Get_OfficialDateOfBirthChangeDisabled_ReturnsBadRequest(bool hasTrn, bool hasDobConflict, bool hasPendingDobChange)
     {
         // Arrange
         if (hasTrn)
         {
             HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
-            MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasPendingNameChange: true);
+            MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasDobConflict: hasDobConflict, hasPendingDateOfBirthChange: hasPendingDobChange);
         }
         else
         {
             HostFixture.SetUserId(TestUsers.DefaultUser.UserId);
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-name/evidence");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-date-of-birth");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -46,14 +45,11 @@ public class EvidenceTests : TestBase
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
-    [Theory]
-    [InlineData("firstName")]
-    [InlineData("lastName")]
-    public async Task Get_MissingQueryParameter_ReturnsBadRequest(string missingQueryParameter)
+    [Fact]
+    public async Task Get_MissingDateOfBirthQueryParameter_ReturnsBadRequest()
     {
         // Arrange
-        var requestUrl = $"/account/official-name/evidence?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}";
-        var invalidRequestUrl = new Regex($@"[\?&]{missingQueryParameter}=[^&]*").Replace(requestUrl, "");
+        var invalidRequestUrl = $"/account/official-date-of-birth/evidence?{_clientRedirectInfo.ToQueryParam()}";
 
         var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature(invalidRequestUrl));
 
@@ -69,25 +65,6 @@ public class EvidenceTests : TestBase
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature(_validRequestUrl));
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Get_EmptyMiddleName_ReturnsSuccess()
-    {
-        // Arrange
-        var firstName = Faker.Name.First();
-        var middleName = "";
-        var lastName = Faker.Name.Last();
-
-        var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/official-name/evidence?firstName={firstName}&middleName={middleName}&lastName={lastName}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -136,7 +113,7 @@ public class EvidenceTests : TestBase
         // Arrange
         var user = TestUsers.DefaultUserWithTrn;
         HostFixture.SetUserId(user.UserId);
-        MockDqtApiResponse(user, hasPendingNameChange: false);
+        MockDqtApiResponse(user, hasDobConflict: true, hasPendingDateOfBirthChange: false);
 
         var file = CreateFormFileUpload(fileType);
 
@@ -150,7 +127,7 @@ public class EvidenceTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith($"/account/official-name/confirm", response.Headers.Location?.OriginalString);
+        Assert.StartsWith($"/account/official-date-of-birth/confirm", response.Headers.Location?.OriginalString);
 
         Assert.Contains(_clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
         Assert.Contains("fileName=", response.Headers.Location?.OriginalString);
@@ -158,19 +135,27 @@ public class EvidenceTests : TestBase
         HostFixture.DqtEvidenceStorageService.Verify(s => s.Upload(It.IsAny<IFormFile>(), It.Is<string>(arg => arg.StartsWith($"{user.UserId}/"))));
     }
 
-    private void MockDqtApiResponse(User user, bool hasPendingNameChange)
+    private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDateOfBirthChange)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
             {
-                DateOfBirth = user.DateOfBirth!.Value,
+                DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
-                PendingNameChange = hasPendingNameChange
+                PendingDateOfBirthChange = hasPendingDateOfBirthChange
             });
     }
+
+    public static TheoryData<bool, bool, bool> InvalidDateOfBirthState { get; } = new()
+    {
+        // hasTrn, hasDobConflicts, hasPendingDobChange
+        { false, false, false },
+        { true, false, false },
+        { true, true, true },
+    };
 
     private MultipartFormDataContent CreateFormFileUpload(string fileType)
     {

@@ -206,6 +206,27 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
+    public string AccountOfficialDateOfBirth(ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/OfficialDateOfBirth/Index", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountOfficialDateOfBirthDetails(ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/OfficialDateOfBirth/Details", authenticationJourneyRequired: false)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+
+    public string AccountOfficialDateOfBirthEvidence(DateOnly dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/OfficialDateOfBirth/Evidence", authenticationJourneyRequired: false)
+            .SetQueryParam("dateOfBirth", dateOfBirth.ToString(DateOfBirthFormat))
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountOfficialDateOfBirthConfirm(DateOnly dateOfBirth, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/OfficialDateOfBirth/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("dateOfBirth", dateOfBirth.ToString(DateOfBirthFormat))
+            .SetQueryParam("fileName", fileName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
     public string Cookies() =>
         Page("/Cookies", authenticationJourneyRequired: false);
 

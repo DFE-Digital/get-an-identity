@@ -1,0 +1,24 @@
+@page "/account/official-date-of-birth/details"
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialDateOfBirth.Details
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.DateOfBirth);
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.AccountOfficialDateOfBirth(Model.ClientRedirectInfo)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.AccountOfficialDateOfBirthDetails(Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>Tell us what you would like to change your date of birth to.</p>
+
+            <govuk-date-input asp-for="DateOfBirth"/>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+
