@@ -1,4 +1,4 @@
-using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -14,7 +14,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
     [Fact]
     public async Task UpdateNameWithinOAuthFlow()
     {
-        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+        var user = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
         var newFirstName = Faker.Name.First();
         var newLastName = Faker.Name.Last();
@@ -22,78 +22,52 @@ public class UpdateDetails : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        // Test client app
+#pragma warning disable CS0618 // Type or member is obsolete
+        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
+#pragma warning restore CS0618 // Type or member is obsolete
 
-        await page.GotoAsync("/");
-        await page.ClickAsync("text=Profile");
+        await page.SubmitEmailPage(user.EmailAddress);
 
-        // Fill in the sign in form (email + PIN)
-
-        await page.FillAsync("text=Enter your email address", user.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        var pin = HostFixture.UserVerificationPin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SubmitEmailConfirmationPage();
 
         // Confirm your details page
-
-        await page.WaitForSelectorAsync("h1:text-is('Your details')");
+        await page.WaitForUrlPathAsync("/sign-in/complete");
         await page.Locator("*:has(> dt:text('Name'))").GetByText("Change").ClickAsync();
 
         // Update your name page
-
         await page.WaitForSelectorAsync("h1:text-is('Update your name')");
         await page.FillAsync("text=First name", newFirstName);
         await page.FillAsync("text=Last name", newLastName);
         await page.ClickAsync("button:text-is('Continue')");
 
-        // Confirm your details
+        await page.SubmitCompletePageForExistingUser();
 
-        await page.WaitForSelectorAsync("h1:text-is('Your details')");
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Test Client app
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
-
-        Assert.Equal(newFirstName, await page.InnerTextAsync("data-testid=first-name"));
-        Assert.Equal(newLastName, await page.InnerTextAsync("data-testid=last-name"));
+        await page.AssertSignedInOnTestClient(user.EmailAddress, user.Trn, newFirstName, newLastName);
     }
 
     [Fact]
     public async Task UpdateEmailWithinOAuthFlow()
     {
-        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+        var user = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
         var newEmail = Faker.Internet.Email();
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        // Test client app
+#pragma warning disable CS0618 // Type or member is obsolete
+        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
+#pragma warning restore CS0618 // Type or member is obsolete
 
-        await page.GotoAsync("/");
-        await page.ClickAsync("text=Profile");
+        await page.SubmitEmailPage(user.EmailAddress);
 
-        // Fill in the sign in form (email + PIN)
-
-        await page.FillAsync("text=Enter your email address", user.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        var pin = HostFixture.UserVerificationPin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SubmitEmailConfirmationPage();
 
         // Confirm your details page
-
-        await page.WaitForSelectorAsync("h1:text-is('Your details')");
+        await page.WaitForUrlPathAsync("/sign-in/complete");
         await page.Locator("*:has(> dt:text('Email address'))").GetByText("Change").ClickAsync();
 
         // Update your email page
-
         await page.WaitForSelectorAsync("h1:text-is('Change your email address')");
         await page.FillAsync("text=Enter your new email address", newEmail);
         await page.ClickAsync("button:text-is('Continue')");
@@ -101,21 +75,11 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Confirm your email address page
 
         await page.WaitForSelectorAsync("h1:text-is('Confirm your email address')");
-        pin = HostFixture.UserVerificationPin;
-        await page.FillAsync("text=Enter your code", pin);
+        await page.FillAsync("text=Enter your code", HostFixture.UserVerificationPin);
         await page.ClickAsync("button:text-is('Continue')");
 
-        // Confirm your details page
+        await page.SubmitCompletePageForExistingUser();
 
-        await page.WaitForSelectorAsync("h1:text-is('Your details')");
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Test Client app
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
-
-        Assert.Equal(newEmail, await page.InnerTextAsync("data-testid=email"));
+        await page.AssertSignedInOnTestClient(newEmail, user.Trn, user.FirstName, user.LastName);
     }
 }

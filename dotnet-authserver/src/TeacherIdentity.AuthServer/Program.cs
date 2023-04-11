@@ -224,6 +224,7 @@ public class Program
             options.AddPolicy(
                 AuthorizationPolicies.Authenticated,
                 policy => policy
+                    .AddAuthenticationSchemes("Delegated")
                     .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser());
 
