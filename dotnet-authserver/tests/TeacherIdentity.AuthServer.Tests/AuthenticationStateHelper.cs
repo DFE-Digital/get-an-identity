@@ -173,6 +173,19 @@ public sealed class AuthenticationStateHelper
                 s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
             };
 
+        public Func<AuthenticationState, Task> RegisterHasNiNumberSet(
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
+            async s =>
+            {
+                await RegisterDateOfBirthSet(dateOfBirth, firstName, lastName, mobileNumber, email, user)(s);
+                s.OnHasNationalInsuranceNumberSet(true);
+            };
+
         public Func<AuthenticationState, Task> RegisterExistingUserAccountMatch(
             User? existingUserAccount = null,
             DateOnly? dateOfBirth = null,

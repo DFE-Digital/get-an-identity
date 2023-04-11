@@ -182,7 +182,7 @@ public class NiNumberPageTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NiNumberNotKnown_Returns302Found()
+    public async Task Post_NiNumberNotKnown_SetsHasNiNumberFalseAndRedirectsToAwardedQtsPage()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
@@ -199,6 +199,9 @@ public class NiNumberPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/awarded-qts", response.Headers.Location?.OriginalString);
+
+        Assert.False(authStateHelper.AuthenticationState.HasNationalInsuranceNumber);
     }
 
     [Fact]

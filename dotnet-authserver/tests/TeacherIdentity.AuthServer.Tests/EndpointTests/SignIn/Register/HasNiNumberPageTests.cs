@@ -102,12 +102,13 @@ public class HasNiNumberPageTests : TestBase
     public async Task Post_RequiresTrnLookupFalse_ReturnsBadRequest()
     {
         // Arrange
-
-        // ApplyForQts client does not require TRN lookup
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", true },
+            }
         };
 
         // Act
@@ -158,7 +159,28 @@ public class HasNiNumberPageTests : TestBase
         Assert.Equal(hasNiNumber, authStateHelper.AuthenticationState.HasNationalInsuranceNumber);
     }
 
+    [Fact]
+    public async Task Post_HasNiNumberTrue_RedirectsToNiNumberPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", true },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/ni-number", response.Headers.Location?.OriginalString);
+    }
+
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasNiNumber);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.DateOfBirth);
-
 }
