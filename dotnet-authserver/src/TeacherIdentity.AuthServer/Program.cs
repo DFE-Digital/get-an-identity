@@ -532,7 +532,6 @@ public class Program
         {
             app.UseForwardedHeaders();
             app.UseHsts();
-            app.UseHttpsRedirection();
         }
 
         app.UseStaticFiles();
