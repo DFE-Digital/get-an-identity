@@ -5,6 +5,8 @@ namespace TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 public class WebHookNotificationSender : IWebHookNotificationSender
 {
+    private const string ContentType = "application/json";
+
     private readonly HttpClient _httpClient;
 
     public WebHookNotificationSender(HttpClient httpClient)
@@ -16,7 +18,7 @@ public class WebHookNotificationSender : IWebHookNotificationSender
     {
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
-            Content = new StringContent(payload)
+            Content = new StringContent(payload, new System.Net.Http.Headers.MediaTypeHeaderValue(ContentType))
         };
 
         request.Headers.Add("X-TeacherIdentity-NotificationId", notificationId.ToString());
