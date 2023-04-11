@@ -31,7 +31,8 @@ public partial class SignIn
 
         await page.WaitForUrlPathAsync("/admin/staff");
 
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId, expectOAuthProperties: false));
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => _hostFixture.AssertEventIsUserSignedIn(e, user.UserId, expectOAuthProperties: false));
     }
 
     [Fact]
@@ -65,7 +66,8 @@ public partial class SignIn
 
         await page.AssertSignedInOnTestClient(user);
 
-        _hostFixture.EventObserver.AssertEventsSaved(e => AssertEventIsUserSignedIn(e, user.UserId));
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => _hostFixture.AssertEventIsUserSignedIn(e, user.UserId));
 
         return user.UserId;
     }
