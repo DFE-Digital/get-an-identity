@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class RequiresTrnLookupAttribute : Attribute, IPageFilter
 {
     public void OnPageHandlerSelected(PageHandlerSelectedContext context)
