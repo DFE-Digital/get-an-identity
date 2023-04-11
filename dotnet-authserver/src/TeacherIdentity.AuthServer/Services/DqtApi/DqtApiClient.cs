@@ -56,4 +56,12 @@ public class DqtApiClient : IDqtApiClient
         var response = await _client.PostAsync("/v3/teachers/name-changes", content, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task PostTeacherDateOfBirthChange(TeacherDateOfBirthChangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        HttpContent content = JsonContent.Create(request);
+        var response = await _client.PostAsync("/v3/teachers/date-of-birth-changes", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
 }
