@@ -59,7 +59,7 @@ public class NoTrn : PageModel
 
         await _dbContext.SaveChangesAsync();
 
-        TempData[TempDataKeys.FlashSuccess] = "User marked as non DQT";
+        TempData.SetFlashSuccess("User marked as non DQT");
 
         return RedirectToPage("/Admin/User", new { UserId });
     }

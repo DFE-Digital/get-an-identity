@@ -51,7 +51,7 @@ public class Confirm : PageModel
 
         HttpContext.Session.Remove(ChosenTrnKey);
 
-        TempData[TempDataKeys.FlashSuccess] = "User merged";
+        TempData.SetFlashSuccess("User merged");
 
         return RedirectToPage("/Admin/User", new { UserId });
     }
