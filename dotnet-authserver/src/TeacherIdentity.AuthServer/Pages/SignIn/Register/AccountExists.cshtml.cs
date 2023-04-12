@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -70,7 +69,8 @@ public class AccountExists : BaseExistingEmailPageModel
             Created = _clock.UtcNow,
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = PhoneHelper.FormatMobileNumber(authenticationState.MobileNumber!),
+            MobileNumber = authenticationState.MobileNumber,
+            NormalizedMobileNumber = MobileNumber.Parse(authenticationState.MobileNumber!),
             FirstName = authenticationState.FirstName!,
             LastName = authenticationState.LastName!,
             Updated = _clock.UtcNow,

@@ -1,4 +1,4 @@
-using TeacherIdentity.AuthServer.Helpers;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -81,7 +81,7 @@ public class PhoneTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
@@ -143,7 +143,7 @@ public class PhoneTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone?{authStateHelper.ToQueryParam()}")
         {
@@ -160,8 +160,8 @@ public class PhoneTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal(mobileNumber, authStateHelper.AuthenticationState.MobileNumber);
 
-        var formattedMobileNumber = PhoneHelper.FormatMobileNumber(mobileNumber);
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(formattedMobileNumber), Times.Once);
+        var parsedMobileNumber = MobileNumber.Parse(mobileNumber);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(parsedMobileNumber), Times.Once);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class PhoneTests : TestBase
             .Throws(new Exception("ValidationError"));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone?{authStateHelper.ToQueryParam()}")
         {

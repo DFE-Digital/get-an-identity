@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer;
 
@@ -94,5 +95,14 @@ public class FileExtensionsAttribute : ValidationAttribute
         }
 
         return true;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class MobilePhoneAttribute : ValidationAttribute
+{
+    public override bool IsValid(object? value)
+    {
+        return value is string str && MobileNumber.TryParse(str, out _);
     }
 }

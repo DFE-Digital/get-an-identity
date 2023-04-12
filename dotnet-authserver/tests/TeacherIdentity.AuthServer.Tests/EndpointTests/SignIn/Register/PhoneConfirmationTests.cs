@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -94,7 +95,7 @@ public class PhoneConfirmationTests : TestBase
     public async Task Post_UnknownPin_ReturnsError()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
@@ -119,7 +120,7 @@ public class PhoneConfirmationTests : TestBase
     public async Task Post_PinTooShort_ReturnsError()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
         var pin = "0";
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
@@ -142,7 +143,7 @@ public class PhoneConfirmationTests : TestBase
     public async Task Post_PinTooLong_ReturnsError()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
         var pin = "0123345678";
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
@@ -165,7 +166,7 @@ public class PhoneConfirmationTests : TestBase
     public async Task Post_NonNumericPin_ReturnsError()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
         var pin = "abc";
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
@@ -188,10 +189,10 @@ public class PhoneConfirmationTests : TestBase
     public async Task Post_PinExpiredLessThanTwoHoursAgo_ReturnsErrorAndSendsANewPin()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(mobileNumber));
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
@@ -210,18 +211,18 @@ public class PhoneConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(mobileNumber), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(mobileNumber)), Times.Once);
     }
 
     [Fact]
     public async Task Post_PinExpiredMoreThanTwoHoursAgo_ReturnsErrorAndDoesNotSendANewPin()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
-        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(mobileNumber));
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
@@ -240,17 +241,17 @@ public class PhoneConfirmationTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(mobileNumber), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(mobileNumber)), Times.Never);
     }
 
     [Fact]
     public async Task Post_ValidPinForNewUser_UpdatesAuthenticationStateAndRedirects()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(mobileNumber));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -277,9 +278,9 @@ public class PhoneConfirmationTests : TestBase
         // Arrange
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(mobileNumber));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: mobileNumber), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -304,7 +305,7 @@ public class PhoneConfirmationTests : TestBase
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(user.MobileNumber!));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: user.MobileNumber), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -333,7 +334,7 @@ public class PhoneConfirmationTests : TestBase
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(user.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(user.MobileNumber!));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")

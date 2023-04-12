@@ -1,19 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.Common;
 
 public class BaseExistingPhonePageModel : PageModel
 {
-    private IUserVerificationService _userVerificationService;
+    private readonly IUserVerificationService _userVerificationService;
 
     public BaseExistingPhonePageModel(IUserVerificationService userVerificationService)
     {
         _userVerificationService = userVerificationService;
     }
 
-    public async Task<PinGenerationResultAction> GenerateSmsPinForExistingMobileNumber(string mobileNumber)
+    public async Task<PinGenerationResultAction> GenerateSmsPinForExistingMobileNumber(MobileNumber mobileNumber)
     {
         var pinGenerationResult = await _userVerificationService.GenerateSmsPin(mobileNumber);
 

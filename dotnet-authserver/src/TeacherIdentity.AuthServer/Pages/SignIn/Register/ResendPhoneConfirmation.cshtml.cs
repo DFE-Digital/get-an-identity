@@ -8,7 +8,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 public class ResendPhoneConfirmationModel : BasePhonePageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public ResendPhoneConfirmationModel(
         IUserVerificationService userVerificationService,
@@ -31,7 +31,8 @@ public class ResendPhoneConfirmationModel : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        var pinGenerationResult = await GenerateSmsPinForNewPhone(MobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        var pinGenerationResult = await GenerateSmsPinForNewPhone(parsedMobileNumber);
 
         if (!pinGenerationResult.Success)
         {

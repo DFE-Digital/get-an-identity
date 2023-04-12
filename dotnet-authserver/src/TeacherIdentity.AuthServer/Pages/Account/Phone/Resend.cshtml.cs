@@ -27,7 +27,7 @@ public class Resend : BasePhonePageModel
     [BindProperty]
     [Display(Name = "Mobile number")]
     [Required(ErrorMessage = "Enter your new mobile phone number")]
-    [Phone(ErrorMessage = "Enter a valid mobile phone number")]
+    [MobilePhone(ErrorMessage = "Enter a valid mobile phone number")]
     public string? NewMobileNumber { get; set; }
 
     [FromQuery(Name = "mobileNumber")]
@@ -45,7 +45,8 @@ public class Resend : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        var existingUser = await FindUserByMobileNumber(NewMobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(NewMobileNumber!);
+        var existingUser = await FindUserByMobileNumber(parsedMobileNumber);
 
         if (existingUser is not null)
         {
@@ -56,7 +57,7 @@ public class Resend : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        var smsPinGenerationResult = await GenerateSmsPinForNewPhone(NewMobileNumber!, nameof(NewMobileNumber));
+        var smsPinGenerationResult = await GenerateSmsPinForNewPhone(parsedMobileNumber, nameof(NewMobileNumber));
 
         if (!smsPinGenerationResult.Success)
         {

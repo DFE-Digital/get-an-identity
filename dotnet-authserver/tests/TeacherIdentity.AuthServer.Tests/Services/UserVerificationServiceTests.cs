@@ -254,13 +254,14 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var currentClientDisplayName = "Test app";
         currentClientProviderMock.Setup(mock => mock.GetCurrentClient()).ReturnsAsync(new Application() { DisplayName = currentClientDisplayName });
 
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
+        var parsedMobileNumber = MobileNumber.Parse(mobileNumber);
 
         await _dbFixture.TestData.WithDbContext(async dbContext =>
         {
             dbContext.SmsConfirmationPins.Add(new SmsConfirmationPin()
             {
-                MobileNumber = mobileNumber,
+                MobileNumber = parsedMobileNumber,
                 Expires = clock.UtcNow + _pinLifetime,
                 IsActive = true,
                 VerifiedOn = null,
@@ -271,10 +272,10 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         });
 
         // Act
-        var pinResult = await service.GenerateSmsPin(mobileNumber);
+        var pinResult = await service.GenerateSmsPin(parsedMobileNumber);
 
         // Assert
-        var smsConfirmationPins = await dbContext.SmsConfirmationPins.Where(p => p.MobileNumber == mobileNumber)
+        var smsConfirmationPins = await dbContext.SmsConfirmationPins.Where(p => p.MobileNumber == parsedMobileNumber)
             .OrderBy(p => p.Expires)
             .ToListAsync();
 
@@ -287,14 +288,14 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
             newPin =>
             {
                 Assert.Null(newPin.VerifiedOn);
-                Assert.Equal(mobileNumber, newPin.MobileNumber);
+                Assert.Equal(parsedMobileNumber, newPin.MobileNumber);
                 Assert.Equal(pinResult.Pin, newPin.Pin);
                 Assert.Equal(clock.UtcNow + _pinLifetime, newPin.Expires);
             });
 
         var expectedSmsMessage = $"{pinResult.Pin} is your Teaching Services Account authentication code";
 
-        notificationSenderMock.Verify(mock => mock.SendSms(mobileNumber, expectedSmsMessage), Times.Once());
+        notificationSenderMock.Verify(mock => mock.SendSms(parsedMobileNumber.ToString(), expectedSmsMessage), Times.Once());
     }
 
     [Fact]
@@ -309,13 +310,13 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var requestClientIpProvider = new TestRequestClientIpProvider();
         var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
 
         // The real PIN generation method never generates pins that start with a '0'
         var pin = "012345";
 
         // Act
-        var result = await service.VerifySmsPin(mobileNumber, pin);
+        var result = await service.VerifySmsPin(MobileNumber.Parse(mobileNumber), pin);
 
         // Assert
         Assert.Equal(PinVerificationFailedReasons.Unknown, result);
@@ -334,13 +335,13 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var requestClientIpProvider = new TestRequestClientIpProvider();
         var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
 
         // The real PIN generation method never generates pins that start with a '0'
         var pin = "012345";
 
         // Act
-        var result = await service.VerifySmsPin(mobileNumber, pin);
+        var result = await service.VerifySmsPin(MobileNumber.Parse(mobileNumber), pin);
 
         // Assert
         Assert.Equal(PinVerificationFailedReasons.RateLimitExceeded, result);
@@ -358,13 +359,13 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var requestClientIpProvider = new TestRequestClientIpProvider();
         var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
-        var mobileNumber = Faker.Phone.Number();
-        var pinResult = await service.GenerateSmsPin(mobileNumber);
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
+        var pinResult = await service.GenerateSmsPin(MobileNumber.Parse(mobileNumber));
 
         clock.AdvanceBy(_pinLifetime);
 
         // Act
-        var result = await service.VerifySmsPin(mobileNumber, pinResult.Pin!);
+        var result = await service.VerifySmsPin(MobileNumber.Parse(mobileNumber), pinResult.Pin!);
 
         // Assert
         Assert.True(result.HasFlag(PinVerificationFailedReasons.Expired));
@@ -382,12 +383,12 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var requestClientIpProvider = new TestRequestClientIpProvider();
         var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
-        var mobileNumber = Faker.Phone.Number();
-        var anotherMobileNumber = Faker.Phone.Number();
-        var pinResult = await service.GenerateSmsPin(anotherMobileNumber);
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
+        var anotherMobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
+        var pinResult = await service.GenerateSmsPin(MobileNumber.Parse(anotherMobileNumber));
 
         // Act
-        var result = await service.VerifySmsPin(mobileNumber, pinResult.Pin!);
+        var result = await service.VerifySmsPin(MobileNumber.Parse(mobileNumber), pinResult.Pin!);
 
         // Assert
         Assert.Equal(PinVerificationFailedReasons.Unknown, result);
@@ -405,15 +406,16 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var requestClientIpProvider = new TestRequestClientIpProvider();
         var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
-        var mobileNumber = Faker.Phone.Number();
-        var pinResult = await service.GenerateSmsPin(mobileNumber);
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
+        var parsedMobileNumber = MobileNumber.Parse(mobileNumber);
+        var pinResult = await service.GenerateSmsPin(parsedMobileNumber);
 
-        var smsConfirmationPin = await dbContext.SmsConfirmationPins.SingleAsync(p => p.MobileNumber == mobileNumber && p.Pin == pinResult.Pin);
+        var smsConfirmationPin = await dbContext.SmsConfirmationPins.SingleAsync(p => p.MobileNumber == parsedMobileNumber && p.Pin == pinResult.Pin);
         smsConfirmationPin.IsActive = false;
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await service.VerifySmsPin(mobileNumber, pinResult.Pin!);
+        var result = await service.VerifySmsPin(MobileNumber.Parse(mobileNumber), pinResult.Pin!);
 
         // Assert
         Assert.Equal(PinVerificationFailedReasons.NotActive, result);
@@ -438,16 +440,17 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var requestClientIpProvider = new TestRequestClientIpProvider();
         var service = CreateUserVerificationService(dbContext, notificationSenderMock.Object, clock, currentClientProviderMock.Object, rateLimiter.Object, requestClientIpProvider);
 
-        var mobileNumber = Faker.Phone.Number();
-        var pinResult = await service.GenerateSmsPin(mobileNumber);
+        var mobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber();
+        var parsedMobileNumber = MobileNumber.Parse(mobileNumber);
+        var pinResult = await service.GenerateSmsPin(parsedMobileNumber);
 
         // Act
-        var result = await service.VerifySmsPin(mobileNumber, pinResult.Pin!);
+        var result = await service.VerifySmsPin(MobileNumber.Parse(mobileNumber), pinResult.Pin!);
 
         // Assert
         Assert.Equal(PinVerificationFailedReasons.None, result);
 
-        var smsConfirmationPin = await dbContext.SmsConfirmationPins.Where(p => p.MobileNumber == mobileNumber && p.Pin == pinResult.Pin).SingleOrDefaultAsync();
+        var smsConfirmationPin = await dbContext.SmsConfirmationPins.Where(p => p.MobileNumber == parsedMobileNumber && p.Pin == pinResult.Pin).SingleOrDefaultAsync();
         Assert.False(smsConfirmationPin?.IsActive);
         Assert.Equal(clock.UtcNow, smsConfirmationPin?.VerifiedOn);
     }

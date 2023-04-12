@@ -57,6 +57,11 @@ public class TeacherIdentityServerDbContext : DbContext
         Events.Add(Event.FromEventBase(@event));
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<MobileNumber>().HaveConversion<MobileNumberConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TeacherIdentityServerDbContext).Assembly);

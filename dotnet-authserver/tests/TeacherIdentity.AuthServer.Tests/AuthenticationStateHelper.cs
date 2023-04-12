@@ -130,7 +130,7 @@ public sealed class AuthenticationStateHelper
             async s =>
             {
                 await EmailVerified(email, user)(s);
-                s.OnMobileNumberSet(mobileNumber ?? Faker.Phone.Number());
+                s.OnMobileNumberSet(mobileNumber ?? TestData.GenerateUniqueMobileNumber());
             };
 
         public Func<AuthenticationState, Task> MobileVerified(

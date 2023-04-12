@@ -15,6 +15,7 @@ public abstract class BasePhoneConfirmationPageModel : BasePinVerificationPageMo
 
     protected override Task<PinGenerationResult> GeneratePin()
     {
-        return UserVerificationService.GenerateSmsPin(MobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        return UserVerificationService.GenerateSmsPin(parsedMobileNumber);
     }
 }

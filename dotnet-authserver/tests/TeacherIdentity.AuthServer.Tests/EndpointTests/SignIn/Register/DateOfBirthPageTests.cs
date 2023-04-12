@@ -144,11 +144,11 @@ public class DateOfBirthPageTests : TestBase
     }
 
     [Theory]
-    [InlineData("+447123456 789", "07123456789")]
-    [InlineData("(0044)7111456789", "07111456789")]
-    [InlineData("+672-7-123-456-789", "+6727123456789")]
-    [InlineData("00672/7-111-456-789", "+6727111456789")]
-    public async Task Post_ValidForm_CreatesUserWithCorrectFormatMobileNumber(string mobileNumber, string formattedMobileNumber)
+    [InlineData("+447123456 789", "447123456789")]
+    [InlineData("(0044)7111456789", "447111456789")]
+    [InlineData("+672-7-123-456-789", "6727123456789")]
+    [InlineData("00672-7-111-456-789", "6727111456789")]
+    public async Task Post_ValidForm_CreatesUserWithCorrectFormatMobileNumber(string mobileNumber, string normalizedMobileNumber)
     {
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
@@ -172,7 +172,8 @@ public class DateOfBirthPageTests : TestBase
         {
             var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
             Assert.NotNull(user);
-            Assert.Equal(formattedMobileNumber, user.MobileNumber);
+            Assert.Equal(mobileNumber, user.MobileNumber);
+            Assert.Equal(normalizedMobileNumber, user.NormalizedMobileNumber?.ToString());
         });
     }
 

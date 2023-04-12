@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserSearch;
 
@@ -11,9 +10,9 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [BindProperties]
 public class DateOfBirthPage : PageModel
 {
-    IdentityLinkGenerator _linkGenerator;
-    private TeacherIdentityServerDbContext _dbContext;
-    private IClock _clock;
+    private readonly IdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IClock _clock;
     private readonly IUserSearchService _userSearchService;
 
     public DateOfBirthPage(
@@ -77,7 +76,8 @@ public class DateOfBirthPage : PageModel
             Created = _clock.UtcNow,
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = PhoneHelper.FormatMobileNumber(authenticationState.MobileNumber!),
+            MobileNumber = authenticationState.MobileNumber,
+            NormalizedMobileNumber = MobileNumber.Parse(authenticationState.MobileNumber!),
             FirstName = authenticationState.FirstName!,
             LastName = authenticationState.LastName!,
             Updated = _clock.UtcNow,

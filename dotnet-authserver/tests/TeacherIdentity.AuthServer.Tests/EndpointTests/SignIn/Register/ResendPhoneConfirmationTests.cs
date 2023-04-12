@@ -1,4 +1,4 @@
-using TeacherIdentity.AuthServer.Helpers;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -145,7 +145,7 @@ public class ResendPhoneConfirmationTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "MobileNumber", Faker.Phone.Number() }
+                { "MobileNumber", TestData.GenerateUniqueMobileNumber() }
             }
         };
 
@@ -161,7 +161,7 @@ public class ResendPhoneConfirmationTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -180,7 +180,7 @@ public class ResendPhoneConfirmationTests : TestBase
 
         Assert.Equal(mobileNumber, authStateHelper.AuthenticationState.MobileNumber);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(PhoneHelper.FormatMobileNumber(mobileNumber)), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(mobileNumber)), Times.Once);
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class ResendPhoneConfirmationTests : TestBase
             .Throws(new Exception("ValidationError"));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {

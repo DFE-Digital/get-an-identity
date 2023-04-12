@@ -140,7 +140,7 @@ public class ResendExistingAccountPhoneTests : TestBase, IAsyncLifetime
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal($"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(_existingUserAccount!.MobileNumber!), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!)), Times.Once);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.ResendExistingAccountPhone);

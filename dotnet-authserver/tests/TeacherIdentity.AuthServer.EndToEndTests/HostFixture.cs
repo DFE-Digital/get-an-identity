@@ -294,12 +294,13 @@ public class HostFixture : IAsyncLifetime
         }
 
         public Task<PinVerificationFailedReasons> VerifyEmailPin(string email, string pin) => _inner.VerifyEmailPin(email, pin);
-        public Task<PinGenerationResult> GenerateSmsPin(string mobileNumber)
+
+        public Task<PinGenerationResult> GenerateSmsPin(MobileNumber mobileNumber)
         {
             throw new NotImplementedException();
         }
 
-        public Task<PinVerificationFailedReasons> VerifySmsPin(string mobileNumber, string pin)
+        public Task<PinVerificationFailedReasons> VerifySmsPin(MobileNumber mobileNumber, string pin)
         {
             throw new NotImplementedException();
         }
