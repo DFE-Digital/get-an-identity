@@ -36,6 +36,9 @@ public static class RegisterJourneyAuthenticationStateHelper
                 case RegisterJourneyPage.HasNiNumber:
                     return c => c.RegisterDateOfBirthSet();
 
+                case RegisterJourneyPage.NiNumber:
+                    return c => c.RegisterHasNiNumberSet();
+
                 case RegisterJourneyPage.AccountExists:
                     return c => c.RegisterExistingUserAccountMatch(user);
 
@@ -78,4 +81,5 @@ public enum RegisterJourneyPage
     ExistingAccountPhoneConfirmation,
     ResendExistingAccountPhone,
     HasNiNumber,
+    NiNumber,
 }
