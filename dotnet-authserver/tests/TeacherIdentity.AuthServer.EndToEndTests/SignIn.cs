@@ -37,7 +37,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -89,7 +89,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", email);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -217,7 +217,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", email);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -390,7 +390,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", email);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -455,7 +455,7 @@ public partial class SignIn : IClassFixture<HostFixture>
 
         // Should now be on 'TRN in use' page
 
-        pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
 
         await page.ClickAsync("button:text-is('Continue')");
@@ -522,7 +522,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -584,7 +584,7 @@ public partial class SignIn : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", email);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 

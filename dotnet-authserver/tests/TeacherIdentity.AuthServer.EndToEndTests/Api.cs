@@ -30,7 +30,7 @@ public class Api : IClassFixture<HostFixture>
         await page.FillAsync("text=Your email address", adminUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -92,7 +92,7 @@ public class Api : IClassFixture<HostFixture>
         await page.FillAsync("text=Your email address", adminUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 

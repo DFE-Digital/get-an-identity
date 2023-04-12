@@ -26,7 +26,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
 
         await page.SubmitCompletePageForExistingUser();
 
@@ -61,7 +61,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
 
         await page.SignOutFromAccountPageWithoutClientContext();
 
@@ -90,7 +90,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
 
         await page.SubmitCompletePageForExistingUser();
 

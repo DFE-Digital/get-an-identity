@@ -12,7 +12,6 @@ using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
-using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -31,7 +30,8 @@ public class HostFixture : IAsyncLifetime
     private bool _disposed = false;
 
     private readonly List<string> _capturedAccessTokens = new();
-    private readonly List<(string Email, string Pin)> _capturedEmailConfirmationPins = new();
+
+    public static string UserVerificationPin { get; } = "12345";
 
     public IServiceProvider AuthServerServices { get; private set; } = null!;
 
@@ -39,13 +39,9 @@ public class HostFixture : IAsyncLifetime
 
     public IReadOnlyCollection<string> CapturedAccessTokens => _capturedAccessTokens.AsReadOnly();
 
-    public IReadOnlyCollection<(string Email, string Pin)> CapturedEmailConfirmationPins => _capturedEmailConfirmationPins.AsReadOnly();
-
     public DbHelper? DbHelper { get; private set; }
 
     public Mock<IDqtApiClient> DqtApiClient { get; } = new();
-
-    public IUserVerificationService? UserVerificationService { get; private set; }
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
@@ -135,8 +131,6 @@ public class HostFixture : IAsyncLifetime
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient.Object);
-                    services.Decorate<IUserVerificationService>(inner =>
-                        new CapturePinsUserVerificationServiceDecorator(inner, (email, pin) => _capturedEmailConfirmationPins.Add((email, pin))));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
 
@@ -177,6 +171,10 @@ public class HostFixture : IAsyncLifetime
             .AddUserSecrets<HostFixture>()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
+            .AddInMemoryCollection(new Dictionary<string, string?>()
+            {
+                { "AuthorizationServer:UserVerification:Pin", UserVerificationPin }
+            })
             .Build();
 
     public sealed class Host<T> : IAsyncDisposable
@@ -270,39 +268,6 @@ public class HostFixture : IAsyncLifetime
                     using var _ = CreateDefaultClient();
                 }
             }
-        }
-    }
-
-    private class CapturePinsUserVerificationServiceDecorator : IUserVerificationService
-    {
-        public delegate void CapturePin(string email, string pin);
-
-        private readonly IUserVerificationService _inner;
-        private readonly CapturePin _capturePin;
-
-        public CapturePinsUserVerificationServiceDecorator(IUserVerificationService inner, CapturePin capturePin)
-        {
-            _inner = inner;
-            _capturePin = capturePin;
-        }
-
-        public async Task<PinGenerationResult> GenerateEmailPin(string email)
-        {
-            var pinGenerationResult = await _inner.GenerateEmailPin(email);
-            _capturePin(email, pinGenerationResult.Pin!);
-            return pinGenerationResult;
-        }
-
-        public Task<PinVerificationFailedReasons> VerifyEmailPin(string email, string pin) => _inner.VerifyEmailPin(email, pin);
-
-        public Task<PinGenerationResult> GenerateSmsPin(MobileNumber mobileNumber)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<PinVerificationFailedReasons> VerifySmsPin(MobileNumber mobileNumber, string pin)
-        {
-            throw new NotImplementedException();
         }
     }
 }
