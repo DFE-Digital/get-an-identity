@@ -53,7 +53,8 @@ public class Confirm : BasePinVerificationPageModel
             return this.PageWithErrors();
         }
 
-        var smsPinFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!, Code!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        var smsPinFailedReasons = await UserVerificationService.VerifySmsPin(parsedMobileNumber, Code!);
 
         if (smsPinFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -78,6 +79,7 @@ public class Confirm : BasePinVerificationPageModel
         if (changes != UserUpdatedEventChanges.None)
         {
             user.MobileNumber = MobileNumber;
+            user.NormalizedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()
@@ -108,6 +110,7 @@ public class Confirm : BasePinVerificationPageModel
 
     protected override Task<PinGenerationResult> GeneratePin()
     {
-        return UserVerificationService.GenerateSmsPin(MobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        return UserVerificationService.GenerateSmsPin(parsedMobileNumber);
     }
 }

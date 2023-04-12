@@ -131,7 +131,7 @@ public class UserVerificationService : IUserVerificationService
         return await VerifyPin(emailConfirmationPin, ip);
     }
 
-    public async Task<PinGenerationResult> GenerateSmsPin(string mobileNumber)
+    public async Task<PinGenerationResult> GenerateSmsPin(MobileNumber mobileNumber)
     {
         var ip = _clientIpProvider.GetClientIpAddress();
         if (await _rateLimiter.IsClientIpBlockedForPinGeneration(ip))
@@ -164,8 +164,10 @@ public class UserVerificationService : IUserVerificationService
                 });
 
                 // Remove any other active PINs for this email
+#pragma warning disable IDE0071 // Simplify interpolation
                 await _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                    $"update sms_confirmation_pins set is_active = false where mobile_number = {mobileNumber} and expires > {_clock.UtcNow} and is_active = true;");
+                    $"update sms_confirmation_pins set is_active = false where mobile_number = {mobileNumber.ToString()} and expires > {_clock.UtcNow} and is_active = true;");
+#pragma warning restore IDE0071 // Simplify interpolation
 
                 await _dbContext.SaveChangesAsync();
             }
@@ -183,7 +185,7 @@ public class UserVerificationService : IUserVerificationService
 
         try
         {
-            await _notificationSender.SendSms(mobileNumber, GetSmsMessage(pin));
+            await _notificationSender.SendSms(mobileNumber.ToString(), GetSmsMessage(pin));
         }
         catch (Exception ex)
         {
@@ -200,7 +202,7 @@ public class UserVerificationService : IUserVerificationService
         return PinGenerationResult.Success(pin);
     }
 
-    public async Task<PinVerificationFailedReasons> VerifySmsPin(string mobileNumber, string pin)
+    public async Task<PinVerificationFailedReasons> VerifySmsPin(MobileNumber mobileNumber, string pin)
     {
         var ip = _clientIpProvider.GetClientIpAddress();
         if (await _rateLimiter.IsClientIpBlockedForPinVerification(ip!))

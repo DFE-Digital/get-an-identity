@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -43,7 +42,8 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var pinVerificationFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!, Code!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        var pinVerificationFailedReasons = await UserVerificationService.VerifySmsPin(parsedMobileNumber, Code!);
 
         if (pinVerificationFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -54,7 +54,7 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
         var permittedUserTypes = authenticationState.GetPermittedUserTypes();
 
         var user = await _dbContext.Users
-            .Where(u => (u.MobileNumber ?? "") == PhoneHelper.FormatMobileNumber(MobileNumber!))
+            .Where(u => u.NormalizedMobileNumber! == parsedMobileNumber)
             .SingleOrDefaultAsync();
 
         if (user is not null && !permittedUserTypes.Contains(user.UserType))

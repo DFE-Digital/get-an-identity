@@ -9,9 +9,10 @@ public partial class TestData
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IClock _clock;
-    private readonly Random _random = new();
-    private readonly ConcurrentBag<string> _trns = new();
-    private readonly ConcurrentBag<string> _emails = new();
+    private static readonly Random _random = new();
+    private static readonly ConcurrentBag<string> _trns = new();
+    private static readonly ConcurrentBag<string> _emails = new();
+    private static readonly ConcurrentBag<string> _mobileNumbers = new();
 
     public TestData(IServiceProvider serviceProvider)
     {
@@ -60,6 +61,24 @@ public partial class TestData
 
         _emails.Add(email);
         return email;
+    }
+
+    public string GenerateUniqueMobileNumber()
+    {
+        lock (_random)
+        {
+            string mobileNumber;
+
+            do
+            {
+                // See https://www.ofcom.org.uk/phones-telecoms-and-internet/information-for-industry/numbering/numbers-for-drama
+                mobileNumber = $"07700 {_random.NextInt64(900000, 900999)}";
+            }
+            while (_mobileNumbers.Contains(mobileNumber));
+
+            _mobileNumbers.Add(mobileNumber);
+            return mobileNumber;
+        }
     }
 
     public async Task<T> WithDbContext<T>(Func<TeacherIdentityServerDbContext, Task<T>> action)

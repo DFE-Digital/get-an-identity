@@ -7,7 +7,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 public class ResendExistingAccountPhone : BaseExistingPhonePageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public ResendExistingAccountPhone(
         IUserVerificationService userVerificationService,
@@ -26,7 +26,8 @@ public class ResendExistingAccountPhone : BaseExistingPhonePageModel
             return this.PageWithErrors();
         }
 
-        var pinGenerationResult = await GenerateSmsPinForExistingMobileNumber(ExistingMobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(ExistingMobileNumber!);
+        var pinGenerationResult = await GenerateSmsPinForExistingMobileNumber(parsedMobileNumber);
 
         if (!pinGenerationResult.Success)
         {

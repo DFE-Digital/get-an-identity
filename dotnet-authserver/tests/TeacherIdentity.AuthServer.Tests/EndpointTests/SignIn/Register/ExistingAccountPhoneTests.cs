@@ -117,7 +117,7 @@ public class ExistingAccountPhoneTests : TestBase, IAsyncLifetime
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(_existingUserAccount!.MobileNumber!), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!)), Times.Once);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.ExistingAccountPhone);

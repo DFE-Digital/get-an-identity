@@ -30,7 +30,8 @@ public class Phone : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        var pinGenerationResult = await GenerateSmsPinForNewPhone(MobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        var pinGenerationResult = await GenerateSmsPinForNewPhone(parsedMobileNumber);
 
         if (!pinGenerationResult.Success)
         {

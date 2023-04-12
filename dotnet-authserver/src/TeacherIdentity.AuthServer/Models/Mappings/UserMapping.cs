@@ -28,7 +28,8 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.TrnLookupStatus);
         builder.Property(u => u.MergedWithUserId);
         builder.Property(u => u.MobileNumber).HasMaxLength(100);
-        builder.HasIndex(u => u.MobileNumber).IsUnique().HasDatabaseName(User.MobileNumberUniqueIndexName).HasFilter("is_deleted = false and mobile_number is not null");
+        builder.Property(u => u.NormalizedMobileNumber).HasMaxLength(15);
+        builder.HasIndex(u => u.NormalizedMobileNumber).IsUnique().HasDatabaseName(User.MobileNumberUniqueIndexName).HasFilter("is_deleted = false and normalized_mobile_number is not null");
         builder.HasOne(u => u.MergedWithUser).WithMany(u => u.MergedUsers).HasForeignKey(u => u.MergedWithUserId);
         builder.HasOne(u => u.RegisteredWithClient).WithMany().HasForeignKey(u => u.RegisteredWithClientId).HasPrincipalKey(a => a.ClientId);
         builder.HasQueryFilter(u => EF.Property<bool>(u, "IsDeleted") == false);

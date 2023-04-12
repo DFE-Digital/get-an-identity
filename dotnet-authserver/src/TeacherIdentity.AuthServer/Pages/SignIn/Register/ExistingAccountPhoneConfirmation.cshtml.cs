@@ -25,6 +25,7 @@ public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
     }
 
     public override string? MobileNumber => HttpContext.GetAuthenticationState().ExistingAccountMobileNumber;
+
     public new User? User { get; set; }
 
     [BindProperty]
@@ -45,7 +46,8 @@ public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var pinVerificationFailedReasons = await UserVerificationService.VerifySmsPin(MobileNumber!, Code!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        var pinVerificationFailedReasons = await UserVerificationService.VerifySmsPin(parsedMobileNumber, Code!);
 
         if (pinVerificationFailedReasons != PinVerificationFailedReasons.None)
         {
@@ -76,7 +78,8 @@ public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
             return;
         }
 
-        User = await _dbContext.Users.Where(u => u.UserType == UserType.Default && u.MobileNumber == MobileNumber).SingleOrDefaultAsync();
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        User = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserType == UserType.Default && u.NormalizedMobileNumber! == parsedMobileNumber);
 
         if (User is null)
         {

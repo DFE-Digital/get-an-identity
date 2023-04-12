@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -24,12 +23,12 @@ public class BasePhonePageModel : PageModel
     [BindProperty]
     [Display(Name = "Mobile number", Description = "For international numbers include the country code")]
     [Required(ErrorMessage = "Enter your mobile phone number")]
-    [Phone(ErrorMessage = "Enter a valid mobile phone number")]
+    [MobilePhone(ErrorMessage = "Enter a valid mobile phone number")]
     public string? MobileNumber { get; set; }
 
-    public async Task<PinGenerationResultAction> GenerateSmsPinForNewPhone(string mobileNumber, string fieldName = "MobileNumber")
+    public async Task<PinGenerationResultAction> GenerateSmsPinForNewPhone(MobileNumber mobileNumber, string fieldName = "MobileNumber")
     {
-        var pinGenerationResult = await _userVerificationService.GenerateSmsPin(PhoneHelper.FormatMobileNumber(mobileNumber));
+        var pinGenerationResult = await _userVerificationService.GenerateSmsPin(mobileNumber);
 
         switch (pinGenerationResult.FailedReason)
         {
@@ -52,9 +51,8 @@ public class BasePhonePageModel : PageModel
         }
     }
 
-    public async Task<User?> FindUserByMobileNumber(string mobileNumber)
+    public async Task<User?> FindUserByMobileNumber(MobileNumber mobileNumber)
     {
-        var formattedMobileNumber = PhoneHelper.FormatMobileNumber(mobileNumber);
-        return await _dbContext.Users.SingleOrDefaultAsync(u => u.MobileNumber == formattedMobileNumber);
+        return await _dbContext.Users.SingleOrDefaultAsync(u => u.NormalizedMobileNumber! == mobileNumber);
     }
 }

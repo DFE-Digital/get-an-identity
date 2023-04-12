@@ -31,4 +31,5 @@ public class User
     public virtual ICollection<User>? MergedUsers { get; set; }
     public Guid? MergedWithUserId { get; set; }
     public string? MobileNumber { get; set; }
+    public MobileNumber? NormalizedMobileNumber { get; set; }
 }

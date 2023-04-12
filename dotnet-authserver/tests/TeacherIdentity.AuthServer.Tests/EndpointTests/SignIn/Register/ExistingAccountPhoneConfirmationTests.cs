@@ -211,7 +211,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
     {
         // Arrange
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!));
         Clock.AdvanceBy(TimeSpan.FromHours(1));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
@@ -230,7 +230,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(_existingUserAccount!.MobileNumber!), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!)), Times.Once);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // Arrange
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
-        var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!));
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
@@ -258,7 +258,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(_existingUserAccount!.MobileNumber!), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!)), Times.Never);
     }
 
     [Fact]
@@ -266,7 +266,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
     {
         // Arrange
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -293,7 +293,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
         HostFixture.RateLimitStore.Setup(x => x.IsClientIpBlockedForPinVerification(TestRequestClientIpProvider.ClientIpAddress)).ReturnsAsync(true);
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -316,7 +316,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
     {
         // Arrange
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")
@@ -339,7 +339,7 @@ public class ExistingAccountPhoneConfirmationTests : TestBase, IAsyncLifetime
     {
         // Arrange
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(_existingUserAccount!.MobileNumber!);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(_existingUserAccount!.MobileNumber!));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: CustomScopes.DefaultUserTypesScopes.First());
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/existing-account-phone-confirmation?{authStateHelper.ToQueryParam()}")

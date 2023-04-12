@@ -26,7 +26,7 @@ public class PhonePage : BasePhonePageModel
 
     [Display(Name = "Mobile number", Description = "For international numbers include the country code")]
     [Required(ErrorMessage = "Enter your new mobile phone number")]
-    [Phone(ErrorMessage = "Enter a valid mobile phone number")]
+    [MobilePhone(ErrorMessage = "Enter a valid mobile phone number")]
     public new string? MobileNumber { get; set; }
 
     public void OnGet()
@@ -40,7 +40,8 @@ public class PhonePage : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        var existingUser = await FindUserByMobileNumber(MobileNumber!);
+        var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
+        var existingUser = await FindUserByMobileNumber(parsedMobileNumber);
 
         if (existingUser is not null)
         {
@@ -51,7 +52,7 @@ public class PhonePage : BasePhonePageModel
             return this.PageWithErrors();
         }
 
-        var smsPinGenerationResult = await GenerateSmsPinForNewPhone(MobileNumber!);
+        var smsPinGenerationResult = await GenerateSmsPinForNewPhone(parsedMobileNumber);
 
         if (!smsPinGenerationResult.Success)
         {

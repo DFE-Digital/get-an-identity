@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.TestCommon;
@@ -15,7 +14,7 @@ public partial class TestData
             TrnLookupStatus? trnLookupStatus = null,
             string? firstName = null,
             string[]? staffRoles = null,
-            bool? hasMobileNumber = true) =>
+            bool? hasMobileNumber = null) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn == true && userType != UserType.Default)
@@ -47,14 +46,22 @@ public partial class TestData
                 throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
             }
 
-            var normalisedMobileNumber =
-                hasMobileNumber == true ? Regex.Replace(Faker.Phone.Number(), @"^[^\d\+]|(?<=.)[^\d]", "") : null;
+            hasMobileNumber ??= userType == UserType.Default;
+
+            string? mobileNumber = default;
+            MobileNumber? normalizedMobileNumber = default;
+            if (hasMobileNumber == true)
+            {
+                mobileNumber = GenerateUniqueMobileNumber();
+                normalizedMobileNumber = MobileNumber.Parse(mobileNumber);
+            }
 
             var user = new User()
             {
                 UserId = Guid.NewGuid(),
                 EmailAddress = email ?? Faker.Internet.Email(),
-                MobileNumber = normalisedMobileNumber,
+                MobileNumber = mobileNumber,
+                NormalizedMobileNumber = normalizedMobileNumber,
                 FirstName = firstName ?? Faker.Name.First(),
                 LastName = Faker.Name.Last(),
                 Created = _clock.UtcNow,

@@ -1,4 +1,3 @@
-using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -88,8 +87,8 @@ public class PhoneTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
-        var formattedMobileNumber = PhoneHelper.FormatMobileNumber(newMobileNumber);
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
+        var parsedMobileNumber = MobileNumber.Parse(newMobileNumber);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone")
         {
@@ -106,7 +105,7 @@ public class PhoneTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith($"/account/phone/confirm", response.Headers.Location?.OriginalString);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(formattedMobileNumber), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(parsedMobileNumber), Times.Once);
     }
 
     [Fact]
@@ -119,7 +118,7 @@ public class PhoneTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "MobileNumber", Faker.Phone.Number() },
+                { "MobileNumber", TestData.GenerateUniqueMobileNumber() },
             }
         };
 
@@ -142,7 +141,7 @@ public class PhoneTests : TestBase
             .Setup(x => x.IsClientIpBlockedForPinGeneration(TestRequestClientIpProvider.ClientIpAddress))
             .ReturnsAsync(true);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/phone")
         {

@@ -31,7 +31,7 @@ public class ConfirmTests : TestBase
     public async Task Get_ValidRequest_ReturnsSuccess()
     {
         // Arrange
-        var mobileNumber = Faker.Phone.Number();
+        var mobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -64,7 +64,7 @@ public class ConfirmTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
 
         // The real PIN generation service never generates pins that start with a '0'
         var pin = "01234";
@@ -93,7 +93,7 @@ public class ConfirmTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
         var pin = "0";
 
         var request = new HttpRequestMessage(
@@ -120,7 +120,7 @@ public class ConfirmTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
         var pin = "0123345678";
 
         var request = new HttpRequestMessage(
@@ -147,7 +147,7 @@ public class ConfirmTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
         var pin = "abc";
 
         var request = new HttpRequestMessage(
@@ -174,9 +174,9 @@ public class ConfirmTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(newMobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(newMobileNumber));
 
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(1));
@@ -198,7 +198,7 @@ public class ConfirmTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "The security code has expired. New code sent.");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(newMobileNumber), Times.Once);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(newMobileNumber)), Times.Once);
     }
 
     [Fact]
@@ -208,10 +208,10 @@ public class ConfirmTests : TestBase
         var user = await TestData.CreateUser(userType: UserType.Default);
         HostFixture.SetUserId(user.UserId);
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var userVerificationOptions = HostFixture.Services.GetRequiredService<IOptions<UserVerificationOptions>>();
-        var pinResult = await userVerificationService.GenerateSmsPin(newMobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(newMobileNumber));
 
         Assert.True(pinResult.Succeeded);
         Clock.AdvanceBy(TimeSpan.FromHours(2) + TimeSpan.FromSeconds(userVerificationOptions.Value.PinLifetimeSeconds));
@@ -233,7 +233,7 @@ public class ConfirmTests : TestBase
         // Assert
         await AssertEx.HtmlResponseHasError(response, "Code", "Enter a correct security code");
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(newMobileNumber), Times.Never);
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateSmsPin(MobileNumber.Parse(newMobileNumber)), Times.Never);
     }
 
     [Fact]
@@ -245,10 +245,10 @@ public class ConfirmTests : TestBase
 
         var clientRedirectInfo = CreateClientRedirectInfo();
 
-        var newMobileNumber = Faker.Phone.Number();
+        var newMobileNumber = TestData.GenerateUniqueMobileNumber();
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(newMobileNumber);
+        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(newMobileNumber));
         Assert.True(pinResult.Succeeded);
 
         var request = new HttpRequestMessage(
