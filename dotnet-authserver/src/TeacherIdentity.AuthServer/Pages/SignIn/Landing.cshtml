@@ -3,38 +3,35 @@
     ViewBag.Title = "Create a DfE Identity account";
 }
 
-<govuk-panel heading-level="1" class="app-panel--interruption" data-testid="landing-panel-content">
-    <govuk-panel-title>@ViewBag.Title</govuk-panel-title>
-    <govuk-panel-body>
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds-from-desktop" data-testid="landing-content">
-                
-                <p>It will only take a few minutes and you’ll need your:</p>
-                <ul class="govuk-list govuk-list--bullet">
-                    <li>email address (used for contact and account security)</li>
-                    <li>mobile phone number (used for account security)</li>
-                    <li>name and date of birth</li>
-                </ul>
+<div class="govuk-panel app-panel--interruption" data-testid="landing-panel">
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full" data-testid="landing-content">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+            <p>It will only take a few minutes and you’ll need your:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>email address (used for contact and account security)</li>
+                <li>mobile phone number (used for account security)</li>
+                <li>name and date of birth</li>
+            </ul>
 
-                <vc:client-scoped-partial view-name="_SignIn.Landing.{0}.Content" />
+            <vc:client-scoped-partial view-name="_SignIn.Landing.{0}.Content" />
 
-                <govuk-details>
-                    <govuk-details-summary>About DfE Identity accounts</govuk-details-summary>
-                    <govuk-details-text>
-                        <p>DfE Identity accounts are new. They let teachers and teaching professionals access different DfE services with one login. You can also update your details with DfE in one place.</p>
-                        <p>If we already have your details in our records, we’ll try to link them with your new DfE Identity account. Some of your details may be different now, but you can change them in your account.</p>
-                        <p>At the moment there are only a few DfE services using DfE Identity accounts. In the future, you’ll be able to use your account details to sign in to most DfE teaching services.</p>
-                    </govuk-details-text>
-                </govuk-details>
+            <govuk-details>
+                <govuk-details-summary>About DfE Identity accounts</govuk-details-summary>
+                <govuk-details-text>
+                    <p>DfE Identity accounts are new. They let teachers and teaching professionals access different DfE services with one login. You can also update your details with DfE in one place.</p>
+                    <p>If we already have your details in our records, we’ll try to link them with your new DfE Identity account. Some of your details may be different now, but you can change them in your account.</p>
+                    <p>At the moment there are only a few DfE services using DfE Identity accounts. In the future, you’ll be able to use your account details to sign in to most DfE teaching services.</p>
+                </govuk-details-text>
+            </govuk-details>
 
-                <govuk-button-link class="app-button--inverse govuk-!-margin-bottom-0" href="@LinkGenerator.RegisterEmail()">Create an account</govuk-button-link>
+            <govuk-button-link class="app-button--inverse" href="@LinkGenerator.RegisterEmail()">Create an account</govuk-button-link>
 
-                <h1 class="govuk-heading-m">Already have an account?</h1>
+            <h1 class="govuk-heading-m">Already have an account?</h1>
 
-                <p class="govuk-body govuk-!-margin-bottom-6">
-                    <a href="@LinkGenerator.Email()">Sign in</a> to use your existing account details
-                </p>
-            </div>
+            <p class="govuk-body govuk-!-margin-bottom-6">
+                <a href="@LinkGenerator.Email()">Sign in</a> to use your existing account details
+            </p>
         </div>
-    </govuk-panel-body>
-</govuk-panel>
+    </div>
+</div>
