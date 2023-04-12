@@ -16,18 +16,32 @@ p {
   color: govuk-colour("white");
   text-align: left;
 
+  h2,
+  h3,
+  h4,
   p,
-  .govuk-heading-m,
   .govuk-list,
   .govuk-body,
   .govuk-label,
   .govuk-fieldset__legend,
+  .govuk-heading-l,
+  .govuk-heading-xl,
+  .govuk-heading-m,
+  .govuk-details__summary,
   .govuk-hint {
     color: govuk-colour("white");
   }
 
   p {
     margin-bottom: 20px;
+  }
+
+  a:not(:focus) {
+    color: inherit;
+  }
+
+  .govuk-button {
+    color: govuk-colour("blue") !important;
   }
 
   .govuk-heading-m {
