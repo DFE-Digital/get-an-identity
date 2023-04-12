@@ -186,7 +186,7 @@ public sealed class AuthenticationStateHelper
                 s.OnHasNationalInsuranceNumberSet(true);
             };
 
-        public Func<AuthenticationState, Task> RegisterHasNiNumber(
+        public Func<AuthenticationState, Task> RegisterNiNumberSet(
             DateOnly? dateOfBirth = null,
             string? firstName = null,
             string? lastName = null,
@@ -197,6 +197,19 @@ public sealed class AuthenticationStateHelper
             {
                 await RegisterHasNiNumberSet(dateOfBirth, firstName, lastName, mobileNumber, email, user)(s);
                 s.OnNationalInsuranceNumberSet(Faker.Identification.UkNationalInsuranceNumber());
+            };
+
+        public Func<AuthenticationState, Task> RegisterHasTrnSet(
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
+            async s =>
+            {
+                await RegisterNiNumberSet(dateOfBirth, firstName, lastName, mobileNumber, email, user)(s);
+                s.OnHasTrnSet(true);
             };
 
         public Func<AuthenticationState, Task> RegisterExistingUserAccountMatch(

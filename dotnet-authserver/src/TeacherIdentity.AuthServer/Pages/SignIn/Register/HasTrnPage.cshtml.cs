@@ -19,11 +19,7 @@ public class HasTrnPage : PageModel
     [Required(ErrorMessage = "Tell us if you know your TRN")]
     public bool? HasTrn { get; set; }
 
-<<<<<<< HEAD
     public string BackLink => HttpContext.GetAuthenticationState().HasNationalInsuranceNumber == true
-=======
-    public string BackLink => HttpContext.GetAuthenticationState().HasNationalInsuranceNumberSet
->>>>>>> dad3c80 (Add has TRN page for register journey)
         ? _linkGenerator.RegisterNiNumber()
         : _linkGenerator.RegisterHasNiNumber();
 
