@@ -52,16 +52,10 @@ public class TrnPageTests : TestBase
     [Fact]
     public async Task Get_RequiresTrnLookupFalse_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/trn?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+            _currentPageAuthenticationState(),
+            HttpMethod.Get,
+            "/sign-in/register/trn");
     }
 
     [Fact]
@@ -142,23 +136,17 @@ public class TrnPageTests : TestBase
     [Fact]
     public async Task Post_FalseRequiresTrnLookup_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), null);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/trn?{authStateHelper.ToQueryParam()}")
+        var content = new FormUrlEncodedContentBuilder()
         {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "StatedTrn", TestData.GenerateTrn() },
-                { "submit", "submit" },
-            }
+            { "StatedTrn", TestData.GenerateTrn() },
+            { "submit", "submit" },
         };
 
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+            _currentPageAuthenticationState(),
+            HttpMethod.Post,
+            "/sign-in/register/trn",
+            content);
     }
 
     [Fact]
@@ -186,7 +174,7 @@ public class TrnPageTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidStatedTrn_UpdatesAuthenticationState()
+    public async Task Post_ValidStatedTrn_UpdatesAuthenticationStateAndRedirects()
     {
         // Arrange
         var statedTrn = TestData.GenerateTrn();
@@ -206,6 +194,7 @@ public class TrnPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/has-qts", response.Headers.Location?.OriginalString);
 
         Assert.Equal(statedTrn, authStateHelper.AuthenticationState.StatedTrn);
     }

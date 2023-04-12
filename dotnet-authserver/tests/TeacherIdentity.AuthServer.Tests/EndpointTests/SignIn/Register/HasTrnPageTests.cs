@@ -36,16 +36,10 @@ public class HasTrnPageTests : TestBase
     [Fact]
     public async Task Get_RequiresTrnLookupFalse_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/has-trn?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+            _currentPageAuthenticationState(),
+            HttpMethod.Get,
+            "/sign-in/register/has-trn");
     }
 
     [Fact]
@@ -153,6 +147,10 @@ public class HasTrnPageTests : TestBase
         {
             Assert.StartsWith("/sign-in/register/trn", response.Headers.Location?.OriginalString);
         }
+        else
+        {
+            Assert.StartsWith("/sign-in/register/has-qts", response.Headers.Location?.OriginalString);
+        }
 
         Assert.Equal(hasTrn, authStateHelper.AuthenticationState.HasTrn);
     }
@@ -160,26 +158,19 @@ public class HasTrnPageTests : TestBase
     [Fact]
     public async Task Post_FalseRequiresTrnLookup_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), null);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-trn?{authStateHelper.ToQueryParam()}")
+        var content = new FormUrlEncodedContentBuilder()
         {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "HasTrn", true },
-            }
+            { "HasTrn", true },
         };
 
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+            _currentPageAuthenticationState(),
+            HttpMethod.Post,
+            "/sign-in/register/has-trn",
+            content);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasTrn);
     private readonly AuthenticationStateConfigGenerator _ninoPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.NiNumber);
     private readonly AuthenticationStateConfigGenerator _hasNinoPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasNiNumber);
-
 }

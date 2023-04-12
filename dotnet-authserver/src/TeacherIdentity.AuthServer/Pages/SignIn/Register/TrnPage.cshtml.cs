@@ -41,7 +41,7 @@ public class TrnPage : PageModel
             HttpContext.GetAuthenticationState().OnTrnSet(StatedTrn);
         }
 
-        return Redirect(_linkGenerator.RegisterHaveQts());
+        return Redirect(_linkGenerator.RegisterHasQts());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
