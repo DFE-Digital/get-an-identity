@@ -54,6 +54,11 @@ public class DateOfBirthPage : PageModel
             return Redirect(_linkGenerator.RegisterAccountExists());
         }
 
+        if (authenticationState.OAuthState?.RequiresTrnLookup == true)
+        {
+            return Redirect(_linkGenerator.RegisterHasNiNumber());
+        }
+
         var user = await CreateUser();
 
         authenticationState.OnUserRegistered(user);

@@ -97,6 +97,12 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterChangeEmailRequest() => Page("/SignIn/Register/ChangeEmailRequest");
 
+    public string RegisterHasNiNumber() => Page("/SignIn/Register/HasNiNumberPage");
+
+    public string RegisterNiNumber() => Page("/SignIn/Register/NiNumberPage");
+
+    public string RegisterHasTrn() => Page("/SignIn/Register/HasTrnPage");
+
     public string UpdateEmail(string? returnUrl, string? cancelUrl) =>
         Page("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)
