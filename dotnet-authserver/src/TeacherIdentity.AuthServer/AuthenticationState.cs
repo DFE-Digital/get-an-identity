@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl;
-using TeacherIdentity.AuthServer.Infrastructure.Json;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -15,13 +14,7 @@ public class AuthenticationState
 {
     private static readonly TimeSpan _journeyLifetime = TimeSpan.FromMinutes(20);
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
-    {
-        Converters =
-        {
-            new DateOnlyConverter()
-        }
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new();
 
     public AuthenticationState(
         Guid journeyId,

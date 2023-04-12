@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using TeacherIdentity.AuthServer.Infrastructure.Json;
 
 namespace TeacherIdentity.AuthServer.Tests;
 
@@ -10,11 +9,7 @@ public static partial class AssertEx
 {
     public static JsonSerializerOptions SerializerOptions { get; } = new JsonSerializerOptions()
     {
-        PropertyNameCaseInsensitive = true,
-        Converters =
-        {
-            new DateOnlyConverter()
-        }
+        PropertyNameCaseInsensitive = true
     };
 
     public static void JsonEquals(string expected, string actual) =>
