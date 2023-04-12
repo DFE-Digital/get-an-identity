@@ -19,7 +19,7 @@ public class HasTrnPage : PageModel
     [Required(ErrorMessage = "Tell us if you know your TRN")]
     public bool? HasTrn { get; set; }
 
-    public string BackLink => HttpContext.GetAuthenticationState().HasNationalInsuranceNumberSet
+    public string BackLink => HttpContext.GetAuthenticationState().HasNationalInsuranceNumber == true
         ? _linkGenerator.RegisterNiNumber()
         : _linkGenerator.RegisterHasNiNumber();
 
@@ -51,7 +51,7 @@ public class HasTrnPage : PageModel
             return;
         }
 
-        if (!authenticationState.NationalInsuranceNumberSet)
+        if (authenticationState is { HasNationalInsuranceNumber: true, NationalInsuranceNumberSet: false })
         {
             context.Result = new RedirectResult(_linkGenerator.RegisterNiNumber());
         }
