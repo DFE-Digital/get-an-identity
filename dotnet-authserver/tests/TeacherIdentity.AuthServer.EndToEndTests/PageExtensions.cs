@@ -39,7 +39,7 @@ public static class PageExtensions
 
     public static async Task SignInFromLandingPage(this IPage page)
     {
-        await page.WaitForSelectorAsync("h1:text-is('Create a Teaching services account')");
+        await page.WaitForSelectorAsync("h1:text-is('Create a DfE Identity account')");
         await page.ClickAsync("a:text-is('Sign in')");
     }
 
