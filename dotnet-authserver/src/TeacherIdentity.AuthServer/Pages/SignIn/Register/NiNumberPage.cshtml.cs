@@ -1,17 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 [BindProperties]
 [RequiresTrnLookup]
-public class NiNumberPage : TrnLookupPageModel
+public class NiNumberPage : PageModel
 {
-    public NiNumberPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private IdentityLinkGenerator _linkGenerator;
+    public NiNumberPage(IdentityLinkGenerator linkGenerator)
     {
+        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
@@ -39,7 +40,7 @@ public class NiNumberPage : TrnLookupPageModel
             HttpContext.GetAuthenticationState().OnNationalInsuranceNumberSet(NiNumber!);
         }
 
-        return Redirect(LinkGenerator.RegisterHasTrn());
+        return Redirect(_linkGenerator.RegisterHasTrn());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -48,7 +49,7 @@ public class NiNumberPage : TrnLookupPageModel
 
         if (!authenticationState.HasNationalInsuranceNumberSet)
         {
-            context.Result = new RedirectResult(LinkGenerator.RegisterHasNiNumber());
+            context.Result = new RedirectResult(_linkGenerator.RegisterHasNiNumber());
         }
     }
 }

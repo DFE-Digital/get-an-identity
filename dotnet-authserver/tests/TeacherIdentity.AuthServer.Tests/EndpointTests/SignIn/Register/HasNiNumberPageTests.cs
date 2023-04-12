@@ -160,6 +160,28 @@ public class HasNiNumberPageTests : TestBase
     }
 
     [Fact]
+    public async Task Post_HasNiNumberFalse_RedirectsToHasTrnPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", false },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/has-trn", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
     public async Task Post_HasNiNumberTrue_RedirectsToNiNumberPage()
     {
         // Arrange

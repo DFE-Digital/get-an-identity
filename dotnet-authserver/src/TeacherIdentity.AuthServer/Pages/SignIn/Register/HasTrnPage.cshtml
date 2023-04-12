@@ -1,0 +1,37 @@
+@page "/sign-in/register/has-trn"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.HasTrnPage
+@{
+    ViewBag.Title = "Do you have a teacher reference number (TRN)?";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@Model.BackLink" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterHasTrn()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>You’ll have a TRN if you:</p>
+
+            <ul class="govuk-list govuk-list--bullet">
+                <li>hold qualified teacher status (QTS) in England or Wales</li>
+                <li>hold early years teacher status (EYTS) in England</li>
+                <li>already hold a national professional qualification (NPQ)</li>
+                <li>are working towards QTS or a EYTS</li>
+            </ul>
+
+            <govuk-radios asp-for="HasTrn">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m"/>
+                    <govuk-radios-item value="True">Yes</govuk-radios-item>
+                    <govuk-radios-item value="False">No</govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

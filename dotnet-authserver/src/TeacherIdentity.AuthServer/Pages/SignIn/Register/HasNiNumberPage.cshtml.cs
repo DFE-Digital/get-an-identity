@@ -1,17 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 [BindProperties]
 [RequiresTrnLookup]
-public class HasNiNumberPage : TrnLookupPageModel
+public class HasNiNumberPage : PageModel
 {
-    public HasNiNumberPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private IdentityLinkGenerator _linkGenerator;
+    public HasNiNumberPage(IdentityLinkGenerator linkGenerator)
     {
+        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Do you have a National Insurance number?")]
@@ -32,8 +33,8 @@ public class HasNiNumberPage : TrnLookupPageModel
         HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet((bool)HasNiNumber!);
 
         return (bool)HasNiNumber!
-            ? Redirect(LinkGenerator.RegisterNiNumber())
-            : Redirect(LinkGenerator.RegisterHasTrn());
+            ? Redirect(_linkGenerator.RegisterNiNumber())
+            : Redirect(_linkGenerator.RegisterHasTrn());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -42,7 +43,7 @@ public class HasNiNumberPage : TrnLookupPageModel
 
         if (!authenticationState.DateOfBirthSet)
         {
-            context.Result = new RedirectResult(LinkGenerator.RegisterDateOfBirth());
+            context.Result = new RedirectResult(_linkGenerator.RegisterDateOfBirth());
         }
     }
 }

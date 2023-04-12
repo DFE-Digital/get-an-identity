@@ -621,7 +621,19 @@ public class AuthenticationState
         AwardedQts = awardedQts;
     }
 
-    public void OnHasTrnSet(string? trn)
+    public void OnHasTrnSet(bool hasTrn)
+    {
+        ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
+
+        if (!hasTrn)
+        {
+            StatedTrn = null;
+        }
+
+        HasTrn = hasTrn;
+    }
+
+    public void OnTrnSet(string? trn)
     {
         ThrowOnInvalidAuthenticationMilestone(AuthenticationMilestone.EmailVerified);
 
