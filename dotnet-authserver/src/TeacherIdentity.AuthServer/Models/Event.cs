@@ -1,18 +1,11 @@
 using System.Text.Json;
 using TeacherIdentity.AuthServer.Events;
-using TeacherIdentity.AuthServer.Infrastructure.Json;
 
 namespace TeacherIdentity.AuthServer.Models;
 
 public class Event
 {
-    private static readonly JsonSerializerOptions _serializerOptions = new()
-    {
-        Converters =
-        {
-            new DateOnlyConverter()
-        }
-    };
+    private static readonly JsonSerializerOptions _serializerOptions = new();
 
     public long EventId { get; set; }
     public required string EventName { get; init; }

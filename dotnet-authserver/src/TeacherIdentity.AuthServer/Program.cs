@@ -277,11 +277,7 @@ public class Program
 
         builder.Services.AddSingleton<IAuthorizationHandler, RequireScopeAuthorizationHandler>();
 
-        builder.Services.AddControllersWithViews()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new Infrastructure.Json.DateOnlyConverter());
-            });
+        builder.Services.AddControllersWithViews();
 
         builder.Services.AddRazorPages(options =>
         {
