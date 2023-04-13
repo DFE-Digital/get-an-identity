@@ -166,7 +166,7 @@ public class NiNumberPageTests : TestBase
     [InlineData("QQ 12 34 56 C")]
     [InlineData("QQ123456C")]
     [InlineData("qQ123456c")]
-    public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationState(string niNumber)
+    public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationStateAndRedirects(string niNumber)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
@@ -184,6 +184,7 @@ public class NiNumberPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/has-trn", response.Headers.Location?.OriginalString);
 
         Assert.Equal(niNumber, authStateHelper.AuthenticationState.NationalInsuranceNumber);
     }

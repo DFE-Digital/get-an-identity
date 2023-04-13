@@ -167,7 +167,7 @@ public class TrnLookupHelperTests
     {
         // Arrange
         var authenticationState = CreateAuthenticationState();
-        authenticationState.OnHasTrnSet("RP99/12345");
+        authenticationState.OnTrnSet("RP99/12345");
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         dqtApiClientMock
@@ -312,7 +312,7 @@ public class TrnLookupHelperTests
 
         authState.OnEmailSet(Faker.Internet.Email());
         authState.OnEmailVerified();
-        authState.OnHasTrnSet(statedTrn);
+        authState.OnTrnSet(statedTrn);
         authState.OnOfficialNameSet(
             Faker.Name.First(),
             Faker.Name.Last(),
