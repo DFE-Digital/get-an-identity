@@ -10,7 +10,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [RequiresTrnLookup]
 public class HasQtsPage : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public HasQtsPage(IdentityLinkGenerator linkGenerator)
     {

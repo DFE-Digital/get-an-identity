@@ -9,7 +9,7 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [RequiresTrnLookup]
 public class TrnPage : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
 
     public TrnPage(IdentityLinkGenerator linkGenerator)
     {

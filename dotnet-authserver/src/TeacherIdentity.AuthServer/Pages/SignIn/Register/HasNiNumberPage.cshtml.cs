@@ -9,7 +9,8 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [RequiresTrnLookup]
 public class HasNiNumberPage : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
+
     public HasNiNumberPage(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;

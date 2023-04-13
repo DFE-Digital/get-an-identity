@@ -225,6 +225,19 @@ public sealed class AuthenticationStateHelper
                 s.OnTrnSet(TestData.GenerateTrn());
             };
 
+        public Func<AuthenticationState, Task> RegisterHasQtsSet(
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
+            async s =>
+            {
+                await RegisterTrnSet(dateOfBirth, firstName, lastName, mobileNumber, email, user)(s);
+                s.OnAwardedQtsSet(true);
+            };
+
         public Func<AuthenticationState, Task> RegisterExistingUserAccountMatch(
             User? existingUserAccount = null,
             DateOnly? dateOfBirth = null,
