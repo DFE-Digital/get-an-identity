@@ -233,4 +233,74 @@ public static class PageExtensions
         await page.ClickAsync($"text={email}");
         await page.ClickAsync("button:text-is('Continue')");
     }
+
+    public static async Task RegisterFromLandingPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/landing");
+        await page.ClickAsync("a:text-is('Create an account')");
+    }
+
+    public static async Task SubmitRegisterEmailPage(this IPage page, string email)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/email");
+        await page.FillAsync("text=Your email address", email);
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SubmitRegisterEmailConfirmationPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/email-confirmation");
+        await page.FillAsync("label:text-is('Confirmation code')", HostFixture.UserVerificationPin);
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SubmitRegisterPhonePage(this IPage page, string mobileNumber)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/phone");
+        await page.FillAsync("label:text-is('Mobile number')", mobileNumber);
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SubmitRegisterPhoneConfirmationPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/phone-confirmation");
+        await page.FillAsync("label:text-is('Security code')", HostFixture.UserVerificationPin);
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SubmitRegisterNamePage(this IPage page, string firstName, string lastName)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/name");
+        await page.FillAsync("label:text-is('First name')", firstName);
+        await page.FillAsync("label:text-is('Last name')", lastName);
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SubmitDateOfBirthPage(this IPage page, DateOnly dateOfBirth)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/date-of-birth");
+        await page.FillAsync("label:text-is('Day')", dateOfBirth.Day.ToString());
+        await page.FillAsync("label:text-is('Month')", dateOfBirth.Month.ToString());
+        await page.FillAsync("label:text-is('Year')", dateOfBirth.Year.ToString());
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SubmitCompletePageForNewUser(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/complete");
+        Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
+        await page.ClickAsync("button:text-is('Continue')");
+    }
+
+    public static async Task SignInFromRegisterEmailExistsPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/email-exists");
+        await page.ClickAsync("a:text-is('Sign in')");
+    }
+
+    public static async Task SignInFromRegisterPhoneExistsPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/phone-exists");
+        await page.ClickAsync("a:text-is('Sign in')");
+    }
 }
