@@ -33,9 +33,9 @@ locals {
       EncryptionKeys__1                            = local.infrastructure_secrets.ENCRYPTION_KEY1,
       SigningKeys__0                               = local.infrastructure_secrets.SIGNING_KEY0,
       SigningKeys__1                               = local.infrastructure_secrets.SIGNING_KEY1,
-      Notify__ApiKey                               = local.infrastructure_secrets.NOTIFY_API_KEY,
+      Notify__ApiKey                               = lookup(local.infrastructure_secrets, "NOTIFY_ID_API_KEY", "")
       Notify__ApplyDomainFiltering                 = lookup(local.infrastructure_secrets, "NOTIFY_APPLY_DOMAIN_FILTERING", "false")
-      Notify__NoSendApiKey                         = lookup(local.infrastructure_secrets, "NOTIFY_NO_SEND_API_KEY", "")
+      Notify__NoSendApiKey                         = lookup(local.infrastructure_secrets, "NOTIFY_ID_NO_SEND_API_KEY", "")
       AdminCredentials__Username                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_USERNAME,
       AdminCredentials__Password                   = local.infrastructure_secrets.ADMIN_CREDENTIALS_PASSWORD,
       Sentry__Dsn                                  = local.infrastructure_secrets.SENTRY_DSN,

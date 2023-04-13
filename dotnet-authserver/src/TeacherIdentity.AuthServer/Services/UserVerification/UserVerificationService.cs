@@ -5,12 +5,14 @@ using Npgsql;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.Notification;
-using Exception = System.Exception;
 
 namespace TeacherIdentity.AuthServer.Services.UserVerification;
 
 public class UserVerificationService : IUserVerificationService
 {
+    private const string EmailConfirmationTemplateId = "de2ead50-3213-4cd4-9c79-218e534c98ad";
+    private const string MobilePhoneConfirmationTemplateId = "2a09c36e-5670-4f69-a315-21976ee93d46";
+
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly INotificationSender _notificationSender;
     private readonly IClock _clock;
@@ -95,11 +97,16 @@ public class UserVerificationService : IUserVerificationService
         var client = await _currentClientProvider.GetCurrentClient();
         var clientDisplayName = client?.DisplayName ?? "Get an identity to access Teacher Services";
 
-        var emailBody = GetEmailBody(pin, (int)_pinLifetime.TotalMinutes, clientDisplayName);
+        var emailPersonalization = new Dictionary<string, string>()
+        {
+            { "code", pin },
+            { "expiry_minutes", ((int)_pinLifetime.TotalMinutes).ToString() },
+            { "client_name", clientDisplayName },
+        };
 
         try
         {
-            await _notificationSender.SendEmail(email, EmailSubject, emailBody);
+            await _notificationSender.SendEmail(EmailConfirmationTemplateId, email, emailPersonalization);
         }
         catch (Exception ex)
         {
@@ -183,9 +190,14 @@ public class UserVerificationService : IUserVerificationService
             break;
         }
 
+        var smsPersonalization = new Dictionary<string, string>()
+        {
+            { "code", pin }
+        };
+
         try
         {
-            await _notificationSender.SendSms(mobileNumber.ToString(), GetSmsMessage(pin));
+            await _notificationSender.SendSms(MobilePhoneConfirmationTemplateId, mobileNumber.ToString(), smsPersonalization);
         }
         catch (Exception ex)
         {
@@ -247,19 +259,10 @@ public class UserVerificationService : IUserVerificationService
 
         // PIN is good
         // Deactivate the PIN so it cannot be used again
-        pin!.VerifiedOn = _clock.UtcNow;
-        pin!.IsActive = false;
+        pin.VerifiedOn = _clock.UtcNow;
+        pin.IsActive = false;
         await _dbContext.SaveChangesAsync();
 
         return PinVerificationFailedReasons.None;
     }
-
-    private const string EmailSubject = "Confirm your email address";
-    private string GetEmailBody(string pin, int minutes, string clientName) => $"Use this code to confirm your email address:\n\n" +
-                    $"{pin}\n\n" +
-                    $"The code will expire after {minutes} minutes.\n\n" +
-                    $"This email address has been used for {clientName}.\n\n" +
-                    $"If this was not you, you can ignore this email.\n\n" +
-                    $"Department for Education";
-    private string GetSmsMessage(string pin) => $"{pin} is your Teaching Services Account authentication code";
 }
