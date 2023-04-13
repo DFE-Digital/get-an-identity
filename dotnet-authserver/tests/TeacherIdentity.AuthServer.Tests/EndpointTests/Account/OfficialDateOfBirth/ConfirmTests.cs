@@ -112,10 +112,12 @@ public class ConfirmTests : TestBase
             {
                 DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
+                MiddleName = "",
                 LastName = user.LastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
-                PendingDateOfBirthChange = hasPendingDateOfBirthChange
+                PendingDateOfBirthChange = hasPendingDateOfBirthChange,
+                PendingNameChange = false
             });
     }
 

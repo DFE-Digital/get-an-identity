@@ -90,9 +90,12 @@ public class UserTests : TestBase
             {
                 DateOfBirth = dqtDateOfBirth,
                 FirstName = dqtFirstName,
+                MiddleName = "",
                 LastName = dqtLastName,
                 NationalInsuranceNumber = dqtNino,
-                Trn = user.Trn!
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
