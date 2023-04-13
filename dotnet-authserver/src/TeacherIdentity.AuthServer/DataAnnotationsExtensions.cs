@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer;
@@ -104,5 +105,14 @@ public class MobilePhoneAttribute : ValidationAttribute
     public override bool IsValid(object? value)
     {
         return value is string str && MobileNumber.TryParse(str, out _);
+    }
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class NationalInsuranceNumber : ValidationAttribute
+{
+    public override bool IsValid(object? value)
+    {
+        return value is string str && NationalInsuranceNumberHelper.IsValid(str);
     }
 }

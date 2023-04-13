@@ -15,7 +15,7 @@ public class NiNumberPage : TrnLookupPageModel
 
     [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
     [Required(ErrorMessage = "Enter a National Insurance number")]
-    [RegularExpression(@"(?i)\A[a-z]{2}(?: [0-9]{2}){3} [a-d]{1}|[a-z]{2}[0-9]{6}[a-d]{1}\Z", ErrorMessage = "Enter a National Insurance number in the correct format")]
+    [NationalInsuranceNumber(ErrorMessage = "Enter a National Insurance number in the correct format")]
     public string? NiNumber { get; set; }
 
     public void OnGet()

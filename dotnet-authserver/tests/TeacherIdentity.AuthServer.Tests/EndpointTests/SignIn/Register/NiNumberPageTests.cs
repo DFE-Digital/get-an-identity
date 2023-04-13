@@ -117,9 +117,8 @@ public class NiNumberPageTests : TestBase
     }
 
     [Theory]
-    [InlineData("QQ 123456C")]
-    [InlineData("123456")]
-    [InlineData("QQ12345C")]
+    [InlineData("x")]
+    [InlineData("zyx")]
     public async Task Post_InvalidNiNumber_ReturnsError(string niNumber)
     {
         // Arrange
@@ -163,9 +162,9 @@ public class NiNumberPageTests : TestBase
     }
 
     [Theory]
-    [InlineData("QQ 12 34 56 C")]
-    [InlineData("QQ123456C")]
-    [InlineData("qQ123456c")]
+    [InlineData("AB 12 34 56 C")]
+    [InlineData("AB123456C")]
+    [InlineData("aB123456c")]
     public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationStateAndRedirects(string niNumber)
     {
         // Arrange
