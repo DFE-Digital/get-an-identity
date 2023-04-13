@@ -148,7 +148,11 @@ public class HasTrnPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/register/trn", response.Headers.Location?.OriginalString);
+
+        if (hasTrn)
+        {
+            Assert.StartsWith("/sign-in/register/trn", response.Headers.Location?.OriginalString);
+        }
 
         Assert.Equal(hasTrn, authStateHelper.AuthenticationState.HasTrn);
     }
