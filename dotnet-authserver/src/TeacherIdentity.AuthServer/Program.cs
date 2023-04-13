@@ -428,12 +428,14 @@ public class Program
             options.KnownProxies.Clear();
         });
 
-        builder.Services.AddMvc(options =>
-        {
-            options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
+        builder.Services
+            .AddMvc(options =>
+            {
+                options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
 
-            options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
-        });
+                options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
+            })
+            .AddSessionStateTempDataProvider();
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
