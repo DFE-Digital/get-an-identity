@@ -8,7 +8,8 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 [RequiresTrnLookup]
 public class HasTrnPage : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private readonly IdentityLinkGenerator _linkGenerator;
+
     public HasTrnPage(IdentityLinkGenerator linkGenerator)
     {
         _linkGenerator = linkGenerator;

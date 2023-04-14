@@ -48,6 +48,9 @@ public static class RegisterJourneyAuthenticationStateHelper
                 case RegisterJourneyPage.HasQts:
                     return c => c.RegisterTrnSet();
 
+                case RegisterJourneyPage.IttProvider:
+                    return c => c.RegisterHasQtsSet();
+
                 case RegisterJourneyPage.AccountExists:
                     return c => c.RegisterExistingUserAccountMatch(user);
 
@@ -94,4 +97,5 @@ public enum RegisterJourneyPage
     HasTrn,
     Trn,
     HasQts,
+    IttProvider
 }
