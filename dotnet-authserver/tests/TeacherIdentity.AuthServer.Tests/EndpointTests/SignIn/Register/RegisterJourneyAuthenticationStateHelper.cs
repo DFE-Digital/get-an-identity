@@ -45,6 +45,9 @@ public static class RegisterJourneyAuthenticationStateHelper
                 case RegisterJourneyPage.Trn:
                     return c => c.RegisterHasTrnSet();
 
+                case RegisterJourneyPage.HasQts:
+                    return c => c.RegisterTrnSet();
+
                 case RegisterJourneyPage.AccountExists:
                     return c => c.RegisterExistingUserAccountMatch(user);
 
@@ -89,5 +92,6 @@ public enum RegisterJourneyPage
     HasNiNumber,
     NiNumber,
     HasTrn,
-    Trn
+    Trn,
+    HasQts,
 }

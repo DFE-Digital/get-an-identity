@@ -166,6 +166,30 @@ public partial class TestBase
         }
     }
 
+    public async Task JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+        AuthenticationStateConfiguration configureAuthenticationHelper,
+        HttpMethod method,
+        string url,
+        HttpContent? content = null)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthenticationHelper, additionalScopes: null);
+
+        var fullUrl = $"{url}?{authStateHelper.ToQueryParam()}";
+        var request = new HttpRequestMessage(method, fullUrl);
+
+        if (content is not null)
+        {
+            request.Content = content;
+        }
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
     public async Task ValidRequest_RendersContent(
         AuthenticationStateConfiguration configureAuthenticationHelper,
         string url,

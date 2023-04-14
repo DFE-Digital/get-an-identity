@@ -105,7 +105,7 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterTrn() => Page("/SignIn/Register/TrnPage");
 
-    public string RegisterHaveQts() => Page("/SignIn/Register/HaveQts");
+    public string RegisterHasQts() => Page("/SignIn/Register/HasQtsPage");
 
     public string RegisterIttProvider() => Page("/SignIn/Register/IttProvider");
 

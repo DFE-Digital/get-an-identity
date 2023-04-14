@@ -38,7 +38,7 @@ public class HasTrnPage : PageModel
 
         return HasTrn.Value ?
             Redirect(_linkGenerator.RegisterTrn()) :
-            Redirect(_linkGenerator.RegisterHaveQts());
+            Redirect(_linkGenerator.RegisterHasQts());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

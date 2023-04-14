@@ -46,16 +46,10 @@ public class HasNiNumberPageTests : TestBase
     [Fact]
     public async Task Get_RequiresTrnLookupFalse_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+            _currentPageAuthenticationState(),
+            HttpMethod.Get,
+            "/sign-in/register/has-nino");
     }
 
     [Fact]
@@ -101,21 +95,16 @@ public class HasNiNumberPageTests : TestBase
     [Fact]
     public async Task Post_RequiresTrnLookupFalse_ReturnsBadRequest()
     {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
+        var content = new FormUrlEncodedContentBuilder()
         {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "HasNiNumber", true },
-            }
+            { "HasNiNumber", true },
         };
 
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
+            _currentPageAuthenticationState(),
+            HttpMethod.Post,
+            "/sign-in/register/has-nino",
+            content);
     }
 
     [Fact]
