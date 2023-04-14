@@ -169,7 +169,7 @@ public class PhoneTests : TestBase
     {
         // Arrange
         HostFixture.NotificationSender
-            .Setup(mock => mock.SendSms(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(mock => mock.SendSms(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, string>>()))
             .Throws(new Exception("ValidationError"));
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);

@@ -365,7 +365,7 @@ public class ResendEmailConfirmationTests : TestBase
     {
         // Arrange
         HostFixture.NotificationSender
-            .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(mock => mock.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, string>>()))
             .Throws(new Exception("ValidationError"));
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);

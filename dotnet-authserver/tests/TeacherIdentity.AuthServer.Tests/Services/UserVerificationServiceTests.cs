@@ -55,6 +55,8 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
         var pinResult = await service.GenerateEmailPin(email);
 
         // Assert
+        Assert.True(pinResult.Succeeded);
+
         var emailConfirmationPins = await dbContext.EmailConfirmationPins.Where(p => p.Email == email)
             .OrderBy(p => p.Expires)
             .ToListAsync();
@@ -73,15 +75,15 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
                 Assert.Equal(clock.UtcNow + _pinLifetime, newPin.Expires);
             });
 
-        var expectedEmailSubject = "Confirm your email address";
-
-        var expectedEmailBody = $"Use this code to confirm your email address:\n\n" +
-            $"{pinResult.Pin}\n\n" +
-            $"The code will expire after 2 minutes.\n\n" +
-            $"This email address has been used for {currentClientDisplayName}.\n\n" +
-            $"If this was not you, you can ignore this email.\n\nDepartment for Education";
-
-        notificationSenderMock.Verify(mock => mock.SendEmail(email, expectedEmailSubject, expectedEmailBody), Times.Once());
+        notificationSenderMock.Verify(
+            mock => mock.SendEmail(
+                /* templateId: */ It.IsAny<string>(),
+                email,
+                It.Is<IReadOnlyDictionary<string, string>>(d =>
+                    d["code"] == pinResult.Pin!.ToString() &&
+                    d["expiry_minutes"] == "2" &&
+                    d["client_name"] == currentClientDisplayName)),
+            Times.Once());
     }
 
     [Fact]
@@ -293,9 +295,12 @@ public class UserVerificationServiceTests : IClassFixture<DbFixture>
                 Assert.Equal(clock.UtcNow + _pinLifetime, newPin.Expires);
             });
 
-        var expectedSmsMessage = $"{pinResult.Pin} is your Teaching Services Account authentication code";
-
-        notificationSenderMock.Verify(mock => mock.SendSms(parsedMobileNumber.ToString(), expectedSmsMessage), Times.Once());
+        notificationSenderMock.Verify(
+            mock => mock.SendSms(
+                /* templateId: */ It.IsAny<string>(),
+                parsedMobileNumber.ToString(),
+                It.Is<IReadOnlyDictionary<string, string>>(d => d["code"] == pinResult.Pin!.ToString())),
+            Times.Once());
     }
 
     [Fact]
