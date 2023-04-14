@@ -21,29 +21,15 @@ public class Api : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        // Start on the client app and try to access a protected area with admin scope
+        await page.StartOAuthJourney(additionalScope: CustomScopes.UserRead);
 
-        await page.GotoAsync($"/profile?scope={CustomScopes.UserRead}");
+        await page.SubmitEmailPage(adminUser.EmailAddress);
 
-        // Fill in the sign in form (email + PIN)
+        await page.SubmitEmailConfirmationPage();
 
-        await page.FillAsync("text=Your email address", adminUser.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SubmitCompletePageForExistingUser();
 
-        var pin = HostFixture.UserVerificationPin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be on the confirmation page
-
-        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be back at the client, signed in
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
+        await page.AssertSignedInOnTestClient(adminUser);
 
         // Call API endpoint that requires user:read scope
         using var apiHttpClient = new HttpClient()
@@ -83,29 +69,15 @@ public class Api : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        // Start on the client app and try to access a protected area with admin scope
+        await page.StartOAuthJourney(additionalScope: CustomScopes.UserWrite);
 
-        await page.GotoAsync($"/profile?scope={CustomScopes.UserWrite}");
+        await page.SubmitEmailPage(adminUser.EmailAddress);
 
-        // Fill in the sign in form (email + PIN)
+        await page.SubmitEmailConfirmationPage();
 
-        await page.FillAsync("text=Your email address", adminUser.EmailAddress);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.SubmitCompletePageForExistingUser();
 
-        var pin = HostFixture.UserVerificationPin;
-        await page.FillAsync("text=Enter your code", pin);
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be on the confirmation page
-
-        Assert.Equal(1, await page.Locator("data-testid=known-user-content").CountAsync());
-        await page.ClickAsync("button:text-is('Continue')");
-
-        // Should now be back at the client, signed in
-
-        var clientAppHost = new Uri(HostFixture.ClientBaseUrl).Host;
-        var pageUrlHost = new Uri(page.Url).Host;
-        Assert.Equal(clientAppHost, pageUrlHost);
+        await page.AssertSignedInOnTestClient(adminUser);
 
         // Call API endpoint that requires user:write scope
         using var apiHttpClient = new HttpClient()
@@ -142,7 +114,7 @@ public class Api : IClassFixture<HostFixture>
         var apiResponse = await httpClient.SendAsync(apiRequest);
     }
 
-    private async Task<string> GetTokenViaClientCredentials(HttpClient httpClient, string scope)
+    private static async Task<string> GetTokenViaClientCredentials(HttpClient httpClient, string scope)
     {
         var tokenResponse = await httpClient.PostAsync(
             "/connect/token",

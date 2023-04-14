@@ -120,6 +120,22 @@ public class HostFixture : IAsyncLifetime
         EventObserver.Clear();
     }
 
+    public void AssertEventIsUserSignedIn(
+        Events.EventBase @event,
+        Guid userId,
+        bool expectOAuthProperties = true)
+    {
+        var userSignedIn = Assert.IsType<Events.UserSignedInEvent>(@event);
+        Assert.Equal(DateTime.UtcNow, userSignedIn.CreatedUtc, TimeSpan.FromSeconds(10));
+        Assert.Equal(userId, userSignedIn.User.UserId);
+
+        if (expectOAuthProperties)
+        {
+            Assert.Equal(TestClientId, userSignedIn.ClientId);
+            Assert.NotNull(userSignedIn.Scope);
+        }
+    }
+
     private Host<TeacherIdentity.AuthServer.Program> CreateAuthServerHost(IConfiguration testConfiguration) =>
         Host<TeacherIdentity.AuthServer.Program>.CreateHost(
             AuthServerBaseUrl,

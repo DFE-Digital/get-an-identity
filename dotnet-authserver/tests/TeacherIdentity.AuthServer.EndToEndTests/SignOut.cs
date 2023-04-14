@@ -26,7 +26,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
+        await page.SubmitEmailConfirmationPage();
 
         await page.SubmitCompletePageForExistingUser();
 
@@ -61,12 +61,12 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
+        await page.SubmitEmailConfirmationPage();
 
         await page.SignOutFromAccountPageWithoutClientContext();
 
         _hostFixture.EventObserver.AssertEventsSaved(
-            //e => Assert.IsType<Events.UserSignedInEvent>(e),
+            e => Assert.IsType<Events.UserSignedInEvent>(e),
             e =>
             {
                 var userSignedOut = Assert.IsType<Events.UserSignedOutEvent>(e);
@@ -90,7 +90,7 @@ public class SignOut : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
+        await page.SubmitEmailConfirmationPage();
 
         await page.SubmitCompletePageForExistingUser();
 
@@ -103,7 +103,8 @@ public class SignOut : IClassFixture<HostFixture>
         await page.AssertSignedOutOnTestClient();
 
         _hostFixture.EventObserver.AssertEventsSaved(
-            e => Assert.IsType<Events.UserSignedInEvent>(e),
+            e => Assert.IsType<Events.UserSignedInEvent>(e),  // OAuth sign in with a client
+            e => Assert.IsType<Events.UserSignedInEvent>(e),  // Account page sign in
             e =>
             {
                 var userSignedOut = Assert.IsType<Events.UserSignedOutEvent>(e);

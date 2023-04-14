@@ -208,12 +208,14 @@ public class AuthenticationState
             return AuthenticationJourneyType.StaffSignIn;
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         if (TryGetOAuthState(out var oAuthState) &&
             oAuthState.RequiresTrnLookup &&
-            oAuthState.TrnRequirementType == TrnRequirementType.Legacy)
+            (oAuthState.TrnRequirementType == TrnRequirementType.Legacy || oAuthState.HasScope(CustomScopes.Trn)))
         {
             return AuthenticationJourneyType.LegacyTrn;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         return AuthenticationJourneyType.Core;
     }
