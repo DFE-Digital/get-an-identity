@@ -7,7 +7,7 @@
 
 @section BeforeContent
 {
-    <govuk-back-link href="@LinkGenerator.AccountOfficialDateOfBirthDetails(Model.ClientRedirectInfo)" />
+    <govuk-back-link href="@LinkGenerator.AccountOfficialDateOfBirthDetails((DateOnly)Model.DateOfBirth!, fileName: null, fileId: null, fromConfirmPage: false, Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">

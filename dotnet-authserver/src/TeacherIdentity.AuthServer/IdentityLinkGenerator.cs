@@ -224,9 +224,14 @@ public abstract class IdentityLinkGenerator
         Page("/Account/OfficialDateOfBirth/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public string AccountOfficialDateOfBirthDetails(ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialDateOfBirthDetails(DateOnly? dateOfBirth, string? fileName, string? fileId, bool fromConfirmPage, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialDateOfBirth/Details", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam("dateOfBirth", dateOfBirth?.ToString(DateOfBirthFormat))
+            .SetQueryParam("fileName", fileName)
+            .SetQueryParam("fileId", fileId)
+            .SetQueryParam("fromConfirmPage", fromConfirmPage)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountOfficialDateOfBirthEvidence(DateOnly dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialDateOfBirth/Evidence", authenticationJourneyRequired: false)
@@ -234,10 +239,11 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
-    public string AccountOfficialDateOfBirthConfirm(DateOnly dateOfBirth, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialDateOfBirthConfirm(DateOnly dateOfBirth, string fileName, string fileId, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialDateOfBirth/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("dateOfBirth", dateOfBirth.ToString(DateOfBirthFormat))
             .SetQueryParam("fileName", fileName)
+            .SetQueryParam("fileId", fileId)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 

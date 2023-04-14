@@ -31,7 +31,9 @@ public class QueryStringSignatureHelper
     private string CalculateSignature(Url url)
     {
         var canonicalUrl = new Url(url.Path + "?" + url.Query)
-            .RemoveQueryParam(SignatureParameterName);
+            .RemoveQueryParam(SignatureParameterName)
+            .ToString()
+            .TrimEnd('?');
 
         var canonicalizedValuesBytes = Encoding.UTF8.GetBytes(canonicalUrl);
 
