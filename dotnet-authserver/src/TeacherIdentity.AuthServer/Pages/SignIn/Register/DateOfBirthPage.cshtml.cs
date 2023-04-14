@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
@@ -11,19 +10,13 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 public class DateOfBirthPage : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
-    private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IClock _clock;
     private readonly IUserSearchService _userSearchService;
 
     public DateOfBirthPage(
         IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        IClock clock,
         IUserSearchService userSearchService)
     {
         _linkGenerator = linkGenerator;
-        _dbContext = dbContext;
-        _clock = clock;
         _userSearchService = userSearchService;
     }
 
@@ -53,52 +46,9 @@ public class DateOfBirthPage : PageModel
             return Redirect(_linkGenerator.RegisterAccountExists());
         }
 
-        if (authenticationState.OAuthState?.RequiresTrnLookup == true)
-        {
-            return Redirect(_linkGenerator.RegisterHasNiNumber());
-        }
-
-        var user = await CreateUser();
-
-        authenticationState.OnUserRegistered(user);
-        await authenticationState.SignIn(HttpContext);
-
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-    }
-
-    private async Task<User> CreateUser()
-    {
-        var authenticationState = HttpContext.GetAuthenticationState();
-
-        var userId = Guid.NewGuid();
-        var user = new User()
-        {
-            Created = _clock.UtcNow,
-            DateOfBirth = authenticationState.DateOfBirth,
-            EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = authenticationState.MobileNumber,
-            NormalizedMobileNumber = MobileNumber.Parse(authenticationState.MobileNumber!),
-            FirstName = authenticationState.FirstName!,
-            LastName = authenticationState.LastName!,
-            Updated = _clock.UtcNow,
-            UserId = userId,
-            UserType = UserType.Default,
-            LastSignedIn = _clock.UtcNow,
-            RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-        };
-
-        _dbContext.Users.Add(user);
-
-        _dbContext.AddEvent(new Events.UserRegisteredEvent()
-        {
-            ClientId = authenticationState.OAuthState?.ClientId,
-            CreatedUtc = _clock.UtcNow,
-            User = user
-        });
-
-        await _dbContext.SaveChangesAsync();
-
-        return user;
+        return authenticationState.OAuthState?.RequiresTrnLookup == true
+            ? Redirect(_linkGenerator.RegisterHasNiNumber())
+            : Redirect(_linkGenerator.RegisterCheckAnswers());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

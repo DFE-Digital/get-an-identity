@@ -2,13 +2,16 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
-public delegate AuthenticationStateConfiguration AuthenticationStateConfigGenerator(User? user = null, string? mobileNumber = null);
+public delegate AuthenticationStateConfiguration AuthenticationStateConfigGenerator(
+    User? user = null,
+    string? mobileNumber = null,
+    bool? awardedQts = null);
 
 public static class RegisterJourneyAuthenticationStateHelper
 {
     public static AuthenticationStateConfigGenerator ConfigureAuthenticationStateForPage(RegisterJourneyPage page)
     {
-        return (user, mobileNumber) =>
+        return (user, mobileNumber, awardedQts) =>
         {
             switch (page)
             {
@@ -49,7 +52,10 @@ public static class RegisterJourneyAuthenticationStateHelper
                     return c => c.RegisterTrnSet();
 
                 case RegisterJourneyPage.IttProvider:
-                    return c => c.RegisterHasQtsSet();
+                    return c => c.RegisterHasQtsSet(awardedQts: awardedQts);
+
+                case RegisterJourneyPage.CheckAnswers:
+                    return c => c.RegisterIttProviderSet(awardedQts: awardedQts);
 
                 case RegisterJourneyPage.AccountExists:
                     return c => c.RegisterExistingUserAccountMatch(user);
@@ -97,5 +103,6 @@ public enum RegisterJourneyPage
     HasTrn,
     Trn,
     HasQts,
-    IttProvider
+    IttProvider,
+    CheckAnswers,
 }

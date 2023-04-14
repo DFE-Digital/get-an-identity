@@ -231,11 +231,27 @@ public sealed class AuthenticationStateHelper
             string? lastName = null,
             string? mobileNumber = null,
             string? email = null,
-            User? user = null) =>
+            User? user = null,
+            bool? awardedQts = null) =>
             async s =>
             {
                 await RegisterTrnSet(dateOfBirth, firstName, lastName, mobileNumber, email, user)(s);
-                s.OnAwardedQtsSet(true);
+                s.OnAwardedQtsSet(awardedQts == true);
+            };
+
+        public Func<AuthenticationState, Task> RegisterIttProviderSet(
+            DateOnly? dateOfBirth = null,
+            string? firstName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null,
+            bool? awardedQts = false,
+            string? ittProviderName = "provider") =>
+            async s =>
+            {
+                await RegisterHasQtsSet(dateOfBirth, firstName, lastName, mobileNumber, email, user, awardedQts)(s);
+                s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
             };
 
         public Func<AuthenticationState, Task> RegisterExistingUserAccountMatch(
