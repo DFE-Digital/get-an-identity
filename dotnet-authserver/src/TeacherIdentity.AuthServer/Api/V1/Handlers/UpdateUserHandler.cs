@@ -82,6 +82,7 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, UserInfo>
             FirstName = user.FirstName,
             LastName = user.LastName,
             Trn = user.Trn,
+            TrnLookupStatus = user.TrnLookupStatus,
             UserId = user.UserId,
             MobileNumber = user.MobileNumber
         };
