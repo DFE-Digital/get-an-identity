@@ -1,0 +1,40 @@
+@page "/sign-in/register/trn"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.TrnPage
+@{
+    ViewBag.Title = "What is your teacher reference number (TRN)?";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.RegisterHasTrn()" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterTrn()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>A TRN is 7 digits long, for example 4567814</p>
+            <p>It might include the letters RP and a slash, for example RP99/12345</p>
+            <p>It’s previously been known as a QTS, GTC, DfE, DfES and DCSF number</p>
+
+            <govuk-input asp-for="StatedTrn" spellcheck="false">
+                <govuk-input-label class="govuk-label--s"/>
+            </govuk-input>
+
+            <govuk-button type="submit" class="govuk-visually-hidden" name="submit" value="hidden_submit"/>
+
+            <govuk-details>
+                <govuk-details-summary>I don’t know my TRN</govuk-details-summary>
+                <govuk-details-text>
+                    <p>You can continue without it</p>
+                    <govuk-button type="submit" class="govuk-button--secondary" name="submit" value="trn_not_known">
+                        Continue without it
+                    </govuk-button>
+                </govuk-details-text>
+            </govuk-details>
+
+            <govuk-button type="submit" name="submit" value="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

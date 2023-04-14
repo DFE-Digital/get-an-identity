@@ -130,7 +130,7 @@ public class HasTrnPageTests : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Post_ValidHasTrn_UpdatesAuthenticationStateRedirectsToTrnOfficialName(bool hasTrn)
+    public async Task Post_ValidHasTrn_UpdatesAuthenticationStateRedirectsToTrn(bool hasTrn)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
@@ -148,6 +148,11 @@ public class HasTrnPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+
+        if (hasTrn)
+        {
+            Assert.StartsWith("/sign-in/register/trn", response.Headers.Location?.OriginalString);
+        }
 
         Assert.Equal(hasTrn, authStateHelper.AuthenticationState.HasTrn);
     }

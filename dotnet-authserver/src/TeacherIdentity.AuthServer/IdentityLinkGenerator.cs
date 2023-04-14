@@ -107,6 +107,10 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterHaveQts() => Page("/SignIn/Register/HaveQts");
 
+    public string RegisterIttProvider() => Page("/SignIn/Register/IttProvider");
+
+    public string RegisterCheckAnswers() => Page("/SignIn/Register/CheckAnswers");
+
     public string UpdateEmail(string? returnUrl, string? cancelUrl) =>
         Page("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)
