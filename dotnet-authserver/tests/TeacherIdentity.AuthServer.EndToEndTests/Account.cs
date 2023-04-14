@@ -26,7 +26,7 @@ public class Account : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
 
         await page.AssertOnAccountPage();
     }
@@ -45,7 +45,7 @@ public class Account : IClassFixture<HostFixture>
 
         await page.SubmitEmailPage(user.EmailAddress);
 
-        await page.SubmitEmailConfirmationPage(_hostFixture.CapturedEmailConfirmationPins.Last().Pin);
+        await page.SubmitEmailConfirmationPage(HostFixture.UserVerificationPin);
 
         await page.SubmitCompletePageForExistingUser();
 

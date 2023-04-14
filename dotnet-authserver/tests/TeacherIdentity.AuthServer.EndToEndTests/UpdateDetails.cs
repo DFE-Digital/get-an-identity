@@ -32,7 +32,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -83,7 +83,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         await page.FillAsync("text=Enter your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -101,7 +101,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         // Confirm your email address page
 
         await page.WaitForSelectorAsync("h1:text-is('Confirm your email address')");
-        pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 

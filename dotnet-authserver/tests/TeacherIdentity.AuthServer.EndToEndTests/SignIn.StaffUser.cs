@@ -32,7 +32,7 @@ public partial class SignIn
         await page.FillAsync("text=Your email address", staffUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -63,7 +63,7 @@ public partial class SignIn
         await page.FillAsync("text=Your email address", staffUser.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 
@@ -85,7 +85,7 @@ public partial class SignIn
         await page.FillAsync("text=Your email address", user.EmailAddress);
         await page.ClickAsync("button:text-is('Continue')");
 
-        var pin = _hostFixture.CapturedEmailConfirmationPins.Last().Pin;
+        var pin = HostFixture.UserVerificationPin;
         await page.FillAsync("text=Enter your code", pin);
         await page.ClickAsync("button:text-is('Continue')");
 

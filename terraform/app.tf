@@ -55,7 +55,9 @@ locals {
       Zendesk__Token                               = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", ""),
       Zendesk__Username                            = lookup(local.infrastructure_secrets, "ZENDESK_USERNAME", ""),
       Zendesk__UseFakeClient                       = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", "") == "" ? "true" : "false",
-      QueryStringSignatureKey                      = local.infrastructure_secrets.QUERYSTRING_SIGNATURE_KEY
+      QueryStringSignatureKey                      = local.infrastructure_secrets.QUERYSTRING_SIGNATURE_KEY,
+      UserVerification__UseFixedPin                = lookup(local.infrastructure_secrets, "USER_VERIFICATION_USE_FIXED_PIN", "false"),
+      UserVerification__Pin                        = lookup(local.infrastructure_secrets, "USER_VERIFICATION_PIN", "")
     }
   )
 

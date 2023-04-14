@@ -7,28 +7,40 @@ public static class ServiceCollectionExtensions
         IWebHostEnvironment environment,
         IConfiguration configuration)
     {
-        services.AddTransient<IUserVerificationService, UserVerificationService>();
-
-        services.AddOptions<UserVerificationOptions>()
-            .Bind(configuration.GetSection("UserVerification"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddOptions<RateLimitStoreOptions>()
-            .Bind(configuration.GetSection("UserVerificationRateLimit"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddSingleton<PinValidator>();
-
-        if (environment.IsProduction())
+        if (configuration.GetValue<bool>("UserVerification:UseFixedPin"))
         {
-            services.AddSingleton<IRateLimitStore, RateLimitStore>();
+            services.AddSingleton<IUserVerificationService, FixedPinUserVerificationService>();
+
+            services.AddOptions<FixedPinUserVerificationOptions>()
+                .Bind(configuration.GetSection("UserVerification"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
         }
         else
         {
-            services.AddSingleton<IRateLimitStore, NoopRateLimitStore>();
+            services.AddTransient<IUserVerificationService, UserVerificationService>();
+
+            services.AddOptions<UserVerificationOptions>()
+                .Bind(configuration.GetSection("UserVerification"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services.AddOptions<RateLimitStoreOptions>()
+                .Bind(configuration.GetSection("UserVerificationRateLimit"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            if (environment.IsProduction())
+            {
+                services.AddSingleton<IRateLimitStore, RateLimitStore>();
+            }
+            else
+            {
+                services.AddSingleton<IRateLimitStore, NoopRateLimitStore>();
+            }
         }
+
+        services.AddSingleton<PinValidator>();
 
         return services;
     }
