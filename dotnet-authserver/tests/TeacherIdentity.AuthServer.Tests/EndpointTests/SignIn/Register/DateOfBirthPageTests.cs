@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
@@ -116,13 +117,16 @@ public class DateOfBirthPageTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "DateOfBirth", "Your date of birth must be in the past");
     }
 
-    [Fact]
-    public async Task Post_ValidForm_SetsDateOfBirthOnAuthenticationStateAndRedirects()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_ValidForm_SetsDateOfBirthOnAuthenticationStateAndRedirects(bool requiresTrnLookup)
     {
         // Arrange
+        var additionalScopes = requiresTrnLookup ? CustomScopes.DqtRead : null;
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -138,43 +142,11 @@ public class DateOfBirthPageTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
+
+        var expectedRedirectUrl = requiresTrnLookup ? "/sign-in/register/has-nino" : "/sign-in/register/check-answers";
+        Assert.StartsWith(expectedRedirectUrl, response.Headers.Location?.OriginalString);
 
         Assert.Equal(dateOfBirth, authStateHelper.AuthenticationState.DateOfBirth);
-    }
-
-    [Theory]
-    [InlineData("+447123456 789", "447123456789")]
-    [InlineData("(0044)7111456789", "447111456789")]
-    [InlineData("+672-7-123-456-789", "6727123456789")]
-    [InlineData("00672-7-111-456-789", "6727111456789")]
-    public async Task Post_ValidForm_CreatesUserWithCorrectFormatMobileNumber(string mobileNumber, string normalizedMobileNumber)
-    {
-        // Arrange
-        var dateOfBirth = new DateOnly(2000, 1, 1);
-
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterNameSet(mobileNumber: mobileNumber), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "DateOfBirth.Day", dateOfBirth.Day.ToString() },
-                { "DateOfBirth.Month", dateOfBirth.Month.ToString() },
-                { "DateOfBirth.Year", dateOfBirth.Year.ToString() },
-            }
-        };
-
-        // Act
-        await HttpClient.SendAsync(request);
-
-        // Assert
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
-            Assert.NotNull(user);
-            Assert.Equal(mobileNumber, user.MobileNumber);
-            Assert.Equal(normalizedMobileNumber, user.NormalizedMobileNumber?.ToString());
-        });
     }
 
     [Fact]

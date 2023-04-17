@@ -1,0 +1,82 @@
+@page "/sign-in/register/check-answers"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.CheckAnswers
+@{
+    ViewBag.Title = "Check your answers";
+}
+
+@section BeforeContent
+{
+    <govuk-back-link href="@Model.BackLink" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterCheckAnswers()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Mobile phone</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.MobilePhoneNumber</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.RegisterPhone()" visually-hidden-text="mobile phone">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.FullName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.RegisterName()" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString("dd MMMM yyyy")</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.RegisterDateOfBirth()" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                @if (Model.RequiresTrnLookup == true)
+                {
+                    @if (Model.HasNationalInsuranceNumberSet == true)
+                    {
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@(Model.NationalInsuranceNumber ?? "Not given")</govuk-summary-list-row-value>
+                            <govuk-summary-list-row-actions>
+                                <govuk-summary-list-row-action href="@LinkGenerator.RegisterHasNiNumber()" visually-hidden-text="national insurance number">Change</govuk-summary-list-row-action>
+                            </govuk-summary-list-row-actions>
+                        </govuk-summary-list-row>
+                    }
+                    @if (Model.AwardedQtsSet == true)
+                    {
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Have you been awarded QTS?</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@(Model.AwardedQts == true ? "Yes" : "No")</govuk-summary-list-row-value>
+                            <govuk-summary-list-row-actions>
+                                <govuk-summary-list-row-action href="@LinkGenerator.RegisterHasQts()" visually-hidden-text="awarded QTS">Change</govuk-summary-list-row-action>
+                            </govuk-summary-list-row-actions>
+                        </govuk-summary-list-row>
+                    }
+                    @if (Model.AwardedQts == true)
+                    {
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Where did you get your QTS?</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@(Model.IttProviderName ?? "Not given")</govuk-summary-list-row-value>
+                            <govuk-summary-list-row-actions>
+                                <govuk-summary-list-row-action href="@LinkGenerator.RegisterIttProvider()" visually-hidden-text="teacher training provider">Change</govuk-summary-list-row-action>
+                            </govuk-summary-list-row-actions>
+                        </govuk-summary-list-row>
+                    }
+                }
+            </govuk-summary-list>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

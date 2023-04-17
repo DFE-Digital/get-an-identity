@@ -40,6 +40,8 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitDateOfBirthPage(dateOfBirth);
 
+        await page.SubmitCheckAnswersPage(dateOfBirth);
+
         await page.SubmitCompletePageForNewUser();
 
         await page.AssertSignedInOnTestClient(email, trn: null, firstName, lastName);
