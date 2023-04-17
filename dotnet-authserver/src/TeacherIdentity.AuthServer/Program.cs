@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
 using Dfe.Analytics.AspNetCore;
@@ -278,7 +279,11 @@ public class Program
 
         builder.Services.AddSingleton<IAuthorizationHandler, RequireScopeAuthorizationHandler>();
 
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         builder.Services.AddRazorPages(options =>
         {
