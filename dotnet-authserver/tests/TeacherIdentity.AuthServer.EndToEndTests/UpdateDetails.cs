@@ -32,13 +32,13 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Confirm your details page
         await page.WaitForUrlPathAsync("/sign-in/complete");
-        await page.Locator("*:has(> dt:text('Name'))").GetByText("Change").ClickAsync();
+        await page.ClickChangeLinkForSummaryListRowWithKey("Name");
 
         // Update your name page
         await page.WaitForSelectorAsync("h1:text-is('Update your name')");
         await page.FillAsync("text=First name", newFirstName);
         await page.FillAsync("text=Last name", newLastName);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.ClickContinueButton();
 
         await page.SubmitCompletePageForExistingUser();
 
@@ -65,18 +65,18 @@ public class UpdateDetails : IClassFixture<HostFixture>
 
         // Confirm your details page
         await page.WaitForUrlPathAsync("/sign-in/complete");
-        await page.Locator("*:has(> dt:text('Email address'))").GetByText("Change").ClickAsync();
+        await page.ClickChangeLinkForSummaryListRowWithKey("Email address");
 
         // Update your email page
         await page.WaitForSelectorAsync("h1:text-is('Change your email address')");
         await page.FillAsync("text=Enter your new email address", newEmail);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.ClickContinueButton();
 
         // Confirm your email address page
 
         await page.WaitForSelectorAsync("h1:text-is('Confirm your email address')");
         await page.FillAsync("text=Enter your code", HostFixture.UserVerificationPin);
-        await page.ClickAsync("button:text-is('Continue')");
+        await page.ClickContinueButton();
 
         await page.SubmitCompletePageForExistingUser();
 

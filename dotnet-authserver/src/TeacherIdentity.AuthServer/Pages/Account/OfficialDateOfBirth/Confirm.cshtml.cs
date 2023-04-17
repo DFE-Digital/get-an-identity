@@ -34,13 +34,16 @@ public class Confirm : PageModel
     [FromQuery(Name = "fileName")]
     public string? FileName { get; set; }
 
+    [FromQuery(Name = "fileId")]
+    public string? FileId { get; set; }
+
     public void OnGet()
     {
     }
 
     public async Task<IActionResult> OnPost()
     {
-        var sasUri = await _dqtEvidenceStorage.GetSasConnectionString(FileName!, SasTokenValidMinutes);
+        var sasUri = await _dqtEvidenceStorage.GetSasConnectionString(FileId!, SasTokenValidMinutes);
 
         var teacherDobChangeRequest = new TeacherDateOfBirthChangeRequest()
         {
@@ -53,15 +56,15 @@ public class Confirm : PageModel
         await _dqtApiClient.PostTeacherDateOfBirthChange(teacherDobChangeRequest);
 
         TempData.SetFlashSuccess(
-        "We’ve received your request to change your date of birth",
-        "We’ll review it and get back to you within 5 working days.");
+            "We’ve received your request to change your date of birth",
+            "We’ll review it and get back to you within 5 working days.");
 
         return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (DateOfBirth is null || FileName is null)
+        if (DateOfBirth is null || FileName is null || FileId is null)
         {
             context.Result = BadRequest();
         }

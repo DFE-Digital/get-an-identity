@@ -26,7 +26,7 @@ public class DetailsTests : TestBase
             HostFixture.SetUserId(TestUsers.DefaultUser.UserId);
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-date-of-birth");
+        var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature($"/account/official-date-of-birth/details"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -38,7 +38,8 @@ public class DetailsTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_ReturnsSuccess()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-date-of-birth/details");
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature($"/account/official-date-of-birth/details"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -48,10 +49,30 @@ public class DetailsTests : TestBase
     }
 
     [Fact]
+    public async Task Get_ValidRequestWithDateInQueryParam_PopulatesFieldFromQueryParam()
+    {
+        // Arrange
+        var previouslyStatedDateOfBirth = TestUsers.DefaultUser.DateOfBirth!.Value.AddDays(1);
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/official-date-of-birth/details?dateOfBirth={previouslyStatedDateOfBirth:yyyy-MM-dd}"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+        Assert.Equal(previouslyStatedDateOfBirth.Day.ToString(), doc.GetElementById("DateOfBirth.Day")?.GetAttribute("value"));
+        Assert.Equal(previouslyStatedDateOfBirth.Month.ToString(), doc.GetElementById("DateOfBirth.Month")?.GetAttribute("value"));
+        Assert.Equal(previouslyStatedDateOfBirth.Year.ToString(), doc.GetElementById("DateOfBirth.Year")?.GetAttribute("value"));
+    }
+
+    [Fact]
     public async Task Post_EmptyDateOfBirth_ReturnsBadRequest()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-date-of-birth/details")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/official-date-of-birth/details"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -69,7 +90,7 @@ public class DetailsTests : TestBase
         // Arrange
         var dateOfBirth = new DateOnly(2100, 1, 1);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-date-of-birth/details")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/official-date-of-birth/details"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -97,7 +118,7 @@ public class DetailsTests : TestBase
 
         MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasDobConflict: true, hasPendingDateOfBirthChange: false);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-date-of-birth/details")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/official-date-of-birth/details"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -120,9 +141,12 @@ public class DetailsTests : TestBase
         // Arrange
         var clientRedirectInfo = CreateClientRedirectInfo();
 
+        var previouslyStatedDateOfBirth = TestUsers.DefaultUser.DateOfBirth!.Value.AddDays(1);
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-date-of-birth/details?{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/official-date-of-birth/details?{clientRedirectInfo.ToQueryParam()}&dateOfBirth={previouslyStatedDateOfBirth:yyyy-MM-dd}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {

@@ -2,10 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.OfficialDateOfBirth;
 
+[VerifyQueryParameterSignature]
 [CheckOfficialDateOfBirthChangeIsEnabled]
 public class Details : PageModel
 {
@@ -18,17 +20,29 @@ public class Details : PageModel
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
-    [BindProperty]
+    [BindProperty(SupportsGet = true)]
     [Display(Name = "Date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
     [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
     public DateOnly? DateOfBirth { get; set; }
 
+    [FromQuery(Name = "fileName")]
+    public string? FileName { get; set; }
+
+    [FromQuery(Name = "fileId")]
+    public string? FileId { get; set; }
+
+    [FromQuery(Name = "fromConfirmPage")]
+    public bool FromConfirmPage { get; set; }
+
     private TeacherInfo? DqtUser { get; set; }
 
     public void OnGet()
     {
-        DateOfBirth = DqtUser!.DateOfBirth;
+        // We may have been passed a value e.g. when we came from the Confirm page.
+        // If not, default to the current DQT value and ensure we don't show an 'Enter your date of birth' error.
+        DateOfBirth ??= DqtUser!.DateOfBirth;
+        ModelState.Clear();
     }
 
     public IActionResult OnPost()
@@ -44,7 +58,9 @@ public class Details : PageModel
             return this.PageWithErrors();
         }
 
-        return Redirect(_linkGenerator.AccountOfficialDateOfBirthEvidence((DateOnly)DateOfBirth!, ClientRedirectInfo));
+        return Redirect(FromConfirmPage && FileName is not null && FileId is not null ?
+            _linkGenerator.AccountOfficialDateOfBirthConfirm((DateOnly)DateOfBirth!, FileName, FileId, ClientRedirectInfo) :
+            _linkGenerator.AccountOfficialDateOfBirthEvidence((DateOnly)DateOfBirth!, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

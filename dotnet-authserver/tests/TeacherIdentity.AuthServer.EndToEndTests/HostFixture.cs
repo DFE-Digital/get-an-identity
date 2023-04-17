@@ -12,6 +12,7 @@ using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Services.DqtEvidence;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -42,6 +43,8 @@ public class HostFixture : IAsyncLifetime
     public DbHelper? DbHelper { get; private set; }
 
     public Mock<IDqtApiClient> DqtApiClient { get; } = new();
+
+    public Mock<IDqtEvidenceStorageService> DqtEvidenceStorageService { get; } = new();
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
@@ -117,6 +120,7 @@ public class HostFixture : IAsyncLifetime
     public void OnTestStarting()
     {
         DqtApiClient.Reset();
+        DqtEvidenceStorageService.Reset();
         EventObserver.Clear();
     }
 
@@ -147,6 +151,7 @@ public class HostFixture : IAsyncLifetime
                 {
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient.Object);
+                    services.AddSingleton<IDqtEvidenceStorageService>(DqtEvidenceStorageService.Object);
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
 

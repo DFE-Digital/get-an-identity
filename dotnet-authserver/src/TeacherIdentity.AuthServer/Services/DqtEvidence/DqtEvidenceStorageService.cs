@@ -47,7 +47,6 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
         return blobContainerClient.GetBlobClient(blobName);
     }
 
-
     private async Task<BlobContainerClient> GetBlobContainerClient()
     {
         var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_dqtEvidenceContainerName);

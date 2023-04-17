@@ -13,7 +13,7 @@
         <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
         <p>If the date of birth in our records is wrong, you’ll need to provide evidence to update it.</p>
         <p>We'll give you detailed information about providing evidence . Changes can take up to 5 working days.</p>
-        <govuk-button-link href="@LinkGenerator.AccountOfficialDateOfBirthDetails(Model.ClientRedirectInfo)">Continue</govuk-button-link>
+        <govuk-button-link href="@LinkGenerator.AccountOfficialDateOfBirthDetails(dateOfBirth: null, fileName: null, fileId: null, fromConfirmPage: false, Model.ClientRedirectInfo)">Continue</govuk-button-link>
     </div>
 </div>
 
