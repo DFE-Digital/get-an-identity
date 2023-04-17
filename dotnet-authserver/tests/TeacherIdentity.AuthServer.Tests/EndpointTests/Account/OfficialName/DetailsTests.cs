@@ -27,7 +27,7 @@ public class DetailsTests : TestBase
             HostFixture.SetUserId(TestUsers.DefaultUser.UserId);
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-name/details");
+        var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature($"/account/official-name/details"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -39,13 +39,40 @@ public class DetailsTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_ReturnsSuccess()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-name/details");
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature($"/account/official-name/details"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithNamesInQueryParam_PopulatesFieldsFromQueryParams()
+    {
+        // Arrange
+        var previouslyStatedFirstName = Faker.Name.First();
+        var previouslyStatedMiddleName = Faker.Name.Middle();
+        var previouslyStatedLastName = Faker.Name.Last();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature(
+                $"/account/official-name/details" +
+                $"?firstName={Uri.EscapeDataString(previouslyStatedFirstName)}" +
+                $"&middleName={Uri.EscapeDataString(previouslyStatedMiddleName)}" +
+                $"&lastName={Uri.EscapeDataString(previouslyStatedLastName)}"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+        Assert.Equal(previouslyStatedFirstName, doc.GetElementById("FirstName")?.GetAttribute("value"));
+        Assert.Equal(previouslyStatedMiddleName, doc.GetElementById("MiddleName")?.GetAttribute("value"));
+        Assert.Equal(previouslyStatedLastName, doc.GetElementById("LastName")?.GetAttribute("value"));
     }
 
     [Theory]
@@ -58,7 +85,7 @@ public class DetailsTests : TestBase
         string errorMessage)
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-name/details")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/official-name/details"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -84,7 +111,7 @@ public class DetailsTests : TestBase
         HostFixture.SetUserId(user.UserId);
         MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasPendingNameChange: false, middleName);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-name/details")
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/official-name/details"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -107,7 +134,9 @@ public class DetailsTests : TestBase
         // Arrange
         var clientRedirectInfo = CreateClientRedirectInfo();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/official-name/details?{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/official-name/details?{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
