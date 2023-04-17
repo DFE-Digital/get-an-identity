@@ -23,33 +23,15 @@ public abstract class SignInJourney
 
     public abstract bool IsFinished();
 
-    public virtual string GetStartStep() => Steps.Email;
+    public abstract string GetStartStep();
 
-    public virtual string GetStepUrl(string step) => step switch
-    {
-        Steps.Email => LinkGenerator.Email(),
-        Steps.EmailConfirmation => LinkGenerator.EmailConfirmation(),
-        _ => throw new ArgumentException($"Unknown step: '{step}'.")
-    };
+    public abstract string GetStepUrl(string step);
 
-    public virtual string? GetNextStep(string currentStep) => currentStep switch
-    {
-        Steps.Email => Steps.EmailConfirmation,
-        _ => null
-    };
+    public abstract string? GetNextStep(string currentStep);
 
-    public virtual string? GetPreviousStep(string currentStep) => currentStep switch
-    {
-        Steps.EmailConfirmation => Steps.Email,
-        _ => null
-    };
+    public abstract string? GetPreviousStep(string currentStep);
 
-    public virtual bool CanAccessStep(string step) => step switch
-    {
-        Steps.Email => !AuthenticationState.EmailAddressVerified,
-        Steps.EmailConfirmation => !AuthenticationState.EmailAddressVerified && AuthenticationState.EmailAddressSet,
-        _ => false
-    };
+    public abstract bool CanAccessStep(string step);
 
     public virtual string GetLastAccessibleStep()
     {

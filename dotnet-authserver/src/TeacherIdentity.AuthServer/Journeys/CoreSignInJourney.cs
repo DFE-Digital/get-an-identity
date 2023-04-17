@@ -13,6 +13,31 @@ public class CoreSignInJourney : SignInJourney
     {
     }
 
+    public override bool CanAccessStep(string step)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string? GetNextStep(string currentStep)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string? GetPreviousStep(string currentStep)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string GetStartStep()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string GetStepUrl(string step)
+    {
+        throw new NotImplementedException();
+    }
+
     public override bool IsFinished()
     {
         throw new NotImplementedException();
