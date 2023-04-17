@@ -5,11 +5,8 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class StaffSignInJourney : SignInJourney
 {
-    public StaffSignInJourney(
-        AuthenticationState authenticationState,
-        HttpContext httpContext,
-        IdentityLinkGenerator linkGenerator)
-        : base(authenticationState, httpContext, linkGenerator)
+    public StaffSignInJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
+        : base(httpContext, linkGenerator)
     {
     }
 

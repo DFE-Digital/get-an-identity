@@ -5,11 +5,8 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class CoreSignInJourney : SignInJourney
 {
-    public CoreSignInJourney(
-        AuthenticationState authenticationState,
-        HttpContext httpContext,
-        IdentityLinkGenerator linkGenerator)
-        : base(authenticationState, httpContext, linkGenerator)
+    public CoreSignInJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
+        : base(httpContext, linkGenerator)
     {
     }
 

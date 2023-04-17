@@ -5,12 +5,9 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public abstract class SignInJourney
 {
-    protected SignInJourney(
-        AuthenticationState authenticationState,
-        HttpContext httpContext,
-        IdentityLinkGenerator linkGenerator)
+    protected SignInJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
     {
-        AuthenticationState = authenticationState;
+        AuthenticationState = httpContext.GetAuthenticationState();
         HttpContext = httpContext;
         LinkGenerator = linkGenerator;
     }

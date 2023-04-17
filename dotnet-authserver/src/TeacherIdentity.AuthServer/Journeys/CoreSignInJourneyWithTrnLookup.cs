@@ -5,11 +5,8 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class CoreSignInJourneyWithTrnLookup : TrnLookupJourneyBase
 {
-    public CoreSignInJourneyWithTrnLookup(
-        AuthenticationState authenticationState,
-        HttpContext httpContext,
-        IdentityLinkGenerator linkGenerator)
-        : base(authenticationState, httpContext, linkGenerator)
+    public CoreSignInJourneyWithTrnLookup(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
+        : base(httpContext, linkGenerator)
     {
     }
 

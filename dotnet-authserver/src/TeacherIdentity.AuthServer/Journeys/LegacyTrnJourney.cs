@@ -5,11 +5,8 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class LegacyTrnJourney : TrnLookupJourneyBase
 {
-    public LegacyTrnJourney(
-        AuthenticationState authenticationState,
-        HttpContext httpContext,
-        IdentityLinkGenerator linkGenerator)
-        : base(authenticationState, httpContext, linkGenerator)
+    public LegacyTrnJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
+        : base(httpContext, linkGenerator)
     {
     }
 
