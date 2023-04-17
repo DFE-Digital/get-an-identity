@@ -296,6 +296,12 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task SubmitCheckAnswersPage(this IPage page, DateOnly dateOfBirth)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/check-answers");
+        await page.ClickContinueButton();
+    }
+
     public static async Task SubmitCompletePageForNewUser(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");
