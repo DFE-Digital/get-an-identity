@@ -34,6 +34,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Oidc;
@@ -494,7 +495,8 @@ public class Program
             .AddTransient<UserClaimHelper>()
             .AddSingleton(
                 new QueryStringSignatureHelper(
-                    builder.Configuration["QueryStringSignatureKey"] ?? throw new Exception("QueryStringSignatureKey missing from configuration.")));
+                    builder.Configuration["QueryStringSignatureKey"] ?? throw new Exception("QueryStringSignatureKey missing from configuration.")))
+            .AddSignInJourneyStateProvider();
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 
