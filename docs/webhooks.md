@@ -50,6 +50,7 @@ The are two notification messages types currently; one is for when a user is cha
     "lastName": "",
     "dateOfBirth": "",
     "trn": "",
+    "mobileNumber": "",
     "trnLookupStatus": ""
   }
 }
