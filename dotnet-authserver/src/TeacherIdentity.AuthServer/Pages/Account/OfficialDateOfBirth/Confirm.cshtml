@@ -17,7 +17,7 @@
             <govuk-summary-list>
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString("dd MMMM yyyy")</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString(Constants.DateFormat)</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
                         <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialDateOfBirthDetails((DateOnly)Model.DateOfBirth!, Model.FileName, Model.FileId, fromConfirmPage: true, Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>

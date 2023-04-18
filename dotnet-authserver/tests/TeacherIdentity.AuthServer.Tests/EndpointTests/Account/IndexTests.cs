@@ -90,7 +90,7 @@ public class IndexTests : TestBase
         var doc = await response.GetDocument();
 
         Assert.Equal($"{user.FirstName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
-        Assert.Equal($"{user.DateOfBirth:dd MMMM yyyy}", doc.GetSummaryListValueForKey("Date of birth"));
+        Assert.Equal($"{user.DateOfBirth?.ToString(Constants.DateFormat)}", doc.GetSummaryListValueForKey("Date of birth"));
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email"));
         Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile number"));
     }
