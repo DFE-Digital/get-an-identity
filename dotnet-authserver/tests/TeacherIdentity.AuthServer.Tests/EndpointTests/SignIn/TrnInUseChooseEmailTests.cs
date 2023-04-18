@@ -202,7 +202,7 @@ public class TrnInUseChooseEmailTests : TestBase
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Post_ValidRequest_UpdatesUserLocksLookupStateAndRedirectsToNextPage(bool newEmailChosen)
+    public async Task Post_ValidRequest_UpdatesUserAndRedirectsToNextPage(bool newEmailChosen)
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -238,9 +238,6 @@ public class TrnInUseChooseEmailTests : TestBase
 
             Assert.NotNull(user);
             Assert.Equal(chosenEmail, user.EmailAddress);
-
-            var lookupState = await dbContext.JourneyTrnLookupStates.SingleAsync(s => s.JourneyId == authStateHelper.AuthenticationState.JourneyId);
-            Assert.Equal(Clock.UtcNow, lookupState.Locked);
 
             return user.UserId;
         });

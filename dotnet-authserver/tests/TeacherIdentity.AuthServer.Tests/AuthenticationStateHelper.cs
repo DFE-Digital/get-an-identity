@@ -280,51 +280,21 @@ public sealed class AuthenticationStateHelper
                 s.OnExistingAccountChosen(true);
             };
 
-        public Func<AuthenticationState, Task> TrnLookupCallbackCompleted(
-            string email,
-            string? trn,
-            DateOnly dateOfBirth,
-            string officialFirstName,
-            string officialLastName,
-            bool? supportTicketCreated = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null) => async s =>
-            {
-                await EmailVerified(email)(s);
-                Debug.Assert(s.UserId is null);
-
-                await TestData.WithDbContext(async dbContext =>
-                {
-                    dbContext.JourneyTrnLookupStates.Add(new JourneyTrnLookupState()
-                    {
-                        JourneyId = s.JourneyId,
-                        Created = Clock.UtcNow,
-                        DateOfBirth = dateOfBirth,
-                        OfficialFirstName = officialFirstName,
-                        OfficialLastName = officialLastName,
-                        Trn = trn,
-                        NationalInsuranceNumber = null,
-                        PreferredFirstName = preferredFirstName,
-                        PreferredLastName = preferredLastName,
-                        SupportTicketCreated = supportTicketCreated ?? trn is null
-                    });
-
-                    await dbContext.SaveChangesAsync();
-                });
-            };
-
         public Func<AuthenticationState, Task> TrnLookupCompletedForNewTrn(User user, string? officialFirstName = null, string? officialLastName = null) =>
             async s =>
             {
-                await TrnLookupCallbackCompleted(
+                await Trn.IttProviderSet(
                     user.EmailAddress,
-                    user.Trn,
-                    user.DateOfBirth!.Value,
-                    officialFirstName ?? user.FirstName,
-                    officialLastName ?? user.LastName,
-                    preferredFirstName: user.FirstName,
-                    preferredLastName: user.LastName)(s);
-
+                    statedTrn: null,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName: null,
+                    previousOfficialLastName: null,
+                    preferredFirstName: null,
+                    preferredLastName: null,
+                    user.DateOfBirth,
+                    nationalInsuranceNumber: null,
+                    ittProviderName: null)(s);
                 s.OnTrnLookupCompletedAndUserRegistered(user);
             };
 
@@ -333,25 +303,6 @@ public sealed class AuthenticationStateHelper
             {
                 await EmailVerified(newEmail)(s);
                 Debug.Assert(s.UserId is null);
-
-                await TestData.WithDbContext(async dbContext =>
-                {
-                    dbContext.JourneyTrnLookupStates.Add(new JourneyTrnLookupState()
-                    {
-                        JourneyId = s.JourneyId,
-                        Created = Clock.UtcNow,
-                        DateOfBirth = trnOwner.DateOfBirth!.Value,
-                        OfficialFirstName = trnOwner.FirstName,
-                        OfficialLastName = trnOwner.LastName,
-                        Trn = trnOwner.Trn,
-                        NationalInsuranceNumber = null,
-                        PreferredFirstName = preferredFirstName,
-                        PreferredLastName = preferredLastName,
-                        SupportTicketCreated = false
-                    });
-
-                    await dbContext.SaveChangesAsync();
-                });
 
                 s.OnTrnLookupCompletedForTrnAlreadyInUse(trnOwner.EmailAddress);
             };

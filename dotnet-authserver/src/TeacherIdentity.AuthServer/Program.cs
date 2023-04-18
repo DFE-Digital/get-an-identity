@@ -476,7 +476,6 @@ public class Program
 
         // Custom MVC filters & extensions
         builder.Services
-            .AddSingleton<IActionDescriptorProvider, Infrastructure.ApplicationModel.RemoveStubFindEndpointsActionDescriptorProvider>()
             .AddTransient<RequireAuthenticationStateFilter>()
             .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>()
             .AddSingleton<CheckUserRequirementsForTrnJourneyFilter>();
