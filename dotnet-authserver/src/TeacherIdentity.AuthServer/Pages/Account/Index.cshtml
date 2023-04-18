@@ -70,7 +70,7 @@
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>
-                    @Model.DateOfBirth?.ToString("dd MMMM yyyy")
+                    @Model.DateOfBirth?.ToString(Constants.DateFormat)
                     @if (Model.DateOfBirthConflict)
                     {
                         <p class="govuk-hint govuk-!-font-size-14" data-testid="dob-hint-text">Entered when creating account</p>
@@ -92,7 +92,7 @@
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value>
-                        @Model.DqtDateOfBirth?.ToString("dd MMMM yyyy")
+                        @Model.DqtDateOfBirth?.ToString(Constants.DateFormat)
                         <p class="govuk-hint govuk-!-font-size-14" data-testid="dqt-dob-hint-text">
                             Date of birth already in our records
                         </p>

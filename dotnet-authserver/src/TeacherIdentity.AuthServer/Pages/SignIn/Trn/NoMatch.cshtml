@@ -48,7 +48,7 @@
                 }
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString("dd MMMM yyyy")</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString(Constants.DateFormat)</govuk-summary-list-row-value>
                 </govuk-summary-list-row>
                 @if (Model.HaveNationalInsuranceNumber is not null)
                 {

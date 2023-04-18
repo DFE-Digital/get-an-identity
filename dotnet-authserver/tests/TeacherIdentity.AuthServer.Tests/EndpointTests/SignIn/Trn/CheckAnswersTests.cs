@@ -85,7 +85,7 @@ public class CheckAnswersTests : TestBase
         var doc = await response.GetDocument();
         Assert.Equal(authState.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
         Assert.Equal($"{authState.OfficialFirstName} {authState.OfficialLastName}", doc.GetSummaryListValueForKey("Name"));
-        Assert.Equal(authState.DateOfBirth?.ToString("dd MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
+        Assert.Equal(authState.DateOfBirth?.ToString(Constants.DateFormat), doc.GetSummaryListValueForKey("Date of birth"));
     }
 
     [Fact]

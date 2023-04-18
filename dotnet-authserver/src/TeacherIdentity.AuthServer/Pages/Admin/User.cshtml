@@ -33,7 +33,7 @@
                         {
                             <text>From: @Model.RegistrationClientDisplayName<br></text>
                         }
-                        Created: @Model.Created.ToString("dd MMMM yyyy") at @Model.Created.ToString("hh:mmtt")
+                        Created: @Model.Created.ToString(Constants.DateFormat) at @Model.Created.ToString("hh:mmtt")
                     </span>
                 </govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
