@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
@@ -32,6 +33,9 @@ public class EditWebHookModel : PageModel
     [BindProperty]
     public bool Enabled { get; set; }
 
+    [ModelBinder(BinderType = typeof(WebHookMessageTypesModelBinder))]
+    public WebHookMessageTypes WebHookMessageTypes { get; set; }
+
     [Display(Name = "Secret")]
     public string? Secret { get; set; }
 
@@ -51,6 +55,7 @@ public class EditWebHookModel : PageModel
         Endpoint = webHook.Endpoint;
         Enabled = webHook.Enabled;
         Secret = webHook.Secret;
+        WebHookMessageTypes = webHook.WebHookMessageTypes;
 
         return Page();
     }
@@ -61,6 +66,11 @@ public class EditWebHookModel : PageModel
             (!Uri.TryCreate(Endpoint!, UriKind.Absolute, out var uri) || (uri.Scheme != "http" && uri.Scheme != "https")))
         {
             ModelState.AddModelError(nameof(Endpoint), "Enter an absolute HTTP(s) URI");
+        }
+
+        if (WebHookMessageTypes == WebHookMessageTypes.None)
+        {
+            ModelState.AddModelError(nameof(WebHookMessageTypes), "Select at least one event which will trigger the webhook");
         }
 
         if (!ModelState.IsValid)
@@ -77,10 +87,12 @@ public class EditWebHookModel : PageModel
         var changes = WebHookUpdatedEventChanges.None |
             (webHook.Enabled != Enabled ? WebHookUpdatedEventChanges.Enabled : WebHookUpdatedEventChanges.None) |
             (webHook.Endpoint != Endpoint ? WebHookUpdatedEventChanges.Endpoint : WebHookUpdatedEventChanges.None) |
+            (webHook.WebHookMessageTypes != WebHookMessageTypes ? WebHookUpdatedEventChanges.WebHookMessageTypes : WebHookUpdatedEventChanges.None) |
             (RegenerateSecret ? WebHookUpdatedEventChanges.Secret : WebHookUpdatedEventChanges.None);
 
         webHook.Enabled = Enabled;
         webHook.Endpoint = Endpoint!;
+        webHook.WebHookMessageTypes = WebHookMessageTypes;
 
         if (RegenerateSecret)
         {
@@ -96,7 +108,8 @@ public class EditWebHookModel : PageModel
                 Enabled = Enabled,
                 Endpoint = Endpoint!,
                 UpdatedByUserId = User.GetUserId()!.Value,
-                WebHookId = WebHookId
+                WebHookId = WebHookId,
+                WebHookMessageTypes = WebHookMessageTypes
             });
 
             await _dbContext.SaveChangesAsync();

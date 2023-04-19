@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
 
 namespace TeacherIdentity.AuthServer.Api.Endpoints;
 

@@ -17,6 +17,15 @@
         <govuk-checkboxes-item value="@true">Enabled</govuk-checkboxes-item>
     </govuk-checkboxes>
 
+    <govuk-checkboxes asp-for="WebHookMessageTypes">
+        <govuk-checkboxes-fieldset>
+            <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m" />
+
+            <govuk-checkboxes-item value="@WebHookMessageTypes.UserUpdated" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserUpdated)">User Updated</govuk-checkboxes-item>
+            <govuk-checkboxes-item value="@WebHookMessageTypes.UserMerged" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserMerged)">User Merged</govuk-checkboxes-item>
+        </govuk-checkboxes-fieldset>
+    </govuk-checkboxes>
+
     <govuk-input asp-for="Secret" disabled class="govuk-!-margin-bottom-2" />
 
     <govuk-checkboxes asp-for="RegenerateSecret" class="govuk-checkboxes--small">

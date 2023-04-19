@@ -10,4 +10,5 @@ public class WebHook
     public required string Endpoint { get; set; }
     public required bool Enabled { get; set; }
     public required string Secret { get; set; }
+    public required WebHookMessageTypes WebHookMessageTypes { get; set; }
 }

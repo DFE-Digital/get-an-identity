@@ -46,8 +46,9 @@ public class WebHookNotificationPublisher : INotificationPublisher
 
     protected IWebHookNotificationSender Sender { get; }
 
-    public Task<WebHook[]> GetWebHooksForNotification(NotificationEnvelope notification) =>
-        _memoryCache.GetOrCreateAsync(
+    public async Task<WebHook[]> GetWebHooksForNotification(NotificationEnvelope notification)
+    {
+        var webhooks = await _memoryCache.GetOrCreateAsync(
             MemoryCacheKeys.WebHooks,
             async entry =>
             {
@@ -55,7 +56,12 @@ public class WebHookNotificationPublisher : INotificationPublisher
 
                 await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
                 return await dbContext.WebHooks.Where(wh => wh.Enabled).ToArrayAsync();
-            })!;
+            });
+
+        return webhooks!
+            .Where(wh => wh.WebHookMessageTypes.HasFlag(MapNotificationMessageTypeToWebHookMessageType(notification.MessageType)))
+            .ToArray();
+    }
 
     public virtual async Task PublishNotification(NotificationEnvelope notification)
     {
@@ -68,6 +74,14 @@ public class WebHookNotificationPublisher : INotificationPublisher
             await Sender.SendNotification(notification.NotificationId, webHook.Endpoint, payload, webHook.Secret);
         }
     }
+
+    private static WebHookMessageTypes MapNotificationMessageTypeToWebHookMessageType(string notificationMessageType) =>
+        notificationMessageType switch
+        {
+            UserUpdatedMessage.MessageTypeName => WebHookMessageTypes.UserUpdated,
+            UserMergedMessage.MessageTypeName => WebHookMessageTypes.UserMerged,
+            _ => WebHookMessageTypes.All,
+        };
 
     protected string SerializeNotification(NotificationEnvelope notification) =>
         JsonSerializer.Serialize(notification, SerializerOptions);

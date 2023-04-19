@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace TeacherIdentity.AuthServer;
@@ -22,16 +21,9 @@ public static class TempDataExtensions
         data = null;
         if (tempData.TryGetValue(TempDataKeys.FlashSuccess, out object? flashSuccessObject) && flashSuccessObject is string flashSuccessString)
         {
-            try
-            {
-                var flashSuccessData = FlashSuccessData.Deserialize(flashSuccessString);
-                data = (flashSuccessData.Heading, flashSuccessData.Message);
-                return true;
-            }
-            catch (JsonSerializationException)
-            {
-                // Deserialization failed
-            }
+            var flashSuccessData = FlashSuccessData.Deserialize(flashSuccessString);
+            data = (flashSuccessData.Heading, flashSuccessData.Message);
+            return true;
         }
         return false;
     }
