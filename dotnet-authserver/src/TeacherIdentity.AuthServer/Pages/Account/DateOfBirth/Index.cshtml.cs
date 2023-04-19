@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -35,14 +34,15 @@ public class DateOfBirthPage : PageModel
     [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
     public DateOnly? DateOfBirth { get; set; }
 
-    public void OnGet()
+    public async Task OnGet()
     {
         var userId = User.GetUserId(true);
 
-        DateOfBirth = _dbContext.Users
-        .Where(u => u.UserId == userId)
-        .Select(u => u.DateOfBirth)
-        .FirstOrDefault();
+        DateOfBirth = await _dbContext.Users
+       .Where(u => u.UserId == userId)
+       .Select(u => u.DateOfBirth)
+       .FirstOrDefaultAsync();
+
     }
 
     public IActionResult OnPost()
