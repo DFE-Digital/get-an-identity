@@ -34,8 +34,15 @@ public class DateOfBirthPage : PageModel
     [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
     public DateOnly? DateOfBirth { get; set; }
 
-    public void OnGet()
+    public async Task OnGet()
     {
+        var userId = User.GetUserId(true);
+
+        DateOfBirth = await _dbContext.Users
+       .Where(u => u.UserId == userId)
+       .Select(u => u.DateOfBirth)
+       .FirstOrDefaultAsync();
+
     }
 
     public IActionResult OnPost()

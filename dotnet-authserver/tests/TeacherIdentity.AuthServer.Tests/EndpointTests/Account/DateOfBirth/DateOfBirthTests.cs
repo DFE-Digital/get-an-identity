@@ -140,4 +140,27 @@ public class DateOfBirthTests : TestBase
                 PendingDateOfBirthChange = hasPendingDobChange
             });
     }
+
+    [Fact]
+    public async Task Get_Prepopulates_DateOfBirth()
+    {
+
+        // Arrange
+        var defaultDateOfBirth = TestUsers.DefaultUser.DateOfBirth!.Value;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/date-of-birth?DateOfBirth=={defaultDateOfBirth:yyyy-MM-dd}"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+        Assert.True(doc.GetElementById("DateOfBirth.Day")?.GetAttribute("value")?.Length > 0);
+        Assert.True(doc.GetElementById("DateOfBirth.Month")?.GetAttribute("value")?.Length > 0);
+        Assert.True(doc.GetElementById("DateOfBirth.Year")?.GetAttribute("value")?.Length > 0);
+
+
+    }
 }
