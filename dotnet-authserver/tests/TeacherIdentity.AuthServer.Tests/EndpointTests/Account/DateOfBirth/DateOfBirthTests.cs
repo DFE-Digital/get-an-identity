@@ -144,7 +144,7 @@ public class DateOfBirthTests : TestBase
     [Fact]
     public async Task Get_Prepopulates_DateOfBirth()
     {
-        
+
         // Arrange
         var defaultDateOfBirth = TestUsers.DefaultUser.DateOfBirth!.Value;
 
