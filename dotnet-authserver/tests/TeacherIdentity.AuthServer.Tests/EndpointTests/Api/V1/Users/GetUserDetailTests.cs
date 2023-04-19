@@ -53,10 +53,8 @@ public class GetUserDetailTests : TestBase
         var response = await httpClient.GetAsync($"/api/v1/users/{mergedUser.UserId}");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse(response);
-
-        AssertEx.JsonObjectEquals(
-            responseObj,
+        await AssertEx.JsonResponseEquals(
+            response,
             new
             {
                 userId = user.UserId,
@@ -88,10 +86,8 @@ public class GetUserDetailTests : TestBase
         var response = await httpClient.GetAsync($"/api/v1/users/{user.UserId}");
 
         // Assert
-        var responseObj = await AssertEx.JsonResponse(response);
-
-        AssertEx.JsonObjectEquals(
-            responseObj,
+        await AssertEx.JsonResponseEquals(
+            response,
             new
             {
                 userId = user.UserId,

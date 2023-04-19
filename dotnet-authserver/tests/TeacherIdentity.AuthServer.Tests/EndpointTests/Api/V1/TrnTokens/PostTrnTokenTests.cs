@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
-using TeacherIdentity.AuthServer.Api.V1.Responses;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.TrnTokens;
 
@@ -116,11 +115,9 @@ public class PostTrnTokenTests : TestBase
         var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
 
         // Assert
-        var trnTokenResponse = JsonConvert.DeserializeObject<PostTrnTokenResponse>(await response.Content.ReadAsStringAsync());
-
-        Assert.NotNull(trnTokenResponse);
-        Assert.Equal(trnTokenResponse.Trn, trnTokenRequest.Trn);
-        Assert.Equal(trnTokenResponse.Email, trnTokenRequest.Email);
-        Assert.NotNull(trnTokenResponse.TrnToken);
+        var jsonResponse = await AssertEx.JsonResponse(response);
+        Assert.Equal(trnTokenRequest.Trn, jsonResponse.RootElement.GetProperty("trn").GetString());
+        Assert.Equal(trnTokenRequest.Email, jsonResponse.RootElement.GetProperty("email").GetString());
+        Assert.NotNull(jsonResponse.RootElement.GetProperty("trnToken").GetString());
     }
 }
