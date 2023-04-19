@@ -13,7 +13,7 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.AccountDateOfBirthConfirm(Model.DateOfBirth!.Value, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
-
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
             <govuk-summary-list>
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
