@@ -5,7 +5,6 @@ using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Establishment;
 using TeacherIdentity.AuthServer.Services.EventPublishing;
 using TeacherIdentity.AuthServer.Services.Notification;
-using TeacherIdentity.AuthServer.Services.TrnLookup;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
@@ -29,7 +28,6 @@ public static class ServiceCollectionExtensions
             .AddDqtApi(environment, configuration)
             .AddEmail(environment, configuration)
             .AddUserVerification(environment, configuration)
-            .AddTrnLookup(configuration)
             .AddSingleton<Redactor>()
             .AddZendesk(environment, configuration)
             .AddEventPublishing(environment);
