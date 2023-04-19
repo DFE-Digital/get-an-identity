@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -36,6 +37,12 @@ public class DateOfBirthPage : PageModel
 
     public void OnGet()
     {
+        var userId = User.GetUserId(true);
+
+        DateOfBirth = _dbContext.Users
+        .Where(u => u.UserId == userId)
+        .Select(u => u.DateOfBirth)
+        .FirstOrDefault();
     }
 
     public IActionResult OnPost()
