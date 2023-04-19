@@ -121,6 +121,7 @@ public class IndexTests : TestBase
         HostFixture.SetUserId(user.UserId);
 
         var officialFirstName = Faker.Name.First();
+        var officialMiddleName = Faker.Name.Middle();
         var officialLastName = Faker.Name.Last();
 
         HostFixture.DqtApiClient
@@ -129,7 +130,7 @@ public class IndexTests : TestBase
             {
                 DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = officialFirstName,
-                MiddleName = "",
+                MiddleName = officialMiddleName,
                 LastName = officialLastName,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
@@ -146,7 +147,7 @@ public class IndexTests : TestBase
         var doc = await response.GetDocument();
 
         Assert.Equal(
-            $"{officialFirstName} {officialLastName}",
+            $"{officialFirstName} {officialMiddleName} {officialLastName}",
             doc.GetSummaryListValueForKey("Official name")?.Replace("Displayed on teaching certificates", "").Trim());
     }
 

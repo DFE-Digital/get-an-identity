@@ -65,7 +65,10 @@ public class IndexModel : PageModel
             var dqtUser = await _dqtApiClient.GetTeacherByTrn(Trn) ??
                 throw new Exception($"User with TRN '{Trn}' cannot be found in DQT.");
 
-            OfficialName = $"{dqtUser.FirstName} {dqtUser.LastName}";
+            OfficialName = string.Join(' ', new[] { dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName }
+                .Select(n => n.Trim())
+                .Where(n => !string.IsNullOrEmpty(n)));
+
             DqtDateOfBirth = dqtUser.DateOfBirth;
             PendingDqtNameChange = dqtUser.PendingNameChange;
             PendingDqtDateOfBirthChange = dqtUser.PendingDateOfBirthChange;
