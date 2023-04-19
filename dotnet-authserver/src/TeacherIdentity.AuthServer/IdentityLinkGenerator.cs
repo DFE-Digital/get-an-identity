@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Flurl;
 using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.State;
@@ -8,14 +9,36 @@ public abstract class IdentityLinkGenerator
 {
     protected const string DateOfBirthFormat = Infrastructure.ModelBinding.DateOnlyModelBinder.Format;
 
-    protected IdentityLinkGenerator(QueryStringSignatureHelper queryStringSignatureHelper)
+    protected IdentityLinkGenerator(
+        LinkGenerator linkGenerator,
+        QueryStringSignatureHelper queryStringSignatureHelper)
     {
+        LinkGenerator = linkGenerator;
         QueryStringSignatureHelper = queryStringSignatureHelper;
     }
 
+    protected LinkGenerator LinkGenerator { get; }
+
     protected QueryStringSignatureHelper QueryStringSignatureHelper { get; }
 
-    protected abstract string Page(string pageName, bool authenticationJourneyRequired = true);
+    protected abstract bool TryGetAuthenticationState([NotNullWhen(true)] out AuthenticationState? authenticationState);
+
+    protected virtual string Page(string pageName, bool authenticationJourneyRequired = true)
+    {
+        if (!TryGetAuthenticationState(out var authenticationState) && authenticationJourneyRequired)
+        {
+            throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
+        }
+
+        var url = new Url(LinkGenerator.GetPathByPage(pageName));
+
+        if (authenticationState is not null)
+        {
+            url = url.SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authenticationState.JourneyId);
+        }
+
+        return url;
+    }
 
     public string CompleteAuthorization() => Page("/SignIn/Complete");
 
@@ -267,42 +290,21 @@ public abstract class IdentityLinkGenerator
 
 public class MvcIdentityLinkGenerator : IdentityLinkGenerator
 {
-    private readonly LinkGenerator _linkGenerator;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public MvcIdentityLinkGenerator(
-        QueryStringSignatureHelper queryStringSignatureHelper,
         LinkGenerator linkGenerator,
+        QueryStringSignatureHelper queryStringSignatureHelper,
         IHttpContextAccessor httpContextAccessor)
-        : base(queryStringSignatureHelper)
+        : base(linkGenerator, queryStringSignatureHelper)
     {
-        _linkGenerator = linkGenerator;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    protected override string Page(string pageName, bool authenticationJourneyRequired = true)
+    protected override bool TryGetAuthenticationState([NotNullWhen(true)] out AuthenticationState? authenticationState)
     {
         var httpContext = _httpContextAccessor.HttpContext ?? throw new InvalidOperationException("No HttpContext.");
-
-        AuthenticationState? authenticationState;
-
-        if (authenticationJourneyRequired)
-        {
-            authenticationState = httpContext.GetAuthenticationState();
-        }
-        else
-        {
-            httpContext.TryGetAuthenticationState(out authenticationState);
-        }
-
-        var url = new Url(_linkGenerator.GetPathByPage(pageName));
-
-        if (authenticationState is not null)
-        {
-            url = url.SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authenticationState.JourneyId);
-        }
-
-        return url;
+        return httpContext.TryGetAuthenticationState(out authenticationState);
     }
 }
 
