@@ -11,7 +11,7 @@
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountOfficialNameConfirm(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.FileName!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountOfficialNameConfirm(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.FileName!, Model.FileId!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <govuk-summary-list>
@@ -19,7 +19,7 @@
                     <govuk-summary-list-row-key>Official name</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value>@Model.FirstName @Model.MiddleName @Model.LastName</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialNameDetails(Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialNameDetails(Model.FirstName, Model.MiddleName, Model.LastName, Model.FileName, Model.FileId, fromConfirmPage: true, Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
                 <govuk-summary-list-row>
@@ -35,4 +35,3 @@
         </form>
     </div>
 </div>
-

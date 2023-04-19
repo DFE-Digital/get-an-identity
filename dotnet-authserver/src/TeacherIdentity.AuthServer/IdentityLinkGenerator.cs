@@ -199,9 +199,16 @@ public abstract class IdentityLinkGenerator
         Page("/Account/OfficialName/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public string AccountOfficialNameDetails(ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialNameDetails(string? firstName, string? middleName, string? lastName, string? fileName, string? fileId, bool fromConfirmPage, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialName/Details", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam("firstName", firstName)
+            .SetQueryParam("middleName", middleName)
+            .SetQueryParam("lastName", lastName)
+            .SetQueryParam("fileName", fileName)
+            .SetQueryParam("fileId", fileId)
+            .SetQueryParam("fromConfirmPage", fromConfirmPage)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountOfficialNameEvidence(string firstName, string? middleName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialName/Evidence", authenticationJourneyRequired: false)
@@ -211,12 +218,13 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
-    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileName, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileName, string fileId, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialName/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
             .SetQueryParam("middleName", middleName)
             .SetQueryParam("lastName", lastName)
             .SetQueryParam("fileName", fileName)
+            .SetQueryParam("fileId", fileId)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 

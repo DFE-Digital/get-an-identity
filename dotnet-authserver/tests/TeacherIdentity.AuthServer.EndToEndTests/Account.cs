@@ -52,7 +52,7 @@ public class Account : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task ChangeOfficialName()
+    public async Task ChangeOfficialDateOfBirth()
     {
         var user = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
@@ -133,6 +133,86 @@ public class Account : IClassFixture<HostFixture>
         Assert.False(await page.GetByTestId("dqt-dob-pending-review-tag").IsVisibleAsync());
         Assert.False(await page.GetByTestId("dob-change-link").IsVisibleAsync());
         Assert.False(await page.GetByTestId("dqt-dob-change-link").IsVisibleAsync());
+    }
+
+    [Fact]
+    public async Task ChangeOfficialName()
+    {
+        var user = await _hostFixture.TestData.CreateUser(hasTrn: true);
+
+        var newFirstName = Faker.Name.First();
+        var newMiddleName = Faker.Name.Middle();
+        var newLastName = Faker.Name.Last();
+
+        var dqtTeacherInfo = new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth!.Value,
+            FirstName = user.FirstName,
+            MiddleName = "",
+            LastName = user.LastName,
+            NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        };
+
+        ConfigureDqtApiGetTeacherResponse(user.Trn!, dqtTeacherInfo);
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await SignInToAccountPage(page, user);
+
+        Assert.False(await page.GetByTestId("dqt-name-pending-review-tag").IsVisibleAsync());
+
+        await page.ClickChangeLinkForElementWithTestId("dqt-name-change-link");
+
+        await page.WaitForUrlPathAsync("/account/official-name");
+        await page.ClickContinueButton();
+
+        await page.WaitForUrlPathAsync("/account/official-name/details");
+        await page.FillAsync("text=First name", newFirstName);
+        await page.FillAsync("text=Middle name (optional)", newMiddleName);
+        await page.FillAsync("text=Last name", newLastName);
+        await page.ClickContinueButton();
+
+        await page.WaitForUrlPathAsync("/account/official-name/evidence");
+        await page.SetInputFilesAsync(
+            "text=Upload a file",
+            new FilePayload()
+            {
+                Name = "evidence.jpg",
+                MimeType = "image/jpeg",
+                Buffer = TestData.JpegImage
+            });
+        await page.ClickContinueButton();
+
+        await page.WaitForUrlPathAsync("/account/official-name/confirm");
+        await page.ClickAsync("button:text-is('Submit change')");
+
+        ConfigureDqtApiGetTeacherResponse(
+            user.Trn!,
+            dqtTeacherInfo with
+            {
+                PendingNameChange = true
+            });
+
+        await page.WaitForUrlPathAsync("/account");
+        await page.ReloadAsync();  // Ensure the page has observed the re-configured DQT API response above
+
+        Assert.False(await page.GetByTestId("dqt-name-pending-review-tag").IsVisibleAsync());
+
+        ConfigureDqtApiGetTeacherResponse(
+            user.Trn!,
+            dqtTeacherInfo with
+            {
+                DateOfBirth = user.DateOfBirth!.Value,
+                PendingNameChange = false
+            });
+
+        await page.ReloadAsync();
+
+        Assert.False(await page.GetByTestId("dqt-name-pending-review-tag").IsVisibleAsync());
     }
 
     private async Task SignInToAccountPage(IPage page, User user)
