@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -11,6 +12,7 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Phone;
 public class PhonePage : BasePhonePageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
     public PhonePage(
         IUserVerificationService userVerificationService,
@@ -19,6 +21,7 @@ public class PhonePage : BasePhonePageModel
         base(userVerificationService, dbContext)
     {
         _linkGenerator = linkGenerator;
+        _dbContext = dbContext;
     }
 
     [BindNever]
@@ -29,8 +32,15 @@ public class PhonePage : BasePhonePageModel
     [MobilePhone(ErrorMessage = "Enter a valid mobile phone number")]
     public new string? MobileNumber { get; set; }
 
-    public void OnGet()
+    public async Task OnGet()
     {
+        var userId = User.GetUserId(true);
+
+        MobileNumber = await _dbContext.Users
+       .Where(u => u.UserId == userId)
+       .Select(u => u.MobileNumber)
+       .FirstOrDefaultAsync();
+
     }
 
     public async Task<IActionResult> OnPost()

@@ -163,4 +163,31 @@ public class PhoneTests : TestBase
         { "", "Enter your new mobile phone number" },
         { "xx", "Enter a valid mobile phone number" }
     };
+
+    [Fact]
+    public async Task Get_Prepopulates_MobilePhoneNumber()
+    {
+
+        // Arrange
+        var user = await TestData.CreateUser(hasMobileNumber: true);
+        HostFixture.SetUserId(user.UserId);
+
+        var clientRedirectInfo = CreateClientRedirectInfo();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/phone?{clientRedirectInfo.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "MobileNumber", TestData.GenerateUniqueMobileNumber() },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+        var doc = await response.GetDocument();
+
+        // Assert
+        Assert.True(doc.GetElementById("MobileNumber")?.GetAttribute("value")?.Length > 0);
+
+    }
 }
