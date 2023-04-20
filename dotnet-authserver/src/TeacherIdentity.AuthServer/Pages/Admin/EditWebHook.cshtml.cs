@@ -33,6 +33,7 @@ public class EditWebHookModel : PageModel
     [BindProperty]
     public bool Enabled { get; set; }
 
+    [Display(Name = "Which events would you like to trigger this webhook?", Description = "Select all that apply")]
     [ModelBinder(BinderType = typeof(WebHookMessageTypesModelBinder))]
     public WebHookMessageTypes WebHookMessageTypes { get; set; }
 

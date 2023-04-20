@@ -15,16 +15,13 @@ public class WebHookMessageTypesModelBinder : IModelBinder
 
         var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
         var rawValues = valueProviderResult.Values.ToArray();
-        if (rawValues != null)
+        if (Enum.TryParse(string.Join(",", rawValues), out WebHookMessageTypes result))
         {
-            if (Enum.TryParse(string.Join(",", rawValues), out WebHookMessageTypes result))
-            {
-                bindingContext.Result = ModelBindingResult.Success(result);
-            }
-            else
-            {
-                bindingContext.Result = ModelBindingResult.Failed();
-            }
+            bindingContext.Result = ModelBindingResult.Success(result);
+        }
+        else
+        {
+            bindingContext.Result = ModelBindingResult.Failed();
         }
 
         return Task.CompletedTask;

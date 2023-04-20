@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
@@ -53,13 +54,15 @@ public class AddWebHookTests : TestBase
         // Arrange
         var endpoint = Faker.Internet.Url();
         var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/webhooks/new")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "Endpoint", endpoint },
-                { "Enabled", enabled }
+                { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes }
             }
         };
 
@@ -90,6 +93,7 @@ public class AddWebHookTests : TestBase
                 Assert.Equal(webHookId, webHookAdded.WebHookId);
                 Assert.Equal(enabled, webHookAdded.Enabled);
                 Assert.Equal(endpoint, webHookAdded.Endpoint);
+                Assert.Equal(webHookMessageTypes, webHookAdded.WebHookMessageTypes);
             });
 
         var redirectedResponse = await response.FollowRedirect(HttpClient);

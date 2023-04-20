@@ -1,4 +1,5 @@
 @page "/admin/webhooks/{webHookId}"
+@using TeacherIdentity.AuthServer.Notifications.Messages;
 @model TeacherIdentity.AuthServer.Pages.Admin.EditWebHookModel
 @{
     ViewBag.Title = "Edit web hook";
@@ -21,8 +22,8 @@
         <govuk-checkboxes-fieldset>
             <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m" />
 
-            <govuk-checkboxes-item value="@WebHookMessageTypes.UserUpdated" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserUpdated)">User Updated</govuk-checkboxes-item>
-            <govuk-checkboxes-item value="@WebHookMessageTypes.UserMerged" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserMerged)">User Merged</govuk-checkboxes-item>
+            <govuk-checkboxes-item value="@WebHookMessageTypes.UserUpdated" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserUpdated)">@UserUpdatedMessage.MessageTypeName</govuk-checkboxes-item>
+            <govuk-checkboxes-item value="@WebHookMessageTypes.UserMerged" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserMerged)">@UserMergedMessage.MessageTypeName</govuk-checkboxes-item>
         </govuk-checkboxes-fieldset>
     </govuk-checkboxes>
 
