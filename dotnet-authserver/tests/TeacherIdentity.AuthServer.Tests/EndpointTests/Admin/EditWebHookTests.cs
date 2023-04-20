@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
@@ -79,13 +80,15 @@ public class EditWebHookTests : TestBase
         var webHookId = Guid.NewGuid();
         var endpoint = Faker.Internet.Url();
         var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "Endpoint", endpoint },
-                { "Enabled", enabled }
+                { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes },
             }
         };
 
@@ -103,13 +106,15 @@ public class EditWebHookTests : TestBase
         var webHookId = await CreateWebHook(enabled: false);
         var endpoint = Faker.Internet.Url();
         var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "Endpoint", endpoint },
-                { "Enabled", enabled }
+                { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes }
             }
         };
 
@@ -126,6 +131,7 @@ public class EditWebHookTests : TestBase
 
             Assert.Equal(endpoint, webHook.Endpoint);
             Assert.Equal(enabled, webHook!.Enabled);
+            Assert.Equal(webHookMessageTypes, webHook.WebHookMessageTypes);
         });
 
         EventObserver.AssertEventsSaved(
@@ -137,7 +143,8 @@ public class EditWebHookTests : TestBase
                 Assert.Equal(webHookId, webHookUpdated.WebHookId);
                 Assert.Equal(enabled, webHookUpdated.Enabled);
                 Assert.Equal(endpoint, webHookUpdated.Endpoint);
-                Assert.Equal(WebHookUpdatedEventChanges.Enabled | WebHookUpdatedEventChanges.Endpoint, webHookUpdated.Changes);
+                Assert.Equal(webHookMessageTypes, webHookUpdated.WebHookMessageTypes);
+                Assert.Equal(WebHookUpdatedEventChanges.Enabled | WebHookUpdatedEventChanges.Endpoint | WebHookUpdatedEventChanges.WebHookMessageTypes, webHookUpdated.Changes);
             });
     }
 
@@ -148,6 +155,7 @@ public class EditWebHookTests : TestBase
         var webHookId = await CreateWebHook(enabled: false);
         var endpoint = Faker.Internet.Url();
         var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
         var originalSecret = (await TestData.WithDbContext(dbContext => dbContext.WebHooks.SingleAsync(u => u.WebHookId == webHookId))).Secret;
 
@@ -157,6 +165,7 @@ public class EditWebHookTests : TestBase
             {
                 { "Endpoint", endpoint },
                 { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes },
                 { "RegenerateSecret", false.ToString() }
             }
         };
@@ -190,6 +199,7 @@ public class EditWebHookTests : TestBase
         var webHookId = await CreateWebHook(enabled: false);
         var endpoint = Faker.Internet.Url();
         var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
         var originalSecret = (await TestData.WithDbContext(dbContext => dbContext.WebHooks.SingleAsync(u => u.WebHookId == webHookId))).Secret;
 
@@ -199,6 +209,7 @@ public class EditWebHookTests : TestBase
             {
                 { "Endpoint", endpoint },
                 { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes },
                 { "RegenerateSecret", true.ToString() }
             }
         };
@@ -236,12 +247,13 @@ public class EditWebHookTests : TestBase
 
             endpoint ??= Faker.Internet.Url();
 
-            dbContext.WebHooks.Add(new Models.WebHook()
+            dbContext.WebHooks.Add(new WebHook()
             {
                 Enabled = enabled,
                 Endpoint = endpoint,
                 WebHookId = webHookId,
-                Secret = Models.WebHook.GenerateSecret()
+                Secret = WebHook.GenerateSecret(),
+                WebHookMessageTypes = WebHookMessageTypes.UserUpdated
             });
 
             await dbContext.SaveChangesAsync();
