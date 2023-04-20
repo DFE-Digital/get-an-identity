@@ -22,14 +22,22 @@ public abstract class BaseEvidencePage : PageModel
     [FileSize(MaxFileSizeMb * 1024 * 1024, ErrorMessage = "The selected file must be smaller than 3MB")]
     public IFormFile? EvidenceFile { get; set; }
 
-    protected async Task<string> UploadEvidence()
+    protected string GenerateFileId()
     {
-        var fileId = Guid.NewGuid();
+        var guid = Guid.NewGuid();
         var extension = Path.GetExtension(EvidenceFile!.FileName);
 
-        var fileName = $"{User.GetUserId()}/{fileId}{extension}";
-        await _dqtEvidenceStorage.Upload(EvidenceFile!, fileName);
+        return $"{User.GetUserId()}/{guid}{extension}";
+    }
 
-        return fileName;
+    protected async Task<bool> TryUploadEvidence(string fileId)
+    {
+        if (!await _dqtEvidenceStorage.TrySafeUpload(EvidenceFile!, fileId))
+        {
+            ModelState.AddModelError("EvidenceFile", "The selected file contains a virus");
+            return false;
+        }
+
+        return true;
     }
 }
