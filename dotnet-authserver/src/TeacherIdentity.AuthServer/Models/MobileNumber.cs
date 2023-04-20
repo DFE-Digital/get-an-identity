@@ -328,7 +328,7 @@ public sealed class MobileNumber : IEquatable<MobileNumber>, IParsable<MobileNum
             return false;
         }
 
-        result = new(normalizedNumber);
+        result = new MobileNumber(normalizedNumber);
         error = default;
         return true;
 

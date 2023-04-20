@@ -109,6 +109,15 @@ public class MobilePhoneAttribute : ValidationAttribute
 }
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class EmailAddressAttribute : ValidationAttribute
+{
+    public override bool IsValid(object? value)
+    {
+        return value is string str && EmailAddress.TryParse(str, out _);
+    }
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class NationalInsuranceNumber : ValidationAttribute
 {
     public override bool IsValid(object? value)
