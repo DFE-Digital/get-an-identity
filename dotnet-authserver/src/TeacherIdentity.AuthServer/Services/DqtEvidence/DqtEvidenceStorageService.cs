@@ -6,8 +6,8 @@ namespace TeacherIdentity.AuthServer.Services.DqtEvidence;
 
 public class DqtEvidenceStorageService : IDqtEvidenceStorageService
 {
-    private const string WindowsDefenderMalwareScanKey = "Malware Scanning scan result";
-    private const string WindowsDefenderMalwareScanSuccessValue = "No threats found";
+    private const string MicrosoftDefenderMalwareScanKey = "Malware Scanning scan result";
+    private const string MicrosoftDefenderMalwareScanSuccessValue = "No threats found";
 
     private const int InitialPollingDelayMs = 750;
     private const int PollingPeriodMs = 250;
@@ -31,7 +31,7 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
         await blobClient.UploadAsync(stream);
 
         var malwareScanResult = await PollForMalwareScanResult(blobClient);
-        return malwareScanResult == WindowsDefenderMalwareScanSuccessValue;
+        return malwareScanResult == MicrosoftDefenderMalwareScanSuccessValue;
     }
 
     public async Task<string> GetSasConnectionString(string blobName, int minutes)
@@ -75,7 +75,7 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
             await Task.Delay(PollingPeriodMs);
 
             var blobTags = await blobClient.GetTagsAsync();
-            if (blobTags.Value.Tags.TryGetValue(WindowsDefenderMalwareScanKey, out malwareScanResult))
+            if (blobTags.Value.Tags.TryGetValue(MicrosoftDefenderMalwareScanKey, out malwareScanResult))
             {
                 malwareScanComplete = true;
             }
