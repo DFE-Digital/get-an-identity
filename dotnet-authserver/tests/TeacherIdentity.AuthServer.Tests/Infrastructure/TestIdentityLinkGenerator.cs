@@ -1,27 +1,24 @@
-using Flurl;
+using System.Diagnostics.CodeAnalysis;
 using TeacherIdentity.AuthServer.Helpers;
-using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 public class TestIdentityLinkGenerator : IdentityLinkGenerator
 {
     private readonly AuthenticationState _authenticationState;
-    private readonly LinkGenerator _linkGenerator;
 
     public TestIdentityLinkGenerator(
-        QueryStringSignatureHelper queryStringSignatureHelper,
         AuthenticationState authenticationState,
-        LinkGenerator linkGenerator)
-        : base(queryStringSignatureHelper)
+        LinkGenerator linkGenerator,
+        QueryStringSignatureHelper queryStringSignatureHelper)
+        : base(linkGenerator, queryStringSignatureHelper)
     {
         _authenticationState = authenticationState;
-        _linkGenerator = linkGenerator;
     }
 
-    protected override string Page(string pageName, bool authenticationJourneyRequired = true)
+    protected override bool TryGetAuthenticationState([NotNullWhen(true)] out AuthenticationState? authenticationState)
     {
-        return new Url(_linkGenerator.GetPathByPage(pageName))
-            .SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, _authenticationState.JourneyId);
+        authenticationState = _authenticationState;
+        return true;
     }
 }

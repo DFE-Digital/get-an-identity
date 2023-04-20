@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Flurl;
-using Moq.Protected;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
@@ -224,11 +224,22 @@ public partial class AuthenticationStateTests
         AuthenticationState.AuthenticationMilestone expectedMilestone)
     {
         // Arrange
-        var linkGenerator = new Mock<IdentityLinkGenerator>(new Helpers.QueryStringSignatureHelper(key: "dummy"));
+        var linkGenerator = new Mock<LinkGenerator>();
+
+        var identityLinkGenerator = new TestIdentityLinkGenerator(
+            authenticationState,
+            linkGenerator.Object,
+            new Helpers.QueryStringSignatureHelper(key: "dummy"));
 
         void ConfigureMockForPage(string pageName, string returnsPath)
         {
-            linkGenerator.Protected().Setup<string>("Page", pageName, /* authenticationJourneyRequired: */ true)
+            linkGenerator
+                .Setup(mock => mock.GetPathByAddress<RouteValuesAddress>(
+                    It.Is<RouteValuesAddress>(r => r.ExplicitValues["page"]!.Equals(pageName)),
+                    It.IsAny<RouteValueDictionary>(),
+                    It.IsAny<PathString>(),
+                    It.IsAny<FragmentString>(),
+                    It.IsAny<LinkOptions>()))
                 .Returns(returnsPath.SetQueryParam("asid", authenticationState.JourneyId.ToString()));
         }
 
@@ -242,7 +253,7 @@ public partial class AuthenticationStateTests
         ConfigureMockForPage("/SignIn/Register/Phone", "/sign-in/register/phone");
 
         // Act
-        var nextHopUrl = authenticationState.GetNextHopUrl(linkGenerator.Object);
+        var nextHopUrl = authenticationState.GetNextHopUrl(identityLinkGenerator);
         var lastMilestone = authenticationState.GetLastMilestone();
 
         // Assert
