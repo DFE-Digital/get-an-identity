@@ -183,4 +183,117 @@ public class Register : IClassFixture<HostFixture>
         _hostFixture.EventObserver.AssertEventsSaved(
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
     }
+
+    [Fact]
+    public async Task UserWithMobileAlreadyExists_SignsInExistingUser()
+    {
+        var email = Faker.Internet.Email();
+        var existingUser = await _hostFixture.TestData.CreateUser(hasMobileNumber: true);
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: null);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(existingUser.MobileNumber!);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SignInFromRegisterPhoneExistsPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(existingUser);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
+    }
+
+    [Fact]
+    public async Task UserWithMatchingNameAndDob_SignsInExistingUserFromEmail()
+    {
+        var email = Faker.Internet.Email();
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+
+        var existingUser = await _hostFixture.TestData.CreateUser();
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: null);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(existingUser.FirstName, existingUser.LastName);
+
+        await page.SubmitDateOfBirthPage(existingUser.DateOfBirth!.Value);
+
+        await page.SubmitAccountExistsPage(isUsersAccount: true);
+
+        await page.SubmitExistingAccountEmailConfirmationPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(existingUser);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
+    }
+
+    [Fact]
+    public async Task UserWithMatchingNameAndDob_SignsInExistingUserFromMobilePhone()
+    {
+        var email = Faker.Internet.Email();
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+
+        var existingUser = await _hostFixture.TestData.CreateUser();
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: null);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(existingUser.FirstName, existingUser.LastName);
+
+        await page.SubmitDateOfBirthPage(existingUser.DateOfBirth!.Value);
+
+        await page.SubmitAccountExistsPage(isUsersAccount: true);
+
+        await page.SubmitExistingAccountEmailConfirmationPage(cantAccessEmail: true);
+
+        await page.SubmitExistingAccountPhonePage();
+
+        await page.SubmitExistingAccountPhoneConfirmationPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(existingUser);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
+    }
 }

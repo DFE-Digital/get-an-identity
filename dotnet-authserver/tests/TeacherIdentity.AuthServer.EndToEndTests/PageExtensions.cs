@@ -18,7 +18,13 @@ public static class PageExtensions
     public static Task ClickChangeLinkForSummaryListRowWithKey(this IPage page, string key) =>
         page.Locator($".govuk-summary-list__row:has(> dt:text('{key}'))").GetByText("Change").ClickAsync();
 
-    public static Task ClickContinueButton(this IPage page) => page.ClickAsync(".govuk-button:text-is('Continue')");
+    private static Task ClickLink(this IPage page, string text) =>
+        page.Locator("a").GetByText(text).ClickAsync();
+
+    private static Task ClickButton(this IPage page, string text) =>
+        page.ClickAsync($".govuk-button:text-is('{text}')");
+
+    public static Task ClickContinueButton(this IPage page) => ClickButton(page, "Continue");
 
     public static async Task FillDateInput(this IPage page, DateOnly date)
     {
@@ -353,15 +359,49 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task SubmitAccountExistsPage(this IPage page, bool isUsersAccount)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/account-exists");
+        await page.ClickAsync($"label:text-is('{(isUsersAccount ? "Yes, sign into this account" : "No, this is not my account")}')");  // Do you have a National Insurance number?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitExistingAccountEmailConfirmationPage(this IPage page, bool cantAccessEmail = false)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/existing-account-email-confirmation");
+        await page.FillAsync("label:text-is('Confirmation code')", HostFixture.UserVerificationPin);
+        if (cantAccessEmail)
+        {
+            await page.ClickLink("I can’t access this email address");
+        }
+        else
+        {
+            await page.ClickContinueButton();
+        }
+    }
+
+    public static async Task SubmitExistingAccountPhonePage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/existing-account-phone");
+        await page.ClickButton("Request security code");
+    }
+
+    public static async Task SubmitExistingAccountPhoneConfirmationPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/existing-account-phone-confirmation");
+        await page.FillAsync("label:text-is('Security code')", HostFixture.UserVerificationPin);
+        await page.ClickContinueButton();
+    }
+
     public static async Task SignInFromRegisterEmailExistsPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/email-exists");
-        await page.ClickAsync("a:text-is('Sign in')");
+        await page.ClickLink("Sign in");
     }
 
     public static async Task SignInFromRegisterPhoneExistsPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/phone-exists");
-        await page.ClickAsync("a:text-is('Sign in')");
+        await page.ClickLink("Sign in");
     }
 }
