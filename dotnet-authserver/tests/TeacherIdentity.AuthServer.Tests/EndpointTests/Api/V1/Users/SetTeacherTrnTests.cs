@@ -198,7 +198,7 @@ public class SetTeacherTrnTests : TestBase
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                 Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
-                Assert.Equal(TestClients.Client1.ClientId, userUpdatedEvent.UpdatedByClientId);
+                Assert.Equal(TestClients.DefaultClient.ClientId, userUpdatedEvent.UpdatedByClientId);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
                 Assert.Equal(TestUsers.AdminUserWithAllRoles.UserId, userUpdatedEvent.UpdatedByUserId);
             });
@@ -244,7 +244,7 @@ public class SetTeacherTrnTests : TestBase
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                 Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
-                Assert.Equal(TestClients.Client1.ClientId, userUpdatedEvent.UpdatedByClientId);
+                Assert.Equal(TestClients.DefaultClient.ClientId, userUpdatedEvent.UpdatedByClientId);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
                 Assert.Equal(TestUsers.AdminUserWithAllRoles.UserId, userUpdatedEvent.UpdatedByUserId);
             });

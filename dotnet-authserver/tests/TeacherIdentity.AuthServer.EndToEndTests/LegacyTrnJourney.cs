@@ -6,11 +6,11 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
-public class LegacyTrnJourney : IClassFixture<HostFixture>
+public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
 {
-    private readonly HostFixture _hostFixture;
+    private readonly LegacyClientHostFixture _hostFixture;
 
-    public LegacyTrnJourney(HostFixture hostFixture)
+    public LegacyTrnJourney(LegacyClientHostFixture hostFixture)
     {
         _hostFixture = hostFixture;
         _hostFixture.OnTestStarting();

@@ -1,4 +1,7 @@
+using Moq;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -13,7 +16,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task NewUserCanRegister()
+    public async Task NewUserWithoutTrnRequiredCanRegister()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -40,7 +43,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitDateOfBirthPage(dateOfBirth);
 
-        await page.SubmitCheckAnswersPage(dateOfBirth);
+        await page.SubmitCheckAnswersPage();
 
         await page.SubmitCompletePageForNewUser();
 
@@ -65,6 +68,93 @@ public class Register : IClassFixture<HostFixture>
             {
                 var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
                 Assert.Equal(createdUserId, userSignedInEvent.User.UserId);
+            });
+    }
+
+    [Fact]
+    public async Task NewUserWithTrnRequiredCanRegister()
+    {
+        var email = Faker.Internet.Email();
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+        var ittProvider = Faker.Company.Name();
+        var trn = _hostFixture.TestData.GenerateTrn();
+
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.GetIttProviders(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetIttProvidersResponse()
+            {
+                IttProviders = new[]
+                {
+                    new IttProvider()
+                    {
+                        ProviderName = "Provider 1",
+                        Ukprn = "123"
+                    },
+                    new IttProvider()
+                    {
+                        ProviderName = ittProvider,
+                        Ukprn = "234"
+                    }
+                }
+            });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitDateOfBirthPage(dateOfBirth);
+
+        await page.SubmitRegisterHasNinoPage(hasNino: true);
+
+        await page.SubmitRegisterNiNumberPage(nino);
+
+        await page.SubmitRegisterHasTrnPage(hasTrn: true);
+
+        await page.SubmitRegisterTrnPage(trn);
+
+        await page.SubmitRegisterHasQtsPage(hasQts: true);
+
+        await page.SubmitRegisterIttProviderPageWithIttProvider(ittProvider);
+
+        await page.SubmitCheckAnswersPage();
+
+        // Requires TrnLookup to have been completed for new TRN user.
+
+        // await page.SubmitCompletePageForNewUser();
+        //
+        // await page.AssertSignedInOnTestClient(email, trn: null, firstName, lastName);
+
+        Guid createdUserId = default;
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userRegisteredEvent = Assert.IsType<UserRegisteredEvent>(e);
+                Assert.Equal(_hostFixture.TestClientId, userRegisteredEvent.ClientId);
+                Assert.Equal(email, userRegisteredEvent.User.EmailAddress);
+                Assert.Equal(mobileNumber, userRegisteredEvent.User.MobileNumber);
+                Assert.Equal(firstName, userRegisteredEvent.User.FirstName);
+                Assert.Equal(lastName, userRegisteredEvent.User.LastName);
+                Assert.Equal(dateOfBirth, userRegisteredEvent.User.DateOfBirth);
+
+                createdUserId = userRegisteredEvent.User.UserId;
             });
     }
 

@@ -54,7 +54,7 @@ public class HasQtsPage : PageModel
             return;
         }
 
-        if (authenticationState.StatedTrn is null)
+        if (authenticationState is { HasTrn: true, StatedTrn: null })
         {
             context.Result = new RedirectResult(_linkGenerator.RegisterTrn());
         }

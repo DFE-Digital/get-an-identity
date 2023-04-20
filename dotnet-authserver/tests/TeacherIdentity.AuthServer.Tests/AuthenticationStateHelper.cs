@@ -34,7 +34,7 @@ public sealed class AuthenticationStateHelper
     {
         var authenticationStateProvider = (TestAuthenticationStateProvider)hostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
 
-        client ??= TestClients.Client1;
+        client ??= TestClients.DefaultClient;
 
         var journeyId = Guid.NewGuid();
         var codeChallenge = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345")));

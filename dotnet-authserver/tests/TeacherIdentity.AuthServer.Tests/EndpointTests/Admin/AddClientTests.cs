@@ -54,7 +54,7 @@ public class AddClientTests : TestBase
     public async Task Post_ClientAlreadyExistsWithId_RendersError()
     {
         // Arrange
-        var clientId = TestClients.Client1.ClientId!;
+        var clientId = TestClients.DefaultClient.ClientId!;
         var clientSecret = "s3cret";
         var displayName = Faker.Company.Name();
         var serviceUrl = $"https://{Faker.Internet.DomainName()}/";

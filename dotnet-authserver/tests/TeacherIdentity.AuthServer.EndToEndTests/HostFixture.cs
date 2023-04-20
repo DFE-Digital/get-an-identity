@@ -48,7 +48,7 @@ public class HostFixture : IAsyncLifetime
 
     public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
-    public string TestClientId => GetTestConfiguration()["Client:ClientId"]!;
+    public virtual string TestClientId { get; } = "defaultClient";
 
     public TestData TestData => AuthServerServices.GetRequiredService<TestData>();
 
@@ -98,7 +98,11 @@ public class HostFixture : IAsyncLifetime
 
         await clientHelper.UpsertClients(clients);
 
-        _clientHost = CreateClientHost(testConfiguration);
+        var clientSettings = testConfiguration.GetSection("ClientsSettings")
+            .GetChildren()
+            .First(c => c["ClientId"] == TestClientId);
+
+        _clientHost = CreateClientHost(clientSettings);
 
         _playright = await Playwright.CreateAsync();
 
@@ -167,12 +171,12 @@ public class HostFixture : IAsyncLifetime
                 });
             });
 
-    private Host<TestClient.Program> CreateClientHost(IConfiguration testConfiguration) =>
+    private Host<TestClient.Program> CreateClientHost(IConfigurationSection clientSettings) =>
         Host<TestClient.Program>.CreateHost(
             ClientBaseUrl,
             builder =>
             {
-                builder.UseConfiguration(testConfiguration.GetSection("Client"));
+                builder.UseConfiguration(clientSettings);
 
                 builder.ConfigureServices(services =>
                 {
@@ -291,4 +295,9 @@ public class HostFixture : IAsyncLifetime
             }
         }
     }
+}
+
+public class LegacyClientHostFixture : HostFixture
+{
+    public override string TestClientId { get; }= "legacyClient";
 }

@@ -88,7 +88,7 @@ public static class PageExtensions
     public static async Task SubmitCompletePageForNewUserInLegacyTrnJourney(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");
-        Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
+        Assert.Equal(1, await page.Locator("data-testid=legacy-first-time-user-content").CountAsync());
         await page.ClickContinueButton();
     }
 
@@ -296,7 +296,7 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
-    public static async Task SubmitCheckAnswersPage(this IPage page, DateOnly dateOfBirth)
+    public static async Task SubmitCheckAnswersPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/check-answers");
         await page.ClickContinueButton();
@@ -306,6 +306,50 @@ public static class PageExtensions
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");
         Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterHasNinoPage(this IPage page, bool hasNino)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/has-nino");
+        await page.ClickAsync($"label:text-is('{(hasNino ? "Yes" : "No")}')");  // Do you have a National Insurance number?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterNiNumberPage(this IPage page, string nationalInsuranceNumber)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/ni-number");
+        await page.FillAsync("text='What is your National Insurance number?'", nationalInsuranceNumber);
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterHasTrnPage(this IPage page, bool hasTrn)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/has-trn");
+        await page.ClickAsync($"label:text-is('{(hasTrn ? "Yes" : "No")}')");  // Do you have a National Insurance number?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterTrnPage(this IPage page, string trn)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/trn");
+        await page.FillAsync("text=Enter your TRN", trn);
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterHasQtsPage(this IPage page, bool hasQts)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/has-qts");
+        await page.ClickAsync($"label:text-is('{(hasQts ? "Yes" : "No")}')");  // Have you been awarded qualified teacher status (QTS)?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterIttProviderPageWithIttProvider(this IPage page, string ittProviderName)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/itt-provider");
+        await page.ClickAsync("label:text-is('Yes')");  // Did a university, SCITT or school award your QTS?
+        await page.FillAsync("label:text-is('Where did you get your QTS?')", ittProviderName);
+        await page.FocusAsync("button:text-is('Continue')");  // Un-focus accessible autocomplete
         await page.ClickContinueButton();
     }
 
