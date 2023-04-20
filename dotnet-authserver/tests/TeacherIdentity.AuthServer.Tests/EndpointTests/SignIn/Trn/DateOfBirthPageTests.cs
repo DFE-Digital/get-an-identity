@@ -24,13 +24,13 @@ public class DateOfBirthPageTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/date-of-birth");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/date-of-birth");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/date-of-birth");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/date-of-birth");
     }
 
     [Fact]
@@ -44,14 +44,14 @@ public class DateOfBirthPageTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/date-of-birth");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/date-of-birth");
     }
 
     [Fact]
     public async Task Get_PreferredNameNotSet_RedirectsToPreferredNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.OfficialNameSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}");
 
@@ -66,7 +66,7 @@ public class DateOfBirthPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/date-of-birth", CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/date-of-birth", CustomScopes.Trn);
     }
 
     [Fact]
@@ -84,13 +84,13 @@ public class DateOfBirthPageTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/date-of-birth");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/date-of-birth");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/date-of-birth");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/date-of-birth");
     }
 
     [Fact]
@@ -104,14 +104,14 @@ public class DateOfBirthPageTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/date-of-birth");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/date-of-birth");
     }
 
     [Fact]
     public async Task Post_PreferredNameNotSet_RedirectsToPreferredNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.OfficialNameSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}");
 
@@ -127,7 +127,7 @@ public class DateOfBirthPageTests : TestBase
     public async Task Post_NullDateOfBirth_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -146,7 +146,7 @@ public class DateOfBirthPageTests : TestBase
         // Arrange
         var dateOfBirth = new DateOnly(2100, 1, 1);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -170,7 +170,7 @@ public class DateOfBirthPageTests : TestBase
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -196,7 +196,7 @@ public class DateOfBirthPageTests : TestBase
     {
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
 
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 

@@ -1,23 +1,30 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+[CheckCanAccessStep(CurrentStep)]
 public class PreferredName : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = LegacyTrnJourney.Steps.PreferredName;
 
-    public PreferredName(IdentityLinkGenerator linkGenerator)
+    private readonly LegacyTrnJourney _journey;
+
+    public PreferredName(LegacyTrnJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
-    public string? OfficialFirstName => HttpContext.GetAuthenticationState().OfficialFirstName;
-    public string? OfficialLastName => HttpContext.GetAuthenticationState().OfficialLastName;
+    [BindNever]
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
+
+    public string? OfficialFirstName => _journey.AuthenticationState.OfficialFirstName;
+
+    public string? OfficialLastName => _journey.AuthenticationState.OfficialLastName;
 
     // Properties are set in the order that they are declared. Because the value of HasPreferredName
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
@@ -47,27 +54,17 @@ public class PreferredName : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnNameSet(
+        _journey.AuthenticationState.OnNameSet(
             HasPreferredName == true ? PreferredFirstName : null,
             HasPreferredName == true ? PreferredLastName : null);
 
-        return Redirect(_linkGenerator.TrnDateOfBirth());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.OfficialNameSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.TrnOfficialName());
-        }
+        return Redirect(_journey.GetNextStepUrl(CurrentStep));
     }
 
     private void SetDefaultInputValues()
     {
-        PreferredFirstName ??= HttpContext.GetAuthenticationState().FirstName;
-        PreferredLastName ??= HttpContext.GetAuthenticationState().LastName;
+        PreferredFirstName ??= _journey.AuthenticationState.FirstName;
+        PreferredLastName ??= _journey.AuthenticationState.LastName;
 
         HasPreferredName ??= !string.IsNullOrEmpty(PreferredFirstName) && !string.IsNullOrEmpty(PreferredLastName) ? true : null;
     }

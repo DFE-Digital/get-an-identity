@@ -1,25 +1,28 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.TrnLookupCompleted)]
+[CheckJourneyType(typeof(LegacyTrnJourney))]
+[CheckCanAccessStep(CurrentStep)]
 public class TrnInUseModel : BaseEmailConfirmationPageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = SignInJourney.Steps.TrnInUse;
+
+    private readonly SignInJourney _journey;
 
     public TrnInUseModel(
+        SignInJourney journey,
         IUserVerificationService userVerificationService,
-        PinValidator pinValidator,
-        IdentityLinkGenerator linkGenerator)
+        PinValidator pinValidator)
         : base(userVerificationService, pinValidator)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
-    public override string Email => HttpContext.GetAuthenticationState().TrnOwnerEmailAddress!;
+    public override string Email => _journey.AuthenticationState.TrnOwnerEmailAddress!;
 
     public void OnGet()
     {
@@ -42,19 +45,8 @@ public class TrnInUseModel : BaseEmailConfirmationPageModel
             return await HandlePinVerificationFailed(VerifyEmailPinFailedReasons);
         }
 
-        var authenticationState = HttpContext.GetAuthenticationState();
-        authenticationState.OnEmailVerifiedOfExistingAccountForTrn();
+        _journey.AuthenticationState.OnEmailVerifiedOfExistingAccountForTrn();
 
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = HttpContext.GetAuthenticationState();
-
-        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
-        {
-            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-        }
+        return Redirect(_journey.GetNextStepUrl(CurrentStep));
     }
 }

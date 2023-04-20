@@ -1,37 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.UserVerification;
-using TeacherIdentity.AuthServer.Services.Zendesk;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class CheckAnswers : TrnCreateUserPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class CheckAnswers : PageModel
 {
-    public CheckAnswers(
-        IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        IClock clock,
-        IUserVerificationService userVerificationService,
-        IZendeskApiWrapper zendeskApiWrapper)
-        : base(linkGenerator, dbContext, clock, userVerificationService, zendeskApiWrapper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.CheckAnswers;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public CheckAnswers(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
 
-    public string BackLink => (HttpContext.GetAuthenticationState().HasIttProvider == true)
-        ? LinkGenerator.TrnIttProvider()
-        : LinkGenerator.TrnAwardedQts();
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
-    public string? EmailAddress => HttpContext.GetAuthenticationState().EmailAddress;
-    public string? OfficialName => HttpContext.GetAuthenticationState().GetOfficialName();
-    public string? PreviousOfficialName => HttpContext.GetAuthenticationState().GetPreviousOfficialName();
-    public string? PreferredName => HttpContext.GetAuthenticationState().GetPreferredName();
-    public DateOnly? DateOfBirth => HttpContext.GetAuthenticationState().DateOfBirth;
-    public bool? HaveNationalInsuranceNumber => HttpContext.GetAuthenticationState().HasNationalInsuranceNumber;
-    public string? NationalInsuranceNumber => HttpContext.GetAuthenticationState().NationalInsuranceNumber;
-    public bool? AwardedQts => HttpContext.GetAuthenticationState().AwardedQts;
-    public string? IttProviderName => HttpContext.GetAuthenticationState().IttProviderName;
+    public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
+    public string? OfficialName => _journey.AuthenticationState.GetOfficialName();
+    public string? PreviousOfficialName => _journey.AuthenticationState.GetPreviousOfficialName();
+    public string? PreferredName => _journey.AuthenticationState.GetPreferredName();
+    public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;
+    public bool? HaveNationalInsuranceNumber => _journey.AuthenticationState.HasNationalInsuranceNumber;
+    public string? NationalInsuranceNumber => _journey.AuthenticationState.NationalInsuranceNumber;
+    public bool? AwardedQts => _journey.AuthenticationState.AwardedQts;
+    public string? IttProviderName => _journey.AuthenticationState.IttProviderName;
 
     public void OnGet()
     {
@@ -39,33 +34,11 @@ public class CheckAnswers : TrnCreateUserPageModel
 
     public async Task<IActionResult> OnPost()
     {
-        if (string.IsNullOrEmpty(HttpContext.GetAuthenticationState().Trn))
+        if (!_journey.FoundATrn)
         {
-            return Redirect(LinkGenerator.TrnNoMatch());
+            return Redirect(_journey.GetNextStepUrl(CurrentStep));
         }
 
-        return await TryCreateUser();
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        // We require all questions to have been answered OR to have found a TRN
-        if (authenticationState.Trn is null)
-        {
-            context.Result = authenticationState switch
-            {
-                { HasTrnSet: false } => Redirect(LinkGenerator.TrnHasTrn()),
-                { OfficialNameSet: false } => Redirect(LinkGenerator.TrnOfficialName()),
-                { PreferredNameSet: false } => Redirect(LinkGenerator.TrnPreferredName()),
-                { DateOfBirthSet: false } => Redirect(LinkGenerator.TrnDateOfBirth()),
-                { HasNationalInsuranceNumberSet: false } => Redirect(LinkGenerator.TrnHasNiNumber()),
-                { HasNationalInsuranceNumber: true } and { NationalInsuranceNumberSet: false } => Redirect(LinkGenerator.TrnNiNumber()),
-                { AwardedQtsSet: false } => Redirect(LinkGenerator.TrnAwardedQts()),
-                { AwardedQts: true } and { HasIttProviderSet: false } => Redirect(LinkGenerator.TrnIttProvider()),
-                _ => null
-            };
-        }
+        return await _journey.CreateOrMatchUserWithTrn(currentStep: LegacyTrnJourney.Steps.CheckAnswers);
     }
 }

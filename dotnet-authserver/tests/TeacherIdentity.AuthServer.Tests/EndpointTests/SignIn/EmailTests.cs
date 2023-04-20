@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -39,7 +40,7 @@ public class EmailTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/email");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/email");
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public class EmailTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/email");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/email");
     }
 
     [Fact]

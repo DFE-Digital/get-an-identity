@@ -42,7 +42,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/email-confirmation");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/email-confirmation");
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/email-confirmation");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/email-confirmation");
     }
 
     [Fact]

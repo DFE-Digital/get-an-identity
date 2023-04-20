@@ -12,13 +12,6 @@
     <govuk-panel-body>
         <vc:client-scoped-partial view-name="_TrnLookup.StartBookend.{0}.Content" />
 
-        <form action="@Model.HandoverUrl" method="@Model.HandoverMethod" asp-antiforgery="false">
-            @foreach (var p in Model.HandoverParameters!)
-            {
-                <input type="hidden" name="@(p.Key)" value="@(p.Value)" />
-            }
-
-            <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
-        </form>
+        <govuk-button-link href="@Model.NextPage" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button-link>
     </govuk-panel-body>
 </govuk-panel>

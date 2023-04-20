@@ -27,7 +27,7 @@ public class TrnInUseTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/different-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/different-email");
     }
 
     [Fact]
@@ -37,24 +37,19 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead,
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn,
             HttpMethod.Get,
             "/sign-in/trn/different-email");
     }
 
-    [Theory]
-    [InlineData(AuthenticationState.TrnLookupState.None)]
-    [InlineData(AuthenticationState.TrnLookupState.Complete)]
-    [InlineData(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)]
-    public async Task Get_TrnLookupStateIsInvalid_RedirectsToNextPage(AuthenticationState.TrnLookupState trnLookupState)
+    [Fact]
+    public async Task Get_TrnNotFound_Redirects()
     {
         // Arrange
-        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookup(trnLookupState, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
@@ -63,7 +58,47 @@ public class TrnInUseTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Get_TrnFoundButDidNotConflictWithExistingAccount_Redirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
+            CustomScopes.Trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Get_ExistingTrnOwnerAlreadyVerified_Redirects()
+    {
+        // Arrange
+        var existingUser = await TestData.CreateUser(hasTrn: true);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, existingUser),
+            CustomScopes.Trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -74,8 +109,8 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
@@ -104,7 +139,7 @@ public class TrnInUseTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/different-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/different-email");
     }
 
     [Fact]
@@ -114,27 +149,21 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead,
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn,
             HttpMethod.Post,
             "/sign-in/trn/different-email");
     }
 
-    [Theory]
-    [InlineData(AuthenticationState.TrnLookupState.None)]
-    [InlineData(AuthenticationState.TrnLookupState.Complete)]
-    [InlineData(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)]
-    public async Task Post_TrnLookupStateIsInvalid_RedirectsToNextPage(AuthenticationState.TrnLookupState trnLookupState)
+    [Fact]
+    public async Task Post_TrnNotFound_Redirects()
     {
         // Arrange
-        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
-
-        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pin = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
+        var pin = "12345";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookup(trnLookupState, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -149,7 +178,65 @@ public class TrnInUseTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_TrnFoundButDidNotConflictWithExistingAccount_Redirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pin = await userVerificationService.GenerateEmailPin(user.EmailAddress);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
+            CustomScopes.Trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pin }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_ExistingTrnOwnerAlreadyVerified_Redirects()
+    {
+        // Arrange
+        var existingUser = await TestData.CreateUser(hasTrn: true);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pin = await userVerificationService.GenerateEmailPin(existingUser.EmailAddress);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(
+            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, existingUser),
+            CustomScopes.Trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pin }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -163,8 +250,8 @@ public class TrnInUseTests : TestBase
         var pin = "01234";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -190,8 +277,8 @@ public class TrnInUseTests : TestBase
         var pin = "0";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -217,8 +304,8 @@ public class TrnInUseTests : TestBase
         var pin = "0123345678";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -244,8 +331,8 @@ public class TrnInUseTests : TestBase
         var pin = "abc";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -274,8 +361,8 @@ public class TrnInUseTests : TestBase
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -308,8 +395,8 @@ public class TrnInUseTests : TestBase
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -338,8 +425,8 @@ public class TrnInUseTests : TestBase
         var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.TrnLookupCompletedForExistingTrn(email, existingTrnOwner),
-            CustomScopes.DqtRead);
+            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {

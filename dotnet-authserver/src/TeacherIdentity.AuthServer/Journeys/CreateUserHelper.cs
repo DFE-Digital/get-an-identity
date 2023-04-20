@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -8,35 +7,30 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using ZendeskApi.Client.Models;
 
-namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
+namespace TeacherIdentity.AuthServer.Journeys;
 
-public class TrnCreateUserPageModel : PageModel
+public class CreateUserHelper
 {
-    protected readonly IdentityLinkGenerator LinkGenerator;
-
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IClock _clock;
     private readonly IUserVerificationService _userVerificationService;
+    private readonly IClock _clock;
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
 
-    public TrnCreateUserPageModel(
-        IdentityLinkGenerator linkGenerator,
+    public CreateUserHelper(
         TeacherIdentityServerDbContext dbContext,
-        IClock clock,
         IUserVerificationService userVerificationService,
+        IClock clock,
         IZendeskApiWrapper zendeskApiWrapper)
     {
-        LinkGenerator = linkGenerator;
         _dbContext = dbContext;
-        _clock = clock;
         _userVerificationService = userVerificationService;
+        _clock = clock;
         _zendeskApiWrapper = zendeskApiWrapper;
     }
 
-    protected async Task<IActionResult> TryCreateUser()
+    public async Task<IActionResult> CreateOrMatchUserWithTrn(SignInJourney journey, string currentStep)
     {
-        var authenticationState = HttpContext.GetAuthenticationState();
-
+        var authenticationState = journey.AuthenticationState;
         Debug.Assert(authenticationState.TrnLookupStatus.HasValue);
 
         var userId = Guid.NewGuid();
@@ -96,21 +90,19 @@ public class TrnCreateUserPageModel : PageModel
                 throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
             }
 
-            return Redirect(authenticationState.GetNextHopUrl(LinkGenerator));
+            return new RedirectResult(journey.GetNextStepUrl(currentStep));
         }
 
         authenticationState.OnTrnLookupCompletedAndUserRegistered(user);
-        await authenticationState.SignIn(HttpContext);
+        await authenticationState.SignIn(journey.HttpContext);
 
-#pragma warning disable CS0618 // Type or member is obsolete
         if ((!authenticationState.TryGetOAuthState(out var oAuthState) || !oAuthState.HasScope(CustomScopes.Trn)) &&
             authenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
         {
             await CreateTrnResolutionZendeskTicket(authenticationState);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
-        return Redirect(authenticationState.GetNextHopUrl(LinkGenerator));
+        return new RedirectResult(journey.GetNextStepUrl(currentStep));
     }
 
     private Task CreateTrnResolutionZendeskTicket(AuthenticationState authenticationState) =>

@@ -24,13 +24,13 @@ public class AwardedQtsPageTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/awarded-qts");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/awarded-qts");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
@@ -44,14 +44,14 @@ public class AwardedQtsPageTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/awarded-qts");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
     public async Task Get_HasNinoNotSet_RedirectsToHasNinoPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}");
 
@@ -69,7 +69,7 @@ public class AwardedQtsPageTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.HasNationalInsuranceNumberSet(hasNationalInsuranceNumber: true),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}");
 
@@ -84,7 +84,7 @@ public class AwardedQtsPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/awarded-qts", CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/awarded-qts", CustomScopes.Trn);
     }
 
     [Fact]
@@ -102,13 +102,13 @@ public class AwardedQtsPageTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/awarded-qts");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/awarded-qts");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
@@ -122,14 +122,14 @@ public class AwardedQtsPageTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/awarded-qts");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
     public async Task Post_HasNinoNotSet_RedirectsToHasNinoPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}");
 
@@ -147,7 +147,7 @@ public class AwardedQtsPageTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.HasNationalInsuranceNumberSet(hasNationalInsuranceNumber: true),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}");
 
@@ -163,7 +163,7 @@ public class AwardedQtsPageTests : TestBase
     public async Task Post_NullAwardedQts_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -182,7 +182,7 @@ public class AwardedQtsPageTests : TestBase
     public async Task Post_ValidForm_SetsAwardedQtsOnAuthenticationStateRedirectsToCorrectPage(bool awardedQts)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}")
         {
@@ -213,7 +213,7 @@ public class AwardedQtsPageTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResultAndAwardedQtsFalse_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}")
@@ -236,7 +236,7 @@ public class AwardedQtsPageTests : TestBase
     public async Task Post_AwardedQtsTrue_DoesNotAttemptTrnLookup()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/awarded-qts?{authStateHelper.ToQueryParam()}")

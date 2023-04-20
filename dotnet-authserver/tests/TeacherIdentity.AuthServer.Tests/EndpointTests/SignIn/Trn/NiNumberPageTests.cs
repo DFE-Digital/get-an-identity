@@ -24,7 +24,7 @@ public class NiNumberPageTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/ni-number");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
@@ -38,14 +38,14 @@ public class NiNumberPageTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/ni-number");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/ni-number");
     }
 
     [Fact]
     public async Task Get_HaveNationalInsuranceNumberNotSet_RedirectsToHasNiNumberPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}");
 
@@ -60,7 +60,7 @@ public class NiNumberPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/ni-number", CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/ni-number", CustomScopes.Trn);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class NiNumberPageTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/ni-number");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/ni-number");
     }
 
     [Fact]
@@ -92,14 +92,14 @@ public class NiNumberPageTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/ni-number");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/ni-number");
     }
 
     [Fact]
     public async Task Post_HaveNationalInsuranceNumberNotSet_RedirectsToHasNiNumberPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}");
 
@@ -115,7 +115,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_EmptyNiNumber_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
@@ -135,7 +135,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_InvalidNiNumber_ReturnsError(string niNumber)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
@@ -160,7 +160,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_ValidNiNumber_SetsNiNumberOnAuthenticationStateRedirectsToAwardedQtsPage(string niNumber)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -184,7 +184,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_NiNumberNotKnown_SetsHasNiNumberFalseAndRedirectsToAwardedQtsPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -207,7 +207,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/ni-number?{authStateHelper.ToQueryParam()}")

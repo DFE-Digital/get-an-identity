@@ -30,7 +30,7 @@ public abstract class SignInJourney
 
     public abstract bool CanAccessStep(string step);
 
-    public virtual string GetLastAccessibleStep()
+    public virtual string GetLastAccessibleStepUrl()
     {
         // This is used when the user tries to access a page in the journey that's not accessible.
         // We want to redirect them somewhere valid for the journey but we don't have a current step
@@ -116,5 +116,8 @@ public abstract class SignInJourney
     {
         public const string Email = $"{nameof(SignInJourney)}.{nameof(Email)}";
         public const string EmailConfirmation = $"{nameof(SignInJourney)}.{nameof(EmailConfirmation)}";
+        public const string TrnInUse = $"{nameof(SignInJourney)}.{nameof(TrnInUse)}";
+        public const string TrnInUseChooseEmail = $"{nameof(SignInJourney)}.{nameof(TrnInUseChooseEmail)}";
+        public const string TrnInUseResendTrnOwnerEmailConfirmation = $"{nameof(SignInJourney)}.{nameof(TrnInUseResendTrnOwnerEmailConfirmation)}";
     }
 }

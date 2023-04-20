@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 

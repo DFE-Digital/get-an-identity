@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Flurl;
-using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
 using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
@@ -211,6 +210,7 @@ public partial class TestBase
 
     public async Task JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone,
+        string? additionalScopes,
         HttpMethod method,
         string url,
         HttpContent? content = null)
@@ -221,18 +221,18 @@ public partial class TestBase
         switch (milestone)
         {
             case AuthenticationState.AuthenticationMilestone.None:
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), CustomScopes.DqtRead);
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes);
                 break;
 
             case AuthenticationState.AuthenticationMilestone.EmailVerified:
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
+                authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes);
                 break;
 
             case AuthenticationState.AuthenticationMilestone.TrnLookupCompleted:
                 var user = await TestData.CreateUser(hasTrn: true);
                 authStateHelper = await CreateAuthenticationStateHelper(
-                    c => c.TrnLookupCompletedForExistingTrn(newEmail: Faker.Internet.Email(), trnOwner: user),
-                    CustomScopes.DqtRead);
+                    c => c.Trn.TrnLookupCompletedForExistingTrn(trnOwner: user, email: Faker.Internet.Email()),
+                    additionalScopes);
                 break;
 
             default:
@@ -297,5 +297,37 @@ public partial class TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+    }
+
+    public async Task NoEmail_RedirectsToEmailPage(string? additionalScopes, HttpMethod method, string url, HttpContent? content = null)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes);
+
+        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
+        var request = new HttpRequestMessage(method, fullUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal($"/sign-in/email?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
+    }
+
+    public async Task NoVerifiedEmail_RedirectsToEmailConfirmationPage(string? additionalScopes, HttpMethod method, string url, HttpContent? content = null)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes);
+
+        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
+        var request = new HttpRequestMessage(method, fullUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal($"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
     }
 }
