@@ -223,4 +223,19 @@ public class EmailTests : TestBase
         { "", "Enter your new email address" },
         { "xx", "Enter a valid email address" }
     };
+
+    [Fact]
+    public async Task Get_Prepopulates_Email()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/email");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.True(doc.GetElementById("Email")?.GetAttribute("value")?.Length > 0);
+    }
 }

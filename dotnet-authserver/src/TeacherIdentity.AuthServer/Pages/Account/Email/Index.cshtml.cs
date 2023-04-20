@@ -28,6 +28,7 @@ public class EmailPage : BaseEmailPageModel
 
     public void OnGet()
     {
+        Email = User.GetEmailAddress();
     }
 
     public async Task<IActionResult> OnPost()
