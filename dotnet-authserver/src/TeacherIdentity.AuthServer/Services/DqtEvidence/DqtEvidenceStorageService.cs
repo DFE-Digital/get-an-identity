@@ -9,6 +9,7 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
     private const string MicrosoftDefenderMalwareScanKey = "Malware Scanning scan result";
     private const string MicrosoftDefenderMalwareScanSuccessValue = "No threats found";
 
+    private const int PollingTimeoutMs = 30000;
     private const int InitialPollingDelayMs = 750;
     private const int PollingPeriodMs = 250;
 
@@ -30,7 +31,10 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
         await using var stream = file.OpenReadStream();
         await blobClient.UploadAsync(stream);
 
-        var malwareScanResult = await PollForMalwareScanResult(blobClient);
+        var cancellationToken = new CancellationTokenSource();
+        cancellationToken.CancelAfter(PollingTimeoutMs);
+
+        var malwareScanResult = await PollForMalwareScanResult(blobClient, cancellationToken);
         return malwareScanResult == MicrosoftDefenderMalwareScanSuccessValue;
     }
 
@@ -63,7 +67,7 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
         return blobContainerClient;
     }
 
-    private async Task<string?> PollForMalwareScanResult(BlobClient blobClient)
+    private async Task<string?> PollForMalwareScanResult(BlobClient blobClient, CancellationTokenSource cts)
     {
         await Task.Delay(InitialPollingDelayMs);
 
@@ -72,6 +76,11 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
 
         do
         {
+            if (cts.IsCancellationRequested)
+            {
+                throw new TimeoutException();
+            }
+
             await Task.Delay(PollingPeriodMs);
 
             var blobTags = await blobClient.GetTagsAsync();

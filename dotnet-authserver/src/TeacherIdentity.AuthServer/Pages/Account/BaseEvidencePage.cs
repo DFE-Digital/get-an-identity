@@ -34,7 +34,7 @@ public abstract class BaseEvidencePage : PageModel
     {
         if (!await _dqtEvidenceStorage.TrySafeUpload(EvidenceFile!, fileId))
         {
-            ModelState.AddModelError("EvidenceFile", "The selected file contains a virus");
+            ModelState.AddModelError(nameof(EvidenceFile), "The selected file contains a virus");
             return false;
         }
 
