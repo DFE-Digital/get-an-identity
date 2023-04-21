@@ -11,6 +11,8 @@ namespace TeacherIdentity.AuthServer.Models;
 [DebuggerDisplay("{_normalizedValue}")]
 public sealed class EmailAddress : IEquatable<EmailAddress>, IParsable<EmailAddress>
 {
+    public const int EmailAddressMaxLength = 200;
+
     private const string ValidLocalChars = @"a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\-";
     private const string EmailRegexPattern = @"^[" + ValidLocalChars + @"]+@([^.@][^@\s]+)$";
 
@@ -27,7 +29,7 @@ public sealed class EmailAddress : IEquatable<EmailAddress>, IParsable<EmailAddr
         _normalizedValue = normalizedValue;
     }
 
-    public static EmailAddress Parse(string emailAddress)
+    public static EmailAddress Parse(string? emailAddress)
     {
         if (!TryParseCore(emailAddress, out var result, out var error))
         {
@@ -37,10 +39,10 @@ public sealed class EmailAddress : IEquatable<EmailAddress>, IParsable<EmailAddr
         return result;
     }
 
-    public static bool TryParse(string emailAddress, [MaybeNullWhen(false)] out EmailAddress result) =>
+    public static bool TryParse(string? emailAddress, [MaybeNullWhen(false)] out EmailAddress result) =>
         TryParseCore(emailAddress, out result, out _);
 
-    static EmailAddress IParsable<EmailAddress>.Parse(string s, IFormatProvider? provider) => Parse(s);
+    static EmailAddress IParsable<EmailAddress>.Parse(string? s, IFormatProvider? provider) => Parse(s);
 
     static bool IParsable<EmailAddress>.TryParse(
         string? s,
@@ -57,10 +59,17 @@ public sealed class EmailAddress : IEquatable<EmailAddress>, IParsable<EmailAddr
     }
 
     private static bool TryParseCore(
-        string emailAddress,
+        string? emailAddress,
         [MaybeNullWhen(false)] out EmailAddress result,
         [MaybeNullWhen(true)] out FormatException error)
     {
+        if (emailAddress is null)
+        {
+            error = new FormatException("Email address must have a value.");
+            result = default;
+            return false;
+        }
+
         var normalizedEmailAddress = StripAndRemoveObscureWhitespace(emailAddress);
         Match match = Regex.Match(normalizedEmailAddress, EmailRegexPattern);
 
