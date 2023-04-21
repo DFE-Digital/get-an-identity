@@ -223,11 +223,11 @@ public class TrnLookupHelperTests
     [InlineData("1234567", true)]  // Stated TRN does not match found TRN and user said they do have QTS
     [InlineData(null, false)]  // No stated TRN and user said they don't have QTS
     [InlineData(null, true)]  // No stated TRN and user said they do have QTS
-    public void GetTrnLookupStatus_TrnWasFound_ReturnsFound(string? statedTrn, bool awardedQts)
+    public void ResolveTrn_TrnWasFound_ReturnsFoundAndTrn(string? statedTrn, bool awardedQts)
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn, awardedQts);
-        var trnLookupResult = "2345678";
+        var trnLookupResults = new[] { "2345678" };
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
@@ -235,20 +235,45 @@ public class TrnLookupHelperTests
         var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
 
         // Act
-        var trnLookupStatus = helper.GetTrnLookupStatus(trnLookupResult, authenticationState);
+        var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
 
         // Assert
         Assert.Equal(TrnLookupStatus.Found, trnLookupStatus);
+        Assert.NotNull(trn);
+    }
+
+    [Theory]
+    [InlineData(true, "1234567")]
+    [InlineData(true, null)]
+    [InlineData(false, "1234567")]
+    [InlineData(false, null)]
+    public void ResolveTrn_MultipleTrnsWereMatchedReturnsPending(bool awardedQts, string? statedTrn)
+    {
+        // Arrange
+        var authenticationState = CreateAuthenticationState(statedTrn, awardedQts);
+        var trnLookupResults = new[] { "2345678", "3456789" };
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        var logger = new NullLogger<TrnLookupHelper>();
+
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+
+        // Act
+        var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
+
+        // Assert
+        Assert.Equal(TrnLookupStatus.Pending, trnLookupStatus);
+        Assert.Null(trn);
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void GetTrnLookupStatus_TrnWasNotFoundButUserStatedTheyHaveTrn_ReturnsPending(bool awardedQts)
+    public void ResolveTrn_TrnWasNotFoundButUserStatedTheyHaveTrn_ReturnsPendingAndNullTrn(bool awardedQts)
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn: "1234567", awardedQts);
-        var trnLookupResult = (string?)null;
+        var trnLookupResults = Array.Empty<string>();
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
@@ -256,20 +281,21 @@ public class TrnLookupHelperTests
         var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
 
         // Act
-        var trnLookupStatus = helper.GetTrnLookupStatus(trnLookupResult, authenticationState);
+        var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
 
         // Assert
         Assert.Equal(TrnLookupStatus.Pending, trnLookupStatus);
+        Assert.Null(trn);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("1234567")]
-    public void GetTrnLookupStatus_TrnWasNotFoundButUserStatedTheyHaveQts_ReturnsPending(string statedTrn)
+    public void ResolveTrn_TrnWasNotFoundButUserStatedTheyHaveQts_ReturnsPendingAndNullTrn(string? statedTrn)
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn, awardedQts: true);
-        var trnLookupResult = (string?)null;
+        var trnLookupResults = Array.Empty<string>();
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
@@ -277,18 +303,19 @@ public class TrnLookupHelperTests
         var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
 
         // Act
-        var trnLookupStatus = helper.GetTrnLookupStatus(trnLookupResult, authenticationState);
+        var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
 
         // Assert
         Assert.Equal(TrnLookupStatus.Pending, trnLookupStatus);
+        Assert.Null(trn);
     }
 
     [Fact]
-    public void GetTrnLookupStatus_TrnWasNotFoundAndUserStatedTheyDoNotHaveTrnOrQts_ReturnsNone()
+    public void ResolveTrn_TrnWasNotFoundAndUserStatedTheyDoNotHaveTrnOrQts_ReturnsNoneAndNullTrn()
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn: null, awardedQts: false);
-        var trnLookupResult = (string?)null;
+        var trnLookupResults = Array.Empty<string>();
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
@@ -296,10 +323,11 @@ public class TrnLookupHelperTests
         var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
 
         // Act
-        var trnLookupStatus = helper.GetTrnLookupStatus(trnLookupResult, authenticationState);
+        var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
 
         // Assert
         Assert.Equal(TrnLookupStatus.None, trnLookupStatus);
+        Assert.Null(trn);
     }
 
     private static AuthenticationState CreateAuthenticationState(string? statedTrn = null, bool awardedQts = true)
