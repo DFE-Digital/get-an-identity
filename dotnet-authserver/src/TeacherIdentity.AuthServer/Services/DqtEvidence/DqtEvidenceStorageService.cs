@@ -31,10 +31,10 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
         await using var stream = file.OpenReadStream();
         await blobClient.UploadAsync(stream);
 
-        var cancellationToken = new CancellationTokenSource();
+        using var cancellationToken = new CancellationTokenSource();
         cancellationToken.CancelAfter(PollingTimeoutMs);
 
-        var malwareScanResult = await PollForMalwareScanResult(blobClient, cancellationToken);
+        var malwareScanResult = await PollForMalwareScanResult(blobClient, cancellationToken.Token);
         return malwareScanResult == MicrosoftDefenderMalwareScanSuccessValue;
     }
 
@@ -67,7 +67,7 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
         return blobContainerClient;
     }
 
-    private async Task<string?> PollForMalwareScanResult(BlobClient blobClient, CancellationTokenSource cts)
+    private async Task<string?> PollForMalwareScanResult(BlobClient blobClient, CancellationToken cancellationToken)
     {
         await Task.Delay(InitialPollingDelayMs);
 
@@ -76,7 +76,7 @@ public class DqtEvidenceStorageService : IDqtEvidenceStorageService
 
         do
         {
-            if (cts.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 throw new TimeoutException();
             }
