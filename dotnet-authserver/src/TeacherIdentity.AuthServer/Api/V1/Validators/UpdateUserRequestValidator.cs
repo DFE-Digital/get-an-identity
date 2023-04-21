@@ -10,6 +10,7 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
     public UpdateUserRequestValidator()
     {
         RuleFor(r => r.Body.Email)
+            .Cascade(CascadeMode.Stop)
             .IdentityEmailAddress()
             .When(r => r.Body.EmailSet);
 

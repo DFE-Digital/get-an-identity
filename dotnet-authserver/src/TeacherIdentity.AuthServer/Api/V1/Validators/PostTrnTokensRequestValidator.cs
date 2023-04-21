@@ -13,6 +13,7 @@ public class PostTrnTokensRequestValidator : AbstractValidator<PostTrnTokensRequ
             .WithMessage("TRN is not valid.");
 
         RuleFor(r => r.Email)
+            .Cascade(CascadeMode.Stop)
             .IdentityEmailAddress();
     }
 }
