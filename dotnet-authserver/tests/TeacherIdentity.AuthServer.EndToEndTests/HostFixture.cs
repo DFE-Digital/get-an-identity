@@ -299,5 +299,5 @@ public class HostFixture : IAsyncLifetime
 
 public class LegacyClientHostFixture : HostFixture
 {
-    public override string TestClientId { get; }= "legacyClient";
+    public override string TestClientId { get; } = "legacyClient";
 }
