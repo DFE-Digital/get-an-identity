@@ -1,4 +1,3 @@
-using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;

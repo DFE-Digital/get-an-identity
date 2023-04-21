@@ -1,7 +1,4 @@
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewComponents;
 
 namespace TeacherIdentity.AuthServer.ViewComponents;
 
