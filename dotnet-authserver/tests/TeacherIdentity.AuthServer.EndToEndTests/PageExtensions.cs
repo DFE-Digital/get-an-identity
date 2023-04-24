@@ -372,7 +372,7 @@ public static class PageExtensions
         await page.FillAsync("label:text-is('Confirmation code')", HostFixture.UserVerificationPin);
         if (cantAccessEmail)
         {
-            await page.ClickAsync("a:text-is('I can’t access this email address')");
+            await page.ClickAsync("a:text-is('I cannot access this email address')");
         }
         else
         {
