@@ -45,7 +45,7 @@ public class GetUserDetailTests : TestBase
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
 
-        var registeredWithClient = TestClients.Client1;
+        var registeredWithClient = TestClients.DefaultClient;
         var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);
         var mergedUser = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId, mergedWithUserId: user.UserId);
 
@@ -79,7 +79,7 @@ public class GetUserDetailTests : TestBase
         // Arrange
         var httpClient = await CreateHttpClientWithToken(scope);
 
-        var registeredWithClient = TestClients.Client1;
+        var registeredWithClient = TestClients.DefaultClient;
         var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);
 
         // Act

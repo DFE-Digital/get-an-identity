@@ -1,6 +1,7 @@
 using Dfe.Analytics.AspNetCore;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -9,6 +10,13 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.Complete)]
 public class CompleteModel : PageModel
 {
+    private readonly TeacherIdentityApplicationManager _applicationManager;
+
+    public CompleteModel(TeacherIdentityApplicationManager applicationManager)
+    {
+        _applicationManager = applicationManager;
+    }
+
     public string? Email { get; set; }
 
     public bool GotTrn { get; set; }
@@ -31,7 +39,11 @@ public class CompleteModel : PageModel
 
     public string? Scope { get; set; }
 
-    public void OnGet()
+    public AuthenticationJourneyType? JourneyType { get; set; }
+
+    public string? ClientDisplayName { get; set; }
+
+    public async Task OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
         authenticationState.EnsureOAuthState();
@@ -47,6 +59,11 @@ public class CompleteModel : PageModel
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
         UserType = authenticationState.UserType!.Value;
         Scope = authenticationState.OAuthState?.Scope;
+        JourneyType = authenticationState.GetJourneyType();
+
+        var clientId = authenticationState.OAuthState?.ClientId;
+        var client = await _applicationManager.FindByClientIdAsync(clientId!);
+        ClientDisplayName = await _applicationManager.GetDisplayNameAsync(client!);
 
         HttpContext.Features.Get<WebRequestEventFeature>()?.Event.AddTag(FirstTimeSignInForEmail ? "FirstTimeUser" : "ReturningUser");
     }

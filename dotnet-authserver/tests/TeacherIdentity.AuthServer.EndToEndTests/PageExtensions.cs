@@ -18,7 +18,13 @@ public static class PageExtensions
     public static Task ClickChangeLinkForSummaryListRowWithKey(this IPage page, string key) =>
         page.Locator($".govuk-summary-list__row:has(> dt:text('{key}'))").GetByText("Change").ClickAsync();
 
-    public static Task ClickContinueButton(this IPage page) => page.ClickAsync(".govuk-button:text-is('Continue')");
+    private static Task ClickLink(this IPage page, string text) =>
+        page.Locator("a").GetByText(text).ClickAsync();
+
+    private static Task ClickButton(this IPage page, string text) =>
+        page.ClickAsync($".govuk-button:text-is('{text}')");
+
+    public static Task ClickContinueButton(this IPage page) => ClickButton(page, "Continue");
 
     public static async Task FillDateInput(this IPage page, DateOnly date)
     {
@@ -88,7 +94,7 @@ public static class PageExtensions
     public static async Task SubmitCompletePageForNewUserInLegacyTrnJourney(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");
-        Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
+        Assert.Equal(1, await page.Locator("data-testid=legacy-first-time-user-content").CountAsync());
         await page.ClickContinueButton();
     }
 
@@ -296,7 +302,7 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
-    public static async Task SubmitCheckAnswersPage(this IPage page, DateOnly dateOfBirth)
+    public static async Task SubmitCheckAnswersPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/check-answers");
         await page.ClickContinueButton();
@@ -309,15 +315,93 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task SubmitRegisterHasNinoPage(this IPage page, bool hasNino)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/has-nino");
+        await page.ClickAsync($"label:text-is('{(hasNino ? "Yes" : "No")}')");  // Do you have a National Insurance number?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterNiNumberPage(this IPage page, string nationalInsuranceNumber)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/ni-number");
+        await page.FillAsync("text='What is your National Insurance number?'", nationalInsuranceNumber);
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterHasTrnPage(this IPage page, bool hasTrn)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/has-trn");
+        await page.ClickAsync($"label:text-is('{(hasTrn ? "Yes" : "No")}')");  // Do you have a National Insurance number?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterTrnPage(this IPage page, string trn)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/trn");
+        await page.FillAsync("text=Enter your TRN", trn);
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterHasQtsPage(this IPage page, bool hasQts)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/has-qts");
+        await page.ClickAsync($"label:text-is('{(hasQts ? "Yes" : "No")}')");  // Have you been awarded qualified teacher status (QTS)?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitRegisterIttProviderPageWithIttProvider(this IPage page, string ittProviderName)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/itt-provider");
+        await page.ClickAsync("label:text-is('Yes')");  // Did a university, SCITT or school award your QTS?
+        await page.FillAsync("label:text-is('Where did you get your QTS?')", ittProviderName);
+        await page.FocusAsync("button:text-is('Continue')");  // Un-focus accessible autocomplete
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitAccountExistsPage(this IPage page, bool isUsersAccount)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/account-exists");
+        await page.ClickAsync($"label:text-is('{(isUsersAccount ? "Yes, sign into this account" : "No, this is not my account")}')");  // Do you have a National Insurance number?
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitExistingAccountEmailConfirmationPage(this IPage page, bool cantAccessEmail = false)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/existing-account-email-confirmation");
+        await page.FillAsync("label:text-is('Confirmation code')", HostFixture.UserVerificationPin);
+        if (cantAccessEmail)
+        {
+            await page.ClickAsync("a:text-is('I cannot access this email address')");
+        }
+        else
+        {
+            await page.ClickContinueButton();
+        }
+    }
+
+    public static async Task SubmitExistingAccountPhonePage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/existing-account-phone");
+        await page.ClickButton("Request security code");
+    }
+
+    public static async Task SubmitExistingAccountPhoneConfirmationPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/existing-account-phone-confirmation");
+        await page.FillAsync("label:text-is('Security code')", HostFixture.UserVerificationPin);
+        await page.ClickContinueButton();
+    }
+
     public static async Task SignInFromRegisterEmailExistsPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/email-exists");
-        await page.ClickAsync("a:text-is('Sign in')");
+        await page.ClickLink("Sign in");
     }
 
     public static async Task SignInFromRegisterPhoneExistsPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/phone-exists");
-        await page.ClickAsync("a:text-is('Sign in')");
+        await page.ClickLink("Sign in");
     }
 }

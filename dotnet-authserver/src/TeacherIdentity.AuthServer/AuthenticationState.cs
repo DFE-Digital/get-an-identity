@@ -358,6 +358,7 @@ public class AuthenticationState
         }
 
         MobileNumberVerified = true;
+        FirstTimeSignInForEmail = user is null;
 
         if (user is not null)
         {

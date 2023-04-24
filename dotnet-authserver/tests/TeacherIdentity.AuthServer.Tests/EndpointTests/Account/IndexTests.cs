@@ -17,7 +17,7 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser();
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
+        var client = TestClients.DefaultClient;
         var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
         var signOutUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority) + "/sign-out";
 
@@ -39,7 +39,7 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser();
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
+        var client = TestClients.DefaultClient;
         var signOutUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority) + "/sign-out";
 
         var request = new HttpRequestMessage(
@@ -60,7 +60,7 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser();
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
+        var client = TestClients.DefaultClient;
         var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
 
         var request = new HttpRequestMessage(
@@ -277,7 +277,7 @@ public class IndexTests : TestBase
         var user = await TestData.CreateUser();
         HostFixture.SetUserId(user.UserId);
 
-        var client = TestClients.Client1;
+        var client = TestClients.DefaultClient;
         var redirectUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority);
         var signOutUri = client.RedirectUris.First().GetLeftPart(UriPartial.Authority) + "/sign-out";
 

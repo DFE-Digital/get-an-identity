@@ -41,7 +41,7 @@ public class TestBase
         var userClaimHelper = scope.ServiceProvider.GetRequiredService<UserClaimHelper>();
 
         var userId = TestUsers.AdminUserWithAllRoles.UserId;
-        var client = TestClients.Client1;
+        var client = TestClients.DefaultClient;
 
         var allScopes = new[] { "email", "profile", "openid" }.Concat(scopes).ToHashSet(StringComparer.OrdinalIgnoreCase);
 

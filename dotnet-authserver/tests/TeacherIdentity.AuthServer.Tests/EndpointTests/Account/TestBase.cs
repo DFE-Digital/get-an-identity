@@ -34,7 +34,7 @@ public partial class TestBase
 
     public SpyRegistry SpyRegistry => HostFixture.SpyRegistry;
 
-    public ClientRedirectInfo CreateClientRedirectInfo() => CreateClientRedirectInfo(TestClients.Client1);
+    public ClientRedirectInfo CreateClientRedirectInfo() => CreateClientRedirectInfo(TestClients.DefaultClient);
 
     public ClientRedirectInfo CreateClientRedirectInfo(TeacherIdentityApplicationDescriptor client)
     {
