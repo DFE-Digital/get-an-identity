@@ -1,18 +1,27 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using static TeacherIdentity.AuthServer.AuthenticationState;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationMilestone.EmailVerified)]
-public class OfficialName : TrnLookupPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class OfficialName : PageModel
 {
-    public OfficialName(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.OfficialName;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public OfficialName(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
+
+    [BindNever]
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
     [Display(Name = "First name")]
     [Required(ErrorMessage = "Enter your first name")]
@@ -45,32 +54,22 @@ public class OfficialName : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnOfficialNameSet(
+        _journey.AuthenticationState.OnOfficialNameSet(
             OfficialFirstName!,
             OfficialLastName!,
             (HasPreviousNameOption)HasPreviousName!,
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialFirstName : null,
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialLastName : null);
 
-        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnPreferredName());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasTrnSet)
-        {
-            context.Result = Redirect(LinkGenerator.TrnHasTrn());
-        }
+        return await _journey.FindTrnAndContinue(CurrentStep);
     }
 
     private void SetDefaultInputValues()
     {
-        OfficialFirstName ??= HttpContext.GetAuthenticationState().OfficialFirstName;
-        OfficialLastName ??= HttpContext.GetAuthenticationState().OfficialLastName;
-        PreviousOfficialFirstName ??= HttpContext.GetAuthenticationState().PreviousOfficialFirstName;
-        PreviousOfficialLastName ??= HttpContext.GetAuthenticationState().PreviousOfficialLastName;
-        HasPreviousName ??= HttpContext.GetAuthenticationState().HasPreviousName;
+        OfficialFirstName ??= _journey.AuthenticationState.OfficialFirstName;
+        OfficialLastName ??= _journey.AuthenticationState.OfficialLastName;
+        PreviousOfficialFirstName ??= _journey.AuthenticationState.PreviousOfficialFirstName;
+        PreviousOfficialLastName ??= _journey.AuthenticationState.PreviousOfficialLastName;
+        HasPreviousName ??= _journey.AuthenticationState.HasPreviousName;
     }
 }

@@ -35,13 +35,13 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/itt-provider");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
@@ -55,14 +55,14 @@ public class IttProviderTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/itt-provider");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
     public async Task Get_AwardedQtsNotSet_RedirectsToAwardedQtsPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.NationalInsuranceNumberSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.NationalInsuranceNumberSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
 
@@ -78,7 +78,7 @@ public class IttProviderTests : TestBase
     public async Task Get_ValidRequest_StoresIttProviderNamesInCache()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -106,13 +106,13 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/itt-provider");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
@@ -126,14 +126,14 @@ public class IttProviderTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/itt-provider");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/itt-provider");
     }
 
     [Fact]
     public async Task Post_AwardedQtsNotSet_RedirectsToAwardedQtsPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.NationalInsuranceNumberSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.NationalInsuranceNumberSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}");
 
@@ -149,7 +149,7 @@ public class IttProviderTests : TestBase
     public async Task Post_NullHasIttProvider_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -166,7 +166,7 @@ public class IttProviderTests : TestBase
     public async Task Post_EmptyIttProviderName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -190,7 +190,7 @@ public class IttProviderTests : TestBase
         // Arrange
         var ittProviderName = "provider";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")
         {
@@ -218,7 +218,7 @@ public class IttProviderTests : TestBase
         // Arrange
         var ittProviderName = "provider";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/itt-provider?{authStateHelper.ToQueryParam()}")

@@ -24,13 +24,13 @@ public class OfficialNameTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/official-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/official-name");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/official-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/official-name");
     }
 
     [Fact]
@@ -44,14 +44,14 @@ public class OfficialNameTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/official-name");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/official-name");
     }
 
     [Fact]
     public async Task Get_HasTrnNotSet_RedirectsToHasTrnPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
 
@@ -66,7 +66,7 @@ public class OfficialNameTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/official-name", CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/official-name", CustomScopes.Trn);
     }
 
     [Fact]
@@ -84,13 +84,13 @@ public class OfficialNameTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/official-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/official-name");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/official-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/official-name");
     }
 
     [Fact]
@@ -104,14 +104,14 @@ public class OfficialNameTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/official-name");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/official-name");
     }
 
     [Fact]
     public async Task Post_HasTrnNotSet_RedirectsToHasTrnPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}");
 
@@ -127,7 +127,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_EmptyOfficialFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var lastName = "last";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
@@ -150,7 +150,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_EmptyOfficialLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = "first";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")
@@ -173,7 +173,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_HasPreviousNameNotSpecified_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = "first";
         var lastName = "last";
 
@@ -197,7 +197,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_TooLongOfficialFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = new string('a', 201);
         var lastName = "last";
 
@@ -222,7 +222,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_TooLongOfficialLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = "last";
         var lastName = new string('a', 201);
 
@@ -247,7 +247,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_ValidOfficialName_SetsOfficialNameOnAuthenticationStateRedirectsToPreferredName()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = "first";
         var lastName = "last";
 
@@ -278,7 +278,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_HasPreviousOfficialNames_SetsPreviousOfficialNameOnAuthenticationState(bool hasPreviousName)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var previousFirstName = "previous first";
         var previousLastName = "previous last";
 
@@ -316,7 +316,7 @@ public class OfficialNameTests : TestBase
     public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/official-name?{authStateHelper.ToQueryParam()}")

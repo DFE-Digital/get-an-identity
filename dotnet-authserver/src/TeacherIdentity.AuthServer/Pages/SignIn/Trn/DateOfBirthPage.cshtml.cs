@@ -1,17 +1,26 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class DateOfBirthPage : TrnLookupPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class DateOfBirthPage : PageModel
 {
-    public DateOfBirthPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.DateOfBirth;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public DateOfBirthPage(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
+
+    [BindNever]
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
@@ -30,23 +39,13 @@ public class DateOfBirthPage : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnDateOfBirthSet((DateOnly)DateOfBirth!);
+        _journey.AuthenticationState.OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
-        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnHasNiNumber());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.PreferredNameSet)
-        {
-            context.Result = new RedirectResult(LinkGenerator.TrnPreferredName());
-        }
+        return await _journey.FindTrnAndContinue(CurrentStep);
     }
 
     private void SetDefaultInputValues()
     {
-        DateOfBirth ??= HttpContext.GetAuthenticationState().DateOfBirth;
+        DateOfBirth ??= _journey.AuthenticationState.DateOfBirth;
     }
 }

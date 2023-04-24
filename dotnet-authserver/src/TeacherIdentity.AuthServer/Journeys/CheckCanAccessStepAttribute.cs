@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace TeacherIdentity.AuthServer.Journeys;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class CheckCanAccessStepAttribute : Attribute, IPageFilter
+public class CheckCanAccessStepAttribute : Attribute, IResourceFilter
 {
     public CheckCanAccessStepAttribute(string stepName)
     {
@@ -13,21 +13,17 @@ public class CheckCanAccessStepAttribute : Attribute, IPageFilter
 
     public string StepName { get; }
 
-    public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
+    public void OnResourceExecuted(ResourceExecutedContext context)
     {
     }
 
-    public void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    public void OnResourceExecuting(ResourceExecutingContext context)
     {
         var journey = context.HttpContext.RequestServices.GetRequiredService<SignInJourney>();
 
         if (!journey.CanAccessStep(StepName))
         {
-            context.Result = new RedirectResult(journey.GetLastAccessibleStep());
+            context.Result = new RedirectResult(journey.GetLastAccessibleStepUrl());
         }
-    }
-
-    public void OnPageHandlerSelected(PageHandlerSelectedContext context)
-    {
     }
 }

@@ -1,22 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.TrnLookupCompleted)]
+[CheckJourneyType(typeof(LegacyTrnJourney))]
+[CheckCanAccessStep(CurrentStep)]
 public class ResendTrnOwnerEmailConfirmationModel : PageModel
 {
+    private const string CurrentStep = SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation;
+
+    private readonly SignInJourney _signInJourney;
     private readonly IUserVerificationService _userVerificationService;
-    private readonly IdentityLinkGenerator _linkGenerator;
 
     public ResendTrnOwnerEmailConfirmationModel(
-        IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator)
+        SignInJourney signInJourney,
+        IUserVerificationService userVerificationService)
     {
+        _signInJourney = signInJourney;
         _userVerificationService = userVerificationService;
-        _linkGenerator = linkGenerator;
     }
 
     public void OnGet()
@@ -43,16 +46,6 @@ public class ResendTrnOwnerEmailConfirmationModel : PageModel
             throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
         }
 
-        return Redirect(_linkGenerator.TrnInUse());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = HttpContext.GetAuthenticationState();
-
-        if (authenticationState.TrnLookup != AuthenticationState.TrnLookupState.ExistingTrnFound)
-        {
-            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-        }
+        return Redirect(_signInJourney.GetNextStepUrl(CurrentStep));
     }
 }

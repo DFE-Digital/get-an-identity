@@ -1,15 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class HasTrnPage : TrnLookupPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class HasTrnPage : PageModel
 {
-    public HasTrnPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.HasTrn;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public HasTrnPage(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
 
     // Properties are set in the order that they are declared. Because the value of HasTrn
@@ -35,14 +41,14 @@ public class HasTrnPage : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnTrnSet(StatedTrn);
+        _journey.AuthenticationState.OnTrnSet(StatedTrn);
 
-        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnOfficialName());
+        return await _journey.FindTrnAndContinue(CurrentStep);
     }
 
     private void SetDefaultInputValues()
     {
-        HasTrn ??= HttpContext.GetAuthenticationState().HasTrn;
-        StatedTrn ??= HttpContext.GetAuthenticationState().StatedTrn;
+        HasTrn ??= _journey.AuthenticationState.HasTrn;
+        StatedTrn ??= _journey.AuthenticationState.StatedTrn;
     }
 }

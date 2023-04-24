@@ -24,13 +24,13 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
@@ -44,14 +44,14 @@ public class PreferredNameTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Get_OfficialNameNotSet_RedirectsToOfficialNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
@@ -66,7 +66,7 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/preferred-name", CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/preferred-name", CustomScopes.Trn);
     }
 
     [Fact]
@@ -84,13 +84,13 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
@@ -104,14 +104,14 @@ public class PreferredNameTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Post_OfficialNameNotSet_RedirectsToOfficialNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
@@ -127,7 +127,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_NullHasPreferredName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -144,7 +144,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_EmptyPreferredFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -165,7 +165,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_EmptyPreferredLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -186,7 +186,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_TooLongPreferredFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = new string('a', 201);
         var lastName = "last";
 
@@ -211,7 +211,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_TooLongPreferredLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var firstName = "last";
         var lastName = new string('a', 201);
 
@@ -236,7 +236,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_ValidForm_RedirectsToDateOfBirthPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
@@ -265,7 +265,7 @@ public class PreferredNameTests : TestBase
         var preferredFirstName = "preferred first";
         var preferredLastName = "preferred last";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnNameSet(initialFirstName, initialLastName);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")

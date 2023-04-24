@@ -1,30 +1,23 @@
-using Flurl;
-using Flurl.Util;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
+[CheckCanAccessStep(CurrentStep)]
 public class TrnModel : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = LegacyTrnJourney.Steps.Trn;
 
-    public TrnModel(IdentityLinkGenerator linkGenerator)
+    private readonly LegacyTrnJourney _journey;
+
+    public TrnModel(LegacyTrnJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
-    public IReadOnlyDictionary<string, string>? HandoverParameters { get; set; }
-
-    public string? HandoverUrl { get; set; }
-
-    public string? HandoverMethod { get; set; }
+    public string NextPage => _journey.GetNextStepUrl(CurrentStep);
 
     public void OnGet()
     {
-        var nextPage = _linkGenerator.TrnHasTrn();
-        HandoverUrl = new Url(nextPage).RemoveQuery();
-        HandoverParameters = new Url(nextPage).QueryParams.ToKeyValuePairs().ToDictionary(q => q.Key, q => q.Value.ToString()!);
-        HandoverMethod = HttpMethods.Get;
     }
 }

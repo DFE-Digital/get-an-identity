@@ -1,30 +1,35 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class IttProvider : TrnLookupPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class IttProvider : PageModel
 {
+    private const string CurrentStep = LegacyTrnJourney.Steps.IttProvider;
+
+    private readonly LegacyTrnJourney _journey;
     private readonly IMemoryCache _cache;
     private readonly IDqtApiClient _dqtApiClient;
 
     public string[]? IttProviderNames;
 
-    public IttProvider(
-        IMemoryCache cache,
-        IdentityLinkGenerator linkGenerator,
-        IDqtApiClient dqtApiClient,
-        TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    public IttProvider(LegacyTrnJourney journey, IMemoryCache cache, IDqtApiClient dqtApiClient)
     {
+        _journey = journey;
         _cache = cache;
         _dqtApiClient = dqtApiClient;
     }
+
+    [BindNever]
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
     // Properties are set in the order that they are declared. Because the value of HasIttProvider
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
@@ -48,21 +53,13 @@ public class IttProvider : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnHasIttProviderSet((bool)HasIttProvider!, IttProviderName);
+        _journey.AuthenticationState.OnHasIttProviderSet((bool)HasIttProvider!, IttProviderName);
 
-        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnCheckAnswers());
+        return await _journey.FindTrnAndContinue(CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.AwardedQtsSet)
-        {
-            context.Result = new RedirectResult(LinkGenerator.TrnAwardedQts());
-            return;
-        }
-
         if (!_cache.TryGetValue("IttProviderNames", out IttProviderNames))
         {
             IttProviderNames = (await _dqtApiClient.GetIttProviders()).IttProviders.Select(result => result.ProviderName).ToArray();
@@ -75,7 +72,7 @@ public class IttProvider : TrnLookupPageModel
 
     private void SetDefaultInputValues()
     {
-        HasIttProvider ??= HttpContext.GetAuthenticationState().HasIttProvider;
-        IttProviderName ??= HttpContext.GetAuthenticationState().IttProviderName;
+        HasIttProvider ??= _journey.AuthenticationState.HasIttProvider;
+        IttProviderName ??= _journey.AuthenticationState.IttProviderName;
     }
 }

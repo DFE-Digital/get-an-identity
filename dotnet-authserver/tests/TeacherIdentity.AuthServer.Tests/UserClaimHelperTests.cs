@@ -28,11 +28,9 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         var userClaimHelper = new UserClaimHelper(dbContext);
 
         // Act
-#pragma warning disable CS0618 // Type or member is obsolete
         var result = await userClaimHelper.GetPublicClaims(
             user.UserId,
-            hasScope: scope => scope == CustomScopes.Trn && haveTrnScope);
-#pragma warning restore CS0618 // Type or member is obsolete
+            hasScope: scope => scope == CustomScopes.DqtRead && haveTrnScope);
 
         // Assert
         var expectedClaims = new List<Claim>()

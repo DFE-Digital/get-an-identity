@@ -38,7 +38,6 @@ using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -297,11 +296,12 @@ public class Program
                     model.Filters.Add(new NoCachePageFilter());
                 });
 
+
             options.Conventions.AddFolderApplicationModelConvention(
                 "/SignIn/Trn",
                 model =>
                 {
-                    model.Filters.Add(new CheckUserRequirementsForTrnJourneyFilterFactory());
+                    model.Filters.Add(new CheckJourneyTypeAttribute(typeof(LegacyTrnJourney)));
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(
@@ -477,8 +477,7 @@ public class Program
         // Custom MVC filters & extensions
         builder.Services
             .AddTransient<RequireAuthenticationStateFilter>()
-            .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>()
-            .AddSingleton<CheckUserRequirementsForTrnJourneyFilter>();
+            .Decorate<ProblemDetailsFactory, Api.Validation.CamelCaseErrorKeysProblemDetailsFactory>();
 
         builder.Services
             .AddSingleton<IClock, SystemClock>()
@@ -490,7 +489,6 @@ public class Program
             .AddSingleton<IEventObserver, PublishNotificationsEventObserver>()
             .AddTransient<ClientScopedViewHelper>()
             .AddTransient<IActionContextAccessor, ActionContextAccessor>()
-            .AddTransient<TrnLookupHelper>()
             .AddTransient<UserClaimHelper>()
             .AddSingleton(
                 new QueryStringSignatureHelper(

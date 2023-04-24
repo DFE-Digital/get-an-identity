@@ -277,73 +277,6 @@ public sealed class AuthenticationStateHelper
                 s.OnExistingAccountChosen(true);
             };
 
-        public Func<AuthenticationState, Task> TrnLookupCompletedForNewTrn(User user, string? officialFirstName = null, string? officialLastName = null) =>
-            async s =>
-            {
-                await Trn.IttProviderSet(
-                    user.EmailAddress,
-                    statedTrn: null,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName: null,
-                    previousOfficialLastName: null,
-                    preferredFirstName: null,
-                    preferredLastName: null,
-                    user.DateOfBirth,
-                    nationalInsuranceNumber: null,
-                    ittProviderName: null)(s);
-                s.OnTrnLookupCompletedAndUserRegistered(user);
-            };
-
-        public Func<AuthenticationState, Task> TrnLookupCompletedForExistingTrn(string newEmail, User trnOwner, string? preferredFirstName = null, string? preferredLastName = null) =>
-            async s =>
-            {
-                await EmailVerified(newEmail)(s);
-                Debug.Assert(s.UserId is null);
-
-                s.OnTrnLookupCompletedForTrnAlreadyInUse(trnOwner.EmailAddress);
-            };
-
-        public Func<AuthenticationState, Task> TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(string newEmail, User trnOwner, string? preferredFirstName = null, string? preferredLastName = null) =>
-            async s =>
-            {
-                await TrnLookupCompletedForExistingTrn(newEmail, trnOwner, preferredFirstName, preferredLastName)(s);
-
-                s.OnEmailVerifiedOfExistingAccountForTrn();
-            };
-
-        public Func<AuthenticationState, Task> TrnLookup(AuthenticationState.TrnLookupState state, User? user) =>
-            async s =>
-            {
-                if (state == AuthenticationState.TrnLookupState.None)
-                {
-                    await EmailVerified()(s);
-                    return;
-                }
-
-                if (user is null)
-                {
-                    throw new ArgumentNullException(nameof(user));
-                }
-
-                if (state == AuthenticationState.TrnLookupState.Complete)
-                {
-                    await TrnLookupCompletedForNewTrn(user)(s);
-                }
-                else if (state == AuthenticationState.TrnLookupState.ExistingTrnFound)
-                {
-                    await TrnLookupCompletedForExistingTrn(newEmail: Faker.Internet.Email(), user)(s);
-                }
-                else if (state == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
-                {
-                    await TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(newEmail: Faker.Internet.Email(), user)(s);
-                }
-                else
-                {
-                    throw new NotImplementedException($"Unrecognised {nameof(AuthenticationState.TrnLookupState)}: '{state}'.");
-                }
-            };
-
         public Func<AuthenticationState, Task> Completed(User user, bool firstTimeSignIn = false, bool haveResumedCompletedJourney = false) =>
             async s =>
             {
@@ -355,7 +288,7 @@ public sealed class AuthenticationStateHelper
                 if (firstTimeSignIn)
                 {
                     Debug.Assert(user.UserType == UserType.Default);
-                    await TrnLookupCompletedForNewTrn(user)(s);
+                    await Trn.TrnLookupCompletedForNewTrn(user)(s);
                 }
                 else
                 {
@@ -578,6 +511,129 @@ public sealed class AuthenticationStateHelper
                     awardedQts: true)(s);
 
                 s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
+            };
+
+        public Func<AuthenticationState, Task> TrnLookupCompletedForNewTrn(
+            User user,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            string? nationalInsuranceNumber = null,
+            string? ittProviderName = null) =>
+            async s =>
+            {
+                await IttProviderSet(
+                    user.EmailAddress,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    user.DateOfBirth,
+                    nationalInsuranceNumber,
+                    ittProviderName)(s);
+                s.OnTrnLookupCompletedAndUserRegistered(user);
+            };
+
+        public Func<AuthenticationState, Task> TrnLookupCompletedForExistingTrn(
+            User trnOwner,
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null,
+            string? nationalInsuranceNumber = null,
+            string? ittProviderName = null) =>
+            async s =>
+            {
+                Debug.Assert(trnOwner.EmailAddress != email);
+
+                await IttProviderSet(
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    dateOfBirth,
+                    nationalInsuranceNumber,
+                    ittProviderName)(s);
+                s.OnTrnLookupCompletedForTrnAlreadyInUse(trnOwner.EmailAddress);
+            };
+
+        public Func<AuthenticationState, Task> TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(
+            User trnOwner,
+            string? email = null,
+            string? statedTrn = null,
+            string? officialFirstName = null,
+            string? officialLastName = null,
+            string? previousOfficialFirstName = null,
+            string? previousOfficialLastName = null,
+            string? preferredFirstName = null,
+            string? preferredLastName = null,
+            DateOnly? dateOfBirth = null,
+            string? nationalInsuranceNumber = null,
+            string? ittProviderName = null) =>
+            async s =>
+            {
+                await TrnLookupCompletedForExistingTrn(
+                    trnOwner,
+                    email,
+                    statedTrn,
+                    officialFirstName,
+                    officialLastName,
+                    previousOfficialFirstName,
+                    previousOfficialLastName,
+                    preferredFirstName,
+                    preferredLastName,
+                    dateOfBirth,
+                    nationalInsuranceNumber,
+                    ittProviderName)(s);
+                s.OnEmailVerifiedOfExistingAccountForTrn();
+            };
+
+        public Func<AuthenticationState, Task> TrnLookup(AuthenticationState.TrnLookupState state, User? user) =>
+            async s =>
+            {
+                if (state == AuthenticationState.TrnLookupState.None)
+                {
+                    await _configure.EmailVerified()(s);
+                    return;
+                }
+
+                if (user is null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                if (state == AuthenticationState.TrnLookupState.Complete)
+                {
+                    await TrnLookupCompletedForNewTrn(user)(s);
+                }
+                else if (state == AuthenticationState.TrnLookupState.ExistingTrnFound)
+                {
+                    await TrnLookupCompletedForExistingTrn(user, email: Faker.Internet.Email())(s);
+                }
+                else if (state == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
+                {
+                    await TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(user, email: Faker.Internet.Email())(s);
+                }
+                else
+                {
+                    throw new NotImplementedException($"Unrecognised {nameof(AuthenticationState.TrnLookupState)}: '{state}'.");
+                }
             };
     }
 }

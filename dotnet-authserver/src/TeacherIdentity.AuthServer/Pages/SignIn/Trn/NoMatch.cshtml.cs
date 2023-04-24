@@ -1,34 +1,35 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Services.UserVerification;
-using TeacherIdentity.AuthServer.Services.Zendesk;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class NoMatch : TrnCreateUserPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class NoMatch : PageModel
 {
-    public NoMatch(
-        IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext,
-        IClock clock,
-        IUserVerificationService userVerificationService,
-        IZendeskApiWrapper zendeskApiWrapper)
-        : base(linkGenerator, dbContext, clock, userVerificationService, zendeskApiWrapper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.NoMatch;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public NoMatch(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
 
-    public string? EmailAddress => HttpContext.GetAuthenticationState().EmailAddress;
-    public string? OfficialName => HttpContext.GetAuthenticationState().GetOfficialName();
-    public string? PreviousOfficialName => HttpContext.GetAuthenticationState().GetPreviousOfficialName();
-    public string? PreferredName => HttpContext.GetAuthenticationState().GetPreferredName();
-    public DateOnly? DateOfBirth => HttpContext.GetAuthenticationState().DateOfBirth;
-    public bool? HaveNationalInsuranceNumber => HttpContext.GetAuthenticationState().HasNationalInsuranceNumber;
-    public string? NationalInsuranceNumber => HttpContext.GetAuthenticationState().NationalInsuranceNumber;
-    public bool? AwardedQts => HttpContext.GetAuthenticationState().AwardedQts;
-    public string? IttProviderName => HttpContext.GetAuthenticationState().IttProviderName;
+    [BindNever]
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
+
+    public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
+    public string? OfficialName => _journey.AuthenticationState.GetOfficialName();
+    public string? PreviousOfficialName => _journey.AuthenticationState.GetPreviousOfficialName();
+    public string? PreferredName => _journey.AuthenticationState.GetPreferredName();
+    public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;
+    public bool? HaveNationalInsuranceNumber => _journey.AuthenticationState.HasNationalInsuranceNumber;
+    public string? NationalInsuranceNumber => _journey.AuthenticationState.NationalInsuranceNumber;
+    public bool? AwardedQts => _journey.AuthenticationState.AwardedQts;
+    public string? IttProviderName => _journey.AuthenticationState.IttProviderName;
 
     [BindProperty]
     [Display(Name = "Do you want to change something and try again?")]
@@ -48,29 +49,9 @@ public class NoMatch : TrnCreateUserPageModel
 
         if (HasChangesToMake == true)
         {
-            return Redirect(LinkGenerator.TrnCheckAnswers());
+            return Redirect(_journey.GetPreviousStepUrl(LegacyTrnJourney.Steps.NoMatch)!);
         }
 
-        return await TryCreateUser();
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        // We require all questions to have been answered and to have failed to find a TRN
-        context.Result = authenticationState switch
-        {
-            { HasTrnSet: false } => Redirect(LinkGenerator.TrnHasTrn()),
-            { OfficialNameSet: false } => Redirect(LinkGenerator.TrnOfficialName()),
-            { PreferredNameSet: false } => Redirect(LinkGenerator.TrnPreferredName()),
-            { DateOfBirthSet: false } => Redirect(LinkGenerator.TrnDateOfBirth()),
-            { HasNationalInsuranceNumberSet: false } => Redirect(LinkGenerator.TrnHasNiNumber()),
-            { HasNationalInsuranceNumber: true } and { NationalInsuranceNumberSet: false } => Redirect(LinkGenerator.TrnNiNumber()),
-            { AwardedQtsSet: false } => Redirect(LinkGenerator.TrnAwardedQts()),
-            { AwardedQts: true } and { HasIttProviderSet: false } => Redirect(LinkGenerator.TrnIttProvider()),
-            not { TrnLookupStatus: TrnLookupStatus.Pending or TrnLookupStatus.None } => Redirect(LinkGenerator.TrnCheckAnswers()),
-            _ => null
-        };
+        return await _journey.CreateOrMatchUserWithTrn(CurrentStep);
     }
 }

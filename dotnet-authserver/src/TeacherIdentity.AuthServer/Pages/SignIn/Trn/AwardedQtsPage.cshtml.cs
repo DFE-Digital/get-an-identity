@@ -1,23 +1,26 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class AwardedQtsPage : TrnLookupPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class AwardedQtsPage : PageModel
 {
-    public AwardedQtsPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.AwardedQts;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public AwardedQtsPage(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
 
     [BindNever]
-    public string BackLink => (HttpContext.GetAuthenticationState().HasNationalInsuranceNumber == true)
-        ? LinkGenerator.TrnNiNumber()
-        : LinkGenerator.TrnHasNiNumber();
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
     [Display(Name = "Have you been awarded qualified teacher status (QTS)?")]
     [Required(ErrorMessage = "Tell us if you have been awarded qualified teacher status (QTS)")]
@@ -35,29 +38,15 @@ public class AwardedQtsPage : TrnLookupPageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnAwardedQtsSet((bool)AwardedQts!);
+        _journey.AuthenticationState.OnAwardedQtsSet((bool)AwardedQts!);
 
-        return (bool)AwardedQts!
-            ? Redirect(LinkGenerator.TrnIttProvider())
-            : await TryFindTrn() ?? Redirect(LinkGenerator.TrnCheckAnswers());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasNationalInsuranceNumberSet)
-        {
-            context.Result = new RedirectResult(LinkGenerator.TrnHasNiNumber());
-        }
-        else if (authenticationState.HasNationalInsuranceNumber == true && !authenticationState.NationalInsuranceNumberSet)
-        {
-            context.Result = new RedirectResult(LinkGenerator.TrnNiNumber());
-        }
+        return (bool)AwardedQts! ?
+            Redirect(_journey.GetNextStepUrl(CurrentStep)) :
+            await _journey.FindTrnAndContinue(CurrentStep);
     }
 
     private void SetDefaultInputValues()
     {
-        AwardedQts ??= HttpContext.GetAuthenticationState().AwardedQts;
+        AwardedQts ??= _journey.AuthenticationState.AwardedQts;
     }
 }

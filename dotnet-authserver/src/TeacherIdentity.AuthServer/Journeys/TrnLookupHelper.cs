@@ -1,6 +1,6 @@
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
-namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
+namespace TeacherIdentity.AuthServer.Journeys;
 
 public class TrnLookupHelper
 {
@@ -72,7 +72,7 @@ public class TrnLookupHelper
             return null;
         }
 
-        return new string(nino.Where(Char.IsAsciiLetterOrDigit).ToArray()).ToUpper();
+        return new string(nino.Where(char.IsAsciiLetterOrDigit).ToArray()).ToUpper();
     }
 
     private static string? NormalizeTrn(string? trn)
@@ -82,6 +82,6 @@ public class TrnLookupHelper
             return null;
         }
 
-        return new string(trn.Where(Char.IsAsciiDigit).ToArray());
+        return new string(trn.Where(char.IsAsciiDigit).ToArray());
     }
 }

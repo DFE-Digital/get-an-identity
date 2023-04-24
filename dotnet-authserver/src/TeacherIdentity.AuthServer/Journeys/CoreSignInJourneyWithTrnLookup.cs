@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
-public class CoreSignInJourneyWithTrnLookup : TrnLookupJourneyBase
+public class CoreSignInJourneyWithTrnLookup : SignInJourney
 {
     public CoreSignInJourneyWithTrnLookup(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
         : base(httpContext, linkGenerator)

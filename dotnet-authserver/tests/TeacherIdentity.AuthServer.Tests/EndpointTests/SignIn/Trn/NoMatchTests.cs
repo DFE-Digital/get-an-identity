@@ -27,13 +27,13 @@ public class NoMatchTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class NoMatchTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Theory]
@@ -57,7 +57,7 @@ public class NoMatchTests : TestBase
         string expectedRedirect)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -73,7 +73,7 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -101,7 +101,7 @@ public class NoMatchTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -122,7 +122,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -146,7 +146,7 @@ public class NoMatchTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -167,7 +167,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -191,7 +191,7 @@ public class NoMatchTests : TestBase
         var nino = hasNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -214,7 +214,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => haveQts ? c.Trn.IttProviderSet() : c.Trn.AwardedQtsSet(awardedQts: false),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -237,7 +237,7 @@ public class NoMatchTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: ittProviderName),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -258,7 +258,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: null),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -279,7 +279,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.AwardedQtsSet(awardedQts: false),
-            CustomScopes.DqtRead);
+            CustomScopes.Trn);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -309,13 +309,13 @@ public class NoMatchTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/no-match");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/trn/no-match");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Fact]
@@ -329,7 +329,7 @@ public class NoMatchTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Post, "/sign-in/trn/no-match");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Theory]
@@ -339,7 +339,7 @@ public class NoMatchTests : TestBase
         string expectedRedirect)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -355,7 +355,7 @@ public class NoMatchTests : TestBase
     public async Task Post_NullHasChangesToMake_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -376,7 +376,7 @@ public class NoMatchTests : TestBase
     public async Task Post_TrueHasChangesToMake_DoesNotCreateUserRedirectsToCheckAnswers()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
@@ -412,7 +412,7 @@ public class NoMatchTests : TestBase
         bool expectZendeskTicketCreated)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead, TestClients.LegacyTrnClient);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
@@ -459,7 +459,7 @@ public class NoMatchTests : TestBase
             {
                 {
                     c => c.EmailVerified(),
-                    "/sign-in/trn/has-trn"
+                    "/sign-in/trn"
                 },
                 {
                     c => c.Trn.HasTrnSet(),

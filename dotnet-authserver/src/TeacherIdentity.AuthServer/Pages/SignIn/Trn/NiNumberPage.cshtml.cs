@@ -1,17 +1,26 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-public class NiNumberPage : TrnLookupPageModel
+[CheckCanAccessStep(CurrentStep)]
+public class NiNumberPage : PageModel
 {
-    public NiNumberPage(IdentityLinkGenerator linkGenerator, TrnLookupHelper trnLookupHelper)
-        : base(linkGenerator, trnLookupHelper)
+    private const string CurrentStep = LegacyTrnJourney.Steps.NationalInsuranceNumber;
+
+    private readonly LegacyTrnJourney _journey;
+
+    public NiNumberPage(LegacyTrnJourney journey)
     {
+        _journey = journey;
     }
+
+    [BindNever]
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
     [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
     [Required(ErrorMessage = "Enter a National Insurance number")]
@@ -27,7 +36,7 @@ public class NiNumberPage : TrnLookupPageModel
     {
         if (submit == "ni_number_not_known")
         {
-            HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet(false);
+            _journey.AuthenticationState.OnHasNationalInsuranceNumberSet(false);
         }
         else
         {
@@ -36,24 +45,14 @@ public class NiNumberPage : TrnLookupPageModel
                 return this.PageWithErrors();
             }
 
-            HttpContext.GetAuthenticationState().OnNationalInsuranceNumberSet(NiNumber!);
+            _journey.AuthenticationState.OnNationalInsuranceNumberSet(NiNumber!);
         }
 
-        return await TryFindTrn() ?? Redirect(LinkGenerator.TrnAwardedQts());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasNationalInsuranceNumberSet)
-        {
-            context.Result = new RedirectResult(LinkGenerator.TrnHasNiNumber());
-        }
+        return await _journey.FindTrnAndContinue(CurrentStep);
     }
 
     private void SetDefaultInputValues()
     {
-        NiNumber ??= HttpContext.GetAuthenticationState().NationalInsuranceNumber;
+        NiNumber ??= _journey.AuthenticationState.NationalInsuranceNumber;
     }
 }

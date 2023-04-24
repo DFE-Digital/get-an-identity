@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
-namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
+namespace TeacherIdentity.AuthServer.Tests.JourneyTests;
 
 public class TrnLookupHelperTests
 {

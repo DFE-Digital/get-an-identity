@@ -24,28 +24,49 @@ public class TrnTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/trn");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
     }
 
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
+    [Fact]
+    public async Task Get_NoEmail_RedirectsToEmailPage()
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, HttpMethod.Get, "/sign-in/trn");
+        await NoEmail_RedirectsToEmailPage(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
+    }
+
+    [Fact]
+    public async Task Get_NoVerifiedEmail_RedirectsToEmailConfirmationPage()
+    {
+        await NoVerifiedEmail_RedirectsToEmailConfirmationPage(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
+    }
+
+    [Fact]
+    public async Task Get_MatchedAgainstExistingUserWithTrn_RedirectsToTrnInUsePage()
+    {
+        // Arrange
+        var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.TrnLookupCompletedForExistingTrn(existingUserWithTrn), CustomScopes.Trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/trn/different-email", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task Get_ValidRequest_ReturnsOk()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -54,33 +75,13 @@ public class TrnTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Get_SubmitsToTrnHasTrn()
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-        var doc = await response.GetDocument();
-        var form = doc.GetElementsByTagName("form").Single();
-        Assert.StartsWith("/sign-in/trn/has-trn", form.GetAttribute("action"));
-        Assert.Equal("GET", form.GetAttribute("method"));
     }
 
     [Fact]
     public async Task Get_WithRegisterForNpqClient_RendersCorrectContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead, TestClients.RegisterForNpq);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn, TestClients.RegisterForNpq);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
@@ -99,7 +100,7 @@ public class TrnTests : TestBase
     public async Task Get_WithDefaultClient_RendersCorrectContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
