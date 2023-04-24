@@ -11,7 +11,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
             "users",
             t => t.HasCheckConstraint("ck_trn_lookup_status", "(completed_trn_lookup is null and trn is null) or trn_lookup_status is not null"));
         builder.HasKey(u => u.UserId);
-        builder.Property(u => u.EmailAddress).HasMaxLength(User.EmailAddressMaxLength).IsRequired().UseCollation("case_insensitive");
+        builder.Property(u => u.EmailAddress).HasMaxLength(EmailAddress.EmailAddressMaxLength).IsRequired().UseCollation("case_insensitive");
         builder.HasIndex(u => u.EmailAddress).IsUnique().HasDatabaseName(User.EmailAddressUniqueIndexName).HasFilter("is_deleted = false");
         builder.HasIndex(u => u.Trn).IsUnique().HasFilter("is_deleted = false and trn is not null");
         builder.Property(u => u.FirstName).HasMaxLength(User.FirstNameMaxLength).IsRequired();

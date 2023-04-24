@@ -86,9 +86,9 @@ public class UserImportProcessor : IUserImportProcessor
                 {
                     errors.Add($"{UserImportRow.EmailAddressHeader} field is empty");
                 }
-                else if (row.EmailAddress.Length > User.EmailAddressMaxLength)
+                else if (row.EmailAddress.Length > EmailAddress.EmailAddressMaxLength)
                 {
-                    errors.Add($"{UserImportRow.EmailAddressHeader} field should have a maximum of {User.EmailAddressMaxLength} characters");
+                    errors.Add($"{UserImportRow.EmailAddressHeader} field should have a maximum of {EmailAddress.EmailAddressMaxLength} characters");
                 }
                 else
                 {

@@ -136,7 +136,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             {
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests7",
-                EmailAddress = $"{new string('a', User.EmailAddressMaxLength + 1)}@email.com",
+                EmailAddress = $"{new string('a', EmailAddress.EmailAddressMaxLength + 1)}@email.com",
                 FirstName = Faker.Name.First(),
                 LastName = Faker.Name.Last(),
                 DateOfBirth = "05021970",
@@ -145,7 +145,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
-                ExpectedNotes = new [] { $"{UserImportRow.EmailAddressHeader} field should have a maximum of {User.EmailAddressMaxLength} characters" },
+                ExpectedNotes = new [] { $"{UserImportRow.EmailAddressHeader} field should have a maximum of {EmailAddress.EmailAddressMaxLength} characters" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
             // 8. Invalid format EMAIL_ADDRESS field
