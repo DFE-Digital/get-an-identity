@@ -22,6 +22,7 @@
         <govuk-checkboxes-fieldset>
             <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m" />
 
+            <govuk-checkboxes-item value="@WebHookMessageTypes.UserCreated" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserCreated)">@UserCreatedMessage.MessageTypeName</govuk-checkboxes-item>
             <govuk-checkboxes-item value="@WebHookMessageTypes.UserUpdated" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserUpdated)">@UserUpdatedMessage.MessageTypeName</govuk-checkboxes-item>
             <govuk-checkboxes-item value="@WebHookMessageTypes.UserMerged" checked="@Model.WebHookMessageTypes.HasFlag(WebHookMessageTypes.UserMerged)">@UserMergedMessage.MessageTypeName</govuk-checkboxes-item>
         </govuk-checkboxes-fieldset>

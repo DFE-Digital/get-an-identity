@@ -79,5 +79,23 @@ public class PublishNotificationsEventObserver : IEventObserver
                 TimeUtc = userMerged.CreatedUtc
             };
         }
+        else if (@event is UserRegisteredEvent userCreated)
+        {
+            if (userCreated.User.UserType == Models.UserType.Staff)
+            {
+                yield break;
+            }
+
+            yield return new NotificationEnvelope()
+            {
+                NotificationId = Guid.NewGuid(),
+                Message = new UserCreatedMessage()
+                {
+                    User = userCreated.User
+                },
+                MessageType = UserCreatedMessage.MessageTypeName,
+                TimeUtc = userCreated.CreatedUtc
+            };
+        }
     }
 }

@@ -80,6 +80,7 @@ public class WebHookNotificationPublisher : INotificationPublisher
         {
             UserUpdatedMessage.MessageTypeName => WebHookMessageTypes.UserUpdated,
             UserMergedMessage.MessageTypeName => WebHookMessageTypes.UserMerged,
+            UserCreatedMessage.MessageTypeName => WebHookMessageTypes.UserCreated,
             _ => WebHookMessageTypes.All,
         };
 
