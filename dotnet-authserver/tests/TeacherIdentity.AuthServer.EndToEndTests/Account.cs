@@ -13,6 +13,8 @@ public class Account : IClassFixture<HostFixture>
     {
         _hostFixture = hostFixture;
         _hostFixture.OnTestStarting();
+
+        MockDqtEvidenceStorageServiceSuccessResponse();
     }
 
     [Fact]
@@ -233,5 +235,12 @@ public class Account : IClassFixture<HostFixture>
         _hostFixture.DqtApiClient
             .Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
             .ReturnsAsync(teacherInfo);
+    }
+
+    private void MockDqtEvidenceStorageServiceSuccessResponse()
+    {
+        _hostFixture.DqtEvidenceStorageService
+            .Setup(mock => mock.TrySafeUpload(It.IsAny<IFormFile>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
     }
 }

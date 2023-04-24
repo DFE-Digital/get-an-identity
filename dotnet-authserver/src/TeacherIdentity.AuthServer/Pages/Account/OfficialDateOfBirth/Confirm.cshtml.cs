@@ -48,7 +48,7 @@ public class Confirm : PageModel
         var teacherDobChangeRequest = new TeacherDateOfBirthChangeRequest()
         {
             DateOfBirth = DateOfBirth!.Value,
-            EvidenceFileName = FileName!,
+            EvidenceFileName = FileId!,
             EvidenceFileUrl = sasUri,
             Trn = User.GetTrn()!
         };

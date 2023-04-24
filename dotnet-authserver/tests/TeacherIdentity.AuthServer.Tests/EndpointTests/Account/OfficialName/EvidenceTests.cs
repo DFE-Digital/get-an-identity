@@ -12,7 +12,9 @@ public class EvidenceTests : TestBase
         : base(hostFixture)
     {
         HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
+
         MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasPendingNameChange: false);
+        MockSuccessfulDqtEvidenceFileUpload();
 
         _clientRedirectInfo = CreateClientRedirectInfo();
 
@@ -154,7 +156,35 @@ public class EvidenceTests : TestBase
         Assert.Contains(_clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
         Assert.Contains("fileName=", response.Headers.Location?.OriginalString);
 
-        HostFixture.DqtEvidenceStorageService.Verify(s => s.Upload(It.IsAny<IFormFile>(), It.Is<string>(arg => arg.StartsWith($"{user.UserId}/"))));
+        HostFixture.DqtEvidenceStorageService.Verify(s => s.TrySafeUpload(It.IsAny<IFormFile>(), It.Is<string>(arg => arg.StartsWith($"{user.UserId}/"))));
+    }
+
+    [Fact]
+    public async Task Post_ValidFileTypeMalwareDetected_RendersError()
+    {
+        // Arrange
+        HostFixture.DqtEvidenceStorageService
+            .Setup(s => s.TrySafeUpload(It.IsAny<IFormFile>(), It.IsAny<string>()))
+            .ReturnsAsync(false);
+
+        var user = TestUsers.DefaultUserWithTrn;
+        HostFixture.SetUserId(user.UserId);
+        MockDqtApiResponse(user, hasPendingNameChange: false);
+
+        var file = CreateFormFileUpload("jpg");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, _validRequestUrl)
+        {
+            Content = file
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "EvidenceFile", "The selected file contains a virus");
+
+        HostFixture.DqtEvidenceStorageService.Verify(s => s.TrySafeUpload(It.IsAny<IFormFile>(), It.Is<string>(arg => arg.StartsWith($"{user.UserId}/"))));
     }
 
     private void MockDqtApiResponse(User user, bool hasPendingNameChange)
@@ -171,6 +201,13 @@ public class EvidenceTests : TestBase
                 PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange
             });
+    }
+
+    private void MockSuccessfulDqtEvidenceFileUpload()
+    {
+        HostFixture.DqtEvidenceStorageService
+            .Setup(s => s.TrySafeUpload(It.IsAny<IFormFile>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
     }
 
     private MultipartFormDataContent CreateFormFileUpload(string fileType)

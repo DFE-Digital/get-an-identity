@@ -36,9 +36,11 @@ public class Evidence : BaseEvidencePage
         }
 
         var fileName = EvidenceFile!.FileName;
-        var fileId = await UploadEvidence();
+        var fileId = GenerateFileId();
 
-        return Redirect(_linkGenerator.AccountOfficialDateOfBirthConfirm((DateOnly)DateOfBirth!, fileName, fileId, ClientRedirectInfo));
+        return await TryUploadEvidence(fileId) ?
+            Redirect(_linkGenerator.AccountOfficialDateOfBirthConfirm((DateOnly)DateOfBirth!, fileName, fileId, ClientRedirectInfo)) :
+            this.PageWithErrors();
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
