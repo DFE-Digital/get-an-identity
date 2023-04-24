@@ -7,6 +7,7 @@ public enum WebHookMessageTypes
 
     UserUpdated = 1 << 0,
     UserMerged = 1 << 1,
+    UserCreated = 1 << 2,
 
-    All = UserUpdated | UserMerged
+    All = UserUpdated | UserMerged | UserCreated
 }

@@ -26,7 +26,28 @@ Notifications are sent as JSON and have a common outer schema called the envelop
 
 ## Message types
 
-The are two notification messages types currently; one is for when a user is changed (name, email address etc.) and the other is for when two users are merged.
+The are 3 notification messages types currently; one is for when a new user is registered, one is for when a user is changed (name, email address etc.) and the other is for when two users are merged.
+
+### `UserCreated`
+
+`UserCreated` is generated when a new DfE Identity account is created via the UI. It has the following message schema:
+
+```json
+{
+  "user": {
+    "userId": "",
+    "emailAddress": "",
+    "firstName": "",
+    "lastName": "",
+    "dateOfBirth": "",
+    "trn": "",
+    "mobileNumber": "",
+    "trnLookupStatus": "None|Pending|Found|Failed"
+  }
+}
+```
+
+The `user` object contains the complete set of user information. `trn` may be `null`.
 
 ### `UserUpdated`
 
