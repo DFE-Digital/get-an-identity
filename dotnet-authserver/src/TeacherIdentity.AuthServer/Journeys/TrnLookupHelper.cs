@@ -22,7 +22,8 @@ public class TrnLookupHelper
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(_trnLookupTimeout);
 
-        string? lookupResult = null;
+        string? trn = null;
+        string[] findTeachersResultTrns = Array.Empty<string>();
 
         try
         {
@@ -41,29 +42,33 @@ public class TrnLookupHelper
                 },
                 cts.Token);
 
-            lookupResult = lookupResponse.Results.Length == 1 ? lookupResponse.Results[0].Trn : null;
+            findTeachersResultTrns = lookupResponse.Results.Select(r => r.Trn).ToArray();
         }
         catch (OperationCanceledException ex)
         {
             _logger.LogError(ex, "Timeout calling DQT API.");
-            return null;
         }
         finally
         {
             // We're deliberately setting the result here, even on failure to ensure we don't hold onto a
             // previously-found TRN that may now be invalid.
 
-            var trnLookupStatus = GetTrnLookupStatus(lookupResult, authenticationState);
-            authenticationState.OnTrnLookupCompleted(lookupResult, trnLookupStatus);
+            TrnLookupStatus trnLookupStatus;
+            (trn, trnLookupStatus) = ResolveTrn(findTeachersResultTrns, authenticationState);
+            authenticationState.OnTrnLookupCompleted(trn, trnLookupStatus);
         }
 
-        return lookupResult;
+        return trn;
     }
 
-    public TrnLookupStatus GetTrnLookupStatus(string? trnLookupResult, AuthenticationState authenticationState) =>
-        trnLookupResult is not null ? TrnLookupStatus.Found :
-            authenticationState.StatedTrn is not null || authenticationState.AwardedQts == true ? TrnLookupStatus.Pending :
-            TrnLookupStatus.None;
+    public (string? Trn, TrnLookupStatus TrnLookupStatus) ResolveTrn(string[] findTeachersResultTrns, AuthenticationState authenticationState) =>
+        (findTeachersResultTrns, authenticationState) switch
+        {
+            ({ Length: 1 }, _) => (findTeachersResultTrns.Single(), TrnLookupStatus.Found),
+            ({ Length: > 1 }, _) => (null, TrnLookupStatus.Pending),
+            (_, { StatedTrn: not null } or { AwardedQts: true }) => (null, TrnLookupStatus.Pending),
+            _ => (null, TrnLookupStatus.None)
+        };
 
     private static string? NormalizeNino(string? nino)
     {
