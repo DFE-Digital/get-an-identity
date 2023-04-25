@@ -174,13 +174,7 @@ public class PhoneTests : TestBase
 
         var clientRedirectInfo = CreateClientRedirectInfo();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/phone?{clientRedirectInfo.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "MobileNumber", TestData.GenerateUniqueMobileNumber() },
-            }
-        };
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/phone?{clientRedirectInfo.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
