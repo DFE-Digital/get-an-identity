@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -440,6 +441,12 @@ public class Program
                 options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
 
                 options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
+
+                {
+                    var simpleTypeModelBinderProvider = options.ModelBinderProviders.OfType<SimpleTypeModelBinderProvider>().Single();
+                    options.ModelBinderProviders[options.ModelBinderProviders.IndexOf(simpleTypeModelBinderProvider)] =
+                        new SimpleTypeModelBinderProviderWrapper(simpleTypeModelBinderProvider);
+                }
             })
             .AddSessionStateTempDataProvider();
 
