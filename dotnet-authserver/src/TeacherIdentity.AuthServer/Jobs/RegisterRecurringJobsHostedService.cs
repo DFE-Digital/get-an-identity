@@ -29,5 +29,6 @@ public class RegisterRecurringJobsHostedService : IHostedService
     {
         _recurringJobManager.AddOrUpdate<PruneTokensJob>(nameof(PruneTokensJob), job => job.Execute(CancellationToken.None), Cron.Hourly);
         _recurringJobManager.AddOrUpdate<RefreshEstablishmentDomainsJob>(nameof(RefreshEstablishmentDomainsJob), job => job.Execute(CancellationToken.None), _giasOptions.Value.RefreshEstablishmentDomainsJobSchedule);
+        _recurringJobManager.AddOrUpdate<PurgeConfirmationPinsJob>(nameof(PurgeConfirmationPinsJob), job => job.Execute(CancellationToken.None), Cron.Daily);
     }
 }
