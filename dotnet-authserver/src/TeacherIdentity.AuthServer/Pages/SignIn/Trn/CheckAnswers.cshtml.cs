@@ -36,9 +36,9 @@ public class CheckAnswers : PageModel
     {
         if (!_journey.FoundATrn)
         {
-            return Redirect(_journey.GetNextStepUrl(CurrentStep));
+            return await _journey.Advance(CurrentStep);
         }
 
-        return await _journey.CreateOrMatchUserWithTrn(currentStep: LegacyTrnJourney.Steps.CheckAnswers);
+        return await _journey.TryCreateUser(CurrentStep);
     }
 }

@@ -1,29 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 [AllowCompletedAuthenticationJourney]
+[CheckCanAccessStep(CurrentStep)]
 public class PhoneExists : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.PhoneExists;
 
-    public PhoneExists(IdentityLinkGenerator linkGenerator)
+    private SignInJourney _journey;
+
+    public PhoneExists(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public string? MobileNumber => HttpContext.GetAuthenticationState().MobileNumber;
 
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    public async Task<IActionResult> OnPost()
     {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.IsComplete())
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterPhoneConfirmation());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

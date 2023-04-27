@@ -17,7 +17,7 @@ public class UserClaimHelper
 
     public static IReadOnlyCollection<Claim> GetInternalClaims(AuthenticationState authenticationState)
     {
-        if (!authenticationState.IsComplete())
+        if (!authenticationState.IsComplete)
         {
             throw new InvalidOperationException("Cannot retrieve claims until authentication is complete.");
         }

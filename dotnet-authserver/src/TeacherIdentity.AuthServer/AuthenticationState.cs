@@ -193,7 +193,7 @@ public class AuthenticationState
 
     public IEnumerable<Claim> GetInternalClaims()
     {
-        if (!IsComplete())
+        if (!IsComplete)
         {
             throw new InvalidOperationException("Cannot retrieve claims until authentication is complete.");
         }
@@ -274,13 +274,14 @@ public class AuthenticationState
         }
 
         Debug.Assert(milestone == AuthenticationMilestone.Complete);
-        Debug.Assert(IsComplete());
+        Debug.Assert(IsComplete);
         return PostSignInUrl;
     }
 
     public UserType[] GetPermittedUserTypes() => UserRequirements.GetPermittedUserTypes();
 
-    public bool IsComplete() => EmailAddressVerified &&
+    public bool IsComplete =>
+        EmailAddressVerified &&
         (TrnLookup == TrnLookupState.Complete || !UserRequirements.HasFlag(UserRequirements.TrnHolder)) &&
         UserId.HasValue;
 
@@ -726,7 +727,7 @@ public class AuthenticationState
 
     public async Task SignIn(HttpContext httpContext)
     {
-        if (!IsComplete())
+        if (!IsComplete)
         {
             throw new InvalidOperationException("Journey is not complete.");
         }

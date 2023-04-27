@@ -1,28 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
 [AllowCompletedAuthenticationJourney]
+[CheckCanAccessStep(CurrentStep)]
 public class EmailExists : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.EmailExists;
 
-    public EmailExists(IdentityLinkGenerator linkGenerator)
+    private SignInJourney _journey;
+
+    public EmailExists(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
 
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    public async Task<IActionResult> OnPost()
     {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.IsComplete())
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterEmailConfirmation());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

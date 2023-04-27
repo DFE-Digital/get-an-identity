@@ -11,12 +11,15 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 [VerifyQueryParameterSignature]
 public class Resend : BaseEmailPageModel
 {
+    private IdentityLinkGenerator _linkGenerator;
+
     public Resend(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _linkGenerator = linkGenerator;
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
@@ -60,7 +63,7 @@ public class Resend : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        return Redirect(LinkGenerator.AccountEmailConfirm(NewEmail!, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountEmailConfirm(NewEmail!, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

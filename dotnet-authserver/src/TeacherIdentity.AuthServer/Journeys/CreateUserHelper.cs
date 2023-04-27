@@ -28,9 +28,41 @@ public class CreateUserHelper
         _zendeskApiWrapper = zendeskApiWrapper;
     }
 
-    public async Task<IActionResult> CreateOrMatchUserWithTrn(SignInJourney journey, string currentStep)
+    public async Task<User> CreateUser(AuthenticationState authenticationState)
     {
-        var authenticationState = journey.AuthenticationState;
+        var userId = Guid.NewGuid();
+        var user = new User()
+        {
+            Created = _clock.UtcNow,
+            DateOfBirth = authenticationState.DateOfBirth,
+            EmailAddress = authenticationState.EmailAddress!,
+            MobileNumber = authenticationState.MobileNumber,
+            NormalizedMobileNumber = MobileNumber.Parse(authenticationState.MobileNumber!),
+            FirstName = authenticationState.FirstName!,
+            LastName = authenticationState.LastName!,
+            Updated = _clock.UtcNow,
+            UserId = userId,
+            UserType = UserType.Default,
+            LastSignedIn = _clock.UtcNow,
+            RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
+        };
+
+        _dbContext.Users.Add(user);
+
+        _dbContext.AddEvent(new Events.UserRegisteredEvent()
+        {
+            ClientId = authenticationState.OAuthState?.ClientId,
+            CreatedUtc = _clock.UtcNow,
+            User = user
+        });
+
+        await _dbContext.SaveChangesAsync();
+
+        return user;
+    }
+
+    public async Task<User> CreateUserWithTrn(AuthenticationState authenticationState)
+    {
         Debug.Assert(authenticationState.TrnLookupStatus.HasValue);
 
         var userId = Guid.NewGuid();
@@ -61,51 +93,40 @@ public class CreateUserHelper
             User = user
         });
 
-        try
+        await _dbContext.SaveChangesAsync();
+
+        return user;
+    }
+
+    public async Task<IActionResult> GeneratePinForExistingUserAccount(SignInJourney journey, string currentStep)
+    {
+        var authenticationState = journey.AuthenticationState;
+        var existingUser = await _dbContext.Users.SingleAsync(u => u.Trn == authenticationState.Trn);
+        var existingUserEmail = existingUser.EmailAddress;
+
+        authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
+
+        var pinGenerationResult = await _userVerificationService.GenerateEmailPin(existingUserEmail);
+
+        if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
         {
-            await _dbContext.SaveChangesAsync();
-        }
-        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
-        {
-            // TRN is already linked to an existing account
-
-            var existingUser = await _dbContext.Users.SingleAsync(u => u.Trn == authenticationState.Trn);
-            var existingUserEmail = existingUser.EmailAddress;
-
-            authenticationState.OnTrnLookupCompletedForTrnAlreadyInUse(existingUserEmail);
-
-            var pinGenerationResult = await _userVerificationService.GenerateEmailPin(existingUserEmail);
-
-            if (pinGenerationResult.FailedReason != PinGenerationFailedReason.None)
+            if (pinGenerationResult.FailedReason == PinGenerationFailedReason.RateLimitExceeded)
             {
-                if (pinGenerationResult.FailedReason == PinGenerationFailedReason.RateLimitExceeded)
+                return new ViewResult()
                 {
-                    return new ViewResult()
-                    {
-                        StatusCode = 429,
-                        ViewName = "TooManyRequests"
-                    };
-                }
-
-                throw new NotImplementedException($"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
+                    StatusCode = 429,
+                    ViewName = "TooManyRequests"
+                };
             }
 
-            return new RedirectResult(journey.GetNextStepUrl(currentStep));
-        }
-
-        authenticationState.OnTrnLookupCompletedAndUserRegistered(user);
-        await authenticationState.SignIn(journey.HttpContext);
-
-        if ((!authenticationState.TryGetOAuthState(out var oAuthState) || !oAuthState.HasScope(CustomScopes.Trn)) &&
-            authenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
-        {
-            await CreateTrnResolutionZendeskTicket(authenticationState);
+            throw new NotImplementedException(
+                $"Unknown {nameof(PinGenerationFailedReason)}: '{pinGenerationResult.FailedReason}'.");
         }
 
         return new RedirectResult(journey.GetNextStepUrl(currentStep));
     }
 
-    private Task CreateTrnResolutionZendeskTicket(AuthenticationState authenticationState) =>
+    public Task CreateTrnResolutionZendeskTicket(AuthenticationState authenticationState) =>
         _zendeskApiWrapper.CreateTicketAsync(new()
         {
             Subject = $"[Get an identity] - Support request from {authenticationState.GetPreferredName() ?? authenticationState.GetOfficialName()}",

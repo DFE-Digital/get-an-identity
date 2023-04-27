@@ -1,20 +1,29 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class ResendExistingAccountEmail : BaseExistingEmailPageModel
 {
+    private const string CurrentStep = CoreSignInJourney.Steps.ResendExistingAccountEmail;
+
+    private readonly SignInJourney _journey;
+
     public ResendExistingAccountEmail(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public async Task<IActionResult> OnPost()
     {
@@ -30,16 +39,6 @@ public class ResendExistingAccountEmail : BaseExistingEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        return Redirect(LinkGenerator.RegisterExistingAccountEmailConfirmation());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (authenticationState.ExistingAccountChosen != true)
-        {
-            context.Result = Redirect(LinkGenerator.RegisterAccountExists());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

@@ -177,6 +177,30 @@ public class NiNumberPageTests : TestBase
         Assert.Equal(niNumber, authStateHelper.AuthenticationState.NationalInsuranceNumber);
     }
 
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/ni-number?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "NiNumber", "AB123456C" },
+                { "submit", "submit" },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
+    }
+
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.NiNumber);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasNiNumber);

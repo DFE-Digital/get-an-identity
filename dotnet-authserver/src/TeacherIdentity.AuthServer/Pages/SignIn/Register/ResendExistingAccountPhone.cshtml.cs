@@ -1,21 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class ResendExistingAccountPhone : BaseExistingPhonePageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.ResendExistingAccountPhone;
+
+    private readonly SignInJourney _journey;
 
     public ResendExistingAccountPhone(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator) :
+        SignInJourney journey) :
         base(userVerificationService)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public string? ExistingMobileNumber => HttpContext.GetAuthenticationState().ExistingAccountMobileNumber;
 
@@ -34,22 +40,6 @@ public class ResendExistingAccountPhone : BaseExistingPhonePageModel
             return pinGenerationResult.Result!;
         }
 
-        return Redirect(_linkGenerator.RegisterExistingAccountPhoneConfirmation());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (authenticationState.ExistingAccountChosen != true)
-        {
-            context.Result = Redirect(_linkGenerator.RegisterAccountExists());
-            return;
-        }
-
-        if (authenticationState.ExistingAccountMobileNumber is null)
-        {
-            context.Result = Redirect(_linkGenerator.RegisterExistingAccountEmailConfirmation());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

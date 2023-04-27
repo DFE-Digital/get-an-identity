@@ -2,27 +2,33 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.ExistingAccountEmailConfirmation;
+
+    private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public ExistingAccountEmailConfirmation(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext)
+        TeacherIdentityServerDbContext dbContext,
+        SignInJourney journey)
         : base(userVerificationService, pinValidator)
     {
-        _linkGenerator = linkGenerator;
         _dbContext = dbContext;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public override string? Email => HttpContext.GetAuthenticationState().ExistingAccountEmail;
     public new User? User { get; set; }
@@ -57,18 +63,12 @@ public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
         authenticationState.OnExistingAccountVerified(User!);
         await authenticationState.SignIn(HttpContext);
 
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+        return await _journey.Advance(CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
         var authenticationState = HttpContext.GetAuthenticationState();
-
-        if (authenticationState.ExistingAccountChosen != true)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterAccountExists());
-            return;
-        }
 
         User = await _dbContext.Users.Where(u => u.UserType == UserType.Default && u.EmailAddress == Email).SingleOrDefaultAsync();
 

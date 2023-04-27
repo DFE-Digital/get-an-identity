@@ -43,7 +43,7 @@ public class HasTrnPage : PageModel
 
         _journey.AuthenticationState.OnTrnSet(StatedTrn);
 
-        return await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

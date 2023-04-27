@@ -1,32 +1,36 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class CheckAnswers : PageModel
 {
+    private const string CurrentStep = CoreSignInJourney.Steps.CheckAnswers;
+
     private readonly IClock _clock;
     private readonly TrnLookupHelper _trnLookupHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private readonly SignInJourney _journey;
+    private readonly CreateUserHelper _createUserHelper;
 
     public CheckAnswers(
-        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
-        TrnLookupHelper trnLookupHelper)
+        TrnLookupHelper trnLookupHelper,
+        SignInJourney journey, CreateUserHelper createUserHelper)
     {
-        _linkGenerator = linkGenerator;
         _dbContext = dbContext;
         _clock = clock;
         _trnLookupHelper = trnLookupHelper;
+        _journey = journey;
+        _createUserHelper = createUserHelper;
     }
 
-    public string BackLink => HttpContext.GetAuthenticationState().OAuthState?.RequiresTrnLookup == true
-        ? _linkGenerator.RegisterIttProvider()
-        : _linkGenerator.RegisterDateOfBirth();
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public bool? RequiresTrnLookup => HttpContext.GetAuthenticationState().OAuthState?.RequiresTrnLookup;
     public string? EmailAddress => HttpContext.GetAuthenticationState().EmailAddress;
@@ -45,44 +49,6 @@ public class CheckAnswers : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        return await TryCreateUser();
-    }
-
-    protected async Task<IActionResult> TryCreateUser()
-    {
-        var authenticationState = HttpContext.GetAuthenticationState();
-
-        var userId = Guid.NewGuid();
-        var user = new User()
-        {
-            Created = _clock.UtcNow,
-            DateOfBirth = authenticationState.DateOfBirth,
-            EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = authenticationState.MobileNumber,
-            NormalizedMobileNumber = MobileNumber.Parse(authenticationState.MobileNumber!),
-            FirstName = authenticationState.FirstName!,
-            LastName = authenticationState.LastName!,
-            Updated = _clock.UtcNow,
-            UserId = userId,
-            UserType = UserType.Default,
-            LastSignedIn = _clock.UtcNow,
-            RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-        };
-
-        _dbContext.Users.Add(user);
-
-        _dbContext.AddEvent(new Events.UserRegisteredEvent()
-        {
-            ClientId = authenticationState.OAuthState?.ClientId,
-            CreatedUtc = _clock.UtcNow,
-            User = user
-        });
-
-        await _dbContext.SaveChangesAsync();
-
-        authenticationState.OnUserRegistered(user);
-        await authenticationState.SignIn(HttpContext);
-
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+        return await _journey.TryCreateUser(CurrentStep);
     }
 }

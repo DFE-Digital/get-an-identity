@@ -5,28 +5,49 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public abstract class SignInJourney
 {
-    protected SignInJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
+    protected SignInJourney(
+        HttpContext httpContext,
+        IdentityLinkGenerator linkGenerator,
+        CreateUserHelper createUserHelper)
     {
         AuthenticationState = httpContext.GetAuthenticationState();
         HttpContext = httpContext;
         LinkGenerator = linkGenerator;
+        CreateUserHelper = createUserHelper;
+    }
+
+    public virtual async Task<IActionResult> TryCreateUser(string currentStep)
+    {
+        var user = await CreateUserHelper.CreateUser(AuthenticationState);
+
+        AuthenticationState.OnUserRegistered(user);
+        await AuthenticationState.SignIn(HttpContext);
+
+        return new RedirectResult(GetNextStepUrl(currentStep));
+    }
+
+    public virtual Task<RedirectResult> Advance(string currentStep)
+    {
+        return Task.FromResult(new RedirectResult(GetNextStepUrl(currentStep)));
     }
 
     public AuthenticationState AuthenticationState { get; }
 
     public HttpContext HttpContext { get; }
 
-    public IdentityLinkGenerator LinkGenerator { get; }
+    protected IdentityLinkGenerator LinkGenerator { get; }
 
-    public abstract bool IsFinished();
+    protected CreateUserHelper CreateUserHelper { get; }
 
-    public abstract string GetStartStep();
+    protected abstract bool IsFinished();
 
-    public abstract string GetStepUrl(string step);
+    protected abstract string GetStartStep();
 
-    public abstract string? GetNextStep(string currentStep);
+    protected abstract string GetStepUrl(string step);
 
-    public abstract string? GetPreviousStep(string currentStep);
+    protected abstract string? GetNextStep(string currentStep);
+
+    protected abstract string? GetPreviousStep(string currentStep);
 
     public abstract bool CanAccessStep(string step);
 
@@ -69,7 +90,7 @@ public abstract class SignInJourney
 
     public string GetStartStepUrl() => GetStepUrl(GetStartStep());
 
-    public string GetNextStepUrl(string currentStep)
+    public virtual string GetNextStepUrl(string currentStep)
     {
         if (IsFinished())
         {
@@ -99,18 +120,6 @@ public abstract class SignInJourney
 
         return GetStepUrl(previousStep);
     }
-
-    public Task<IActionResult> OnEmailVerified(User? user)
-    {
-        if (!CanAccessStep(Steps.EmailConfirmation))
-        {
-            throw new InvalidOperationException("Email cannot be verified at this time.");
-        }
-
-        return OnEmailVerifiedCore(user);
-    }
-
-    protected abstract Task<IActionResult> OnEmailVerifiedCore(User? user);
 
     public static class Steps
     {

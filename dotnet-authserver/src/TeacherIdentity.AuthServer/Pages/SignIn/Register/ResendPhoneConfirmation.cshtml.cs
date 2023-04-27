@@ -1,23 +1,29 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class ResendPhoneConfirmationModel : BasePhonePageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.ResendPhoneConfirmation;
+
+    private readonly SignInJourney _journey;
 
     public ResendPhoneConfirmationModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public void OnGet()
     {
@@ -41,20 +47,6 @@ public class ResendPhoneConfirmationModel : BasePhonePageModel
 
         HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
 
-        return Redirect(_linkGenerator.RegisterPhoneConfirmation());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (authenticationState.MobileNumber is null)
-        {
-            context.Result = Redirect(_linkGenerator.RegisterPhone());
-        }
-        else if (authenticationState.MobileNumberVerified)
-        {
-            context.Result = Redirect(_linkGenerator.RegisterName());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

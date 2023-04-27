@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -9,9 +10,8 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
 {
     public BaseEmailPageModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
     }
 

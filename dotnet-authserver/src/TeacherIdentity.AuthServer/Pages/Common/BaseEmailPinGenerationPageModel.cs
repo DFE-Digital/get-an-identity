@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -8,16 +9,13 @@ namespace TeacherIdentity.AuthServer.Pages.Common;
 public class BaseEmailPinGenerationPageModel : PageModel
 {
     private readonly IUserVerificationService _userVerificationService;
-    protected readonly IdentityLinkGenerator LinkGenerator;
     protected readonly TeacherIdentityServerDbContext DbContext;
 
     public BaseEmailPinGenerationPageModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext)
     {
         _userVerificationService = userVerificationService;
-        LinkGenerator = linkGenerator;
         DbContext = dbContext;
     }
 

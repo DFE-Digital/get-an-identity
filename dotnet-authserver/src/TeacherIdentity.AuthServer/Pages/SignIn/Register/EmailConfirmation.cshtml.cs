@@ -2,27 +2,32 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.EmailConfirmation;
+
+    private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public EmailConfirmationModel(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext)
+        TeacherIdentityServerDbContext dbContext, SignInJourney journey)
         : base(userVerificationService, pinValidator)
     {
-        _linkGenerator = linkGenerator;
         _dbContext = dbContext;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     [BindProperty]
     [Display(Name = "Confirmation code")]
@@ -64,19 +69,8 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
         if (user is not null)
         {
             await authenticationState.SignIn(HttpContext);
-            return Redirect(_linkGenerator.RegisterEmailExists());
         }
 
-        return Redirect(_linkGenerator.RegisterPhone());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.EmailAddressSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterEmail());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

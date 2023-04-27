@@ -146,7 +146,7 @@ public class CheckAnswersTests : TestBase
 
     public static TheoryData<bool, RegisterJourneyPage, bool> CheckAnswersState { get; } = new()
     {
-        // requiresTrnLookup, HasNiNumberSet, AwardedQtsSet, AwardedQts
+        // requiresTrnLookup, register journey stage, AwardedQts
         { false, RegisterJourneyPage.CheckAnswers, false },
         { true, RegisterJourneyPage.CheckAnswers, false },
         { true, RegisterJourneyPage.CheckAnswers, true },

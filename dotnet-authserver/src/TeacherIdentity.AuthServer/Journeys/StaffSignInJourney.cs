@@ -5,8 +5,8 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class StaffSignInJourney : SignInJourney
 {
-    public StaffSignInJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator)
-        : base(httpContext, linkGenerator)
+    public StaffSignInJourney(HttpContext httpContext, IdentityLinkGenerator linkGenerator, CreateUserHelper createUserHelper)
+        : base(httpContext, linkGenerator, createUserHelper)
     {
     }
 
@@ -15,32 +15,27 @@ public class StaffSignInJourney : SignInJourney
         throw new NotImplementedException();
     }
 
-    public override string? GetNextStep(string currentStep)
+    protected override string? GetNextStep(string currentStep)
     {
         throw new NotImplementedException();
     }
 
-    public override string? GetPreviousStep(string currentStep)
+    protected override string? GetPreviousStep(string currentStep)
     {
         throw new NotImplementedException();
     }
 
-    public override string GetStartStep()
+    protected override string GetStartStep()
     {
         throw new NotImplementedException();
     }
 
-    public override string GetStepUrl(string step)
+    protected override string GetStepUrl(string step)
     {
         throw new NotImplementedException();
     }
 
-    public override bool IsFinished()
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<IActionResult> OnEmailVerifiedCore(User? user)
+    protected override bool IsFinished()
     {
         throw new NotImplementedException();
     }

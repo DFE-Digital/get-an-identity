@@ -41,14 +41,14 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/register/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/register/itt-provider");
     }
 
     [Fact]
     public async Task Get_FalseRequiresTrnLookup_ReturnsBadRequest()
     {
         await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
-            _currentPageAuthenticationState(),
+            _currentPageAuthenticationState(awardedQts: true),
             HttpMethod.Get,
             "/sign-in/register/itt-provider");
     }
@@ -73,7 +73,7 @@ public class IttProviderTests : TestBase
     public async Task Get_ValidRequest_StoresIttProviderNamesInCache()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/itt-provider?{authStateHelper.ToQueryParam()}");
 
         // Act
@@ -107,7 +107,7 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/register/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/register/itt-provider");
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class IttProviderTests : TestBase
         };
 
         await JourneyRequiresTrnLookup_TrnLookupRequiredIsFalse_ReturnsBadRequest(
-            _currentPageAuthenticationState(),
+            _currentPageAuthenticationState(awardedQts: true),
             HttpMethod.Post,
             "/sign-in/register/itt-provider",
             content);
@@ -146,7 +146,7 @@ public class IttProviderTests : TestBase
     public async Task Post_NullHasIttProvider_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/itt-provider?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -163,7 +163,7 @@ public class IttProviderTests : TestBase
     public async Task Post_EmptyIttProviderName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/itt-provider?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -187,7 +187,7 @@ public class IttProviderTests : TestBase
         // Arrange
         var ittProviderName = "provider";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/itt-provider?{authStateHelper.ToQueryParam()}")
         {
@@ -206,6 +206,32 @@ public class IttProviderTests : TestBase
 
         Assert.Equal(hasIttProvider, authStateHelper.AuthenticationState.HasIttProvider);
         Assert.Equal(hasIttProvider ? ittProviderName : null, authStateHelper.AuthenticationState.IttProviderName);
+    }
+
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResult_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var ittProviderName = "provider";
+
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/itt-provider?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasIttProvider", true },
+                { "IttProviderName", ittProviderName },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.IttProvider);

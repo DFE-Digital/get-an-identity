@@ -2,20 +2,25 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
-[RequiresTrnLookup]
+[CheckCanAccessStep(CurrentStep)]
 public class HasNiNumberPage : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourneyWithTrnLookup.Steps.HasNiNumber;
 
-    public HasNiNumberPage(IdentityLinkGenerator linkGenerator)
+    private readonly SignInJourney _journey;
+
+    public HasNiNumberPage(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    [BindProperty]
     [Display(Name = "Do you have a National Insurance number?")]
     [Required(ErrorMessage = "Tell us if you have a National Insurance number")]
     public bool? HasNiNumber { get; set; }
@@ -24,7 +29,7 @@ public class HasNiNumberPage : PageModel
     {
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -33,18 +38,6 @@ public class HasNiNumberPage : PageModel
 
         HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet((bool)HasNiNumber!);
 
-        return (bool)HasNiNumber!
-            ? Redirect(_linkGenerator.RegisterNiNumber())
-            : Redirect(_linkGenerator.RegisterHasTrn());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.DateOfBirthSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterDateOfBirth());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

@@ -5,15 +5,17 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@LinkGenerator.RegisterEmailConfirmation()" />
+    <govuk-back-link href="@Model.BackLink" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+        <form action="@LinkGenerator.RegisterEmailExists()" method="post" asp-antiforgery="true">
+             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
-        <p>We’ve found a DfE Identity account for email (@Model.Email)</p>
+            <p>We’ve found a DfE Identity account for email (@Model.Email)</p>
 
-        <govuk-button-link href="@HttpContext.GetAuthenticationState().GetNextHopUrl(LinkGenerator)">Sign in</govuk-button-link>
+            <govuk-button type="submit">Sign in</govuk-button>
+        </form>
     </div>
 </div>

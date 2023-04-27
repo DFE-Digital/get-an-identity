@@ -1,28 +1,33 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class PhoneConfirmation : BasePhoneConfirmationPageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.PhoneConfirmation;
+
+    private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public PhoneConfirmation(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext)
         : base(userVerificationService, pinValidator)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
         _dbContext = dbContext;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     [BindProperty]
     [Display(Name = "Security code")]
@@ -67,19 +72,8 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
         if (user is not null)
         {
             await authenticationState.SignIn(HttpContext);
-            return Redirect(_linkGenerator.RegisterPhoneExists());
         }
 
-        return Redirect(_linkGenerator.RegisterName());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.MobileNumberSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterPhone());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

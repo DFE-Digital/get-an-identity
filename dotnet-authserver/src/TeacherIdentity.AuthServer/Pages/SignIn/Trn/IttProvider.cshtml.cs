@@ -55,7 +55,7 @@ public class IttProvider : PageModel
 
         _journey.AuthenticationState.OnHasIttProviderSet((bool)HasIttProvider!, IttProviderName);
 
-        return await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)

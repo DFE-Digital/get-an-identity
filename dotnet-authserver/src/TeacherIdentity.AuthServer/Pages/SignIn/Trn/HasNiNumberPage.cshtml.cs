@@ -40,9 +40,7 @@ public class HasNiNumberPage : PageModel
 
         _journey.AuthenticationState.OnHasNationalInsuranceNumberSet((bool)HasNiNumber!);
 
-        return (bool)HasNiNumber! ?
-            Redirect(_journey.GetNextStepUrl(CurrentStep)) :
-            await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

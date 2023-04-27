@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using TeacherIdentity.AuthServer.Models;
+using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
 public class LegacyTrnJourney : SignInJourney
 {
-    private readonly CreateUserHelper _createUserHelper;
     private readonly TrnLookupHelper _trnLookupHelper;
 
     public LegacyTrnJourney(
@@ -13,31 +13,70 @@ public class LegacyTrnJourney : SignInJourney
         TrnLookupHelper trnLookupHelper,
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator)
-        : base(httpContext, linkGenerator)
+        : base(httpContext, linkGenerator, createUserHelper)
     {
-        _createUserHelper = createUserHelper;
         _trnLookupHelper = trnLookupHelper;
     }
 
     public bool FoundATrn => AuthenticationState.Trn is not null;
 
-    public Task<IActionResult> CreateOrMatchUserWithTrn(string currentStep) =>
-        _createUserHelper.CreateOrMatchUserWithTrn(this, currentStep);
-
-    public async Task<IActionResult> FindTrnAndContinue(string currentStep)
+    public override async Task<IActionResult> TryCreateUser(string currentStep)
     {
-        var lookupResult = await _trnLookupHelper.LookupTrn(AuthenticationState);
-        return new RedirectResult(lookupResult is not null ? LinkGenerator.TrnCheckAnswers() : GetNextStepUrl(currentStep));
+        try
+        {
+            var user = await CreateUserHelper.CreateUserWithTrn(AuthenticationState);
+
+            AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
+            await AuthenticationState.SignIn(HttpContext);
+
+            if ((!AuthenticationState.TryGetOAuthState(out var oAuthState) || !oAuthState.HasScope(CustomScopes.Trn)) &&
+                AuthenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
+            {
+                await CreateUserHelper.CreateTrnResolutionZendeskTicket(AuthenticationState);
+            }
+        }
+        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
+        {
+            // TRN is already linked to an existing account
+            return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
+        }
+
+        return new RedirectResult(GetNextStepUrl(currentStep));
     }
 
-    public override bool IsFinished() =>
+    public override async Task<RedirectResult> Advance(string currentStep)
+    {
+        if (ShouldPerformTrnLookup(currentStep))
+        {
+            var lookupResult = await _trnLookupHelper.LookupTrn(AuthenticationState);
+            if (lookupResult is not null)
+            {
+                return new RedirectResult(GetStepUrl(Steps.CheckAnswers));
+            }
+        }
+
+        return await base.Advance(currentStep);
+    }
+
+    private bool ShouldPerformTrnLookup(string step)
+    {
+        return step == Steps.OfficialName ||
+               step == Steps.DateOfBirth ||
+               step == Steps.HasNationalInsuranceNumber && AuthenticationState.HasNationalInsuranceNumber == false ||
+               step == Steps.NationalInsuranceNumber ||
+               step == Steps.HasTrn ||
+               step == Steps.AwardedQts && AuthenticationState.AwardedQts == false ||
+               step == Steps.IttProvider;
+    }
+
+    protected override bool IsFinished() =>
         AuthenticationState.UserId.HasValue &&
             AuthenticationState.TrnLookupStatus.HasValue &&
             AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.Complete;
 
-    public override string GetStartStep() => SignInJourney.Steps.Email;
+    protected override string GetStartStep() => SignInJourney.Steps.Email;
 
-    public override string GetStepUrl(string step) => step switch
+    protected override string GetStepUrl(string step) => step switch
     {
         SignInJourney.Steps.Email => LinkGenerator.Email(),
         SignInJourney.Steps.EmailConfirmation => LinkGenerator.EmailConfirmation(),
@@ -58,7 +97,7 @@ public class LegacyTrnJourney : SignInJourney
         _ => throw new ArgumentException($"Unknown step: '{step}'.")
     };
 
-    public override string? GetNextStep(string currentStep) => (currentStep, AuthenticationState) switch
+    protected override string? GetNextStep(string currentStep) => (currentStep, AuthenticationState) switch
     {
         (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
         (SignInJourney.Steps.EmailConfirmation, _) => Steps.Trn,
@@ -80,7 +119,7 @@ public class LegacyTrnJourney : SignInJourney
         _ => null
     };
 
-    public override string? GetPreviousStep(string currentStep) => (currentStep, AuthenticationState) switch
+    protected override string? GetPreviousStep(string currentStep) => (currentStep, AuthenticationState) switch
     {
         (SignInJourney.Steps.EmailConfirmation, _) => SignInJourney.Steps.Email,
         (Steps.Trn, _) => SignInJourney.Steps.EmailConfirmation,
@@ -151,27 +190,6 @@ public class LegacyTrnJourney : SignInJourney
             AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified => GetStepUrl(SignInJourney.Steps.TrnInUseChooseEmail),
             _ => base.GetLastAccessibleStepUrl()
         };
-
-    protected async override Task<IActionResult> OnEmailVerifiedCore(User? user)
-    {
-        if (user is not null && user.UserType == UserType.Staff)
-        {
-            return new ViewResult()
-            {
-                ViewName = "StaffUserForbidden",
-                StatusCode = StatusCodes.Status403Forbidden
-            };
-        }
-
-        AuthenticationState.OnEmailVerified(user);
-
-        if (user is not null)
-        {
-            await AuthenticationState.SignIn(HttpContext);
-        }
-
-        return new RedirectResult(GetNextStepUrl(SignInJourney.Steps.EmailConfirmation));
-    }
 
     private bool AreAllQuestionsAnswered() =>
         AuthenticationState.EmailAddressSet &&

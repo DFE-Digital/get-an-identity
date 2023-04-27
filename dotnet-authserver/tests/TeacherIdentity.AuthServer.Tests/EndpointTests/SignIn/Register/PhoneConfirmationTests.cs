@@ -327,30 +327,6 @@ public class PhoneConfirmationTests : TestBase
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
     }
 
-    [Fact]
-    public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: Models.UserType.Default);
-
-        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(user.MobileNumber!));
-
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "Code", pinResult.Pin! }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
-    }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneConfirmation);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Phone);

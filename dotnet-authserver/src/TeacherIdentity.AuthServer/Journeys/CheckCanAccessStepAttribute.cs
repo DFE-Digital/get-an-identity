@@ -21,9 +21,16 @@ public class CheckCanAccessStepAttribute : Attribute, IResourceFilter
     {
         var journey = context.HttpContext.RequestServices.GetRequiredService<SignInJourney>();
 
-        if (!journey.CanAccessStep(StepName))
+        try
         {
-            context.Result = new RedirectResult(journey.GetLastAccessibleStepUrl());
+            if (!journey.CanAccessStep(StepName))
+            {
+                context.Result = new RedirectResult(journey.GetLastAccessibleStepUrl());
+            }
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            context.Result = new BadRequestResult();
         }
     }
 }

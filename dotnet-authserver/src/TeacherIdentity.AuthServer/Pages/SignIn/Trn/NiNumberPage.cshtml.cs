@@ -48,7 +48,7 @@ public class NiNumberPage : PageModel
             _journey.AuthenticationState.OnNationalInsuranceNumberSet(NiNumber!);
         }
 
-        return await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

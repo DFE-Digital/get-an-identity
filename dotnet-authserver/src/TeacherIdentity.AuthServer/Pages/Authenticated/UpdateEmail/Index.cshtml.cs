@@ -8,12 +8,15 @@ namespace TeacherIdentity.AuthServer.Pages.Authenticated.UpdateEmail;
 
 public class IndexModel : BaseEmailPageModel
 {
+    private IdentityLinkGenerator _linkGenerator;
+
     public IndexModel(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator)
-        : base(userVerificationService, linkGenerator, dbContext)
+        : base(userVerificationService, dbContext)
     {
+        _linkGenerator = linkGenerator;
     }
 
     [BindProperty]
@@ -57,6 +60,6 @@ public class IndexModel : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        return Redirect(LinkGenerator.UpdateEmailConfirmation(Email!, ReturnUrl, CancelUrl));
+        return Redirect(_linkGenerator.UpdateEmailConfirmation(Email!, ReturnUrl, CancelUrl));
     }
 }

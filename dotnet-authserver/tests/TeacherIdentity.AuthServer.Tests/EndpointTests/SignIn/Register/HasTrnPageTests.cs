@@ -170,6 +170,51 @@ public class HasTrnPageTests : TestBase
             content);
     }
 
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResultAndHasTrnFalse_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-trn?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasTrn", false },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_HasTrnTrue_DoesNotAttemptTrnLookup()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-trn?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasTrn", true },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        VerifyDqtApiFindTeachersNotCalled();
+    }
+
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasTrn);
     private readonly AuthenticationStateConfigGenerator _ninoPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.NiNumber);
     private readonly AuthenticationStateConfigGenerator _hasNinoPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasNiNumber);

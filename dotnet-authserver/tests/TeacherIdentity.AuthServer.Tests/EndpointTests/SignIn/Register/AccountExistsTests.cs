@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
@@ -119,11 +120,13 @@ public class AccountExistsTests : TestBase
         });
     }
 
-    [Fact]
-    public async Task Post_IsUserAccountFalse_CreatesNewUserAndRedirects()
+    [Theory]
+    [InlineData(null)]
+    [InlineData(CustomScopes.DqtRead)]
+    public async Task Post_IsUserAccountFalse_Redirects(string? additionalScopes)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: additionalScopes);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/account-exists?{authStateHelper.ToQueryParam()}")
         {
@@ -138,13 +141,7 @@ public class AccountExistsTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
-            Assert.NotNull(user);
-        });
+        Assert.StartsWith(additionalScopes == CustomScopes.DqtRead ? "/sign-in/register/has-nino" : "/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.AccountExists);

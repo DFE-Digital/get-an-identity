@@ -32,8 +32,8 @@ public class TrnLookupHelper
                 {
                     DateOfBirth = authenticationState.DateOfBirth,
                     EmailAddress = authenticationState.EmailAddress,
-                    FirstName = authenticationState.OfficialFirstName,
-                    LastName = authenticationState.OfficialLastName,
+                    FirstName = authenticationState.OfficialFirstName ?? authenticationState.FirstName,
+                    LastName = authenticationState.OfficialLastName ?? authenticationState.LastName,
                     IttProviderName = authenticationState.IttProviderName,
                     NationalInsuranceNumber = NormalizeNino(authenticationState.NationalInsuranceNumber),
                     PreviousFirstName = authenticationState.PreviousOfficialFirstName,

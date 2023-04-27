@@ -47,7 +47,7 @@ public class PreferredName : PageModel
         SetDefaultInputValues();
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -58,7 +58,7 @@ public class PreferredName : PageModel
             HasPreferredName == true ? PreferredFirstName : null,
             HasPreferredName == true ? PreferredLastName : null);
 
-        return Redirect(_journey.GetNextStepUrl(CurrentStep));
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

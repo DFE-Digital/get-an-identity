@@ -2,20 +2,25 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
-[RequiresTrnLookup]
+[CheckCanAccessStep(CurrentStep)]
 public class TrnPage : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourneyWithTrnLookup.Steps.Trn;
 
-    public TrnPage(IdentityLinkGenerator linkGenerator)
+    private readonly SignInJourney _journey;
+
+    public TrnPage(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    [BindProperty]
     [Display(Name = "Enter your TRN")]
     [Required(ErrorMessage = "Enter your TRN")]
     [RegularExpression(@"\A\D*(\d{1}\D*){7}\D*\Z", ErrorMessage = "Your TRN number should contain 7 digits")]
@@ -25,7 +30,7 @@ public class TrnPage : PageModel
     {
     }
 
-    public IActionResult OnPost(string submit)
+    public async Task<IActionResult> OnPost(string submit)
     {
         if (submit == "trn_not_known")
         {
@@ -41,16 +46,6 @@ public class TrnPage : PageModel
             HttpContext.GetAuthenticationState().OnTrnSet(StatedTrn);
         }
 
-        return Redirect(_linkGenerator.RegisterHasQts());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasTrnSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterHasTrn());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }
