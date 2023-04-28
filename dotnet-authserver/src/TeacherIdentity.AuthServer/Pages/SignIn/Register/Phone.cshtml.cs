@@ -26,6 +26,7 @@ public class Phone : BasePhonePageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -46,5 +47,10 @@ public class Phone : BasePhonePageModel
         HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        MobileNumber ??= _journey.AuthenticationState.MobileNumber;
     }
 }

@@ -26,7 +26,7 @@ public class ResendPhoneConfirmationModel : BasePhonePageModel
 
     public void OnGet()
     {
-        MobileNumber = HttpContext.GetAuthenticationState().MobileNumber;
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -47,5 +47,10 @@ public class ResendPhoneConfirmationModel : BasePhonePageModel
         HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        MobileNumber ??= _journey.AuthenticationState.MobileNumber;
     }
 }

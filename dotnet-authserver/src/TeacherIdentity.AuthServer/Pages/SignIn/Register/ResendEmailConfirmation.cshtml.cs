@@ -32,7 +32,7 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
 
     public void OnGet()
     {
-        Email = HttpContext.GetAuthenticationState().EmailAddress;
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -52,5 +52,10 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        Email ??= _journey.AuthenticationState.EmailAddress;
     }
 }
