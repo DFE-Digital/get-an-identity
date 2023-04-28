@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Models;
 
@@ -51,7 +52,22 @@ public abstract class SignInJourney
 
     public abstract bool CanAccessStep(string step);
 
-    public virtual string GetLastAccessibleStepUrl()
+    public bool TryGetLastAccessibleStepUrl([MaybeNullWhen(false)] out string stepUrl)
+    {
+        try
+        {
+            stepUrl = GetLastAccessibleStepUrl();
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            stepUrl = default;
+            return false;
+        }
+
+        return true;
+    }
+
+    protected virtual string GetLastAccessibleStepUrl()
     {
         // This is used when the user tries to access a page in the journey that's not accessible.
         // We want to redirect them somewhere valid for the journey but we don't have a current step

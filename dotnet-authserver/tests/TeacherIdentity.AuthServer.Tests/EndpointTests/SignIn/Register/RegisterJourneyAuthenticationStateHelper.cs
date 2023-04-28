@@ -55,7 +55,7 @@ public static class RegisterJourneyAuthenticationStateHelper
                     return c => c.RegisterHasQtsSet(awardedQts: awardedQts);
 
                 case RegisterJourneyPage.CheckAnswers:
-                    return c => c.RegisterIttProviderSet(awardedQts: awardedQts);
+                    return c => c.RegisterIttProviderSet(awardedQts: awardedQts, mobileNumber: mobileNumber);
 
                 case RegisterJourneyPage.AccountExists:
                     return c => c.RegisterExistingUserAccountMatch(user);

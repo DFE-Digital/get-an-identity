@@ -183,7 +183,7 @@ public class LegacyTrnJourney : SignInJourney
     }
 
     // The base implementation cannot deal with 'TRN in use' scenarios since that's not the standard journey
-    public override string GetLastAccessibleStepUrl() =>
+    protected override string GetLastAccessibleStepUrl() =>
         AuthenticationState.TrnLookup switch
         {
             AuthenticationState.TrnLookupState.ExistingTrnFound => GetStepUrl(SignInJourney.Steps.TrnInUse),

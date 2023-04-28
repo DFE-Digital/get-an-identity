@@ -84,11 +84,11 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 
     protected override string? GetNextStep(string currentStep)
     {
-        var shouldCheckAnswers = AreAllQuestionsAnswered() || FoundATrn;
+        var shouldCheckAnswers = (AreAllQuestionsAnswered() || FoundATrn) && !AuthenticationState.ExistingAccountFound;
 
         return (currentStep, AuthenticationState) switch
         {
-            (CoreSignInJourney.Steps.DateOfBirth, { ExistingAccountFound: false }) => Steps.HasNiNumber,
+            (CoreSignInJourney.Steps.DateOfBirth, { ExistingAccountFound: false }) => shouldCheckAnswers ? CoreSignInJourney.Steps.CheckAnswers : Steps.HasNiNumber,
             (CoreSignInJourney.Steps.AccountExists, { ExistingAccountChosen: false }) => Steps.HasNiNumber,
             (Steps.HasNiNumber, { HasNationalInsuranceNumber: true }) => Steps.NiNumber,
             (Steps.HasNiNumber, { HasNationalInsuranceNumber: false }) => shouldCheckAnswers ? CoreSignInJourney.Steps.CheckAnswers : Steps.HasTrn,

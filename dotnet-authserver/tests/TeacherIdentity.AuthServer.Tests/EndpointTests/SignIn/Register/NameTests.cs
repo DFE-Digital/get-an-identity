@@ -187,6 +187,32 @@ public class NameTests : TestBase
         Assert.Equal(lastName, authStateHelper.AuthenticationState.LastName);
     }
 
+    [Fact]
+    public async Task Post_ValidNameAllQuestionsAnswered_RedirectsToCheckAnswers()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_allQuestionsAnsweredAuthenticationState(), additionalScopes: null);
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "FirstName", firstName },
+                { "LastName", lastName },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
+    }
+
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Name);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneConfirmation);
+    private readonly AuthenticationStateConfigGenerator _allQuestionsAnsweredAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.CheckAnswers);
 }

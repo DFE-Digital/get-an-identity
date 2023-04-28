@@ -185,6 +185,31 @@ public class DateOfBirthPageTests : TestBase
     }
 
     [Fact]
+    public async Task Post_ValidFormAllQuestionsAnswered_RedirectsToCheckAnswers()
+    {
+        // Arrange
+        var dateOfBirth = new DateOnly(2000, 1, 1);
+
+        var authStateHelper = await CreateAuthenticationStateHelper(_allQuestionsAnsweredAuthenticationState(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "DateOfBirth.Day", dateOfBirth.ToString("dd")! },
+                { "DateOfBirth.Month", dateOfBirth.ToString("MM")! },
+                { "DateOfBirth.Year", dateOfBirth.ToString("yyyy")! },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
     public async Task Post_TrnLookupFindsExactlyOneResultNoUserExists_RedirectsToCheckAnswersPage()
     {
         // Arrange
@@ -213,4 +238,5 @@ public class DateOfBirthPageTests : TestBase
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.DateOfBirth);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Name);
+    private readonly AuthenticationStateConfigGenerator _allQuestionsAnsweredAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.CheckAnswers);
 }

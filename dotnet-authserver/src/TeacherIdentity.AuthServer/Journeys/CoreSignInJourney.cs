@@ -53,7 +53,7 @@ public class CoreSignInJourney : SignInJourney
 
     protected override string? GetNextStep(string currentStep)
     {
-        var shouldCheckAnswers = AreAllQuestionsAnswered();
+        var shouldCheckAnswers = AreAllQuestionsAnswered() && !AuthenticationState.ExistingAccountFound;
 
         return (currentStep, AuthenticationState) switch
         {
