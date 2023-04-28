@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TeacherIdentity.AuthServer.Events;
 
 namespace TeacherIdentity.AuthServer.Models;

@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
-using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 

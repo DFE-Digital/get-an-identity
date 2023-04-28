@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
