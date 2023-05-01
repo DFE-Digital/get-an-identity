@@ -440,12 +440,11 @@ public class Program
             {
                 options.Conventions.Add(new Infrastructure.ApplicationModel.ApiControllerConvention());
 
-                options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
+                options.ModelBinderProviders.Insert(2, new DateOnlyModelBinderProvider());
 
                 {
                     var simpleTypeModelBinderProvider = options.ModelBinderProviders.OfType<SimpleTypeModelBinderProvider>().Single();
-                    options.ModelBinderProviders[options.ModelBinderProviders.IndexOf(simpleTypeModelBinderProvider)] =
-                        new SimpleTypeModelBinderProviderWrapper(simpleTypeModelBinderProvider);
+                    options.ReplaceModelBinderProvider<SimpleTypeModelBinderProvider>(new SimpleTypeModelBinderProviderWrapper(simpleTypeModelBinderProvider));
                 }
             })
             .AddSessionStateTempDataProvider();
