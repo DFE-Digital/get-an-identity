@@ -5,7 +5,6 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[CheckJourneyType(typeof(LegacyTrnJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class ResendTrnOwnerEmailConfirmationModel : PageModel
 {

@@ -16,7 +16,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task NewUserWithoutTrnRequiredCanRegister()
+    public async Task NewUser_WithoutTrnRequired_CanRegister()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -233,7 +233,65 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task UserWithEmailAlreadyExists_SignsInExistingUser()
+    public async Task NewUser_WithTrnRequired_MatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully()
+    {
+        var existingTrnOwner = await _hostFixture.TestData.CreateUser(hasTrn: true);
+
+        var trn = existingTrnOwner.Trn!;
+        var trnOwnerEmailAddress = existingTrnOwner.EmailAddress;
+        var email = Faker.Internet.Email();
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+
+        ConfigureDqtApiFindTeachersRequest(result: new()
+        {
+            DateOfBirth = dateOfBirth,
+            FirstName = firstName,
+            LastName = lastName,
+            EmailAddresses = new[] { email },
+            HasActiveSanctions = false,
+            NationalInsuranceNumber = null,
+            Trn = trn,
+            Uid = Guid.NewGuid().ToString()
+        });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitDateOfBirthPage(dateOfBirth);
+
+        await page.SubmitCheckAnswersPage();
+
+        await page.SubmitTrnTrnInUsePage();
+
+        await page.SubmitTrnChooseEmailPage(trnOwnerEmailAddress);
+
+        await page.SubmitCompletePageForNewUser();
+
+        await page.AssertSignedInOnTestClient(existingTrnOwner);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => _hostFixture.AssertEventIsUserSignedIn(e, existingTrnOwner.UserId));
+    }
+
+    [Fact]
+    public async Task User_WithEmailAlreadyExists_SignsInExistingUser()
     {
         var existingUser = await _hostFixture.TestData.CreateUser();
 
@@ -259,7 +317,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task UserWithMobileAlreadyExists_SignsInExistingUser()
+    public async Task User_WithMobileAlreadyExists_SignsInExistingUser()
     {
         var email = Faker.Internet.Email();
         var existingUser = await _hostFixture.TestData.CreateUser(hasMobileNumber: true);
@@ -290,7 +348,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task UserWithMatchingNameAndDob_SignsInExistingUserFromEmail()
+    public async Task User_WithMatchingNameAndDob_SignsInExistingUserFromEmail()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -329,7 +387,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task UserWithMatchingNameAndDob_SignsInExistingUserFromMobilePhone()
+    public async Task User_WithMatchingNameAndDob_SignsInExistingUserFromMobilePhone()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();

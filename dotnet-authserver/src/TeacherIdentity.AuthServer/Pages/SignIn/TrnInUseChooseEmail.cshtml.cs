@@ -7,7 +7,6 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[CheckJourneyType(typeof(LegacyTrnJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class TrnInUseChooseEmailModel : PageModel
 {

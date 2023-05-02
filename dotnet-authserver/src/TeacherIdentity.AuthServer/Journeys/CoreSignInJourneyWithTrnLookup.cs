@@ -35,7 +35,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
         {
             // We don't currently handle duplicate TRNs in Core Sign In Journey
-            return new BadRequestResult();
+            return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
         }
 
         return new RedirectResult(GetNextStepUrl(currentStep));
@@ -78,6 +78,9 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         Steps.Trn => AuthenticationState.HasTrn == true,
         Steps.HasQts => AuthenticationState.StatedTrn is not null || AuthenticationState is { HasTrnSet: true, HasTrn: false },
         Steps.IttProvider => AuthenticationState.AwardedQts == true,
+        SignInJourney.Steps.TrnInUse => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
+        SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
+        SignInJourney.Steps.TrnInUseChooseEmail => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified,
         _ => base.CanAccessStep(step)
     };
 
@@ -99,6 +102,9 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
             (Steps.HasQts, { AwardedQts: true }) => Steps.IttProvider,
             (Steps.HasQts, { AwardedQts: false }) => CoreSignInJourney.Steps.CheckAnswers,
             (Steps.IttProvider, _) => CoreSignInJourney.Steps.CheckAnswers,
+            (CoreSignInJourney.Steps.CheckAnswers, { TrnLookup: AuthenticationState.TrnLookupState.ExistingTrnFound }) => SignInJourney.Steps.TrnInUse,
+            (SignInJourney.Steps.TrnInUse, _) => SignInJourney.Steps.TrnInUseChooseEmail,
+            (SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation, _) => SignInJourney.Steps.TrnInUse,
             _ => base.GetNextStep(currentStep)
         };
     }
@@ -121,6 +127,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         (CoreSignInJourney.Steps.CheckAnswers, { HasNationalInsuranceNumber: false }) => Steps.HasNiNumber,
         (CoreSignInJourney.Steps.CheckAnswers, { DateOfBirthSet: true }) => CoreSignInJourney.Steps.DateOfBirth,
         (CoreSignInJourney.Steps.CheckAnswers, { OfficialNameSet: true }) => CoreSignInJourney.Steps.Name,
+        (SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation, _) => SignInJourney.Steps.TrnInUse,
         _ => base.GetPreviousStep(currentStep)
     };
 
@@ -132,6 +139,9 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         Steps.Trn => LinkGenerator.RegisterTrn(),
         Steps.HasQts => LinkGenerator.RegisterHasQts(),
         Steps.IttProvider => LinkGenerator.RegisterIttProvider(),
+        SignInJourney.Steps.TrnInUse => LinkGenerator.TrnInUse(),
+        SignInJourney.Steps.TrnInUseChooseEmail => LinkGenerator.TrnInUseChooseEmail(),
+        SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation => LinkGenerator.ResendTrnOwnerEmailConfirmation(),
         _ => base.GetStepUrl(step)
     };
 

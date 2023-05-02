@@ -5,7 +5,6 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[CheckJourneyType(typeof(LegacyTrnJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class TrnInUseModel : BaseEmailConfirmationPageModel
 {
@@ -38,11 +37,11 @@ public class TrnInUseModel : BaseEmailConfirmationPageModel
             return this.PageWithErrors();
         }
 
-        var VerifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
+        var verifyEmailPinFailedReasons = await UserVerificationService.VerifyEmailPin(Email!, Code!);
 
-        if (VerifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
+        if (verifyEmailPinFailedReasons != PinVerificationFailedReasons.None)
         {
-            return await HandlePinVerificationFailed(VerifyEmailPinFailedReasons);
+            return await HandlePinVerificationFailed(verifyEmailPinFailedReasons);
         }
 
         _journey.AuthenticationState.OnEmailVerifiedOfExistingAccountForTrn();
