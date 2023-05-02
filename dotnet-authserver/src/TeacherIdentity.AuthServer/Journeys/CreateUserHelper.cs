@@ -71,6 +71,7 @@ public class CreateUserHelper
             Created = _clock.UtcNow,
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
+            MobileNumber = authenticationState.MobileNumber,
             FirstName = authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
             LastName = authenticationState.LastName ?? authenticationState.OfficialLastName!,
             Updated = _clock.UtcNow,
