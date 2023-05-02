@@ -11,12 +11,15 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
 public class ResendEmailConfirmationModel : BaseEmailPageModel
 {
+    private readonly IdentityLinkGenerator _linkGenerator;
+
     public ResendEmailConfirmationModel(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _linkGenerator = linkGenerator;
     }
 
     [Display(Name = "Email address")]
@@ -45,7 +48,7 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
-        return Redirect(LinkGenerator.EmailConfirmation());
+        return Redirect(_linkGenerator.EmailConfirmation());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -54,11 +57,11 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
 
         if (authenticationState.EmailAddress is null)
         {
-            context.Result = Redirect(LinkGenerator.Email());
+            context.Result = Redirect(_linkGenerator.Email());
         }
         else if (authenticationState.EmailAddressVerified)
         {
-            context.Result = Redirect(authenticationState.GetNextHopUrl(LinkGenerator));
+            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
     }
 }

@@ -129,7 +129,7 @@ public class AuthorizationController : Controller
         var authTicketIsTooOld = authenticateResult.Properties?.IssuedUtc != null &&
             DateTimeOffset.UtcNow - authenticateResult.Properties.IssuedUtc > maxAge;
 
-        if (!authenticateResult.Succeeded || request.HasPrompt(Prompts.Login) || authTicketIsTooOld || !authenticationState.IsComplete())
+        if (!authenticateResult.Succeeded || request.HasPrompt(Prompts.Login) || authTicketIsTooOld || !authenticationState.IsComplete)
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -152,7 +152,7 @@ public class AuthorizationController : Controller
             return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
         }
 
-        Debug.Assert(authenticationState.IsComplete());
+        Debug.Assert(authenticationState.IsComplete);
 
         var cookiesPrincipal = authenticateResult.Principal!;
 

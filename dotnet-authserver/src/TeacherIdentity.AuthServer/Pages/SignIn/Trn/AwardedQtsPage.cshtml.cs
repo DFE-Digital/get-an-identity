@@ -40,9 +40,7 @@ public class AwardedQtsPage : PageModel
 
         _journey.AuthenticationState.OnAwardedQtsSet((bool)AwardedQts!);
 
-        return (bool)AwardedQts! ?
-            Redirect(_journey.GetNextStepUrl(CurrentStep)) :
-            await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

@@ -396,12 +396,12 @@ public static class PageExtensions
     public static async Task SignInFromRegisterEmailExistsPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/email-exists");
-        await page.ClickLink("Sign in");
+        await page.ClickButton("Sign in");
     }
 
     public static async Task SignInFromRegisterPhoneExistsPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/phone-exists");
-        await page.ClickLink("Sign in");
+        await page.ClickButton("Sign in");
     }
 }

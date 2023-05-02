@@ -41,7 +41,7 @@ public class DateOfBirthPage : PageModel
 
         _journey.AuthenticationState.OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
-        return await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

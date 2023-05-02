@@ -2,27 +2,33 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.ExistingAccountPhoneConfirmation;
+
+    private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
     public ExistingAccountPhoneConfirmation(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext)
+        TeacherIdentityServerDbContext dbContext,
+        SignInJourney journey)
         : base(userVerificationService, pinValidator)
     {
-        _linkGenerator = linkGenerator;
         _dbContext = dbContext;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public override string? MobileNumber => HttpContext.GetAuthenticationState().ExistingAccountMobileNumber;
 
@@ -59,24 +65,12 @@ public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
         authenticationState.OnExistingAccountVerified(User!);
         await authenticationState.SignIn(HttpContext);
 
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+        return await _journey.Advance(CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
         var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (authenticationState.ExistingAccountChosen != true)
-        {
-            context.Result = Redirect(_linkGenerator.RegisterAccountExists());
-            return;
-        }
-
-        if (authenticationState.ExistingAccountMobileNumber is null)
-        {
-            context.Result = Redirect(_linkGenerator.RegisterExistingAccountEmailConfirmation());
-            return;
-        }
 
         var parsedMobileNumber = Models.MobileNumber.Parse(MobileNumber!);
         User = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserType == UserType.Default && u.NormalizedMobileNumber! == parsedMobileNumber);

@@ -52,14 +52,17 @@ public class CheckAnswersTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(currentAuthenticationStateConfig(awardedQts: awardedQts), additionalScopes);
         var authState = authStateHelper.AuthenticationState;
 
+        if (requiresTrnLookup)
+        {
+            authState.OnTrnLookupCompleted(TestData.GenerateTrn(), TrnLookupStatus.Found);
+        }
+
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/check-answers?{authStateHelper.ToQueryParam()}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
         var doc = await response.GetDocument();
         Assert.Equal(authState.EmailAddress, doc.GetSummaryListValueForKey("Email"));
         Assert.Equal(authState.MobileNumber, doc.GetSummaryListValueForKey("Mobile phone"));
@@ -146,7 +149,7 @@ public class CheckAnswersTests : TestBase
 
     public static TheoryData<bool, RegisterJourneyPage, bool> CheckAnswersState { get; } = new()
     {
-        // requiresTrnLookup, HasNiNumberSet, AwardedQtsSet, AwardedQts
+        // requiresTrnLookup, register journey stage, AwardedQts
         { false, RegisterJourneyPage.CheckAnswers, false },
         { true, RegisterJourneyPage.CheckAnswers, false },
         { true, RegisterJourneyPage.CheckAnswers, true },

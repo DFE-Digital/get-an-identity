@@ -1,25 +1,30 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckCanAccessStep(CurrentStep)]
 public class AccountExists : BaseExistingEmailPageModel
 {
-    private readonly IClock _clock;
+    private const string CurrentStep = CoreSignInJourney.Steps.AccountExists;
+
+    private readonly SignInJourney _journey;
 
     public AccountExists(
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        IClock clock) :
-        base(userVerificationService, linkGenerator, dbContext)
+        IClock clock, CreateUserHelper createUserHelper) :
+        base(userVerificationService, dbContext)
     {
-        _clock = clock;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public string? Email => HttpContext.GetAuthenticationState().EmailAddress;
     public string? ExistingAccountEmail => HttpContext.GetAuthenticationState().ExistingAccountEmail;
@@ -47,60 +52,10 @@ public class AccountExists : BaseExistingEmailPageModel
         {
             var emailPinGenerationResult = await GenerateEmailPinForExistingEmail(ExistingAccountEmail!);
             return emailPinGenerationResult.Success
-                ? Redirect(LinkGenerator.RegisterExistingAccountEmailConfirmation())
+                ? await _journey.Advance(CurrentStep)
                 : emailPinGenerationResult.Result!;
         }
 
-        var user = await CreateUser();
-
-        authenticationState.OnUserRegistered(user);
-        await authenticationState.SignIn(HttpContext);
-
-        return Redirect(authenticationState.GetNextHopUrl(LinkGenerator));
-    }
-
-    private async Task<User> CreateUser()
-    {
-        var authenticationState = HttpContext.GetAuthenticationState();
-
-        var userId = Guid.NewGuid();
-        var user = new User()
-        {
-            Created = _clock.UtcNow,
-            DateOfBirth = authenticationState.DateOfBirth,
-            EmailAddress = authenticationState.EmailAddress!,
-            MobileNumber = authenticationState.MobileNumber,
-            NormalizedMobileNumber = MobileNumber.Parse(authenticationState.MobileNumber!),
-            FirstName = authenticationState.FirstName!,
-            LastName = authenticationState.LastName!,
-            Updated = _clock.UtcNow,
-            UserId = userId,
-            UserType = UserType.Default,
-            LastSignedIn = _clock.UtcNow,
-            RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-        };
-
-        DbContext.Users.Add(user);
-
-        DbContext.AddEvent(new Events.UserRegisteredEvent()
-        {
-            ClientId = authenticationState.OAuthState?.ClientId,
-            CreatedUtc = _clock.UtcNow,
-            User = user
-        });
-
-        await DbContext.SaveChangesAsync();
-
-        return user;
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.ExistingAccountFound)
-        {
-            context.Result = new RedirectResult(LinkGenerator.RegisterDateOfBirth());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

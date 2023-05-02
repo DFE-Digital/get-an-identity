@@ -61,7 +61,7 @@ public class OfficialName : PageModel
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialFirstName : null,
             HasPreviousName == HasPreviousNameOption.Yes ? PreviousOfficialLastName : null);
 
-        return await _journey.FindTrnAndContinue(CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     private void SetDefaultInputValues()

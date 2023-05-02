@@ -8,9 +8,8 @@ public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
 {
     public BaseExistingEmailPageModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     { }
 
     public async Task<PinGenerationResultAction> GenerateEmailPinForExistingEmail(string email)

@@ -1,34 +1,34 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[RequiresTrnLookup]
+[CheckCanAccessStep(CurrentStep)]
 public class HasTrnPage : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourneyWithTrnLookup.Steps.HasTrn;
 
-    public HasTrnPage(IdentityLinkGenerator linkGenerator)
+    private readonly SignInJourney _journey;
+
+    public HasTrnPage(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     [BindProperty]
     [Display(Name = "Do you have a TRN?")]
     [Required(ErrorMessage = "Tell us if you know your TRN")]
     public bool? HasTrn { get; set; }
 
-    public string BackLink => HttpContext.GetAuthenticationState().HasNationalInsuranceNumber == true
-        ? _linkGenerator.RegisterNiNumber()
-        : _linkGenerator.RegisterHasNiNumber();
-
     public void OnGet()
     {
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -37,24 +37,6 @@ public class HasTrnPage : PageModel
 
         HttpContext.GetAuthenticationState().OnHasTrnSet(HasTrn!.Value);
 
-        return HasTrn.Value ?
-            Redirect(_linkGenerator.RegisterTrn()) :
-            Redirect(_linkGenerator.RegisterHasQts());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasNationalInsuranceNumberSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterHasNiNumber());
-            return;
-        }
-
-        if (authenticationState is { HasNationalInsuranceNumber: true, NationalInsuranceNumberSet: false })
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterNiNumber());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

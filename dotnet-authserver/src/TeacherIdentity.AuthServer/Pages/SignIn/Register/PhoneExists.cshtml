@@ -5,15 +5,17 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@LinkGenerator.RegisterPhoneConfirmation()" />
+    <govuk-back-link href="@Model.BackLink" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+        <form action="@LinkGenerator.RegisterPhoneExists()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
-        <p>We’ve found a DfE Identity account for mobile number <span data-testid="mobileNumber">@Model.MobileNumber</span></p>
+            <p>We’ve found a DfE Identity account for mobile number <span data-testid="mobileNumber">@Model.MobileNumber</span></p>
 
-        <govuk-button-link href="@HttpContext.GetAuthenticationState().GetNextHopUrl(LinkGenerator)">Sign in</govuk-button-link>
+            <govuk-button type="submit">Sign in</govuk-button>
+        </form>
     </div>
 </div>

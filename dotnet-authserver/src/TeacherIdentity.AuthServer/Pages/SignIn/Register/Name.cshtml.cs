@@ -1,25 +1,31 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
+[CheckCanAccessStep(CurrentStep)]
 public class Name : PageModel
 {
-    private IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.Name;
 
-    public Name(IdentityLinkGenerator linkGenerator)
+    private SignInJourney _journey;
+
+    public Name(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    [BindProperty]
     [Display(Name = "First name")]
     [Required(ErrorMessage = "Enter your first name")]
     [StringLength(200, ErrorMessage = "First name must be 200 characters or less")]
     public string? FirstName { get; set; }
 
+    [BindProperty]
     [Display(Name = "Last name")]
     [Required(ErrorMessage = "Enter your last name")]
     [StringLength(200, ErrorMessage = "Last name must be 200 characters or less")]
@@ -29,7 +35,7 @@ public class Name : PageModel
     {
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -38,16 +44,6 @@ public class Name : PageModel
 
         HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!);
 
-        return Redirect(_linkGenerator.RegisterDateOfBirth());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.MobileNumberVerified)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterPhoneConfirmation());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

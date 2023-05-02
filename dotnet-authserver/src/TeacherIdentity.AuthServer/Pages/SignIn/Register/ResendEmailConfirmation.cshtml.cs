@@ -1,23 +1,30 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
+[CheckCanAccessStep(CurrentStep)]
 public class ResendEmailConfirmationModel : BaseEmailPageModel
 {
+    private const string CurrentStep = CoreSignInJourney.Steps.ResendEmailConfirmation;
+
+    private readonly SignInJourney _journey;
+
     public ResendEmailConfirmationModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
-        TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        TeacherIdentityServerDbContext dbContext, SignInJourney journey) :
+        base(userVerificationService, dbContext)
     {
+        _journey = journey;
     }
 
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    [BindProperty]
     [Display(Name = "Email address")]
     [Required(ErrorMessage = "Enter your email address")]
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
@@ -44,20 +51,6 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
-        return Redirect(LinkGenerator.RegisterEmailConfirmation());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (authenticationState.EmailAddress is null)
-        {
-            context.Result = Redirect(LinkGenerator.RegisterEmail());
-        }
-        else if (authenticationState.EmailAddressVerified)
-        {
-            context.Result = Redirect(LinkGenerator.RegisterPhone());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

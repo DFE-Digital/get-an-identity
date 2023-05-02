@@ -46,8 +46,8 @@ public abstract partial class TestBase
             .Setup(mock => mock.FindTeachers(It.Is<FindTeachersRequest>(req =>
                     req.DateOfBirth == authState.DateOfBirth &&
                     req.EmailAddress == authState.EmailAddress &&
-                    req.FirstName == authState.OfficialFirstName &&
-                    req.LastName == authState.OfficialLastName &&
+                    (req.FirstName == authState.OfficialFirstName || req.FirstName == authState.FirstName) &&
+                    (req.LastName == authState.OfficialLastName || req.LastName == authState.LastName) &&
                     req.NationalInsuranceNumber == authState.NationalInsuranceNumber &&
                     req.PreviousFirstName == authState.PreviousOfficialFirstName &&
                     req.PreviousLastName == authState.PreviousOfficialLastName &&

@@ -328,15 +328,15 @@ public class PhoneConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidPinForAdminScopeWithNonAdminUser_ReturnsForbidden()
+    public async Task Post_ValidPinForNewUserAllQuestionsAnswered_RedirectsToCheckAnswers()
     {
         // Arrange
-        var user = await TestData.CreateUser(userType: Models.UserType.Default);
+        var mobileNumber = MobileNumber.Parse(TestData.GenerateUniqueMobileNumber());
 
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
-        var pinResult = await userVerificationService.GenerateSmsPin(MobileNumber.Parse(user.MobileNumber!));
+        var pinResult = await userVerificationService.GenerateSmsPin(mobileNumber);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(mobileNumber: user.MobileNumber), additionalScopes: CustomScopes.StaffUserTypeScopes.First());
+        var authStateHelper = await CreateAuthenticationStateHelper(_allQuestionsAnsweredAuthenticationState(mobileNumber: mobileNumber.ToString()), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -349,9 +349,11 @@ public class PhoneConfirmationTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PhoneConfirmation);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Phone);
+    private readonly AuthenticationStateConfigGenerator _allQuestionsAnsweredAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.CheckAnswers);
 }

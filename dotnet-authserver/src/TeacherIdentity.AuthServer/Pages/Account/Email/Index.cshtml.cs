@@ -10,12 +10,15 @@ namespace TeacherIdentity.AuthServer.Pages.Account.Email;
 [BindProperties]
 public class EmailPage : BaseEmailPageModel
 {
+    private IdentityLinkGenerator _linkGenerator;
+
     public EmailPage(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _linkGenerator = linkGenerator;
     }
 
     [BindNever]
@@ -56,6 +59,6 @@ public class EmailPage : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        return Redirect(LinkGenerator.AccountEmailConfirm(Email!, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountEmailConfirm(Email!, ClientRedirectInfo));
     }
 }

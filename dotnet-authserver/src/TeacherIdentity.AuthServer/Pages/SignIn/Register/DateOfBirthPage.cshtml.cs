@@ -1,25 +1,30 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
+[CheckCanAccessStep(CurrentStep)]
 public class DateOfBirthPage : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourney.Steps.DateOfBirth;
+
+    private readonly SignInJourney _journey;
     private readonly IUserSearchService _userSearchService;
 
     public DateOfBirthPage(
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         IUserSearchService userSearchService)
     {
-        _linkGenerator = linkGenerator;
         _userSearchService = userSearchService;
+        _journey = journey;
     }
 
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    [BindProperty]
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
     [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
@@ -43,21 +48,8 @@ public class DateOfBirthPage : PageModel
         if (users.Length > 0)
         {
             authenticationState.OnExistingAccountFound(users[0]);
-            return Redirect(_linkGenerator.RegisterAccountExists());
         }
 
-        return authenticationState.OAuthState?.RequiresTrnLookup == true
-            ? Redirect(_linkGenerator.RegisterHasNiNumber())
-            : Redirect(_linkGenerator.RegisterCheckAnswers());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.PreferredNameSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterName());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

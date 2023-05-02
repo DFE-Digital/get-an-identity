@@ -9,12 +9,15 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 [RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
 public class EmailModel : BaseEmailPageModel
 {
+    private readonly IdentityLinkGenerator _linkGenerator;
+
     public EmailModel(
         IUserVerificationService userVerificationService,
         IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _linkGenerator = linkGenerator;
     }
 
     [BindProperty]
@@ -45,6 +48,6 @@ public class EmailModel : BaseEmailPageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
-        return Redirect(LinkGenerator.EmailConfirmation());
+        return Redirect(_linkGenerator.EmailConfirmation());
     }
 }

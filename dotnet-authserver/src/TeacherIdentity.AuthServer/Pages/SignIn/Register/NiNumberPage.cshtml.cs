@@ -1,21 +1,25 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
-[RequiresTrnLookup]
+[CheckCanAccessStep(CurrentStep)]
 public class NiNumberPage : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourneyWithTrnLookup.Steps.NiNumber;
 
-    public NiNumberPage(IdentityLinkGenerator linkGenerator)
+    private readonly SignInJourney _journey;
+
+    public NiNumberPage(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    [BindProperty]
     [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
     [Required(ErrorMessage = "Enter a National Insurance number")]
     [NationalInsuranceNumber(ErrorMessage = "Enter a National Insurance number in the correct format")]
@@ -25,7 +29,7 @@ public class NiNumberPage : PageModel
     {
     }
 
-    public IActionResult OnPost(string submit)
+    public async Task<IActionResult> OnPost(string submit)
     {
         if (submit == "ni_number_not_known")
         {
@@ -41,16 +45,6 @@ public class NiNumberPage : PageModel
             HttpContext.GetAuthenticationState().OnNationalInsuranceNumberSet(NiNumber!);
         }
 
-        return Redirect(_linkGenerator.RegisterHasTrn());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasNationalInsuranceNumberSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterHasNiNumber());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

@@ -1,27 +1,25 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
-[RequiresTrnLookup]
+[CheckCanAccessStep(CurrentStep)]
 public class HasQtsPage : PageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private const string CurrentStep = CoreSignInJourneyWithTrnLookup.Steps.HasQts;
 
-    public HasQtsPage(IdentityLinkGenerator linkGenerator)
+    private readonly SignInJourney _journey;
+
+    public HasQtsPage(SignInJourney journey)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
-    [BindNever]
-    public string BackLink => HttpContext.GetAuthenticationState().HasTrn == true
-        ? _linkGenerator.RegisterTrn()
-        : _linkGenerator.RegisterHasTrn();
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
+    [BindProperty]
     [Display(Name = "Have you been awarded qualified teacher status (QTS)?")]
     [Required(ErrorMessage = "Tell us if you have been awarded qualified teacher status (QTS)")]
     public bool? AwardedQts { get; set; }
@@ -30,7 +28,7 @@ public class HasQtsPage : PageModel
     {
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
         {
@@ -39,24 +37,6 @@ public class HasQtsPage : PageModel
 
         HttpContext.GetAuthenticationState().OnAwardedQtsSet((bool)AwardedQts!);
 
-        return (bool)AwardedQts!
-            ? Redirect(_linkGenerator.RegisterIttProvider())
-            : Redirect(_linkGenerator.RegisterCheckAnswers());
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.HasTrnSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterHasTrn());
-            return;
-        }
-
-        if (authenticationState is { HasTrn: true, StatedTrn: null })
-        {
-            context.Result = new RedirectResult(_linkGenerator.RegisterTrn());
-        }
+        return await _journey.Advance(CurrentStep);
     }
 }

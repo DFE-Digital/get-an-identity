@@ -1,22 +1,29 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[BindProperties]
+[CheckCanAccessStep(CurrentStep)]
 public class EmailModel : BaseEmailPageModel
 {
+    private const string CurrentStep = CoreSignInJourney.Steps.Email;
+
+    private readonly SignInJourney _journey;
+
     public EmailModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext) :
-        base(userVerificationService, linkGenerator, dbContext)
+        base(userVerificationService, dbContext)
     {
+        _journey = journey;
     }
 
+    [BindProperty]
     [Display(Name = "Your email address", Description = "We’ll use this to send you a code to confirm your email address. Do not use a work or university email that you might lose access to.")]
     [Required(ErrorMessage = "Enter your email address")]
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
@@ -42,6 +49,6 @@ public class EmailModel : BaseEmailPageModel
 
         HttpContext.GetAuthenticationState().OnEmailSet(Email!);
 
-        return Redirect(LinkGenerator.RegisterEmailConfirmation());
+        return await _journey.Advance(CurrentStep);
     }
 }

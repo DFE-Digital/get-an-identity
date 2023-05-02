@@ -8,16 +8,13 @@ namespace TeacherIdentity.AuthServer.Pages.Common;
 public class BaseEmailPinGenerationPageModel : PageModel
 {
     private readonly IUserVerificationService _userVerificationService;
-    protected readonly IdentityLinkGenerator LinkGenerator;
     protected readonly TeacherIdentityServerDbContext DbContext;
 
     public BaseEmailPinGenerationPageModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
         TeacherIdentityServerDbContext dbContext)
     {
         _userVerificationService = userVerificationService;
-        LinkGenerator = linkGenerator;
         DbContext = dbContext;
     }
 

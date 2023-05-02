@@ -47,7 +47,7 @@ public class RequireAuthenticationStateFilter : IAuthorizationFilter
 
         // If the journey has been completed then forward to the completion page
         // (prevents going 'back' to amend submitted details)
-        if (authenticationState.IsComplete())
+        if (authenticationState.IsComplete)
         {
             if (context.HttpContext.GetEndpoint()?.Metadata.Contains(AllowCompletedAuthenticationJourneyMarker.Instance) != true)
             {

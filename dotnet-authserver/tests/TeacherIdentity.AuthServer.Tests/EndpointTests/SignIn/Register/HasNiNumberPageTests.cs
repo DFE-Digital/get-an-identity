@@ -192,6 +192,77 @@ public class HasNiNumberPageTests : TestBase
         Assert.StartsWith("/sign-in/register/ni-number", response.Headers.Location?.OriginalString);
     }
 
+    [Fact]
+    public async Task Post_TrnLookupFindsExactlyOneResultAndHasNiNumberFalse_RedirectsToCheckAnswersPage()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", false },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_NiNumberTrue_DoesNotAttemptTrnLookup()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", true },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        VerifyDqtApiFindTeachersNotCalled();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_NiNumberAllQuestionsAnswered_RedirectsToCorrectPage(bool hasNiNumber)
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_allQuestionsAnsweredAuthenticationState(), CustomScopes.DqtRead);
+        ConfigureDqtApiClientToReturnSingleMatch(authStateHelper);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/has-nino?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasNiNumber", hasNiNumber },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith(hasNiNumber ? "/sign-in/register/ni-number" : "/sign-in/register/check-answers", response.Headers.Location?.OriginalString);
+    }
+
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.HasNiNumber);
     private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.DateOfBirth);
+    private readonly AuthenticationStateConfigGenerator _allQuestionsAnsweredAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.CheckAnswers);
 }

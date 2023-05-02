@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.Establishment;
 
