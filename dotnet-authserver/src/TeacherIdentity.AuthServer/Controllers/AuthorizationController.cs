@@ -359,6 +359,7 @@ public class AuthorizationController : Controller
             case Claims.GivenName:
             case Claims.FamilyName:
             case Claims.Birthdate:
+            case CustomClaims.PreferredName:
                 if (principal.HasScope(Scopes.Profile))
                 {
                     yield return Destinations.IdentityToken;
@@ -386,12 +387,10 @@ public class AuthorizationController : Controller
 
             case CustomClaims.Trn:
             case CustomClaims.TrnLookupStatus:
-#pragma warning disable CS0618 // Type or member is obsolete
                 if (principal.HasScope(CustomScopes.Trn) || principal.HasScope(CustomScopes.DqtRead))
                 {
                     yield return Destinations.IdentityToken;
                 }
-#pragma warning restore CS0618 // Type or member is obsolete
 
                 yield break;
 
