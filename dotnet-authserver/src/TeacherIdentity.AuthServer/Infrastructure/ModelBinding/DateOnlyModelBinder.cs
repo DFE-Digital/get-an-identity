@@ -1,6 +1,5 @@
-using GovUk.Frontend.AspNetCore;
+using GovUk.Frontend.AspNetCore.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Options;
 
 namespace TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 
@@ -45,8 +44,7 @@ public class DateOnlyModelBinderProvider : IModelBinderProvider
     {
         if (context.Metadata.UnderlyingOrModelType == typeof(DateOnly))
         {
-            var gfaOptions = context.Services.GetRequiredService<IOptions<GovUkFrontendAspNetCoreOptions>>().Value;
-            var fallbackBinder = gfaOptions.GetDateInputModelBinder(typeof(DateOnly))!;
+            var fallbackBinder = new DateInputModelBinder();
             return new DateOnlyModelBinder(fallbackBinder);
         }
 
