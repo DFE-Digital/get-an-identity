@@ -26,6 +26,7 @@ public class HasQtsPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -38,5 +39,10 @@ public class HasQtsPage : PageModel
         HttpContext.GetAuthenticationState().OnAwardedQtsSet((bool)AwardedQts!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        AwardedQts ??= _journey.AuthenticationState.AwardedQts;
     }
 }

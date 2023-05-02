@@ -27,6 +27,7 @@ public class NiNumberPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost(string submit)
@@ -46,5 +47,10 @@ public class NiNumberPage : PageModel
         }
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        NiNumber ??= _journey.AuthenticationState.NationalInsuranceNumber;
     }
 }

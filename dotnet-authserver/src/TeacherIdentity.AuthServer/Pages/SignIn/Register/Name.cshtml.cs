@@ -33,6 +33,7 @@ public class Name : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -45,5 +46,11 @@ public class Name : PageModel
         HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        FirstName ??= _journey.AuthenticationState.FirstName;
+        LastName ??= _journey.AuthenticationState.LastName;
     }
 }

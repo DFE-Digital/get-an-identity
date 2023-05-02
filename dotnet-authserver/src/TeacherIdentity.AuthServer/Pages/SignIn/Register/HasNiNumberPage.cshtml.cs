@@ -26,6 +26,7 @@ public class HasNiNumberPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -38,5 +39,10 @@ public class HasNiNumberPage : PageModel
         HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet((bool)HasNiNumber!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        HasNiNumber ??= HttpContext.GetAuthenticationState().HasNationalInsuranceNumber;
     }
 }

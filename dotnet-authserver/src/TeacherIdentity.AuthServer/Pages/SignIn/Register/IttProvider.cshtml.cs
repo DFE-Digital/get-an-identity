@@ -45,6 +45,7 @@ public class IttProvider : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -69,5 +70,11 @@ public class IttProvider : PageModel
         }
 
         await next();
+    }
+
+    private void SetDefaultInputValues()
+    {
+        HasIttProvider ??= _journey.AuthenticationState.HasIttProvider;
+        IttProviderName ??= _journey.AuthenticationState.IttProviderName;
     }
 }

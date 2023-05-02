@@ -30,6 +30,11 @@ public class DateOfBirthPage : PageModel
     [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
     public DateOnly? DateOfBirth { get; set; }
 
+    public void OnGet()
+    {
+        SetDefaultInputValues();
+    }
+
     public async Task<IActionResult> OnPost()
     {
         if (!ModelState.IsValid)
@@ -51,5 +56,10 @@ public class DateOfBirthPage : PageModel
         }
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        DateOfBirth ??= _journey.AuthenticationState.DateOfBirth;
     }
 }

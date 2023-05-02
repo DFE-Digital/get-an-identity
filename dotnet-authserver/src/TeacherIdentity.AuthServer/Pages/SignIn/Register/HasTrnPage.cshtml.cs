@@ -26,6 +26,7 @@ public class HasTrnPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -38,5 +39,10 @@ public class HasTrnPage : PageModel
         HttpContext.GetAuthenticationState().OnHasTrnSet(HasTrn!.Value);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        HasTrn ??= _journey.AuthenticationState.HasTrn;
     }
 }

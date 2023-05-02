@@ -27,6 +27,7 @@ public class TrnPage : PageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost(string submit)
@@ -46,5 +47,10 @@ public class TrnPage : PageModel
         }
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        StatedTrn ??= _journey.AuthenticationState.StatedTrn;
     }
 }
