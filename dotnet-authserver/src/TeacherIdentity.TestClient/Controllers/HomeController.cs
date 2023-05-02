@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,12 @@ public class HomeController : Controller
     {
         var model = new ProfileModel()
         {
-            Email = User.FindFirst("email")?.Value,
-            UserId = User.FindFirst("sub")?.Value,
-            FirstName = User.FindFirst("given_name")?.Value,
-            LastName = User.FindFirst("family_name")?.Value,
-            Trn = User.FindFirst("trn")?.Value
+            Email = User.FindFirstValue("email"),
+            UserId = User.FindFirstValue("sub"),
+            FirstName = User.FindFirstValue("given_name"),
+            LastName = User.FindFirstValue("family_name"),
+            PreferredName = User.FindFirstValue("preferred-name"),
+            Trn = User.FindFirstValue("trn")
         };
 
         return View(model);

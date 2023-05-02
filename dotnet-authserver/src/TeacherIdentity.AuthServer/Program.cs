@@ -419,7 +419,12 @@ public class Program
                 options.DisableAccessTokenEncryption();
                 options.SetAccessTokenLifetime(TimeSpan.FromHours(1));
 
-                options.RegisterClaims(CustomClaims.Trn);
+                options.RegisterClaims(
+                    CustomClaims.Trn,
+                    CustomClaims.TrnLookupStatus,
+                    CustomClaims.PreviousUserId,
+                    CustomClaims.PreferredName);
+
                 options.RegisterScopes(
                     CustomScopes.All
                         .Append(Scopes.Email)

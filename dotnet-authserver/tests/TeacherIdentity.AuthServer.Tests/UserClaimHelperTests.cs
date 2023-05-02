@@ -39,6 +39,7 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             new Claim(Claims.Email, user.EmailAddress),
             new Claim(Claims.EmailVerified, bool.TrueString),
             new Claim(Claims.Name, user.FirstName + " " + user.LastName),
+            new Claim(CustomClaims.PreferredName, user.FirstName + " " + user.LastName),
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
             new Claim(Claims.Birthdate, user.DateOfBirth!.Value.ToString("yyyy-MM-dd")),
@@ -79,11 +80,9 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         var userClaimHelper = new UserClaimHelper(dbContext);
 
         // Act
-#pragma warning disable CS0618 // Type or member is obsolete
         var result = await userClaimHelper.GetPublicClaims(
             user.UserId,
             hasScope: scope => false);
-#pragma warning restore CS0618 // Type or member is obsolete
 
         // Assert
         if (hasMergedUsers)

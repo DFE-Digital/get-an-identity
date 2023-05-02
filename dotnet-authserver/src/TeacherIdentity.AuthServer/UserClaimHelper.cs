@@ -61,6 +61,7 @@ public class UserClaimHelper
             new Claim(Claims.Email, user.EmailAddress),
             new Claim(Claims.EmailVerified, bool.TrueString),
             new Claim(Claims.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim(CustomClaims.PreferredName, $"{user.FirstName} {user.LastName}"),
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
         };
