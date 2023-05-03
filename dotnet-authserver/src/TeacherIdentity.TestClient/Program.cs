@@ -62,6 +62,12 @@ public class Program
                         ctx.ProtocolMessage.Scope = customScope;
                     }
 
+                    var trnRequirement = ctx.HttpContext.Request.Query["trn_requirement"].ToString();
+                    if (!string.IsNullOrEmpty(trnRequirement))
+                    {
+                        ctx.ProtocolMessage.SetParameter("trn_requirement", trnRequirement);
+                    }
+
                     return Task.CompletedTask;
                 };
 

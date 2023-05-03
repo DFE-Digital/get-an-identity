@@ -1,3 +1,30 @@
+<div class="govuk-!-margin-bottom-8">
+    <h3 class="govuk-heading-s">Journeys</h3>
+    <ul class="govuk-list">
+        <li>
+            <a asp-action="Profile" asp-route-scope="email openid profile trn" asp-route-trn_requirement="Legacy" class="govuk-link">
+                Legacy TRN (NPQ)
+            </a>
+        </li>
+        <li>
+            <a asp-action="Profile" asp-route-scope="email openid profile" class="govuk-link">
+                Core (Apply for QTS)
+            </a>
+        </li>
+        <li>
+            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Required" class="govuk-link">
+                Core + TRN lookup (Access your teaching qualifications)
+            </a>
+        </li>
+        <li>
+            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Optional" class="govuk-link">
+                Core + TRN lookup (NPQ)
+            </a>
+        </li>
+    </ul>
+</div>
+
+<h3 class="govuk-heading-s">Custom</h3>
 <form asp-action="Profile" method="get">
     <govuk-input name="scope" value="email openid profile dqt:read" input-class="govuk-input--width-20">
         <govuk-input-label>Scope</govuk-input-label>
