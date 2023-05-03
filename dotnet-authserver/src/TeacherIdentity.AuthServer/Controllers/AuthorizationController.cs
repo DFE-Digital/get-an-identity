@@ -89,8 +89,28 @@ public class AuthorizationController : Controller
 
             var sessionId = request["session_id"]?.Value as string;
 
-            var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
-            var trnRequirementType = client.TrnRequirementType;
+            TrnRequirementType trnRequirementType;
+            var requestedTrnRequirement = request["trn_requirement"];
+
+            if (requestedTrnRequirement.HasValue)
+            {
+                if (!Enum.TryParse(requestedTrnRequirement?.Value as string, out trnRequirementType))
+                {
+                    return Forbid(
+                        authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                        properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                        {
+                            [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                "Invalid trn_requirement specified."
+                        }));
+                }
+            }
+            else
+            {
+                var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
+                trnRequirementType = client.TrnRequirementType;
+            }
 
             authenticationState = AuthenticationState.FromUser(
                 journeyId,
