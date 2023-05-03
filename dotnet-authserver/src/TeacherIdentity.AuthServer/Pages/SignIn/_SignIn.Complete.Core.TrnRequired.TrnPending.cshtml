@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "You cannot access this service yet";
+}
+
+@if (Model.FirstTimeSignInForEmail)
+{
+    <govuk-panel class="app-panel--interruption" data-testid="first-time-user-content">
+        <govuk-panel-title><span data-testid="first-time-user-postsigninmessage"></span>@ViewBag.Title</govuk-panel-title>
+
+        <govuk-panel-body>
+            <p>We need to do some more checks to see if your details are in our records.</p>
+            <p>We’ll email you when we’ve completed those checks - we may need some more information.</p>
+            <h2 class="govuk-heading-s">Your DfE Identity account</h2>
+            <p>You’ve created a DfE Identity account. To sign in to this service in the future, you’ll just need your email address @Model.Email.</p>
+        </govuk-panel-body>
+    </govuk-panel>
+}

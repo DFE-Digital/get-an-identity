@@ -33,12 +33,8 @@
         }
     }
 
-    @if (Model.JourneyType == AuthenticationJourneyType.LegacyTrn)
-    {
-        <vc:sign-in-complete journey-type="AuthenticationJourneyType.LegacyTrn" />
-    }
-    else
-    {
-        <vc:sign-in-complete journey-type="AuthenticationJourneyType.Core" />
-    }
+    <vc:sign-in-complete
+        trn-requirement-type="@Model.TrnRequirementType"
+        trn-lookup-status="@Model.TrnLookupStatus">
+    </vc:sign-in-complete>
 </form>
