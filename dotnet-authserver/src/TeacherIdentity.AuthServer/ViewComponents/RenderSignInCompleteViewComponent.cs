@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewComponents;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.ViewComponents;

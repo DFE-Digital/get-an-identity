@@ -1,5 +1,17 @@
 @{
-    // no copy
+    var user = Model.FirstTimeSignInForEmail ? "first-time-user" : "known-user";
 }
 
+<govuk-panel class="app-panel--interruption" data-testid="@user-content">
+    <govuk-panel-title><span data-testid="@user-postsigninmessage"></span>@ViewBag.Title</govuk-panel-title>
 
+    <govuk-panel-body>
+        @if (Model.FirstTimeSignInForEmail)
+        {
+            <p>We could not find your details in our records. Our support staff may get in touch to ask for more information. This is so we can link your existing details to your DfE Identity account.</p>
+            <p>Next time, you can sign in just using your email @Model.Email.</p>
+        }
+        <p>Continue to <strong>@Model.ClientDisplayName</strong></p>
+        <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+    </govuk-panel-body>
+</govuk-panel>
