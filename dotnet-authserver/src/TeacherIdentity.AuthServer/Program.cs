@@ -553,7 +553,6 @@ public class Program
         app.UseSession();
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
-        app.UseMiddleware<Infrastructure.Middleware.AppendSessionIdToAnalyticsEventsMiddleware>();
         app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/account"), x => x.UseMiddleware<Infrastructure.Middleware.ClientRedirectInfoMiddleware>());
 
         app.UseRouting();
@@ -606,7 +605,11 @@ public class Program
         {
             app.UseWhen(
                 ctx => ctx.Request.Path != new PathString("/health") && ctx.Request.Headers.UserAgent != "AlwaysOn",
-                a => a.UseDfeAnalytics());
+                a =>
+                {
+                    a.UseDfeAnalytics();
+                    a.UseMiddleware<Infrastructure.Middleware.AppendSessionIdToAnalyticsEventsMiddleware>();
+                });
         }
 
         // Add security headers middleware but exclude the endpoints managed by OpenIddict and the API

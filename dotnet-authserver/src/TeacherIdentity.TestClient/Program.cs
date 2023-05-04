@@ -13,10 +13,17 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
         builder.Services.AddControllersWithViews();
 
         builder.Services.AddGovUkFrontend();
+
+        builder.Services.AddDistributedMemoryCache();
+
+        builder.Services.AddSession(options =>
+        {
+            options.Cookie.Name = "testclient-session";
+            options.Cookie.IsEssential = true;
+        });
 
         builder.Services
             .AddAuthentication(options =>
@@ -68,6 +75,8 @@ public class Program
                         ctx.ProtocolMessage.SetParameter("trn_requirement", trnRequirement);
                     }
 
+                    ctx.ProtocolMessage.SetParameter("session_id", ctx.HttpContext.Session.Id);
+
                     return Task.CompletedTask;
                 };
 
@@ -105,15 +114,22 @@ public class Program
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsProduction())
         {
             app.UseForwardedHeaders();
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
         app.UseHttpsRedirection();
+
+        app.UseSession();
+
+        // Force the session cookie to be created
+        app.Use(async (ctx, next) =>
+        {
+            ctx.Session.Set("dummy", new byte[] { 42 });
+            await next(ctx);
+        });
 
         app.UseRouting();
 
