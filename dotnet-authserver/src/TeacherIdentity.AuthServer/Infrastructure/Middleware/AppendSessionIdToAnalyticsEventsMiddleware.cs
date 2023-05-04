@@ -13,10 +13,7 @@ public class AppendSessionIdToAnalyticsEventsMiddleware
 
     public Task Invoke(HttpContext context)
     {
-        var analyticsFeature = context.Features.Get<WebRequestEventFeature>();
-
-        if (analyticsFeature is not null &&
-            context.TryGetAuthenticationState(out var authenticationState) &&
+        if (context.TryGetAuthenticationState(out var authenticationState) &&
             !string.IsNullOrEmpty(authenticationState.SessionId))
         {
             var analyticsEvent = context.GetWebRequestEvent();
