@@ -93,7 +93,7 @@ public class EditStaffUserModel : PageModel
         {
             _dbContext.AddEvent(new StaffUserUpdatedEvent()
             {
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 CreatedUtc = _clock.UtcNow,
                 User = Events.User.FromModel(user),
                 Changes = changes
@@ -117,7 +117,7 @@ public class EditStaffUserModel : PageModel
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
     {
-        if (UserId == User.GetUserId()!.Value)
+        if (UserId == User.GetUserId())
         {
             context.Result = Forbid();
         }

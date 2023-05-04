@@ -95,7 +95,7 @@ public class AddUserImportModel : PageModel
             OriginalFilename = originalFilename,
             UserImportJobStatus = UserImportJobStatus.New,
             Uploaded = DateTime.UtcNow,
-            UploadedByUserId = User.GetUserId()!.Value
+            UploadedByUserId = User.GetUserId()
         };
 
         _dbContext.UserImportJobs.Add(userImportJob);

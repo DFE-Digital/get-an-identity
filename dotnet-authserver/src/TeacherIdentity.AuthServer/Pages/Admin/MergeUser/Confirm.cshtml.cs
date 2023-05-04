@@ -117,7 +117,7 @@ public class Confirm : PageModel
             CreatedUtc = _clock.UtcNow,
             Changes = Events.UserUpdatedEventChanges.Trn,
             User = user,
-            UpdatedByUserId = HttpContext.User.GetUserId()!.Value,
+            UpdatedByUserId = HttpContext.User.GetUserId(),
             UpdatedByClientId = null
         });
     }

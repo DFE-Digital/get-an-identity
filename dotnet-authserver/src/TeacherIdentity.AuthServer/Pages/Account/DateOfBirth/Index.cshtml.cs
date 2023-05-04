@@ -36,13 +36,12 @@ public class DateOfBirthPage : PageModel
 
     public async Task OnGet()
     {
-        var userId = User.GetUserId(true);
+        var userId = User.GetUserId();
 
         DateOfBirth = await _dbContext.Users
-       .Where(u => u.UserId == userId)
-       .Select(u => u.DateOfBirth)
-       .FirstOrDefaultAsync();
-
+           .Where(u => u.UserId == userId)
+           .Select(u => u.DateOfBirth)
+           .FirstOrDefaultAsync();
     }
 
     public IActionResult OnPost()
@@ -68,9 +67,7 @@ public class DateOfBirthPage : PageModel
 
     private async Task<bool> ChangeDateOfBirthEnabled()
     {
-        var trn = User.GetTrn(false);
-
-        if (trn is null)
+        if (!User.TryGetTrn(out var trn))
         {
             return true;
         }

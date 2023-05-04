@@ -34,13 +34,12 @@ public class PhonePage : BasePhonePageModel
 
     public async Task OnGet()
     {
-        var userId = User.GetUserId(true);
+        var userId = User.GetUserId();
 
         MobileNumber = await _dbContext.Users
-       .Where(u => u.UserId == userId)
-       .Select(u => u.MobileNumber)
-       .FirstOrDefaultAsync();
-
+           .Where(u => u.UserId == userId)
+           .Select(u => u.MobileNumber)
+           .FirstOrDefaultAsync();
     }
 
     public async Task<IActionResult> OnPost()
@@ -55,7 +54,7 @@ public class PhonePage : BasePhonePageModel
 
         if (existingUser is not null)
         {
-            var errorMessage = existingUser.UserId == User.GetUserId()!.Value
+            var errorMessage = existingUser.UserId == User.GetUserId()
                 ? "Enter a different mobile phone number. The one you’ve entered is the same as the one already on your account"
                 : "This mobile phone number is already in use - Enter a different mobile phone number";
             ModelState.AddModelError(nameof(MobileNumber), errorMessage);

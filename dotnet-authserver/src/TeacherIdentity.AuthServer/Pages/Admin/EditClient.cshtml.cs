@@ -177,7 +177,7 @@ public class EditClientModel : PageModel
 
                 dbContext.AddEvent(new ClientUpdatedEvent()
                 {
-                    UpdatedByUserId = User.GetUserId()!.Value,
+                    UpdatedByUserId = User.GetUserId(),
                     Client = client,
                     CreatedUtc = _clock.UtcNow,
                     Changes = changes

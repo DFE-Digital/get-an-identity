@@ -39,7 +39,7 @@ public class IndexModel : PageModel
 
     public async Task OnGet()
     {
-        var userId = User.GetUserId()!.Value;
+        var userId = User.GetUserId();
 
         var user = await _dbContext.Users
             .Where(u => u.UserId == userId)

@@ -27,9 +27,7 @@ public class CheckOfficialNameChangeIsEnabledAttribute : Attribute, IAsyncPageFi
 
     private async Task<bool> OfficialNameChangeEnabled(HttpContext httpContext)
     {
-        var trn = httpContext.User.GetTrn(false);
-
-        if (trn is null)
+        if (!httpContext.User.TryGetTrn(out var trn))
         {
             return false;
         }

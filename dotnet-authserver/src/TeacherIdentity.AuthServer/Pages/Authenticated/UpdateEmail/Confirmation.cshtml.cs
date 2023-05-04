@@ -101,7 +101,7 @@ public class ConfirmationModel : PageModel
             return this.PageWithErrors();
         }
 
-        var userId = User.GetUserId()!.Value;
+        var userId = User.GetUserId();
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
         var safeReturnUrl = !string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl) ?
@@ -119,7 +119,7 @@ public class ConfirmationModel : PageModel
                 CreatedUtc = _clock.UtcNow,
                 Changes = Events.UserUpdatedEventChanges.EmailAddress,
                 User = Events.User.FromModel(user),
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 UpdatedByClientId = null
             });
 

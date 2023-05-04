@@ -40,7 +40,7 @@ public class Confirm : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        await UpdateUserDateOfBirth(User.GetUserId()!.Value);
+        await UpdateUserDateOfBirth(User.GetUserId());
         return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
@@ -66,7 +66,7 @@ public class Confirm : PageModel
                 CreatedUtc = _clock.UtcNow,
                 Changes = changes,
                 User = user,
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 UpdatedByClientId = null
             });
 
@@ -96,9 +96,7 @@ public class Confirm : PageModel
 
     private async Task<bool> ChangeDateOfBirthEnabled()
     {
-        var trn = User.GetTrn(false);
-
-        if (trn is null)
+        if (!User.TryGetTrn(out var trn))
         {
             return true;
         }

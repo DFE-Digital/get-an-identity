@@ -108,7 +108,7 @@ public static class UserRequirementsExtensions
             throw new InvalidOperationException($"{nameof(UserRequirements)} does not contain {UserRequirements.StaffUserType}.");
         }
 
-        if (principal.GetUserType(throwIfMissing: true) != UserType.Staff)
+        if (principal.GetUserType() != UserType.Staff)
         {
             return false;
         }

@@ -39,7 +39,7 @@ public class Confirm : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        await UpdateUserName(User.GetUserId()!.Value);
+        await UpdateUserName(User.GetUserId());
         return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
@@ -71,7 +71,7 @@ public class Confirm : PageModel
                 CreatedUtc = _clock.UtcNow,
                 Changes = changes,
                 User = user,
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 UpdatedByClientId = null
             });
 

@@ -26,7 +26,7 @@ public class ClaimsPrincipalCurrentUserProvider : ICurrentUserProvider
         get
         {
             var httpContext = _httpContextAccessor.HttpContext ?? throw new InvalidOperationException("No current HttpContext.");
-            return httpContext.User.GetUserId(throwIfMissing: false);
+            return httpContext.User.TryGetUserId(out var userId) ? userId : null;
         }
     }
 }

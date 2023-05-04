@@ -127,7 +127,7 @@ public class AddClientModel : PageModel
 
             dbContext.AddEvent(new ClientAddedEvent()
             {
-                AddedByUserId = User.GetUserId()!.Value,
+                AddedByUserId = User.GetUserId(),
                 Client = Client.FromDescriptor(descriptor),
                 CreatedUtc = _clock.UtcNow
             });

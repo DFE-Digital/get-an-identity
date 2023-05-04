@@ -112,7 +112,7 @@ public static class HttpContextExtensions
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
         var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
 
-        var userId = principal.GetUserId()!.Value;
+        var userId = principal.GetUserId();
         var user = await dbContext.Users.FindAsync(userId);
 
         dbContext.AddEvent(new Events.UserSignedInEvent()
@@ -132,7 +132,7 @@ public static class HttpContextExtensions
         var clock = scope.ServiceProvider.GetRequiredService<IClock>();
         var dbContext = scope.ServiceProvider.GetRequiredService<TeacherIdentityServerDbContext>();
 
-        var userId = principal.GetUserId()!.Value;
+        var userId = principal.GetUserId();
         var user = await dbContext.Users.FindAsync(userId);
 
         dbContext.AddEvent(new Events.UserSignedOutEvent()
