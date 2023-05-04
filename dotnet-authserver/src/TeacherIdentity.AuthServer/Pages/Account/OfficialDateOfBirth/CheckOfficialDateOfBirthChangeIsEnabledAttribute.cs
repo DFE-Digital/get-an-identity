@@ -29,9 +29,7 @@ public class CheckOfficialDateOfBirthChangeIsEnabledAttribute : Attribute, IAsyn
 
     private async Task<bool> DateOfBirthChangeEnabled(HttpContext httpContext)
     {
-        var trn = httpContext.User.GetTrn(false);
-
-        if (trn is null)
+        if (!httpContext.User.TryGetTrn(out var trn))
         {
             return false;
         }

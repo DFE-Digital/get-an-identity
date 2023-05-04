@@ -46,6 +46,6 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
     public async Task<User?> FindUserByEmailAddress(string email)
     {
         return await DbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == email);
-        // return userWithNewEmail is not null && userWithNewEmail.UserId != User.GetUserId()!.Value;
+        // return userWithNewEmail is not null && userWithNewEmail.UserId != User.GetUserId();
     }
 }

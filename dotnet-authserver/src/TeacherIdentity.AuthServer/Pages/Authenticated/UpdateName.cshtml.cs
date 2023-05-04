@@ -44,7 +44,7 @@ public class UpdateNameModel : PageModel
 
     public async Task OnGet()
     {
-        var userId = User.GetUserId()!.Value;
+        var userId = User.GetUserId();
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
         FirstName = user.FirstName;
@@ -58,7 +58,7 @@ public class UpdateNameModel : PageModel
             return this.PageWithErrors();
         }
 
-        var userId = User.GetUserId()!.Value;
+        var userId = User.GetUserId();
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
         UserUpdatedEventChanges changes = UserUpdatedEventChanges.None;
@@ -90,7 +90,7 @@ public class UpdateNameModel : PageModel
                 CreatedUtc = _clock.UtcNow,
                 Changes = changes,
                 User = Events.User.FromModel(user),
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 UpdatedByClientId = null
             });
 

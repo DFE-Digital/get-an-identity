@@ -20,7 +20,7 @@ public class UserInfoController : Controller
     [HttpGet("~/connect/userinfo"), HttpPost("~/connect/userinfo"), Produces("application/json")]
     public async Task<IActionResult> UserInfo()
     {
-        var userId = User.GetUserId()!.Value;
+        var userId = User.GetUserId();
         var claims = await _userClaimHelper.GetPublicClaims(userId, User.HasScope);
 
         if (claims.Count == 0)

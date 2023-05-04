@@ -60,7 +60,7 @@ public class Confirm : BasePinVerificationPageModel
             return await HandlePinVerificationFailed(verifyEmailPinFailedReasons);
         }
 
-        await UpdateUserEmail(User.GetUserId()!.Value);
+        await UpdateUserEmail(User.GetUserId());
         return Redirect(_linkGenerator.Account(ClientRedirectInfo));
     }
 
@@ -88,7 +88,7 @@ public class Confirm : BasePinVerificationPageModel
                 CreatedUtc = _clock.UtcNow,
                 Changes = changes,
                 User = user,
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 UpdatedByClientId = null
             });
 

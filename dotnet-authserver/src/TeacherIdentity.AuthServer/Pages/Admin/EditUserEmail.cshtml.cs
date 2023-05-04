@@ -54,7 +54,7 @@ public class EditUserEmailModel : PageModel
             {
                 Source = UserUpdatedEventSource.SupportUi,
                 UpdatedByClientId = null,
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 CreatedUtc = _clock.UtcNow,
                 User = Events.User.FromModel(user),
                 Changes = changes

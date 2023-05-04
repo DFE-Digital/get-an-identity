@@ -71,7 +71,7 @@ public class AddStaffUserModel : PageModel
 
         _dbContext.AddEvent(new StaffUserAddedEvent()
         {
-            AddedByUserId = User.GetUserId()!.Value,
+            AddedByUserId = User.GetUserId(),
             CreatedUtc = _clock.UtcNow,
             User = Events.User.FromModel(user)
         });

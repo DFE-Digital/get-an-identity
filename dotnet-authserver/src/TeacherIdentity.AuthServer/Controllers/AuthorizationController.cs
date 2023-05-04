@@ -177,14 +177,14 @@ public class AuthorizationController : Controller
         var cookiesPrincipal = authenticateResult.Principal!;
 
         // If it's a Staff user verify their permissions
-        if (cookiesPrincipal.GetUserType(throwIfMissing: true) == UserType.Staff &&
+        if (cookiesPrincipal.GetUserType() == UserType.Staff &&
             !authenticationState.UserRequirements.VerifyStaffUserRequirements(cookiesPrincipal))
         {
             return Forbid(CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
         var subject = cookiesPrincipal.FindFirst(Claims.Subject)!.Value;
-        var userId = cookiesPrincipal.GetUserId()!.Value;
+        var userId = cookiesPrincipal.GetUserId();
 
         // Retrieve the application details from the database.
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!) ??

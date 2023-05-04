@@ -45,7 +45,7 @@ public class EmailPage : BaseEmailPageModel
 
         if (existingUser is not null)
         {
-            var errorMessage = existingUser.UserId == User.GetUserId()!.Value
+            var errorMessage = existingUser.UserId == User.GetUserId()
                 ? "Enter a different email address. The one you’ve entered is the same as the one already on your account"
                 : "This email address is already in use - Enter a different email address";
             ModelState.AddModelError(nameof(Email), errorMessage);

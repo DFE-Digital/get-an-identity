@@ -54,7 +54,7 @@ public class NoTrn : PageModel
             Changes = Events.UserUpdatedEventChanges.TrnLookupStatus,
             User = Events.User.FromModel(user),
             UpdatedByClientId = null,
-            UpdatedByUserId = User.GetUserId()!.Value
+            UpdatedByUserId = User.GetUserId()
         });
 
         await _dbContext.SaveChangesAsync();

@@ -68,7 +68,7 @@ public class AddWebHookModel : PageModel
 
         _dbContext.AddEvent(new WebHookAddedEvent()
         {
-            AddedByUserId = User.GetUserId()!.Value,
+            AddedByUserId = User.GetUserId(),
             CreatedUtc = _clock.UtcNow,
             Enabled = Enabled,
             Endpoint = Endpoint!,

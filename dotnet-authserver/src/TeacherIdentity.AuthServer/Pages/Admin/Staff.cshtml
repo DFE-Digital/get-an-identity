@@ -17,7 +17,7 @@
         {
             <tr class="govuk-table__row">
                 <td class="govuk-table__cell">
-                    @if (user.UserId != User.GetUserId()!.Value)
+                    @if (user.UserId != User.GetUserId())
                     {
                         <a asp-page="EditStaffUser" asp-route-userId="@user.UserId">@user.FirstName @user.LastName</a>
                     }

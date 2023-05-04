@@ -8,90 +8,75 @@ namespace TeacherIdentity.AuthServer;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static string? GetEmailAddress(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
-        GetClaim(principal, Claims.Email, throwIfMissing);
+    public static string GetEmailAddress(this ClaimsPrincipal principal) => GetClaim(principal, Claims.Email);
 
-    public static string? GetFirstName(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
-        GetClaim(principal, Claims.GivenName, throwIfMissing);
+    public static string GetFirstName(this ClaimsPrincipal principal) => GetClaim(principal, Claims.GivenName);
 
-    public static string? GetLastName(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
-        GetClaim(principal, Claims.FamilyName, throwIfMissing);
+    public static string GetLastName(this ClaimsPrincipal principal) => GetClaim(principal, Claims.FamilyName);
 
     public static string[] GetStaffRoles(this ClaimsPrincipal principal) =>
         principal.Claims.Where(c => c.Type == Claims.Role).Select(c => c.Value).ToArray();
 
-    public static string? GetTrn(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
-        GetClaim(principal, CustomClaims.Trn, throwIfMissing);
+    public static string GetTrn(this ClaimsPrincipal principal) => GetClaim(principal, CustomClaims.Trn);
 
-    public static Guid? GetUserId(this ClaimsPrincipal principal, bool throwIfMissing = true)
+    public static Guid GetUserId(this ClaimsPrincipal principal) =>
+        TryGetUserId(principal, out var userId) ? userId : throw GetClaimMissingException(Claims.Subject);
+
+    public static UserType GetUserType(this ClaimsPrincipal principal) =>
+        GetClaim(principal, CustomClaims.UserType, Enum.Parse<UserType>);
+
+    public static bool TryGetTrn(this ClaimsPrincipal principal, [NotNullWhen(true)] out string? trn) =>
+        TryGetClaim(principal, CustomClaims.Trn, out trn);
+
+    public static bool TryGetUserId(this ClaimsPrincipal principal, out Guid userId)
     {
         // Subject here can either be a GUID (which is our User ID) or it could be the client ID
         // (in cases where client credentials grant is being used)
 
         var value = principal.FindFirstValue(Claims.Subject);
 
-        if (string.IsNullOrEmpty(value))
+        if (!string.IsNullOrEmpty(value) && Guid.TryParse(value, out userId))
         {
-            if (throwIfMissing)
-            {
-                ThrowClaimMissingException(Claims.Subject);
-            }
-
-            return null;
+            return true;
         }
 
-        if (!Guid.TryParse(value, out var userId))
-        {
-            if (throwIfMissing)
-            {
-                throw new InvalidOperationException($"The '{Claims.Subject}' claim does not contain a user ID.");
-            }
-
-            return null;
-        }
-
-        return userId;
+        userId = default;
+        return false;
     }
 
-    public static UserType? GetUserType(this ClaimsPrincipal principal, bool throwIfMissing = true) =>
-        GetClaim(principal, CustomClaims.UserType, throwIfMissing, Enum.Parse<UserType>);
+    private static string GetClaim(ClaimsPrincipal principal, string claimType) =>
+        TryGetClaim(principal, claimType, out var value) ? value : throw GetClaimMissingException(claimType);
 
-    private static string? GetClaim(ClaimsPrincipal principal, string claimType, bool throwIfMissing)
+    private static T GetClaim<T>(ClaimsPrincipal principal, string claimType, Func<string, T> convertValue) where T : struct =>
+        TryGetClaim<T>(principal, claimType, convertValue, out var value) ? value : throw GetClaimMissingException(claimType);
+
+    private static bool TryGetClaim(ClaimsPrincipal principal, string claimType, [NotNullWhen(true)] out string? value)
     {
-        var value = principal.FindFirstValue(claimType);
+        value = principal.FindFirstValue(claimType);
 
         if (string.IsNullOrEmpty(value))
         {
-            if (throwIfMissing)
-            {
-                ThrowClaimMissingException(claimType);
-            }
-
-            return null;
+            return false;
         }
 
-        return value;
+        return true;
     }
 
-    private static T? GetClaim<T>(ClaimsPrincipal principal, string claimType, bool throwIfMissing, Func<string, T> convertValue)
+    private static bool TryGetClaim<T>(ClaimsPrincipal principal, string claimType, Func<string, T> convertValue, out T value)
         where T : struct
     {
-        var value = principal.FindFirstValue(claimType);
+        var stringValue = principal.FindFirstValue(claimType);
 
-        if (string.IsNullOrEmpty(value))
+        if (string.IsNullOrEmpty(stringValue))
         {
-            if (throwIfMissing)
-            {
-                ThrowClaimMissingException(claimType);
-            }
-
-            return null;
+            value = default;
+            return false;
         }
 
-        return convertValue(value);
+        value = convertValue(stringValue);
+        return true;
     }
 
-    [DoesNotReturn]
-    private static void ThrowClaimMissingException(string claimType) =>
-        throw new InvalidOperationException($"No '{claimType}' claim was found.");
+    private static Exception GetClaimMissingException(string claimType) =>
+        new InvalidOperationException($"No '{claimType}' claim was found.");
 }

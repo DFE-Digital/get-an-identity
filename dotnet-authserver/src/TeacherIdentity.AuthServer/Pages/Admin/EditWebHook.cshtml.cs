@@ -108,7 +108,7 @@ public class EditWebHookModel : PageModel
                 CreatedUtc = _clock.UtcNow,
                 Enabled = Enabled,
                 Endpoint = Endpoint!,
-                UpdatedByUserId = User.GetUserId()!.Value,
+                UpdatedByUserId = User.GetUserId(),
                 WebHookId = WebHookId,
                 WebHookMessageTypes = WebHookMessageTypes
             });
