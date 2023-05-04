@@ -14,7 +14,10 @@ public class AuthenticationState
 {
     private static readonly TimeSpan _journeyLifetime = TimeSpan.FromMinutes(20);
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new();
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+    };
 
     public AuthenticationState(
         Guid journeyId,
