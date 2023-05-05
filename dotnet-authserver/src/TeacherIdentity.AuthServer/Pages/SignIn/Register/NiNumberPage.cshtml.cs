@@ -5,6 +5,7 @@ using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup))]
 [CheckCanAccessStep(CurrentStep)]
 public class NiNumberPage : PageModel
 {

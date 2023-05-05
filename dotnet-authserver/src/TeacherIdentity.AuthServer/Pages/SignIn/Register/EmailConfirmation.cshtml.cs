@@ -8,6 +8,7 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
 [CheckCanAccessStep(CurrentStep)]
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
@@ -53,23 +54,8 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             return await HandlePinVerificationFailed(pinVerificationFailedReasons);
         }
 
-        var authenticationState = HttpContext.GetAuthenticationState();
-        var permittedUserTypes = authenticationState.GetPermittedUserTypes();
-
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
 
-        if (user is not null && !permittedUserTypes.Contains(user.UserType))
-        {
-            return new ForbidResult();
-        }
-
-        HttpContext.GetAuthenticationState().OnEmailVerified(user);
-
-        if (user is not null)
-        {
-            await authenticationState.SignIn(HttpContext);
-        }
-
-        return await _journey.Advance(CurrentStep);
+        return await _journey.OnEmailVerified(user, CurrentStep);
     }
 }

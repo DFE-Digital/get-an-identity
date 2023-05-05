@@ -6,6 +6,7 @@ using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
 [CheckCanAccessStep(CurrentStep)]
 public class DateOfBirthPage : PageModel
 {

@@ -3,6 +3,7 @@ using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
 [CheckCanAccessStep(CurrentStep)]
 public class ChangeEmailRequest : PageModel
 {

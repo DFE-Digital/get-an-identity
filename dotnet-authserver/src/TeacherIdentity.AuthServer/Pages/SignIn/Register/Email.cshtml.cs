@@ -7,6 +7,7 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
 [CheckCanAccessStep(CurrentStep)]
 public class EmailModel : BaseEmailPageModel
 {
@@ -22,6 +23,8 @@ public class EmailModel : BaseEmailPageModel
     {
         _journey = journey;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     [BindProperty]
     [Display(Name = "Your email address", Description = "We’ll use this to send you a code to confirm your email address. Do not use a work or university email that you might lose access to.")]
@@ -47,7 +50,7 @@ public class EmailModel : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+        _journey.AuthenticationState.OnEmailSet(Email!);
 
         return await _journey.Advance(CurrentStep);
     }

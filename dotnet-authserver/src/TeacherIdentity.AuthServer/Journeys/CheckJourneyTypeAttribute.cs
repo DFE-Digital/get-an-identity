@@ -28,7 +28,7 @@ public class CheckJourneyTypeAttribute : Attribute, IResourceFilter, IOrderedFil
 
             if (!JourneyTypes.Any(signInJourneyType.IsAssignableTo))
             {
-                context.Result = new ForbidResult();
+                context.Result = new BadRequestResult();
             }
         }
     }

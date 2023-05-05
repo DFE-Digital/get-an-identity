@@ -1,5 +1,4 @@
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -35,14 +34,6 @@ public class EmailTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/email");
     }
 
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
-    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, additionalScopes: CustomScopes.Trn, trnRequirementType: null, HttpMethod.Get, "/sign-in/email");
-    }
-
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
@@ -71,14 +62,6 @@ public class EmailTests : TestBase
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
         await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/email");
-    }
-
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
-    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, additionalScopes: CustomScopes.Trn, trnRequirementType: null, HttpMethod.Post, "/sign-in/email");
     }
 
     [Fact]

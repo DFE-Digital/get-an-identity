@@ -4,6 +4,10 @@
     ViewBag.Title = "Your email address";
 }
 
+@section BeforeContent {
+    <govuk-back-link href="@Model.BackLink" />
+}
+
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.RegisterEmail()" method="post" asp-antiforgery="true">

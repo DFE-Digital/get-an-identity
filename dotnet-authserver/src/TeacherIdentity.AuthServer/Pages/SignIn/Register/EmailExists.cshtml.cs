@@ -5,13 +5,14 @@ using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
 [AllowCompletedAuthenticationJourney]
 [CheckCanAccessStep(CurrentStep)]
 public class EmailExists : PageModel
 {
     private const string CurrentStep = CoreSignInJourney.Steps.EmailExists;
 
-    private SignInJourney _journey;
+    private readonly SignInJourney _journey;
 
     public EmailExists(SignInJourney journey)
     {
