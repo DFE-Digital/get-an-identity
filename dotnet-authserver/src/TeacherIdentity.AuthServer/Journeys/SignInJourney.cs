@@ -36,7 +36,7 @@ public abstract class SignInJourney
 
     public HttpContext HttpContext { get; }
 
-    protected IdentityLinkGenerator LinkGenerator { get; }
+    public IdentityLinkGenerator LinkGenerator { get; }
 
     protected CreateUserHelper CreateUserHelper { get; }
 
@@ -158,6 +158,8 @@ public abstract class SignInJourney
         stepUrl = GetStepUrl(previousStep);
         return true;
     }
+
+    public virtual bool IsCompleted() => IsFinished();
 
     public static class Steps
     {

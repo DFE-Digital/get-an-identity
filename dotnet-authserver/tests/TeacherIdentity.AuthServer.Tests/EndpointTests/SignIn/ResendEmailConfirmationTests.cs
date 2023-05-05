@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -49,11 +50,14 @@ public class ResendEmailConfirmationTests : TestBase
         Assert.Equal($"/sign-in/email?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
     }
 
-    [Fact]
-    public async Task Get_EmailAlreadyVerified_RedirectsToNextPage()
+    [Theory]
+    [InlineData(null, null, "/sign-in/register/phone")]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional, "/sign-in/register/phone")]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Legacy, "/sign-in/trn/has-trn")]
+    public async Task Get_EmailAlreadyVerified_RedirectsToNextPage(string? scope, TrnRequirementType? trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), scope, trnRequirementType);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -62,7 +66,7 @@ public class ResendEmailConfirmationTests : TestBase
 
         // Act
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -129,12 +133,15 @@ public class ResendEmailConfirmationTests : TestBase
         Assert.Equal($"/sign-in/email?{authStateHelper.ToQueryParam()}", response.Headers.Location?.OriginalString);
     }
 
-    [Fact]
-    public async Task Post_EmailAlreadyVerified_RedirectsToNextPage()
+    [Theory]
+    [InlineData(null, null, "/sign-in/register/phone")]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional, "/sign-in/register/phone")]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Legacy, "/sign-in/trn/has-trn")]
+    public async Task Post_EmailAlreadyVerified_RedirectsToNextPage(string? scope, TrnRequirementType? trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var email = Faker.Internet.Email();
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), scope, trnRequirementType);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -149,7 +156,7 @@ public class ResendEmailConfirmationTests : TestBase
 
         // Act
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
     }
 
     [Fact]

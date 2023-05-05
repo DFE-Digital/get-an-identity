@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
@@ -7,19 +8,18 @@ namespace TeacherIdentity.AuthServer.Pages.SignIn;
 [AllowExpiredAuthenticationJourney, AllowCompletedAuthenticationJourney]
 public class ResetModel : PageModel
 {
+    private readonly SignInJourney _journey;
     private readonly IClock _clock;
-    private readonly IdentityLinkGenerator _linkGenerator;
 
-    public ResetModel(IClock clock, IdentityLinkGenerator linkGenerator)
+    public ResetModel(SignInJourney journey, IClock clock)
     {
+        _journey = journey;
         _clock = clock;
-        _linkGenerator = linkGenerator;
     }
 
     public IActionResult OnPost()
     {
-        var authenticationState = HttpContext.GetAuthenticationState();
-        authenticationState.Reset(_clock.UtcNow);
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+        _journey.AuthenticationState.Reset(_clock.UtcNow);
+        return Redirect(_journey.GetStartStepUrl());
     }
 }

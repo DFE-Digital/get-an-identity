@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -8,18 +9,17 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [BindProperties]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
 public class ResendEmailConfirmationModel : BaseEmailPageModel
 {
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private readonly SignInJourney _journey;
 
     public ResendEmailConfirmationModel(
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext) :
         base(userVerificationService, dbContext)
     {
-        _linkGenerator = linkGenerator;
+        _journey = journey;
     }
 
     [Display(Name = "Email address")]
@@ -46,9 +46,9 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
-        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+        _journey.AuthenticationState.OnEmailSet(Email!);
 
-        return Redirect(_linkGenerator.EmailConfirmation());
+        return Redirect(_journey.LinkGenerator.EmailConfirmation());
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -57,11 +57,11 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
 
         if (authenticationState.EmailAddress is null)
         {
-            context.Result = Redirect(_linkGenerator.Email());
+            context.Result = Redirect(_journey.LinkGenerator.Email());
         }
         else if (authenticationState.EmailAddressVerified)
         {
-            context.Result = Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+            context.Result = Redirect(_journey.GetLastAccessibleStepUrl(requestedStep: null));
         }
     }
 }

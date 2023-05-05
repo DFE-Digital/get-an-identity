@@ -323,7 +323,7 @@ public class TrnInUseChooseEmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
 
         Assert.Equal(authStateHelper.AuthenticationState.EmailAddress, chosenEmail);
         Assert.Equal(authStateHelper.AuthenticationState.UserId, existingTrnOwner.UserId);

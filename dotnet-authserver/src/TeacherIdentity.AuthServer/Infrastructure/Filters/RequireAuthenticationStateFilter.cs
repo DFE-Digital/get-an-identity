@@ -51,7 +51,7 @@ public class RequireAuthenticationStateFilter : IAuthorizationFilter
         {
             if (context.HttpContext.GetEndpoint()?.Metadata.Contains(AllowCompletedAuthenticationJourneyMarker.Instance) != true)
             {
-                var completeUrl = authenticationState.GetNextHopUrl(_linkGenerator);
+                var completeUrl = authenticationState.PostSignInUrl;
 
                 if (completeUrl != context.HttpContext.Request.GetEncodedPathAndQuery())
                 {

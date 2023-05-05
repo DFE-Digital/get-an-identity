@@ -153,8 +153,9 @@ public class Program
                         ctx.HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
                     }
 
-                    var linkGenerator = ctx.HttpContext.RequestServices.GetRequiredService<IdentityLinkGenerator>();
-                    ctx.Response.Redirect(authenticationState.GetNextHopUrl(linkGenerator));
+                    var signInJourneyProvider = ctx.HttpContext.RequestServices.GetRequiredService<SignInJourneyProvider>();
+                    var signInJourney = signInJourneyProvider.GetSignInJourney(authenticationState, ctx.HttpContext);
+                    ctx.Response.Redirect(signInJourney.GetStartStepUrl());
 
                     return Task.CompletedTask;
                 };

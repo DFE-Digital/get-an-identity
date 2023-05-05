@@ -9,6 +9,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
@@ -21,7 +22,7 @@ public class AuthorizationController : Controller
     private readonly TeacherIdentityApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
-    private readonly IdentityLinkGenerator _linkGenerator;
+    private readonly SignInJourneyProvider _signInJourneyProvider;
     private readonly UserClaimHelper _userClaimHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
@@ -29,14 +30,14 @@ public class AuthorizationController : Controller
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
-        IdentityLinkGenerator linkGenerator,
+        SignInJourneyProvider signInJourneyProvider,
         UserClaimHelper userClaimHelper,
         TeacherIdentityServerDbContext dbContext)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
         _scopeManager = scopeManager;
-        _linkGenerator = linkGenerator;
+        _signInJourneyProvider = signInJourneyProvider;
         _userClaimHelper = userClaimHelper;
         _dbContext = dbContext;
     }
@@ -175,7 +176,8 @@ public class AuthorizationController : Controller
                 authenticationState.Reset(DateTime.UtcNow);
             }
 
-            return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
+            var signInJourney = _signInJourneyProvider.GetSignInJourney(authenticationState, HttpContext);
+            return Redirect(signInJourney.GetStartStepUrl());
         }
 
         Debug.Assert(authenticationState.IsComplete);
