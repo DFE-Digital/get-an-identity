@@ -5,6 +5,7 @@ using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
 [AllowCompletedAuthenticationJourney]
 [CheckCanAccessStep(CurrentStep)]
 public class PhoneExists : PageModel

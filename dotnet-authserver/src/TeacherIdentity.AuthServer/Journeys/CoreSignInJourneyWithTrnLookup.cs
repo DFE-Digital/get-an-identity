@@ -84,7 +84,6 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         _ => base.CanAccessStep(step)
     };
 
-
     protected override string? GetNextStep(string currentStep)
     {
         var shouldCheckAnswers = (AreAllQuestionsAnswered() || FoundATrn) && !AuthenticationState.ExistingAccountFound;
@@ -145,15 +144,14 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         _ => base.GetStepUrl(step)
     };
 
-    public new static class Steps
-    {
-        public const string HasNiNumber = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(HasNiNumber)}";
-        public const string NiNumber = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(NiNumber)}";
-        public const string HasTrn = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(HasTrn)}";
-        public const string Trn = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(Trn)}";
-        public const string HasQts = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(HasQts)}";
-        public const string IttProvider = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(IttProvider)}";
-    }
+    // The base implementation cannot deal with 'TRN in use' scenarios since that's not the standard journey
+    public override string GetLastAccessibleStepUrl(string? requestedStep) =>
+        AuthenticationState.TrnLookup switch
+        {
+            AuthenticationState.TrnLookupState.ExistingTrnFound => GetStepUrl(SignInJourney.Steps.TrnInUse),
+            AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified => GetStepUrl(SignInJourney.Steps.TrnInUseChooseEmail),
+            _ => base.GetLastAccessibleStepUrl(requestedStep)
+        };
 
     protected override bool AreAllQuestionsAnswered() =>
         AuthenticationState.EmailAddressSet &&
@@ -166,4 +164,14 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         (AuthenticationState.NationalInsuranceNumberSet || AuthenticationState.HasNationalInsuranceNumber == false) &&
         AuthenticationState.AwardedQtsSet &&
         (AuthenticationState.HasIttProviderSet || AuthenticationState.AwardedQts == false);
+
+    public new static class Steps
+    {
+        public const string HasNiNumber = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(HasNiNumber)}";
+        public const string NiNumber = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(NiNumber)}";
+        public const string HasTrn = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(HasTrn)}";
+        public const string Trn = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(Trn)}";
+        public const string HasQts = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(HasQts)}";
+        public const string IttProvider = $"{nameof(CoreSignInJourneyWithTrnLookup)}.{nameof(IttProvider)}";
+    }
 }

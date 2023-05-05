@@ -1,28 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.None)]
+[CheckCanAccessStep(CurrentStep)]
 public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 {
+    private const string CurrentStep = SignInJourney.Steps.EmailConfirmation;
+
+    private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IdentityLinkGenerator _linkGenerator;
 
     public EmailConfirmationModel(
+        SignInJourney journey,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        IdentityLinkGenerator linkGenerator,
         PinValidator pinValidator)
         : base(userVerificationService, pinValidator)
     {
+        _journey = journey;
         _dbContext = dbContext;
-        _linkGenerator = linkGenerator;
     }
+
+    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     public void OnGet()
     {
@@ -45,50 +49,8 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             return await HandlePinVerificationFailed(verifyEmailPinFailedReasons);
         }
 
-        var authenticationState = HttpContext.GetAuthenticationState();
-        var permittedUserTypes = authenticationState.GetPermittedUserTypes();
-
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
 
-        // If the UserType is not allowed then return an error
-        if (user is not null && !permittedUserTypes.Contains(user.UserType))
-        {
-            // The most common case is Staff users attempting to sign in to a 'regular' service.
-            if (user.UserType == UserType.Staff)
-            {
-                return new ViewResult()
-                {
-                    ViewName = "StaffUserForbidden",
-                    StatusCode = StatusCodes.Status403Forbidden
-                };
-            }
-
-            return new ForbidResult();
-        }
-
-        // We only support registering users with the TRN requirement currently
-        if (user is null && !authenticationState.UserRequirements.HasFlag(UserRequirements.TrnHolder))
-        {
-            return new ForbidResult();
-        }
-
-        authenticationState.OnEmailVerified(user);
-
-        if (user is not null)
-        {
-            await authenticationState.SignIn(HttpContext);
-        }
-
-        return Redirect(authenticationState.GetNextHopUrl(_linkGenerator));
-    }
-
-    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
-    {
-        var authenticationState = context.HttpContext.GetAuthenticationState();
-
-        if (!authenticationState.EmailAddressSet)
-        {
-            context.Result = new RedirectResult(_linkGenerator.Email());
-        }
+        return await _journey.OnEmailVerified(user, CurrentStep);
     }
 }

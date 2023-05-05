@@ -37,14 +37,6 @@ public class EmailConfirmationTests : TestBase
         await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/email-confirmation");
     }
 
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
-    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, additionalScopes: CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Get, "/sign-in/email-confirmation");
-    }
-
     [Fact]
     public async Task Get_EmailNotKnown_RedirectsToEmailPage()
     {
@@ -99,14 +91,6 @@ public class EmailConfirmationTests : TestBase
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
         await JourneyHasExpired_RendersErrorPage(c => c.EmailSet(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/email-confirmation");
-    }
-
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.None)]
-    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, additionalScopes: CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Post, "/sign-in/email-confirmation");
     }
 
     [Fact]

@@ -36,17 +36,9 @@ public class CheckAnswersTests : TestBase
     }
 
     [Fact]
-    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsBadRequest()
     {
-        await InvalidUserRequirements_ReturnsForbidden(c => c.Trn.IttProviderSet(), additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
-    }
-
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
+        await InvalidUserRequirements_ReturnsBadRequest(c => c.Trn.IttProviderSet(), additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Theory]
@@ -356,17 +348,9 @@ public class CheckAnswersTests : TestBase
     }
 
     [Fact]
-    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsBadRequest()
     {
-        await InvalidUserRequirements_ReturnsForbidden(c => c.Trn.IttProviderSet(), additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
-    }
-
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
+        await InvalidUserRequirements_ReturnsBadRequest(c => c.Trn.IttProviderSet(), additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
     }
 
     [Fact]

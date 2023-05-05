@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ public class LegacyTrnJourney : SignInJourney
         IdentityLinkGenerator linkGenerator)
         : base(httpContext, linkGenerator, createUserHelper)
     {
+        Debug.Assert((AuthenticationState.UserRequirements & (UserRequirements.TrnHolder | UserRequirements.DefaultUserType)) != 0);
         _trnLookupHelper = trnLookupHelper;
     }
 
@@ -176,12 +178,12 @@ public class LegacyTrnJourney : SignInJourney
     }
 
     // The base implementation cannot deal with 'TRN in use' scenarios since that's not the standard journey
-    protected override string GetLastAccessibleStepUrl() =>
+    public override string GetLastAccessibleStepUrl(string? requestedStep) =>
         AuthenticationState.TrnLookup switch
         {
             AuthenticationState.TrnLookupState.ExistingTrnFound => GetStepUrl(SignInJourney.Steps.TrnInUse),
             AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified => GetStepUrl(SignInJourney.Steps.TrnInUseChooseEmail),
-            _ => base.GetLastAccessibleStepUrl()
+            _ => base.GetLastAccessibleStepUrl(requestedStep)
         };
 
     private bool AreAllQuestionsAnswered() =>

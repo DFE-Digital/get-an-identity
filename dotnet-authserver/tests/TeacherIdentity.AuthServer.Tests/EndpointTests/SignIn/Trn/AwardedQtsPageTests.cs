@@ -35,17 +35,9 @@ public class AwardedQtsPageTests : TestBase
     }
 
     [Fact]
-    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsBadRequest()
     {
-        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/awarded-qts");
-    }
-
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/awarded-qts");
+        await InvalidUserRequirements_ReturnsBadRequest(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]
@@ -114,17 +106,9 @@ public class AwardedQtsPageTests : TestBase
     }
 
     [Fact]
-    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
+    public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsBadRequest()
     {
-        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/awarded-qts");
-    }
-
-    [Theory]
-    [IncompleteAuthenticationMilestonesData(AuthenticationState.AuthenticationMilestone.EmailVerified)]
-    public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/awarded-qts");
+        await InvalidUserRequirements_ReturnsBadRequest(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/awarded-qts");
     }
 
     [Fact]

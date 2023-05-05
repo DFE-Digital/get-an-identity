@@ -29,6 +29,9 @@ public class CoreSignInJourney : SignInJourney
     {
         return step switch
         {
+            Steps.Landing => !AuthenticationState.EmailAddressVerified,
+            SignInJourney.Steps.Email => !AuthenticationState.EmailAddressVerified,
+            SignInJourney.Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,
             Steps.Email => !AuthenticationState.EmailAddressVerified,
             Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,
             Steps.ResendEmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
@@ -51,12 +54,26 @@ public class CoreSignInJourney : SignInJourney
         };
     }
 
+    public override string GetLastAccessibleStepUrl(string? requestedStep)
+    {
+        if (requestedStep == SignInJourney.Steps.EmailConfirmation)
+        {
+            return GetStepUrl(SignInJourney.Steps.Email);
+        }
+
+        return base.GetLastAccessibleStepUrl(requestedStep);
+    }
+
     protected override string? GetNextStep(string currentStep)
     {
         var shouldCheckAnswers = AreAllQuestionsAnswered() && !AuthenticationState.ExistingAccountFound;
 
         return (currentStep, AuthenticationState) switch
         {
+            (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
+            (Steps.Landing, _) => Steps.Email,
             (Steps.Email, _) => Steps.EmailConfirmation,
             (Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
             (Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
@@ -80,6 +97,9 @@ public class CoreSignInJourney : SignInJourney
 
     protected override string? GetPreviousStep(string currentStep) => (currentStep, AuthenticationState) switch
     {
+        (SignInJourney.Steps.Email, _) => Steps.Landing,
+        (SignInJourney.Steps.EmailConfirmation, _) => SignInJourney.Steps.Email,
+        (Steps.Email, _) => Steps.Landing,
         (Steps.EmailConfirmation, _) => Steps.Email,
         (Steps.ResendEmailConfirmation, _) => Steps.EmailConfirmation,
         (Steps.EmailExists, _) => Steps.EmailConfirmation,
@@ -99,12 +119,15 @@ public class CoreSignInJourney : SignInJourney
         _ => null
     };
 
-    protected override string GetStartStep() => Steps.Email;
+    protected override string GetStartStep() => Steps.Landing;
 
     protected override bool IsFinished() => AuthenticationState.IsComplete;
 
     protected override string GetStepUrl(string step) => step switch
     {
+        SignInJourney.Steps.Email => LinkGenerator.Email(),
+        SignInJourney.Steps.EmailConfirmation => LinkGenerator.EmailConfirmation(),
+        Steps.Landing => LinkGenerator.Landing(),
         Steps.Email => LinkGenerator.RegisterEmail(),
         Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),
         Steps.ResendEmailConfirmation => LinkGenerator.RegisterResendEmailConfirmation(),
@@ -126,8 +149,17 @@ public class CoreSignInJourney : SignInJourney
         _ => throw new ArgumentException($"Unknown step: '{step}'.")
     };
 
+    protected virtual bool AreAllQuestionsAnswered() =>
+        AuthenticationState.EmailAddressSet &&
+        AuthenticationState.EmailAddressVerified &&
+        AuthenticationState.MobileNumberSet &&
+        AuthenticationState.MobileNumberVerified &&
+        AuthenticationState.PreferredNameSet &&
+        AuthenticationState.DateOfBirthSet;
+
     public new static class Steps
     {
+        public const string Landing = $"{nameof(CoreSignInJourney)}.{nameof(Landing)}";
         public const string Email = $"{nameof(CoreSignInJourney)}.{nameof(Email)}";
         public const string EmailConfirmation = $"{nameof(CoreSignInJourney)}.{nameof(EmailConfirmation)}";
         public const string ResendEmailConfirmation = $"{nameof(CoreSignInJourney)}.{nameof(ResendEmailConfirmation)}";
@@ -147,12 +179,4 @@ public class CoreSignInJourney : SignInJourney
         public const string ChangeEmailRequest = $"{nameof(CoreSignInJourney)}.{nameof(ChangeEmailRequest)}";
         public const string CheckAnswers = $"{nameof(CoreSignInJourney)}.{nameof(CheckAnswers)}";
     }
-
-    protected virtual bool AreAllQuestionsAnswered() =>
-        AuthenticationState.EmailAddressSet &&
-        AuthenticationState.EmailAddressVerified &&
-        AuthenticationState.MobileNumberSet &&
-        AuthenticationState.MobileNumberVerified &&
-        AuthenticationState.PreferredNameSet &&
-        AuthenticationState.DateOfBirthSet;
 }

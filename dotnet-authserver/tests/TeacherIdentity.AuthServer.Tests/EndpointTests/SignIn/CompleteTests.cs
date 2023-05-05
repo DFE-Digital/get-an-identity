@@ -36,14 +36,6 @@ public class CompleteTests : TestBase
     }
 
     [Theory]
-    [IncompleteAuthenticationMilestonesData()]
-    public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone)
-    {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Get, "/sign-in/complete");
-    }
-
-    [Theory]
     [MemberData(nameof(SignInCompleteState))]
     public async Task Get_ValidRequest_RendersExpectedContent(
         TeacherIdentityApplicationDescriptor client,

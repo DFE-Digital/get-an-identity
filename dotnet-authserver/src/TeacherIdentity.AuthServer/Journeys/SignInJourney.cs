@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
@@ -51,22 +52,7 @@ public abstract class SignInJourney
 
     public abstract bool CanAccessStep(string step);
 
-    public bool TryGetLastAccessibleStepUrl([MaybeNullWhen(false)] out string stepUrl)
-    {
-        try
-        {
-            stepUrl = GetLastAccessibleStepUrl();
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            stepUrl = default;
-            return false;
-        }
-
-        return true;
-    }
-
-    protected virtual string GetLastAccessibleStepUrl()
+    public virtual string GetLastAccessibleStepUrl(string? requestedStep)
     {
         // This is used when the user tries to access a page in the journey that's not accessible.
         // We want to redirect them somewhere valid for the journey but we don't have a current step
@@ -105,6 +91,27 @@ public abstract class SignInJourney
 
     public string GetStartStepUrl() => GetStepUrl(GetStartStep());
 
+    public async virtual Task<IActionResult> OnEmailVerified(User? user, string currentStep)
+    {
+        if (user is not null && user.UserType == UserType.Staff)
+        {
+            return new ViewResult()
+            {
+                ViewName = "StaffUserForbidden",
+                StatusCode = StatusCodes.Status403Forbidden
+            };
+        }
+
+        AuthenticationState.OnEmailVerified(user);
+
+        if (user is not null)
+        {
+            await AuthenticationState.SignIn(HttpContext);
+        }
+
+        return await Advance(currentStep);
+    }
+
     public virtual string GetNextStepUrl(string currentStep)
     {
         if (IsFinished())
@@ -125,15 +132,31 @@ public abstract class SignInJourney
 
     public string GetPreviousStepUrl(string currentStep)
     {
-        var previousStep = GetPreviousStep(currentStep) ??
+        if (!TryGetPreviousStepUrl(currentStep, out var stepUrl))
+        {
             throw new InvalidOperationException($"Journey has no previous step (current step: '{currentStep}').");
+        }
+
+        return stepUrl;
+    }
+
+    public bool TryGetPreviousStepUrl(string currentStep, [NotNullWhen(true)] out string? stepUrl)
+    {
+        var previousStep = GetPreviousStep(currentStep);
+
+        if (previousStep is null)
+        {
+            stepUrl = default;
+            return false;
+        }
 
         if (!CanAccessStep(previousStep))
         {
             throw new InvalidOperationException($"Previous step is not accessible (step: '{previousStep}').");
         }
 
-        return GetStepUrl(previousStep);
+        stepUrl = GetStepUrl(previousStep);
+        return true;
     }
 
     public static class Steps

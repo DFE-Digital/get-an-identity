@@ -8,6 +8,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
+[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup))]
 [CheckCanAccessStep(CurrentStep)]
 public class IttProvider : PageModel
 {

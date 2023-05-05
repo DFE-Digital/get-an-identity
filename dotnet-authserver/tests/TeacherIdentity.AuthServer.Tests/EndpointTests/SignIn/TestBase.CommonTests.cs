@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Flurl;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.State;
@@ -216,57 +215,6 @@ public partial class TestBase
         await response.GetDocument();
     }
 
-    public async Task JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
-        AuthenticationState.AuthenticationMilestone milestone,
-        string? additionalScopes,
-        TrnRequirementType? trnRequirementType,
-        HttpMethod method,
-        string url,
-        HttpContent? content = null)
-    {
-        // Arrange
-        AuthenticationStateHelper authStateHelper;
-
-        switch (milestone)
-        {
-            case AuthenticationState.AuthenticationMilestone.None:
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes, trnRequirementType);
-                break;
-
-            case AuthenticationState.AuthenticationMilestone.EmailVerified:
-                authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), additionalScopes, trnRequirementType);
-                break;
-
-            case AuthenticationState.AuthenticationMilestone.TrnLookupCompleted:
-                var user = await TestData.CreateUser(hasTrn: true);
-                authStateHelper = await CreateAuthenticationStateHelper(
-                    c => c.Trn.TrnLookupCompletedForExistingTrn(trnOwner: user, email: Faker.Internet.Email()),
-                    additionalScopes,
-                    trnRequirementType);
-                break;
-
-            default:
-                throw new NotImplementedException($"Unknown {nameof(AuthenticationState.AuthenticationMilestone)}: '{milestone}'.");
-        };
-
-        Debug.Assert(authStateHelper.AuthenticationState.GetLastMilestone() == milestone);
-
-        var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
-        var request = new HttpRequestMessage(method, fullUrl);
-
-        if (content is not null)
-        {
-            request.Content = content;
-        }
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
-    }
-
     public async Task GivenAuthenticationState_RedirectsTo(
         AuthenticationStateConfiguration configureAuthenticationHelper,
         string? additionalScopes,
@@ -295,7 +243,7 @@ public partial class TestBase
         Assert.StartsWith(redirectUrl, response.Headers.Location?.OriginalString);
     }
 
-    public async Task InvalidUserRequirements_ReturnsForbidden(
+    public async Task InvalidUserRequirements_ReturnsBadRequest(
         AuthenticationStateConfiguration configureAuthenticationHelper,
         string? additionalScopes,
         TrnRequirementType? trnRequirementType,
@@ -318,7 +266,7 @@ public partial class TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
     public async Task NoEmail_RedirectsToEmailPage(
