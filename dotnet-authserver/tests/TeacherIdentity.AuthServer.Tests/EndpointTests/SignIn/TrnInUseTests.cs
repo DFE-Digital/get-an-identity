@@ -452,7 +452,7 @@ public class TrnInUseTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith("/sign-in/trn/choose-email", response.Headers.Location?.OriginalString);
 
         Assert.Equal(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, authStateHelper.AuthenticationState.TrnLookup);
     }

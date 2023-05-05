@@ -1,5 +1,7 @@
 using Dfe.Analytics.AspNetCore;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.State;
@@ -7,13 +9,14 @@ using TeacherIdentity.AuthServer.State;
 namespace TeacherIdentity.AuthServer.Pages.SignIn;
 
 [AllowCompletedAuthenticationJourney]
-[RequireAuthenticationMilestone(AuthenticationState.AuthenticationMilestone.Complete)]
 public class CompleteModel : PageModel
 {
+    private readonly SignInJourney _journey;
     private readonly TeacherIdentityApplicationManager _applicationManager;
 
-    public CompleteModel(TeacherIdentityApplicationManager applicationManager)
+    public CompleteModel(SignInJourney journey, TeacherIdentityApplicationManager applicationManager)
     {
+        _journey = journey;
         _applicationManager = applicationManager;
     }
 
@@ -71,5 +74,13 @@ public class CompleteModel : PageModel
         ClientDisplayName = await _applicationManager.GetDisplayNameAsync(client!);
 
         HttpContext.Features.Get<WebRequestEventFeature>()?.Event.AddTag(FirstTimeSignInForEmail ? "FirstTimeUser" : "ReturningUser");
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        if (!_journey.IsCompleted())
+        {
+            context.Result = Redirect(_journey.GetLastAccessibleStepUrl(requestedStep: null));
+        }
     }
 }

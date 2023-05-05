@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -262,9 +263,10 @@ public class EmailConfirmationTests : TestBase
     }
 
     [Theory]
-    // Only TrnHolder-like scopes support registration currently
-    [InlineData(CustomScopes.DqtRead)]
-    public async Task Post_ValidPinForNewUser_UpdatesAuthenticationStateAndRedirects(string scope)
+    [InlineData(null, null, "/sign-in/register/phone")]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional, "/sign-in/register/phone")]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Legacy, "/sign-in/trn")]
+    public async Task Post_ValidPinForNewUser_UpdatesAuthenticationStateAndRedirects(string? scope, TrnRequirementType? trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -272,7 +274,7 @@ public class EmailConfirmationTests : TestBase
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateEmailPin(email);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), scope);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(email), scope, trnRequirementType);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -286,7 +288,7 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.True(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
@@ -317,7 +319,7 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);
@@ -397,7 +399,7 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
 
         Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
         Assert.NotNull(authStateHelper.AuthenticationState.UserId);

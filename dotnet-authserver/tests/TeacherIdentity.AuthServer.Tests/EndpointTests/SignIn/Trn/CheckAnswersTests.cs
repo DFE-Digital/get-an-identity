@@ -402,7 +402,7 @@ public class CheckAnswersTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal(authStateHelper.GetNextHopUrl(), response.Headers.Location?.OriginalString);
+        Assert.Equal(authState.PostSignInUrl, response.Headers.Location?.OriginalString);
 
         await TestData.WithDbContext(async dbContext =>
         {

@@ -14,16 +14,13 @@ public sealed class AuthenticationStateHelper
 {
     private readonly Guid _journeyId;
     private readonly TestAuthenticationStateProvider _authenticationStateProvider;
-    private readonly IdentityLinkGenerator _linkGenerator;
 
     private AuthenticationStateHelper(
         Guid journeyId,
-        TestAuthenticationStateProvider authenticationStateProvider,
-        IdentityLinkGenerator linkGenerator)
+        TestAuthenticationStateProvider authenticationStateProvider)
     {
         _journeyId = journeyId;
         _authenticationStateProvider = authenticationStateProvider;
-        _linkGenerator = linkGenerator;
     }
 
     public static async Task<AuthenticationStateHelper> Create(
@@ -75,14 +72,10 @@ public sealed class AuthenticationStateHelper
 
         authenticationStateProvider.SetAuthenticationState(httpContext: null, authenticationState);
 
-        var identityLinkGenerator = ActivatorUtilities.CreateInstance<TestIdentityLinkGenerator>(hostFixture.Services, authenticationState);
-
-        return new AuthenticationStateHelper(journeyId, authenticationStateProvider, identityLinkGenerator);
+        return new AuthenticationStateHelper(journeyId, authenticationStateProvider);
     }
 
     public AuthenticationState AuthenticationState => _authenticationStateProvider.GetAuthenticationState(_journeyId)!;
-
-    public string GetNextHopUrl() => AuthenticationState.GetNextHopUrl(_linkGenerator);
 
     public string ToQueryParam() => $"{AuthenticationStateMiddleware.IdQueryParameterName}={Uri.EscapeDataString(AuthenticationState.JourneyId.ToString())}";
 

@@ -5,7 +5,7 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class SignInJourneyProvider
 {
-    public SignInJourney GetSignInJourneyState(AuthenticationState authenticationState, HttpContext httpContext)
+    public SignInJourney GetSignInJourney(AuthenticationState authenticationState, HttpContext httpContext)
     {
         if (authenticationState.TryGetOAuthState(out var oAuthState) && oAuthState.RequiresTrnLookup)
         {

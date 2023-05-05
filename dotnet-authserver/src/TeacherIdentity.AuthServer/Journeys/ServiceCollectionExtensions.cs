@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
             var httpContext = httpContextAccessor.HttpContext ?? throw new InvalidOperationException("No current HttpContext");
             var authenticationState = httpContext.GetAuthenticationState();
 
-            return provider.GetSignInJourneyState(authenticationState, httpContext);
+            return provider.GetSignInJourney(authenticationState, httpContext);
         });
 
         services
