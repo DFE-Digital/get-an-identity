@@ -42,8 +42,6 @@ public class CompleteModel : PageModel
 
     public string? Scope { get; set; }
 
-    public AuthenticationJourneyType? JourneyType { get; set; }
-
     public TrnLookupStatus? TrnLookupStatus { get; set; }
 
     public TrnRequirementType? TrnRequirementType { get; set; }
