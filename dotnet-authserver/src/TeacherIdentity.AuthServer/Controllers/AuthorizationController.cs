@@ -89,27 +89,33 @@ public class AuthorizationController : Controller
 
             var sessionId = request["session_id"]?.Value as string;
 
-            TrnRequirementType trnRequirementType;
-            var requestedTrnRequirement = request["trn_requirement"];
+            TrnRequirementType? trnRequirementType = null;
 
-            if (requestedTrnRequirement.HasValue)
+            if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
-                if (!Enum.TryParse(requestedTrnRequirement?.Value as string, out trnRequirementType))
+                var requestedTrnRequirement = request["trn_requirement"];
+
+                if (requestedTrnRequirement.HasValue)
                 {
-                    return Forbid(
-                        authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                        properties: new AuthenticationProperties(new Dictionary<string, string?>()
-                        {
-                            [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
-                            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                                "Invalid trn_requirement specified."
-                        }));
+                    if (!Enum.TryParse<TrnRequirementType>(requestedTrnRequirement?.Value as string, out var parsedTrnRequirementType))
+                    {
+                        return Forbid(
+                            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                            properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                            {
+                                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                    "Invalid trn_requirement specified."
+                            }));
+                    }
+
+                    trnRequirementType = parsedTrnRequirementType;
                 }
-            }
-            else
-            {
-                var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
-                trnRequirementType = client.TrnRequirementType;
+                else
+                {
+                    var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
+                    trnRequirementType = client.TrnRequirementType;
+                }
             }
 
             authenticationState = AuthenticationState.FromUser(

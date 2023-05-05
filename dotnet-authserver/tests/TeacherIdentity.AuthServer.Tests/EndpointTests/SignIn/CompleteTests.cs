@@ -50,12 +50,13 @@ public class CompleteTests : TestBase
         string? additionalScopes,
         TrnRequirementType? trnRequirementType,
         bool isFirstTimeSignIn,
-        bool gotTrn,
+        TrnLookupStatus? trnLookupStatus,
+        bool expectCallbackForm,
         string expectedContentBlock,
         string[] expectedContent)
     {
         // Arrange
-        var user = await TestData.CreateUser(hasTrn: gotTrn);
+        var user = await TestData.CreateUser(hasTrn: trnLookupStatus == TrnLookupStatus.Found, trnLookupStatus: trnLookupStatus);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: isFirstTimeSignIn), additionalScopes, trnRequirementType, client);
 
@@ -73,17 +74,27 @@ public class CompleteTests : TestBase
         {
             Assert.Contains(block, content);
         }
+
+        if (expectCallbackForm)
+        {
+            Assert.NotEmpty(doc.GetElementsByTagName("form"));
+        }
+        else
+        {
+            Assert.Empty(doc.GetElementsByTagName("form"));
+        }
     }
 
-    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, bool, string, string[]> SignInCompleteState => new()
+    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, TrnLookupStatus?, bool, string, string[]> SignInCompleteState => new()
     {
         {
-            // Core journey, default client, first time sign in with TRN
+            // Core journey, trn optional client, first time sign in, no TRN lookup
             TestClients.DefaultClient,
-            CustomScopes.DqtRead,
+            null,
             (TrnRequirementType?)null,
             true,
-            false,
+            (TrnLookupStatus?)null,
+            true,
             "first-time-user-content",
             new[]
             {
@@ -93,46 +104,212 @@ public class CompleteTests : TestBase
             }
         },
         {
-            // Core journey, default client, first time sign in without TRN
+            // Core journey, trn optional client, first time sign in, TRN found
             TestClients.DefaultClient,
-            null,
-            (TrnRequirementType?)null,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Optional,
             true,
-            false,
+            TrnLookupStatus.Found,
+            true,
             "first-time-user-content",
             new[]
             {
                 "You’ve created a DfE Identity account",
+                "We’ve found your details in our records and linked them to your DfE Identity account.",
                 "Next time, you can sign in just using your email",
-                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}</strong>"
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
             }
         },
         {
-            // Core journey, default client, known user with TRN
+            // Core journey, trn optional client, first time sign in, TRN not found
             TestClients.DefaultClient,
             CustomScopes.DqtRead,
-            (TrnRequirementType?)null,
-            false,
-            false,
-            "known-user-content",
+            TrnRequirementType.Optional,
+            true,
+            TrnLookupStatus.Failed,
+            true,
+            "first-time-user-content",
             new[]
             {
-                "You’ve signed in to your DfE Identity account",
-                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}</strong>"
+                "You’ve created a DfE Identity account",
+                "We could not find your details in our records. Our support staff may get in touch to ask for more information. This is so we can link your existing details to your DfE Identity account.",
+                "Next time, you can sign in just using your email",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
             }
         },
         {
-            // Core journey, default client, known user without TRN
+            // Core journey, trn optional client, first time sign in, TRN pending
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Optional,
+            true,
+            TrnLookupStatus.Pending,
+            true,
+            "first-time-user-content",
+            new[]
+            {
+                "You’ve created a DfE Identity account",
+                "We could not find your details in our records. Our support staff may get in touch to ask for more information. This is so we can link your existing details to your DfE Identity account.",
+                "Next time, you can sign in just using your email",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, known user sign in, no TRN lookup
             TestClients.DefaultClient,
             null,
             (TrnRequirementType?)null,
             false,
-            false,
+            (TrnLookupStatus?)null,
+            true,
             "known-user-content",
             new[]
             {
                 "You’ve signed in to your DfE Identity account",
-                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}</strong>"
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, trn optional client, known user sign in, TRN found
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Optional,
+            false,
+            TrnLookupStatus.Found,
+            true,
+            "known-user-content",
+            new[]
+            {
+                "You’ve signed in to your DfE Identity account",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, trn optional client, known user sign in, TRN not found
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Optional,
+            false,
+            TrnLookupStatus.Failed,
+            true,
+            "known-user-content",
+            new[]
+            {
+                "You’ve signed in to your DfE Identity account",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, trn optional client, known user sign in, TRN pending
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Optional,
+            false,
+            TrnLookupStatus.Pending,
+            true,
+            "known-user-content",
+            new[]
+            {
+                "You’ve signed in to your DfE Identity account",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, trn required client, first time sign in, TRN found
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Required,
+            true,
+            TrnLookupStatus.Found,
+            true,
+            "first-time-user-content",
+            new[]
+            {
+                "You’ve created a DfE Identity account",
+                "We’ve found your details in our records and linked them to your DfE Identity account.",
+                "Next time, you can sign in just using your email",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, trn required client, first time sign in, TRN not found
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Required,
+            true,
+            TrnLookupStatus.Failed,
+            false,
+            "first-time-user-content",
+            new[]
+            {
+                "You cannot access this service yet",
+                "This could be because you do not have teaching qualifications, for example, qualified teacher status (QTS).",
+                "You’ve created a DfE Identity account. When you’re eligible to use this service, you can sign in just using your email"
+            }
+        },
+        {
+            // Core journey, trn required client, first time sign in, TRN pending
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Required,
+            true,
+            TrnLookupStatus.Pending,
+            false,
+            "first-time-user-content",
+            new[]
+            {
+                "You cannot access this service yet",
+                "We need to do some more checks to see if your details are in our records.",
+                "We’ll email you when we’ve completed those checks - we may need some more information.",
+                "You’ve created a DfE Identity account. To sign in to this service in the future, you’ll just need your email address"
+            }
+        },
+        {
+            // Core journey, trn required client, known user sign in, TRN found
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Required,
+            false,
+            TrnLookupStatus.Found,
+            true,
+            "known-user-content",
+            new[]
+            {
+                "You’ve signed in to your DfE Identity account",
+                $"Continue to <strong>{TestClients.DefaultClient.DisplayName}"
+            }
+        },
+        {
+            // Core journey, trn required client, known user sign in, TRN not found
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Required,
+            false,
+            TrnLookupStatus.Failed,
+            false,
+            "known-user-content",
+            new[]
+            {
+                "You cannot access this service yet",
+                "This could be because you do not have teaching qualifications, for example, qualified teacher status (QTS).",
+                "You’ve signed in to your DfE Identity account"
+            }
+        },
+        {
+            // Core journey, trn required client, known user sign in, TRN pending
+            TestClients.DefaultClient,
+            CustomScopes.DqtRead,
+            TrnRequirementType.Required,
+            false,
+            TrnLookupStatus.Pending,
+            false,
+            "known-user-content",
+            new[]
+            {
+                "You cannot access this service yet",
+                "We need to do some more checks to see if your details are in our records.",
+                "We’ll email you when we’ve completed those checks - we may need some more information.",
+                "You’ve signed in to your DfE Identity account"
             }
         },
         {
@@ -141,6 +318,7 @@ public class CompleteTests : TestBase
             CustomScopes.DqtRead,
             TrnRequirementType.Legacy,
             true,
+            TrnLookupStatus.Found,
             true,
             "legacy-first-time-user-content",
             new[]
@@ -156,7 +334,8 @@ public class CompleteTests : TestBase
             CustomScopes.DqtRead,
             TrnRequirementType.Legacy,
             true,
-            false,
+            TrnLookupStatus.Failed,
+            true,
             "legacy-first-time-user-content",
             new[]
             {
@@ -171,7 +350,8 @@ public class CompleteTests : TestBase
             CustomScopes.DqtRead,
             TrnRequirementType.Legacy,
             false,
-            false,
+            TrnLookupStatus.Found,
+            true,
             "legacy-known-user-content",
             new[]
             {
@@ -186,7 +366,8 @@ public class CompleteTests : TestBase
             CustomScopes.Trn,
             (TrnRequirementType?)null,
             true,
-            false,
+            TrnLookupStatus.Failed,
+            true,
             "legacy-first-time-user-content",
             new[]
             {
@@ -201,7 +382,8 @@ public class CompleteTests : TestBase
             CustomScopes.DqtRead,
             (TrnRequirementType?)null,
             true,
-            false,
+            TrnLookupStatus.Failed,
+            true,
             "legacy-first-time-user-content",
             new[]
             {

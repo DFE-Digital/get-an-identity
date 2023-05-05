@@ -64,8 +64,8 @@ public static class PageExtensions
         await page.WaitForURLAsync(url => url.StartsWith(HostFixture.ClientBaseUrl));
     }
 
-    public static Task AssertSignedInOnTestClient(this IPage page, User user) =>
-        AssertSignedInOnTestClient(page, user.EmailAddress, user.Trn, user.FirstName, user.LastName);
+    public static Task AssertSignedInOnTestClient(this IPage page, User user, bool? expectTrn = null) =>
+        AssertSignedInOnTestClient(page, user.EmailAddress, expectTrn != false ? user.Trn : null, user.FirstName, user.LastName);
 
     public static async Task AssertSignedInOnTestClient(this IPage page, string email, string? trn, string firstName, string lastName)
     {

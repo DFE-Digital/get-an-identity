@@ -41,6 +41,10 @@ public class CompleteModel : PageModel
 
     public AuthenticationJourneyType? JourneyType { get; set; }
 
+    public TrnLookupStatus? TrnLookupStatus { get; set; }
+
+    public TrnRequirementType? TrnRequirementType { get; set; }
+
     public string? ClientDisplayName { get; set; }
 
     public async Task OnGet()
@@ -59,7 +63,8 @@ public class CompleteModel : PageModel
         AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
         UserType = authenticationState.UserType!.Value;
         Scope = authenticationState.OAuthState?.Scope;
-        JourneyType = authenticationState.GetJourneyType();
+        TrnLookupStatus = authenticationState.TrnLookupStatus;
+        TrnRequirementType = authenticationState.OAuthState?.TrnRequirementType;
 
         var clientId = authenticationState.OAuthState?.ClientId;
         var client = await _applicationManager.FindByClientIdAsync(clientId!);

@@ -1,6 +1,5 @@
 using Microsoft.Playwright;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
@@ -36,7 +35,7 @@ public partial class SignIn : IClassFixture<HostFixture>
 
         await ClearCookiesForTestClient();
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead);
+        await page.StartOAuthJourney(additionalScope: null);
 
         await page.SubmitCompletePageForExistingUser();
 

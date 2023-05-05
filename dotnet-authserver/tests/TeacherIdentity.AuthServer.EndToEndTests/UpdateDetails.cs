@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
@@ -22,9 +23,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
-#pragma warning restore CS0618 // Type or member is obsolete
+        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn, trnRequirement: TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(user.EmailAddress);
 
@@ -55,9 +54,7 @@ public class UpdateDetails : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
-#pragma warning restore CS0618 // Type or member is obsolete
+        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn, trnRequirement: TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(user.EmailAddress);
 
