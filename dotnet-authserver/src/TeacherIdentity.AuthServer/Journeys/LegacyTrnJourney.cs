@@ -21,7 +21,7 @@ public class LegacyTrnJourney : SignInJourney
 
     public bool FoundATrn => AuthenticationState.Trn is not null;
 
-    public override async Task<IActionResult> TryCreateUser(string currentStep)
+    public override async Task<IActionResult> CreateUser(string currentStep)
     {
         try
         {

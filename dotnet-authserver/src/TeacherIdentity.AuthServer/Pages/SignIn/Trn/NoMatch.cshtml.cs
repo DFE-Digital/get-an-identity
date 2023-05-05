@@ -52,6 +52,6 @@ public class NoMatch : PageModel
             return Redirect(_journey.GetPreviousStepUrl(LegacyTrnJourney.Steps.NoMatch)!);
         }
 
-        return await _journey.TryCreateUser(CurrentStep);
+        return await _journey.CreateUser(CurrentStep);
     }
 }
