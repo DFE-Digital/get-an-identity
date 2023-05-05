@@ -834,11 +834,7 @@ public class OAuthAuthorizationState
 
     public bool HasScope(string scope) => GetScopes().Contains(scope);
 
-    public bool HasAnyScope(IEnumerable<string> scopes) => GetScopes().Any(scopes.Contains);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-    public bool RequiresTrnLookup => HasScope(CustomScopes.Trn) || HasScope(CustomScopes.DqtRead);
-#pragma warning restore CS0618 // Type or member is obsolete
+    public bool RequiresTrnLookup => CustomScopes.RequiresTrnLookup(GetScopes());
 
     public void SetAuthorizationResponse(
         IEnumerable<KeyValuePair<string, string>> responseParameters,

@@ -6,11 +6,11 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
-public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
+public class LegacyTrnJourney : IClassFixture<HostFixture>
 {
-    private readonly LegacyClientHostFixture _hostFixture;
+    private readonly HostFixture _hostFixture;
 
-    public LegacyTrnJourney(LegacyClientHostFixture hostFixture)
+    public LegacyTrnJourney(HostFixture hostFixture)
     {
         _hostFixture = hostFixture;
         _hostFixture.OnTestStarting();
@@ -24,7 +24,7 @@ public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(CustomScopes.Trn);
+        await page.StartOAuthJourney(CustomScopes.Trn, TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(user.EmailAddress);
 
@@ -87,7 +87,7 @@ public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
+        await page.StartOAuthJourney(CustomScopes.Trn, TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(email);
 
@@ -137,7 +137,7 @@ public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
+        await page.StartOAuthJourney(CustomScopes.Trn, TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(email);
 
@@ -189,7 +189,7 @@ public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(CustomScopes.Trn);
+        await page.StartOAuthJourney(CustomScopes.Trn, TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(user.EmailAddress);
 
@@ -210,7 +210,7 @@ public class LegacyTrnJourney : IClassFixture<LegacyClientHostFixture>
     {
         ConfigureDqtApiFindTeachersRequest(result: null);
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.Trn);
+        await page.StartOAuthJourney(CustomScopes.Trn, TrnRequirementType.Legacy);
 
         await page.SubmitEmailPage(email);
 

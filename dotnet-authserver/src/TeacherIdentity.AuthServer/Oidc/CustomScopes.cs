@@ -22,4 +22,7 @@ public static class CustomScopes
         DqtRead,
         Trn
     };
+
+    public static bool RequiresTrnLookup(IEnumerable<string> scopes) =>
+        scopes.Any(s => s.Equals(Trn) || s.Equals(DqtRead));
 }

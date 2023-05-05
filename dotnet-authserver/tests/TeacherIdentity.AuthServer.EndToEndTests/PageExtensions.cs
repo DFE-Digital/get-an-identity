@@ -1,3 +1,4 @@
+using Flurl;
 using Microsoft.Playwright;
 using TeacherIdentity.AuthServer.Models;
 
@@ -33,9 +34,29 @@ public static class PageExtensions
         await page.FillAsync("label:text-is('Year')", date.Year.ToString());
     }
 
-    public static async Task StartOAuthJourney(this IPage page, string? additionalScope = null)
+    public static async Task StartOAuthJourney(this IPage page, string? additionalScope = null, TrnRequirementType? trnRequirement = null)
     {
-        await page.GotoAsync($"/profile?scope=email+openid+profile{(additionalScope is not null ? "+" + Uri.EscapeDataString(additionalScope) : string.Empty)}");
+        var allScopes = new List<string>()
+        {
+            "email",
+            "openid",
+            "profile"
+        };
+
+        if (additionalScope is not null)
+        {
+            allScopes.Add(additionalScope);
+        }
+
+        var url = new Url("/profile")
+            .SetQueryParam("scope", string.Join("+", allScopes), isEncoded: true);
+
+        if (trnRequirement is not null)
+        {
+            url.SetQueryParam("trn_requirement", trnRequirement);
+        }
+
+        await page.GotoAsync(url);
     }
 
     public static async Task AssertOnTestClient(this IPage page)

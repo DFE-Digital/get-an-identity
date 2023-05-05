@@ -1,5 +1,6 @@
 using Moq;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
@@ -16,7 +17,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task NewUser_WithoutTrnRequired_CanRegister()
+    public async Task NewUser_WithoutTrnLookup_CanRegister()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -27,7 +28,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: null);
+        await page.StartOAuthJourney();
 
         await page.RegisterFromLandingPage();
 
@@ -72,7 +73,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task NewUser_WithTrnRequired_TrnNotFound_CanRegister()
+    public async Task NewUser_WithTrnLookup_TrnNotFound_CanRegister()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -107,7 +108,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead);
+        await page.StartOAuthJourney(CustomScopes.DqtRead, TrnRequirementType.Optional);
 
         await page.RegisterFromLandingPage();
 
@@ -163,8 +164,10 @@ public class Register : IClassFixture<HostFixture>
             });
     }
 
-    [Fact]
-    public async Task NewUser_WithTrnRequired_TrnFound_CanRegister()
+    [Theory]
+    [InlineData(TrnRequirementType.Optional)]
+    [InlineData(TrnRequirementType.Required)]
+    public async Task NewUser_WithTrnLookup_TrnFound_CanRegister(TrnRequirementType trnRequirement)
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -188,7 +191,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead);
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnRequirement);
 
         await page.RegisterFromLandingPage();
 
@@ -232,8 +235,10 @@ public class Register : IClassFixture<HostFixture>
             });
     }
 
-    [Fact]
-    public async Task NewUser_WithTrnRequired_MatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully()
+    [Theory]
+    [InlineData(TrnRequirementType.Optional)]
+    [InlineData(TrnRequirementType.Required)]
+    public async Task NewUser_WithTrnLookup_MatchingExistingAccount_VerifiesExistingAccountEmailAndCanSignInSuccessfully(TrnRequirementType trnRequirement)
     {
         var existingTrnOwner = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
@@ -260,7 +265,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead);
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnRequirement);
 
         await page.RegisterFromLandingPage();
 
@@ -290,15 +295,18 @@ public class Register : IClassFixture<HostFixture>
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingTrnOwner.UserId));
     }
 
-    [Fact]
-    public async Task User_WithEmailAlreadyExists_SignsInExistingUser()
+    [Theory]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional)]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Required)]
+    [InlineData(null, null)]
+    public async Task User_WithEmailAlreadyExists_SignsInExistingUser(string? additionalScope, TrnRequirementType? trnRequirement)
     {
         var existingUser = await _hostFixture.TestData.CreateUser();
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: null);
+        await page.StartOAuthJourney(additionalScope, trnRequirement);
 
         await page.RegisterFromLandingPage();
 
@@ -316,8 +324,11 @@ public class Register : IClassFixture<HostFixture>
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
     }
 
-    [Fact]
-    public async Task User_WithMobileAlreadyExists_SignsInExistingUser()
+    [Theory]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional)]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Required)]
+    [InlineData(null, null)]
+    public async Task User_WithMobileAlreadyExists_SignsInExistingUser(string? additionalScope, TrnRequirementType? trnRequirement)
     {
         var email = Faker.Internet.Email();
         var existingUser = await _hostFixture.TestData.CreateUser(hasMobileNumber: true);
@@ -325,7 +336,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: null);
+        await page.StartOAuthJourney(additionalScope, trnRequirement);
 
         await page.RegisterFromLandingPage();
 
@@ -347,9 +358,14 @@ public class Register : IClassFixture<HostFixture>
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
     }
 
-    [Fact]
-    public async Task User_WithMatchingNameAndDob_SignsInExistingUserFromEmail()
+    [Theory]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional)]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Required)]
+    [InlineData(null, null)]
+    public async Task User_WithMatchingNameAndDob_SignsInExistingUserFromEmail(string? additionalScope, TrnRequirementType? trnRequirement)
     {
+        ConfigureDqtApiFindTeachersRequest(result: null);
+
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
 
@@ -358,7 +374,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: null);
+        await page.StartOAuthJourney(additionalScope, trnRequirement);
 
         await page.RegisterFromLandingPage();
 
@@ -386,9 +402,14 @@ public class Register : IClassFixture<HostFixture>
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
     }
 
-    [Fact]
-    public async Task User_WithMatchingNameAndDob_SignsInExistingUserFromMobilePhone()
+    [Theory]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional)]
+    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Required)]
+    [InlineData(null, null)]
+    public async Task User_WithMatchingNameAndDob_SignsInExistingUserFromMobilePhone(string? additionalScope, TrnRequirementType? trnRequirement)
     {
+        ConfigureDqtApiFindTeachersRequest(result: null);
+
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
 
@@ -397,7 +418,7 @@ public class Register : IClassFixture<HostFixture>
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
-        await page.StartOAuthJourney(additionalScope: null);
+        await page.StartOAuthJourney(additionalScope, trnRequirement);
 
         await page.RegisterFromLandingPage();
 
