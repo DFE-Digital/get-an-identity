@@ -7,7 +7,7 @@ public class SignInJourneyProvider
 {
     public SignInJourney GetSignInJourney(AuthenticationState authenticationState, HttpContext httpContext)
     {
-        if (authenticationState.TryGetOAuthState(out var oAuthState) && oAuthState.RequiresTrnLookup)
+        if (authenticationState.TryGetOAuthState(out var oAuthState) && authenticationState.UserRequirements.RequiresTrnLookup())
         {
             var useLegacyTrnJourney = oAuthState.TrnRequirementType == TrnRequirementType.Legacy || oAuthState.HasScope(CustomScopes.Trn);
 
