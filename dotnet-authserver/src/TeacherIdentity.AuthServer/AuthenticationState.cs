@@ -813,7 +813,7 @@ public class OAuthAuthorizationState
     [JsonInclude]
     public string? AuthorizationResponseMode { get; private set; }
     public string? RedirectUri { get; }
-    public TrnRequirementType TrnRequirementType { get; init; }
+    public TrnRequirementType? TrnRequirementType { get; init; }
 
     public string ResolveServiceUrl(Application application)
     {

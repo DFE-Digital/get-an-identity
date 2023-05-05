@@ -13,18 +13,16 @@ public class RenderSignInCompleteViewComponent : ViewComponent
         _viewComponentHelper = viewComponentHelper;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync(
-        TrnRequirementType? trnRequirementType,
-        TrnLookupStatus? trnLookupStatus)
+    public IViewComponentResult Invoke(TrnRequirementType? trnRequirementType, TrnLookupStatus? trnLookupStatus)
     {
         if (trnRequirementType is null)
         {
-            throw new ArgumentNullException(nameof(trnRequirementType));
+            return View($"~/Pages/SignIn/_SignIn.Complete.Core.NoTrnLookup.cshtml");
         }
 
         if (trnRequirementType == TrnRequirementType.Legacy)
         {
-            return await Task.FromResult<IViewComponentResult>(View("~/Pages/SignIn/_SignIn.Complete.LegacyTRN.Content.cshtml"));
+            return View("~/Pages/SignIn/_SignIn.Complete.LegacyTRN.Content.cshtml");
         }
 
         var trnState = trnLookupStatus switch
@@ -37,7 +35,6 @@ public class RenderSignInCompleteViewComponent : ViewComponent
             _ => throw new ArgumentOutOfRangeException(nameof(trnLookupStatus), trnLookupStatus, "Invalid TRN lookup status")
         };
 
-        return await Task.FromResult<IViewComponentResult>(View(
-            $"~/Pages/SignIn/_SignIn.Complete.Core.Trn{trnRequirementType}.{trnState}.cshtml"));
+        return View($"~/Pages/SignIn/_SignIn.Complete.Core.Trn{trnRequirementType}.{trnState}.cshtml");
     }
 }

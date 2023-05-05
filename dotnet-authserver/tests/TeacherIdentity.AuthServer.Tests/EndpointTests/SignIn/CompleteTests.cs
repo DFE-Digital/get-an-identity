@@ -51,6 +51,7 @@ public class CompleteTests : TestBase
         TrnRequirementType? trnRequirementType,
         bool isFirstTimeSignIn,
         TrnLookupStatus? trnLookupStatus,
+        bool expectCallbackForm,
         string expectedContentBlock,
         string[] expectedContent)
     {
@@ -73,9 +74,18 @@ public class CompleteTests : TestBase
         {
             Assert.Contains(block, content);
         }
+
+        if (expectCallbackForm)
+        {
+            Assert.NotEmpty(doc.GetElementsByTagName("form"));
+        }
+        else
+        {
+            Assert.Empty(doc.GetElementsByTagName("form"));
+        }
     }
 
-    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, TrnLookupStatus?, string, string[]> SignInCompleteState => new()
+    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, TrnLookupStatus?, bool, string, string[]> SignInCompleteState => new()
     {
         {
             // Core journey, trn optional client, first time sign in, no TRN lookup
@@ -84,6 +94,7 @@ public class CompleteTests : TestBase
             (TrnRequirementType?)null,
             true,
             (TrnLookupStatus?)null,
+            true,
             "first-time-user-content",
             new[]
             {
@@ -99,6 +110,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Optional,
             true,
             TrnLookupStatus.Found,
+            true,
             "first-time-user-content",
             new[]
             {
@@ -115,6 +127,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Optional,
             true,
             TrnLookupStatus.Failed,
+            true,
             "first-time-user-content",
             new[]
             {
@@ -131,6 +144,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Optional,
             true,
             TrnLookupStatus.Pending,
+            true,
             "first-time-user-content",
             new[]
             {
@@ -147,6 +161,7 @@ public class CompleteTests : TestBase
             (TrnRequirementType?)null,
             false,
             (TrnLookupStatus?)null,
+            true,
             "known-user-content",
             new[]
             {
@@ -161,6 +176,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Optional,
             false,
             TrnLookupStatus.Found,
+            true,
             "known-user-content",
             new[]
             {
@@ -175,6 +191,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Optional,
             false,
             TrnLookupStatus.Failed,
+            true,
             "known-user-content",
             new[]
             {
@@ -189,6 +206,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Optional,
             false,
             TrnLookupStatus.Pending,
+            true,
             "known-user-content",
             new[]
             {
@@ -203,6 +221,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Required,
             true,
             TrnLookupStatus.Found,
+            true,
             "first-time-user-content",
             new[]
             {
@@ -219,6 +238,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Required,
             true,
             TrnLookupStatus.Failed,
+            false,
             "first-time-user-content",
             new[]
             {
@@ -234,6 +254,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Required,
             true,
             TrnLookupStatus.Pending,
+            false,
             "first-time-user-content",
             new[]
             {
@@ -250,6 +271,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Required,
             false,
             TrnLookupStatus.Found,
+            true,
             "known-user-content",
             new[]
             {
@@ -264,6 +286,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Required,
             false,
             TrnLookupStatus.Failed,
+            false,
             "known-user-content",
             new[]
             {
@@ -279,6 +302,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Required,
             false,
             TrnLookupStatus.Pending,
+            false,
             "known-user-content",
             new[]
             {
@@ -295,6 +319,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Legacy,
             true,
             TrnLookupStatus.Found,
+            true,
             "legacy-first-time-user-content",
             new[]
             {
@@ -310,6 +335,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Legacy,
             true,
             TrnLookupStatus.Failed,
+            true,
             "legacy-first-time-user-content",
             new[]
             {
@@ -325,6 +351,7 @@ public class CompleteTests : TestBase
             TrnRequirementType.Legacy,
             false,
             TrnLookupStatus.Found,
+            true,
             "legacy-known-user-content",
             new[]
             {
@@ -340,6 +367,7 @@ public class CompleteTests : TestBase
             (TrnRequirementType?)null,
             true,
             TrnLookupStatus.Failed,
+            true,
             "legacy-first-time-user-content",
             new[]
             {
@@ -355,6 +383,7 @@ public class CompleteTests : TestBase
             (TrnRequirementType?)null,
             true,
             TrnLookupStatus.Failed,
+            true,
             "legacy-first-time-user-content",
             new[]
             {

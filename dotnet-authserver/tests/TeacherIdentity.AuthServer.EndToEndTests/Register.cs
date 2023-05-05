@@ -301,7 +301,7 @@ public class Register : IClassFixture<HostFixture>
     [InlineData(null, null)]
     public async Task User_WithEmailAlreadyExists_SignsInExistingUser(string? additionalScope, TrnRequirementType? trnRequirement)
     {
-        var existingUser = await _hostFixture.TestData.CreateUser();
+        var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -318,7 +318,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCompletePageForExistingUser();
 
-        await page.AssertSignedInOnTestClient(existingUser);
+        await page.AssertSignedInOnTestClient(existingUser, expectTrn: additionalScope is not null);
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
@@ -331,7 +331,7 @@ public class Register : IClassFixture<HostFixture>
     public async Task User_WithMobileAlreadyExists_SignsInExistingUser(string? additionalScope, TrnRequirementType? trnRequirement)
     {
         var email = Faker.Internet.Email();
-        var existingUser = await _hostFixture.TestData.CreateUser(hasMobileNumber: true);
+        var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true, hasMobileNumber: true);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -352,7 +352,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCompletePageForExistingUser();
 
-        await page.AssertSignedInOnTestClient(existingUser);
+        await page.AssertSignedInOnTestClient(existingUser, expectTrn: additionalScope is not null);
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
@@ -369,7 +369,7 @@ public class Register : IClassFixture<HostFixture>
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
 
-        var existingUser = await _hostFixture.TestData.CreateUser();
+        var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -396,7 +396,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCompletePageForExistingUser();
 
-        await page.AssertSignedInOnTestClient(existingUser);
+        await page.AssertSignedInOnTestClient(existingUser, expectTrn: additionalScope is not null);
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
@@ -413,7 +413,7 @@ public class Register : IClassFixture<HostFixture>
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
 
-        var existingUser = await _hostFixture.TestData.CreateUser();
+        var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -444,7 +444,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCompletePageForExistingUser();
 
-        await page.AssertSignedInOnTestClient(existingUser);
+        await page.AssertSignedInOnTestClient(existingUser, expectTrn: additionalScope is not null);
 
         _hostFixture.EventObserver.AssertEventsSaved(
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));

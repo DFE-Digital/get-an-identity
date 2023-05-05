@@ -24,17 +24,23 @@
     ViewData.Add("Scope", Model.Scope);
 }
 
-<form action="@action" method="@method" asp-antiforgery="false">
-    @if (responseMode != ResponseModes.Fragment)
-    {
-        foreach (var (key, value) in Model.ResponseParameters!)
+@if (Model.TrnRequirementType == TrnRequirementType.Required && Model.TrnLookupStatus != TrnLookupStatus.Found)
+{
+    <vc:sign-in-complete trn-requirement-type="@Model.TrnRequirementType" trn-lookup-status="@Model.TrnLookupStatus" />
+}
+else
+{
+    <form action="@action" method="@method" asp-antiforgery="false">
+        @if (responseMode != ResponseModes.Fragment)
         {
-            <input type="hidden" name="@key" value="@value">
+            foreach (var (key, value) in Model.ResponseParameters!)
+            {
+                <input type="hidden" name="@key" value="@value">
+            }
         }
-    }
 
-    <vc:sign-in-complete
-        trn-requirement-type="@Model.TrnRequirementType"
-        trn-lookup-status="@Model.TrnLookupStatus">
-    </vc:sign-in-complete>
-</form>
+        <vc:sign-in-complete
+            trn-requirement-type="@Model.TrnRequirementType"
+            trn-lookup-status="@Model.TrnLookupStatus" />
+    </form>
+}
