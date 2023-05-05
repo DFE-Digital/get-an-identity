@@ -17,7 +17,7 @@ public abstract class SignInJourney
         CreateUserHelper = createUserHelper;
     }
 
-    public virtual async Task<IActionResult> TryCreateUser(string currentStep)
+    public virtual async Task<IActionResult> CreateUser(string currentStep)
     {
         var user = await CreateUserHelper.CreateUser(AuthenticationState);
 

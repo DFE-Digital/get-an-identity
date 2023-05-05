@@ -49,6 +49,6 @@ public class CheckAnswers : PageModel
 
     public async Task<IActionResult> OnPost()
     {
-        return await _journey.TryCreateUser(CurrentStep);
+        return await _journey.CreateUser(CurrentStep);
     }
 }

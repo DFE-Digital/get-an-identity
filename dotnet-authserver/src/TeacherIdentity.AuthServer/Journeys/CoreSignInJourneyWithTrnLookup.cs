@@ -17,7 +17,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         _trnLookupHelper = trnLookupHelper;
     }
 
-    public override async Task<IActionResult> TryCreateUser(string currentStep)
+    public override async Task<IActionResult> CreateUser(string currentStep)
     {
         try
         {

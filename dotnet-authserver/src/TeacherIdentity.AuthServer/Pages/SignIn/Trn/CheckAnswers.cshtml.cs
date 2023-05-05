@@ -39,6 +39,6 @@ public class CheckAnswers : PageModel
             return await _journey.Advance(CurrentStep);
         }
 
-        return await _journey.TryCreateUser(CurrentStep);
+        return await _journey.CreateUser(CurrentStep);
     }
 }
