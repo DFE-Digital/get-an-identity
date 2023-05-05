@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl;
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -698,8 +697,6 @@ public class OAuthAuthorizationState
     }
 
     public bool HasScope(string scope) => GetScopes().Contains(scope);
-
-    public bool RequiresTrnLookup => CustomScopes.RequiresTrnLookup(GetScopes());
 
     public void SetAuthorizationResponse(
         IEnumerable<KeyValuePair<string, string>> responseParameters,

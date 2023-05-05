@@ -51,6 +51,9 @@ public static class UserRequirementsExtensions
         return userRequirements;
     }
 
+    public static bool RequiresTrnLookup(this UserRequirements userRequirements) =>
+        userRequirements.HasFlag(UserRequirements.TrnHolder);
+
     public static bool TryGetUserRequirementsForScopes(
         Func<string, bool> hasScope,
         [NotNullWhen(true)] out UserRequirements userRequirements,
@@ -58,12 +61,10 @@ public static class UserRequirementsExtensions
     {
         userRequirements = UserRequirements.DefaultUserType;
 
-#pragma warning disable CS0618 // Type or member is obsolete
         if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
             userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         if (hasScope(CustomScopes.GetAnIdentitySupport))
         {

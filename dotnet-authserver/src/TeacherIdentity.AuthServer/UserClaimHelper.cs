@@ -77,8 +77,7 @@ public class UserClaimHelper
             claims.Add(new Claim(Claims.PhoneNumberVerified, bool.TrueString));
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
+        if (UserRequirementsExtensions.GetUserRequirementsForScopes(hasScope).RequiresTrnLookup())
         {
             claims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
 
@@ -87,7 +86,6 @@ public class UserClaimHelper
                 claims.Add(new Claim(CustomClaims.Trn, user.Trn));
             }
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         await _dbContext.Users.IgnoreQueryFilters()
             .Where(u => u.MergedWithUserId == userId)
