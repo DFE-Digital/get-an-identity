@@ -30,6 +30,7 @@ public sealed class AuthenticationStateHelper
         AuthenticationStateConfiguration configureAuthenticationState,
         HostFixture hostFixture,
         string? additionalScopes,
+        TrnRequirementType? trnRequirementType,
         TeacherIdentityApplicationDescriptor? client)
     {
         var authenticationStateProvider = (TestAuthenticationStateProvider)hostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
@@ -54,6 +55,11 @@ public sealed class AuthenticationStateHelper
             $"&code_challenge_method=S256" +
             $"&response_mode=form_post";
 
+        if (trnRequirementType is not null)
+        {
+            authorizationUrl += $"&trn_requirement={trnRequirementType}";
+        }
+
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
@@ -61,7 +67,7 @@ public sealed class AuthenticationStateHelper
             startedAt: hostFixture.Services.GetRequiredService<IClock>().UtcNow,
             oAuthState: new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri)
             {
-                TrnRequirementType = client.TrnRequirementType
+                TrnRequirementType = trnRequirementType ?? client.TrnRequirementType
             });
 
         var configure = new Configure(hostFixture);

@@ -24,7 +24,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, trnRequirementType: null, HttpMethod.Get, "/sign-in/trn/resend-email-confirmation");
     }
 
     [Fact]
@@ -36,6 +36,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         await JourneyHasExpired_RendersErrorPage(
             c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
+            trnRequirementType: null,
             HttpMethod.Get,
             "/sign-in/trn/resend-email-confirmation");
     }
@@ -75,7 +76,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, trnRequirementType: null, HttpMethod.Post, "/sign-in/trn/resend-email-confirmation");
     }
 
     [Fact]
@@ -87,6 +88,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         await JourneyHasExpired_RendersErrorPage(
             c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
+            trnRequirementType: null,
             HttpMethod.Post,
             "/sign-in/trn/resend-email-confirmation");
     }

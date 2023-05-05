@@ -36,32 +36,32 @@ public class ExistingAccountPhoneTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/register/existing-account-phone");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/existing-account-phone");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Get, "/sign-in/register/existing-account-phone");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/existing-account-phone");
     }
 
     [Fact]
     public async Task Get_NullExistingAccountMobileNumber_RedirectsToExistingAccountConfirmEmail()
     {
         _existingUserAccount!.MobileNumber = null;
-        await GivenAuthenticationState_RedirectsTo(_currentPageAuthenticationState(_existingUserAccount), HttpMethod.Get, "/sign-in/register/existing-account-phone", "/sign-in/register/existing-account-email-confirmation");
+        await GivenAuthenticationState_RedirectsTo(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/existing-account-phone", "/sign-in/register/existing-account-email-confirmation");
     }
 
     [Fact]
     public async Task Get_ExistingAccountNotChosen_RedirectsToAccountExists()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Get, "/sign-in/register/existing-account-phone", "/sign-in/register/account-exists");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/existing-account-phone", "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
-        await ValidRequest_RendersContent(_currentPageAuthenticationState(_existingUserAccount), "/sign-in/register/existing-account-phone", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, url: "/sign-in/register/existing-account-phone");
     }
 
     [Fact]
@@ -79,26 +79,26 @@ public class ExistingAccountPhoneTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/existing-account-phone");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/existing-account-phone");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Post, "/sign-in/register/existing-account-phone");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/existing-account-phone");
     }
 
     [Fact]
     public async Task Post_NullExistingAccountMobileNumber_RedirectsToExistingAccountConfirmEmail()
     {
         _existingUserAccount!.MobileNumber = null;
-        await GivenAuthenticationState_RedirectsTo(_currentPageAuthenticationState(_existingUserAccount), HttpMethod.Post, "/sign-in/register/existing-account-phone", "/sign-in/register/existing-account-email-confirmation");
+        await GivenAuthenticationState_RedirectsTo(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/existing-account-phone", "/sign-in/register/existing-account-email-confirmation");
     }
 
     [Fact]
     public async Task Post_ExistingAccountNotChosen_RedirectsToAccountExists()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Post, "/sign-in/register/existing-account-phone", "/sign-in/register/account-exists");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/existing-account-phone", "/sign-in/register/account-exists");
     }
 
     [Fact]

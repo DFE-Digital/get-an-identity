@@ -26,7 +26,7 @@ public class TrnInUseChooseEmailTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/choose-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: CustomScopes.Trn, trnRequirementType: null, HttpMethod.Get, "/sign-in/trn/choose-email");
     }
 
     [Fact]
@@ -38,6 +38,7 @@ public class TrnInUseChooseEmailTests : TestBase
         await JourneyHasExpired_RendersErrorPage(
             c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
+            trnRequirementType: null,
             HttpMethod.Get,
             "/sign-in/trn/choose-email");
     }
@@ -48,7 +49,8 @@ public class TrnInUseChooseEmailTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
@@ -68,7 +70,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
@@ -88,7 +91,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.ExistingTrnFound, existingUser),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
@@ -109,7 +113,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
@@ -138,7 +143,7 @@ public class TrnInUseChooseEmailTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/choose-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, trnRequirementType: null, HttpMethod.Post, "/sign-in/trn/choose-email");
     }
 
     [Fact]
@@ -150,6 +155,7 @@ public class TrnInUseChooseEmailTests : TestBase
         await JourneyHasExpired_RendersErrorPage(
             c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
+            trnRequirementType: null,
             HttpMethod.Post,
             "/sign-in/trn/choose-email");
     }
@@ -162,7 +168,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -189,7 +196,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -216,7 +224,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.ExistingTrnFound, existingUser),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -243,7 +252,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -267,7 +277,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -296,7 +307,8 @@ public class TrnInUseChooseEmailTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {

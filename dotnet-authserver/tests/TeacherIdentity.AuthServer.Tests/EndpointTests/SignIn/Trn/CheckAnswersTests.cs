@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
@@ -25,19 +26,19 @@ public class CheckAnswersTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Fact]
     public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
     {
-        await InvalidUserRequirements_ReturnsForbidden(c => c.Trn.IttProviderSet(), additionalScopes: "", HttpMethod.Get, "/sign-in/trn/check-answers");
+        await InvalidUserRequirements_ReturnsForbidden(c => c.Trn.IttProviderSet(), additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Theory]
@@ -45,7 +46,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/check-answers");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/check-answers");
     }
 
     [Theory]
@@ -55,7 +56,7 @@ public class CheckAnswersTests : TestBase
         string expectedRedirect)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn, TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -71,7 +72,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
@@ -94,7 +95,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var trn = TestData.GenerateTrn();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
@@ -117,7 +118,8 @@ public class CheckAnswersTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -137,7 +139,8 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -160,7 +163,8 @@ public class CheckAnswersTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -180,7 +184,8 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -203,7 +208,8 @@ public class CheckAnswersTests : TestBase
         var nino = hasNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -221,7 +227,7 @@ public class CheckAnswersTests : TestBase
     public async Task Get_ValidRequestWithoutHasNinoAnswered_DoesNotShowNationalInsuranceNumberRow()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: TestData.GenerateTrn(), trnLookupStatus: TrnLookupStatus.Found);
         Assert.Null(authStateHelper.AuthenticationState.HasNationalInsuranceNumber);
 
@@ -245,7 +251,8 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => haveQts ? c.Trn.IttProviderSet() : c.Trn.AwardedQtsSet(awardedQts: false),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -267,7 +274,8 @@ public class CheckAnswersTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: ittProviderName),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -287,7 +295,8 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -307,7 +316,8 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.AwardedQtsSet(awardedQts: false),
-            CustomScopes.Trn);
+            CustomScopes.Trn,
+            TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -336,19 +346,19 @@ public class CheckAnswersTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/check-answers");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/check-answers");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
     }
 
     [Fact]
     public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
     {
-        await InvalidUserRequirements_ReturnsForbidden(c => c.Trn.IttProviderSet(), additionalScopes: "", HttpMethod.Post, "/sign-in/trn/check-answers");
+        await InvalidUserRequirements_ReturnsForbidden(c => c.Trn.IttProviderSet(), additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
     }
 
     [Theory]
@@ -356,14 +366,14 @@ public class CheckAnswersTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/check-answers");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/check-answers");
     }
 
     [Fact]
     public async Task Post_ValidRequestNullTrn_DoesNotCreateUserRedirectsToNoMatch()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -393,7 +403,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var trn = TestData.GenerateTrn();
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
@@ -423,7 +433,7 @@ public class CheckAnswersTests : TestBase
         // Arrange
         var existingUserWithTrn = await TestData.CreateUser(hasTrn: true);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(existingUserWithTrn.Trn, TrnLookupStatus.Found);

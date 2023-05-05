@@ -24,14 +24,14 @@ public class NiNumberPageTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/register/ni-number");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/ni-number");
     }
 
     [Fact]
     public async Task Get_HaveNationalInsuranceNumberNotSet_RedirectsToHasNiNumberPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_previousPageAuthenticationState(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_previousPageAuthenticationState(), CustomScopes.DqtRead, trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/ni-number?{authStateHelper.ToQueryParam()}");
 
@@ -55,7 +55,7 @@ public class NiNumberPageTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/ni-number", CustomScopes.DqtRead);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), CustomScopes.DqtRead, trnRequirementType: null, url: "/sign-in/register/ni-number");
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class NiNumberPageTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/register/ni-number");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/ni-number");
     }
 
     [Fact]

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
@@ -28,12 +27,6 @@ public class LegacyTrnJourney : SignInJourney
 
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
-
-            if ((!AuthenticationState.TryGetOAuthState(out var oAuthState) || !oAuthState.HasScope(CustomScopes.Trn)) &&
-                AuthenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
-            {
-                await CreateUserHelper.CreateTrnResolutionZendeskTicket(AuthenticationState);
-            }
         }
         catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
         {

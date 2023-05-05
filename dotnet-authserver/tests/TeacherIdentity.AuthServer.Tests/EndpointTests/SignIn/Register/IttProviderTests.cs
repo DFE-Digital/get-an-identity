@@ -35,13 +35,13 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/register/itt-provider");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/itt-provider");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/register/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/itt-provider");
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class IttProviderTests : TestBase
     public async Task Get_AwardedQtsNotSet_RedirectsToHasQtsPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_previousPageAuthenticationState(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_previousPageAuthenticationState(), CustomScopes.DqtRead, trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/itt-provider?{authStateHelper.ToQueryParam()}");
 
@@ -101,13 +101,13 @@ public class IttProviderTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/register/itt-provider");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/itt-provider");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/register/itt-provider");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(awardedQts: true), CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/itt-provider");
     }
 
     [Fact]

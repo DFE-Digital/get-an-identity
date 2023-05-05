@@ -24,26 +24,26 @@ public class ResendEmailConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Get_EmailNotSet_RedirectsToEmailPage()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/resend-email-confirmation", "/sign-in/register/email");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-email-confirmation", "/sign-in/register/email");
     }
 
     [Fact]
     public async Task Get_EmailAlreadyVerified_RedirectsToRegisterPhone()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(Faker.Internet.Email()), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(Faker.Internet.Email()), additionalScopes: null, trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
 
@@ -87,19 +87,19 @@ public class ResendEmailConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-email-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-email-confirmation");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-email-confirmation");
     }
 
     [Fact]
     public async Task Post_EmailNotSet_RedirectsToEmailPage()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/resend-email-confirmation", "/sign-in/register/email");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-email-confirmation", "/sign-in/register/email");
     }
 
     [Fact]
