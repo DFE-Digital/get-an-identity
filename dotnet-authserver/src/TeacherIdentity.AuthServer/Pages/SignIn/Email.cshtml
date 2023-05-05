@@ -14,7 +14,7 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
-            @if (Model.JourneyType == AuthenticationJourneyType.LegacyTrn)
+            @if (Model.JourneyType == typeof(TeacherIdentity.AuthServer.Journeys.LegacyTrnJourney))
             {
                 <h1 class="govuk-heading-xl">Your email address</h1>
 

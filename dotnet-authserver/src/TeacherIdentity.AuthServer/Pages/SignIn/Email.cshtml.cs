@@ -31,7 +31,7 @@ public class EmailModel : BaseEmailPageModel
     [EmailAddress(ErrorMessage = "Enter a valid email address")]
     public string? Email { get; set; }
 
-    public AuthenticationJourneyType JourneyType => _journey.AuthenticationState.GetJourneyType();
+    public Type JourneyType => _journey.GetType();
 
     public void OnGet()
     {

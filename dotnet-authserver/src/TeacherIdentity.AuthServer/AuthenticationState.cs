@@ -204,23 +204,6 @@ public class AuthenticationState
         return UserClaimHelper.GetInternalClaims(this);
     }
 
-    public AuthenticationJourneyType GetJourneyType()
-    {
-        if (UserRequirements.HasFlag(UserRequirements.StaffUserType))
-        {
-            return AuthenticationJourneyType.StaffSignIn;
-        }
-
-        if (TryGetOAuthState(out var oAuthState) &&
-            oAuthState.RequiresTrnLookup &&
-            (oAuthState.TrnRequirementType == TrnRequirementType.Legacy || oAuthState.HasScope(CustomScopes.Trn)))
-        {
-            return AuthenticationJourneyType.LegacyTrn;
-        }
-
-        return AuthenticationJourneyType.Core;
-    }
-
     public UserType[] GetPermittedUserTypes() => UserRequirements.GetPermittedUserTypes();
 
     public bool IsComplete =>
