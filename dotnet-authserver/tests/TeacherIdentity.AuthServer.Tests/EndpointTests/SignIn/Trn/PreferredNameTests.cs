@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
@@ -24,19 +25,19 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
     {
-        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Theory]
@@ -44,14 +45,14 @@ public class PreferredNameTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/preferred-name");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Get_OfficialNameNotSet_RedirectsToOfficialNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
@@ -66,7 +67,7 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, "/sign-in/trn/preferred-name", CustomScopes.Trn);
+        await ValidRequest_RendersContent(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
@@ -84,19 +85,19 @@ public class PreferredNameTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyHasExpired_RendersErrorPage(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
     {
-        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Theory]
@@ -104,14 +105,14 @@ public class PreferredNameTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/preferred-name");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/preferred-name");
     }
 
     [Fact]
     public async Task Post_OfficialNameNotSet_RedirectsToOfficialNamePage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.HasTrnSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}");
 
@@ -127,7 +128,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_NullHasPreferredName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -144,7 +145,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_EmptyPreferredFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -165,7 +166,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_EmptyPreferredLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -186,7 +187,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_TooLongPreferredFirstName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var firstName = new string('a', 201);
         var lastName = "last";
 
@@ -211,7 +212,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_TooLongPreferredLastName_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var firstName = "last";
         var lastName = new string('a', 201);
 
@@ -236,7 +237,7 @@ public class PreferredNameTests : TestBase
     public async Task Post_ValidForm_RedirectsToDateOfBirthPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {
@@ -265,7 +266,7 @@ public class PreferredNameTests : TestBase
         var preferredFirstName = "preferred first";
         var preferredLastName = "preferred last";
 
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnNameSet(initialFirstName, initialLastName);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")

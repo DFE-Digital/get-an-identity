@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -34,8 +35,9 @@ public abstract partial class TestBase
     public Task<AuthenticationStateHelper> CreateAuthenticationStateHelper(
         AuthenticationStateConfiguration configure,
         string? additionalScopes,
+        TrnRequirementType? trnRequirementType = null,
         TeacherIdentityApplicationDescriptor? client = null) =>
-        AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes, client);
+        AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes, trnRequirementType, client);
 
     public void ConfigureDqtApiClientToReturnSingleMatch(AuthenticationStateHelper authStateHelper)
     {

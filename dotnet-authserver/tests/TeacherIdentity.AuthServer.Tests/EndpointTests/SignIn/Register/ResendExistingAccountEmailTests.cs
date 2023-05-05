@@ -37,25 +37,25 @@ public class ResendExistingAccountEmailTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email");
     }
 
     [Fact]
     public async Task Get_ExistingAccountChosenNotSet_RedirectsToCheckAccount()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Get, "/sign-in/register/resend-existing-account-email", "/sign-in/register/account-exists");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-existing-account-email", "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
-        await ValidRequest_RendersContent(_currentPageAuthenticationState(_existingUserAccount), "/sign-in/register/resend-existing-account-email", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, url: "/sign-in/register/resend-existing-account-email");
     }
 
     [Fact]
@@ -73,19 +73,19 @@ public class ResendExistingAccountEmailTests : TestBase, IAsyncLifetime
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email");
     }
 
     [Fact]
     public async Task Post_ExistingAccountChosenNotSet_RedirectsToCheckAccount()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), HttpMethod.Post, "/sign-in/register/resend-existing-account-email", "/sign-in/register/account-exists");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(_existingUserAccount), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-existing-account-email", "/sign-in/register/account-exists");
     }
 
     [Fact]

@@ -407,7 +407,7 @@ public class AuthorizationController : Controller
 
             case CustomClaims.Trn:
             case CustomClaims.TrnLookupStatus:
-                if (principal.HasScope(CustomScopes.Trn) || principal.HasScope(CustomScopes.DqtRead))
+                if (CustomScopes.RequiresTrnLookup(principal.GetScopes()))
                 {
                     yield return Destinations.IdentityToken;
                 }

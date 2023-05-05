@@ -7,14 +7,14 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public static class TestClients
 {
-    public static OpenIddictApplicationDescriptor[] All => new[] { DefaultClient, LegacyTrnClient, ApplyForQts, RegisterForNpq };
+    public static OpenIddictApplicationDescriptor[] All => new[] { DefaultClient, ApplyForQts, RegisterForNpq };
 
     public static TeacherIdentityApplicationDescriptor DefaultClient { get; } = new TeacherIdentityApplicationDescriptor()
     {
         ClientId = "default-client",
         ClientSecret = "secret",
         ConsentType = ConsentTypes.Implicit,
-        DisplayName = "Sample TeacherIdentity.TestClient app",
+        DisplayName = "Test client app",
         RedirectUris =
         {
             new Uri("https://localhost:1234/oidc/callback")
@@ -39,37 +39,6 @@ public static class TestClients
             Requirements.Features.ProofKeyForCodeExchange
         },
         TrnRequirementType = TrnRequirementType.Optional
-    };
-
-    public static TeacherIdentityApplicationDescriptor LegacyTrnClient { get; } = new TeacherIdentityApplicationDescriptor()
-    {
-        ClientId = "legacy-trn-client",
-        ClientSecret = "secret",
-        ConsentType = ConsentTypes.Implicit,
-        DisplayName = "Sample Legacy TeacherIdentity.TestClient app",
-        RedirectUris =
-        {
-            new Uri("https://localhost:1234/oidc/callback")
-        },
-        Permissions =
-        {
-            Permissions.Endpoints.Authorization,
-            Permissions.Endpoints.Token,
-            Permissions.GrantTypes.AuthorizationCode,
-            Permissions.GrantTypes.Password,
-            Permissions.ResponseTypes.Code,
-            Permissions.Scopes.Email,
-            Permissions.Scopes.Profile,
-            $"{Permissions.Prefixes.Scope}{CustomScopes.DqtRead}",
-            $"{Permissions.Prefixes.Scope}{CustomScopes.GetAnIdentitySupport}",
-            $"{Permissions.Prefixes.Scope}{CustomScopes.UserRead}",
-            $"{Permissions.Prefixes.Scope}{CustomScopes.UserWrite}",
-            $"{Permissions.Prefixes.Scope}{CustomScopes.Trn}",
-        },
-        Requirements =
-        {
-            Requirements.Features.ProofKeyForCodeExchange
-        },
     };
 
     public static TeacherIdentityApplicationDescriptor ApplyForQts { get; } = new TeacherIdentityApplicationDescriptor()

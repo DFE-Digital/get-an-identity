@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -24,14 +25,14 @@ public class CompleteTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/complete");
+        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/complete");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
         var user = await TestData.CreateUser(hasTrn: true);
-        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), additionalScopes: null, HttpMethod.Get, "/sign-in/complete");
+        await JourneyHasExpired_RendersErrorPage(c => c.Completed(user), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/complete");
     }
 
     [Theory]
@@ -39,7 +40,7 @@ public class CompleteTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/complete");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Get, "/sign-in/complete");
     }
 
     [Theory]
@@ -47,6 +48,7 @@ public class CompleteTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent(
         TeacherIdentityApplicationDescriptor client,
         string? additionalScopes,
+        TrnRequirementType? trnRequirementType,
         bool isFirstTimeSignIn,
         bool gotTrn,
         string expectedContentBlock,
@@ -55,7 +57,7 @@ public class CompleteTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(hasTrn: gotTrn);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: isFirstTimeSignIn), additionalScopes: additionalScopes, client: client);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: isFirstTimeSignIn), additionalScopes, trnRequirementType, client);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 
@@ -73,12 +75,13 @@ public class CompleteTests : TestBase
         }
     }
 
-    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, bool, bool, string, string[]> SignInCompleteState => new()
+    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, bool, string, string[]> SignInCompleteState => new()
     {
         {
             // Core journey, default client, first time sign in with TRN
             TestClients.DefaultClient,
             CustomScopes.DqtRead,
+            (TrnRequirementType?)null,
             true,
             false,
             "first-time-user-content",
@@ -93,6 +96,7 @@ public class CompleteTests : TestBase
             // Core journey, default client, first time sign in without TRN
             TestClients.DefaultClient,
             null,
+            (TrnRequirementType?)null,
             true,
             false,
             "first-time-user-content",
@@ -107,6 +111,7 @@ public class CompleteTests : TestBase
             // Core journey, default client, known user with TRN
             TestClients.DefaultClient,
             CustomScopes.DqtRead,
+            (TrnRequirementType?)null,
             false,
             false,
             "known-user-content",
@@ -120,6 +125,7 @@ public class CompleteTests : TestBase
             // Core journey, default client, known user without TRN
             TestClients.DefaultClient,
             null,
+            (TrnRequirementType?)null,
             false,
             false,
             "known-user-content",
@@ -131,8 +137,9 @@ public class CompleteTests : TestBase
         },
         {
             // legacy TRN journey, default client, first time sign-in with trn found
-            TestClients.LegacyTrnClient,
+            TestClients.DefaultClient,
             CustomScopes.DqtRead,
+            TrnRequirementType.Legacy,
             true,
             true,
             "legacy-first-time-user-content",
@@ -145,8 +152,9 @@ public class CompleteTests : TestBase
         },
         {
             // legacy TRN journey, default client, first time sign-in with trn not found
-            TestClients.LegacyTrnClient,
+            TestClients.DefaultClient,
             CustomScopes.DqtRead,
+            TrnRequirementType.Legacy,
             true,
             false,
             "legacy-first-time-user-content",
@@ -159,8 +167,9 @@ public class CompleteTests : TestBase
         },
         {
             // legacy TRN journey, default client, known user
-            TestClients.LegacyTrnClient,
+            TestClients.DefaultClient,
             CustomScopes.DqtRead,
+            TrnRequirementType.Legacy,
             false,
             false,
             "legacy-known-user-content",
@@ -175,6 +184,7 @@ public class CompleteTests : TestBase
             // legacy TRN journey, Register For NPQ Client, first time sign-in without trn not found
             TestClients.RegisterForNpq,
             CustomScopes.Trn,
+            (TrnRequirementType?)null,
             true,
             false,
             "legacy-first-time-user-content",
@@ -189,6 +199,7 @@ public class CompleteTests : TestBase
             // legacy TRN journey, Register For NPQ Client, first time sign-in without trn not found
             TestClients.RegisterForNpq,
             CustomScopes.DqtRead,
+            (TrnRequirementType?)null,
             true,
             false,
             "legacy-first-time-user-content",

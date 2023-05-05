@@ -26,13 +26,13 @@ public class EmailTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/email");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, HttpMethod.Get, "/sign-in/email");
+        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/email");
     }
 
     [Theory]
@@ -40,13 +40,13 @@ public class EmailTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Get, "/sign-in/email");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, additionalScopes: CustomScopes.Trn, trnRequirementType: null, HttpMethod.Get, "/sign-in/email");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(c => c.Start(), "/sign-in/email", additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.Start(), additionalScopes: null, trnRequirementType: null, url: "/sign-in/email");
     }
 
     [Fact]
@@ -64,13 +64,13 @@ public class EmailTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/email");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/email");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, HttpMethod.Post, "/sign-in/email");
+        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/email");
     }
 
     [Theory]
@@ -78,7 +78,7 @@ public class EmailTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.DqtRead, HttpMethod.Post, "/sign-in/email");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, additionalScopes: CustomScopes.Trn, trnRequirementType: null, HttpMethod.Post, "/sign-in/email");
     }
 
     [Fact]

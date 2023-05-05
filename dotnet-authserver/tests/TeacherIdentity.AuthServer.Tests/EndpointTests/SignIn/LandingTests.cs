@@ -22,25 +22,25 @@ public class LandingTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/landing");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/landing");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, HttpMethod.Get, "/sign-in/landing");
+        await JourneyHasExpired_RendersErrorPage(c => c.Start(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/landing");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(c => c.Start(), "/sign-in/landing", additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.Start(), additionalScopes: null, trnRequirementType: null, url: "/sign-in/landing");
     }
 
     [Fact]
     public async Task Get_ValidRequestApplyForQTSClient_RendersClientScopedPartialContent()
     {
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null, TestClients.ApplyForQts);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null, trnRequirementType: null, TestClients.ApplyForQts);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/landing?{authStateHelper.ToQueryParam()}");
 
         // Act

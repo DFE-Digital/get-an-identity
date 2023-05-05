@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using ZendeskApi.Client.Requests;
 using static TeacherIdentity.AuthServer.Tests.AuthenticationStateHelper;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
@@ -27,19 +27,19 @@ public class NoMatchTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Get_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
     {
-        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Get, "/sign-in/trn/no-match");
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Theory]
@@ -47,7 +47,7 @@ public class NoMatchTests : TestBase
     public async Task Get_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn/no-match");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn/no-match");
     }
 
     [Theory]
@@ -57,7 +57,7 @@ public class NoMatchTests : TestBase
         string expectedRedirect)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn, TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -73,7 +73,7 @@ public class NoMatchTests : TestBase
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -101,7 +101,7 @@ public class NoMatchTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -122,7 +122,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -146,7 +146,7 @@ public class NoMatchTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -167,7 +167,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -191,7 +191,7 @@ public class NoMatchTests : TestBase
         var nino = hasNino ? Faker.Identification.UkNationalInsuranceNumber() : null;
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -214,7 +214,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => haveQts ? c.Trn.IttProviderSet() : c.Trn.AwardedQtsSet(awardedQts: false),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -237,7 +237,7 @@ public class NoMatchTests : TestBase
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: ittProviderName),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -258,7 +258,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: null),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -279,7 +279,7 @@ public class NoMatchTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.AwardedQtsSet(awardedQts: false),
-            CustomScopes.Trn);
+            CustomScopes.Trn, TrnRequirementType.Legacy);
         authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
@@ -309,19 +309,19 @@ public class NoMatchTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/no-match");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/no-match");
+        await JourneyHasExpired_RendersErrorPage(c => c.Trn.OfficialNameSet(), CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Fact]
     public async Task Post_UserRequirementsDoesNotContainTrnHolder_ReturnsForbidden()
     {
-        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: "", HttpMethod.Post, "/sign-in/trn/no-match");
+        await InvalidUserRequirements_ReturnsForbidden(ConfigureValidAuthenticationState, additionalScopes: null, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Theory]
@@ -329,7 +329,7 @@ public class NoMatchTests : TestBase
     public async Task Post_JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(
         AuthenticationState.AuthenticationMilestone milestone)
     {
-        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, HttpMethod.Post, "/sign-in/trn/no-match");
+        await JourneyMilestoneHasPassed_RedirectsToStartOfNextMilestone(milestone, CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Post, "/sign-in/trn/no-match");
     }
 
     [Theory]
@@ -339,7 +339,7 @@ public class NoMatchTests : TestBase
         string expectedRedirect)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(configureAuthStateHelper, CustomScopes.Trn, TrnRequirementType.Legacy);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -355,7 +355,7 @@ public class NoMatchTests : TestBase
     public async Task Post_NullHasChangesToMake_ReturnsError()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
@@ -376,7 +376,7 @@ public class NoMatchTests : TestBase
     public async Task Post_TrueHasChangesToMake_DoesNotCreateUserRedirectsToCheckAnswers()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
@@ -405,14 +405,12 @@ public class NoMatchTests : TestBase
     }
 
     [Theory]
-    [InlineData(TrnLookupStatus.Pending, true)]
-    [InlineData(TrnLookupStatus.None, false)]
-    public async Task Post_FalseHasChangesToMake_CreatesUserRedirectsToNextHopUrl(
-        TrnLookupStatus trnLookupStatus,
-        bool expectZendeskTicketCreated)
+    [InlineData(TrnLookupStatus.Pending)]
+    [InlineData(TrnLookupStatus.None)]
+    public async Task Post_FalseHasChangesToMake_CreatesUserRedirectsToNextHopUrl(TrnLookupStatus trnLookupStatus)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.DqtRead, TestClients.LegacyTrnClient);
+        var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
@@ -439,10 +437,6 @@ public class NoMatchTests : TestBase
             Assert.NotNull(user);
             Assert.Null(user.Trn);
         });
-
-        HostFixture.ZendeskApiWrapper.Verify(
-            mock => mock.CreateTicketAsync(It.Is<TicketCreateRequest>(t => t.Requester.Email == authState.EmailAddress), It.IsAny<CancellationToken>()),
-            expectZendeskTicketCreated ? Times.Once() : Times.Never());
     }
 
     private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(Configure configure) => async s =>

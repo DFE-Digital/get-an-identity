@@ -25,25 +25,25 @@ public class AccountExistsTests : TestBase
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/account-exists");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Get_NullExistingAccountFound_RedirectsToDateOfBirth()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/account-exists", "/sign-in/register/date-of-birth");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/account-exists", "/sign-in/register/date-of-birth");
     }
 
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/complete");
+        await JourneyIsAlreadyCompleted_DoesNotRedirectToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/complete");
     }
 
     [Fact]
     public async Task Get_ValidRequest_RendersContent()
     {
-        await ValidRequest_RendersContent(c => c.RegisterExistingUserAccountMatch(), "/sign-in/register/account-exists", additionalScopes: null);
+        await ValidRequest_RendersContent(c => c.RegisterExistingUserAccountMatch(), additionalScopes: null, trnRequirementType: null, url: "/sign-in/register/account-exists");
     }
 
     [Fact]
@@ -61,19 +61,19 @@ public class AccountExistsTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/account-exists");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/account-exists");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/account-exists");
     }
 
     [Fact]
     public async Task Post_NullExistingAccountFound_RedirectsToDateOfBirth()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/account-exists", "/sign-in/register/date-of-birth");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/account-exists", "/sign-in/register/date-of-birth");
     }
 
     [Fact]

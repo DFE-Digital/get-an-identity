@@ -25,19 +25,19 @@ public class ResendPhoneConfirmationTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
     public async Task Get_PhoneNotSet_RedirectsToRegisterPhonePage()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Get, "/sign-in/register/resend-phone-confirmation", "/sign-in/register/phone");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/resend-phone-confirmation", "/sign-in/register/phone");
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ResendPhoneConfirmationTests : TestBase
     [Fact]
     public async Task Get_ValidRequest_RendersExpectedContent()
     {
-        await ValidRequest_RendersContent(_currentPageAuthenticationState(), "/sign-in/register/resend-phone-confirmation", additionalScopes: null);
+        await ValidRequest_RendersContent(_currentPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, url: "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
@@ -77,19 +77,19 @@ public class ResendPhoneConfirmationTests : TestBase
     [Fact]
     public async Task Post_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
     public async Task Post_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation");
+        await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation");
     }
 
     [Fact]
     public async Task Post_PhoneNotSet_RedirectsToRegisterPhonePage()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), HttpMethod.Post, "/sign-in/register/resend-phone-confirmation", "/sign-in/register/phone");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/resend-phone-confirmation", "/sign-in/register/phone");
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class ResendPhoneConfirmationTests : TestBase
     {
         // Arrange
         var email = Faker.Internet.Email();
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileVerified(), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.MobileVerified(), additionalScopes: null, trnRequirementType: null);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-phone-confirmation?{authStateHelper.ToQueryParam()}")
         {

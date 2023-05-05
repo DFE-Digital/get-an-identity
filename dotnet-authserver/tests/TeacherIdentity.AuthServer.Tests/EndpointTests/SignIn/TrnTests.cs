@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -24,25 +25,25 @@ public class TrnTests : TestBase
     [Fact]
     public async Task Get_JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl()
     {
-        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
+        await JourneyIsAlreadyCompleted_RedirectsToPostSignInUrl(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_JourneyHasExpired_RendersErrorPage()
     {
-        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
+        await JourneyHasExpired_RendersErrorPage(c => c.EmailVerified(), CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_NoEmail_RedirectsToEmailPage()
     {
-        await NoEmail_RedirectsToEmailPage(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
+        await NoEmail_RedirectsToEmailPage(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
     public async Task Get_NoVerifiedEmail_RedirectsToEmailConfirmationPage()
     {
-        await NoVerifiedEmail_RedirectsToEmailConfirmationPage(CustomScopes.Trn, HttpMethod.Get, "/sign-in/trn");
+        await NoVerifiedEmail_RedirectsToEmailConfirmationPage(CustomScopes.Trn, TrnRequirementType.Legacy, HttpMethod.Get, "/sign-in/trn");
     }
 
     [Fact]
@@ -81,7 +82,7 @@ public class TrnTests : TestBase
     public async Task Get_WithRegisterForNpqClient_RendersCorrectContent()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn, TestClients.RegisterForNpq);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailVerified(), CustomScopes.Trn, TrnRequirementType.Legacy, TestClients.RegisterForNpq);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn?{authStateHelper.ToQueryParam()}");
 
