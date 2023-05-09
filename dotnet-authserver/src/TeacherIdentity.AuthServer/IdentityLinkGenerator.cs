@@ -134,6 +134,8 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterCheckAnswers() => Page("/SignIn/Register/CheckAnswers");
 
+    public string RegisterNoAccount() => Page("/SignIn/Register/NoAccount");
+
     public string UpdateEmail(string? returnUrl, string? cancelUrl) =>
         Page("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
             .SetQueryParam("returnUrl", returnUrl)

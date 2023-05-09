@@ -1,0 +1,35 @@
+@page "/sign-in/register/no-account"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.NoAccount
+@{
+    ViewBag.Title = "We could not find an account";
+}
+
+@section BeforeContent
+{
+    <govuk-back-link href="@Model.BackLink" />
+}
+
+<div class="govuk-panel app-panel--interruption" data-testid="landing-panel">
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full" data-testid="landing-content">
+            <form action="@LinkGenerator.RegisterNoAccount()" method="post" asp-antiforgery="true">
+                <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+                <p>We couldn't find a DfE Identity account belonging to @Html.ShyEmail(Model.EmailAddress!).</p>
+
+                <h2 class="govuk-heading-m">Create an account</h2>
+
+                <p>It will only take a few minutes and you’ll need your:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                 <li>email address (used for contact and account security)</li>
+                 <li>mobile phone number (used for account security)</li>
+                 <li>name and date of birth</li>
+                </ul>
+
+                <p>Once you've created an account, you can continue to <strong>@Model.ClientDisplayName</strong>.</p>
+
+                <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Create an account</govuk-button>
+            </form>
+        </div>
+    </div>
+</div>
+
