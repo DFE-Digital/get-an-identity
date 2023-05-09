@@ -82,12 +82,12 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
     public override bool CanAccessStep(string step) => step switch
     {
         CoreSignInJourney.Steps.CheckAnswers => AreAllQuestionsAnswered() || FoundATrn,
-        Steps.HasNiNumber => AuthenticationState.DateOfBirthSet,
-        Steps.NiNumber => AuthenticationState.HasNationalInsuranceNumber == true,
-        Steps.HasTrn => AuthenticationState.NationalInsuranceNumberSet || AuthenticationState is { HasNationalInsuranceNumberSet: true, HasNationalInsuranceNumber: false },
-        Steps.Trn => AuthenticationState.HasTrn == true,
-        Steps.HasQts => AuthenticationState.StatedTrn is not null || AuthenticationState is { HasTrnSet: true, HasTrn: false },
-        Steps.IttProvider => AuthenticationState.AwardedQts == true,
+        Steps.HasNiNumber => AuthenticationState is { DateOfBirthSet: true, ContactDetailsVerified: true },
+        Steps.NiNumber => AuthenticationState is { HasNationalInsuranceNumber: true, ContactDetailsVerified: true },
+        Steps.HasTrn => (AuthenticationState is ({ NationalInsuranceNumberSet: true } or { HasNationalInsuranceNumberSet: true, HasNationalInsuranceNumber: false }) and { ContactDetailsVerified: true }),
+        Steps.Trn => AuthenticationState is { HasTrn: true, ContactDetailsVerified: true },
+        Steps.HasQts => AuthenticationState is ({ StatedTrn: {} } or { HasTrnSet: true, HasTrn: false }) and { ContactDetailsVerified: true },
+        Steps.IttProvider => AuthenticationState is { AwardedQts: true, ContactDetailsVerified: true },
         SignInJourney.Steps.TrnInUse => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
         SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
         SignInJourney.Steps.TrnInUseChooseEmail => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified,

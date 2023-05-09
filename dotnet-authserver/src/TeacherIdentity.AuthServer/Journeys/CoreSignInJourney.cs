@@ -41,8 +41,8 @@ public class CoreSignInJourney : SignInJourney
             Steps.PhoneConfirmation => AuthenticationState.MobileNumberSet,
             Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             Steps.PhoneExists => AuthenticationState.IsComplete,
-            Steps.Name => AuthenticationState.MobileNumberVerified,
-            Steps.DateOfBirth => AuthenticationState.PreferredNameSet,
+            Steps.Name => AuthenticationState.ContactDetailsVerified,
+            Steps.DateOfBirth => AuthenticationState is { PreferredNameSet: true, ContactDetailsVerified: true },
             Steps.AccountExists => AuthenticationState.ExistingAccountFound,
             Steps.ExistingAccountEmailConfirmation => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: true },
             Steps.ResendExistingAccountEmail => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: true },
@@ -51,7 +51,7 @@ public class CoreSignInJourney : SignInJourney
             Steps.ResendExistingAccountPhone => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: true, ExistingAccountMobileNumber: { } },
             Steps.ChangeEmailRequest => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: false },
             Steps.CheckAnswers => AreAllQuestionsAnswered(),
-            _ => throw new ArgumentOutOfRangeException(nameof(step), step, null)
+            _ => false
         };
     }
 
@@ -154,12 +154,15 @@ public class CoreSignInJourney : SignInJourney
     };
 
     protected virtual bool AreAllQuestionsAnswered() =>
-        AuthenticationState.EmailAddressSet &&
-        AuthenticationState.EmailAddressVerified &&
-        AuthenticationState.MobileNumberSet &&
-        AuthenticationState.MobileNumberVerified &&
-        AuthenticationState.PreferredNameSet &&
-        AuthenticationState.DateOfBirthSet;
+        AuthenticationState is
+        {
+            EmailAddressSet: true,
+            EmailAddressVerified: true,
+            MobileNumberSet: true,
+            MobileNumberVerified: true,
+            PreferredNameSet: true,
+            DateOfBirthSet: true
+        };
 
     public new static class Steps
     {
