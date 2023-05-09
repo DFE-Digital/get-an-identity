@@ -144,15 +144,10 @@ public abstract class SignInJourney
     {
         var previousStep = GetPreviousStep(currentStep);
 
-        if (previousStep is null)
+        if (previousStep is null || !CanAccessStep(previousStep))
         {
             stepUrl = default;
             return false;
-        }
-
-        if (!CanAccessStep(previousStep))
-        {
-            throw new InvalidOperationException($"Previous step is not accessible (step: '{previousStep}').");
         }
 
         stepUrl = GetStepUrl(previousStep);
