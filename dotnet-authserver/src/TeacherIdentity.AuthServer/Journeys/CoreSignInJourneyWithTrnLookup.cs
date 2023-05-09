@@ -86,7 +86,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         Steps.NiNumber => AuthenticationState is { HasNationalInsuranceNumber: true, ContactDetailsVerified: true },
         Steps.HasTrn => (AuthenticationState is ({ NationalInsuranceNumberSet: true } or { HasNationalInsuranceNumberSet: true, HasNationalInsuranceNumber: false }) and { ContactDetailsVerified: true }),
         Steps.Trn => AuthenticationState is { HasTrn: true, ContactDetailsVerified: true },
-        Steps.HasQts => AuthenticationState is ({ StatedTrn: {} } or { HasTrnSet: true, HasTrn: false }) and { ContactDetailsVerified: true },
+        Steps.HasQts => AuthenticationState is ({ StatedTrn: { } } or { HasTrnSet: true, HasTrn: false }) and { ContactDetailsVerified: true },
         Steps.IttProvider => AuthenticationState is { AwardedQts: true, ContactDetailsVerified: true },
         SignInJourney.Steps.TrnInUse => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
         SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
