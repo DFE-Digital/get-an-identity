@@ -26,6 +26,7 @@ public class ClientConfigurationHelper
                 clientConfig.DisplayName,
                 clientConfig.ServiceUrl,
                 clientConfig.TrnRequirementType,
+                clientConfig.RaiseTrnResolutionSupportTickets,
                 clientConfig.EnableAuthorizationCodeGrant,
                 clientConfig.EnableClientCredentialsGrant,
                 clientConfig.RedirectUris ?? Array.Empty<string>(),

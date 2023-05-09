@@ -7,7 +7,7 @@ namespace TeacherIdentity.AuthServer.Tests;
 
 public static class TestClients
 {
-    public static OpenIddictApplicationDescriptor[] All => new[] { DefaultClient, ApplyForQts, RegisterForNpq };
+    public static OpenIddictApplicationDescriptor[] All => new[] { DefaultClient, ApplyForQts, RegisterForNpq, RaiseTrnResolutionSupportTickets, LegacyRaiseTrnResolutionSupportTickets };
 
     public static TeacherIdentityApplicationDescriptor DefaultClient { get; } = new TeacherIdentityApplicationDescriptor()
     {
@@ -89,5 +89,61 @@ public static class TestClients
         {
             Requirements.Features.ProofKeyForCodeExchange
         }
+    };
+
+    public static TeacherIdentityApplicationDescriptor RaiseTrnResolutionSupportTickets { get; } = new TeacherIdentityApplicationDescriptor()
+    {
+        ClientId = "raise-trn-resolution-support-tickets",
+        ClientSecret = "secret",
+        ConsentType = ConsentTypes.Implicit,
+        DisplayName = "Raise TRN Resolution Support Tickets",
+        RaiseTrnResolutionSupportTickets = true,
+        RedirectUris =
+        {
+            new Uri("https://localhost:1234/oidc/callback")
+        },
+        Permissions =
+        {
+            Permissions.Endpoints.Authorization,
+            Permissions.Endpoints.Token,
+            Permissions.GrantTypes.AuthorizationCode,
+            Permissions.ResponseTypes.Code,
+            Permissions.Scopes.Email,
+            Permissions.Scopes.Profile,
+            $"{Permissions.Prefixes.Scope}{CustomScopes.DqtRead}"
+        },
+        Requirements =
+        {
+            Requirements.Features.ProofKeyForCodeExchange
+        },
+        TrnRequirementType = TrnRequirementType.Optional
+    };
+
+    public static TeacherIdentityApplicationDescriptor LegacyRaiseTrnResolutionSupportTickets { get; } = new TeacherIdentityApplicationDescriptor()
+    {
+        ClientId = "legacy-raise-trn-resolution-support-tickets",
+        ClientSecret = "secret",
+        ConsentType = ConsentTypes.Implicit,
+        DisplayName = "Legacy Raise TRN Resolution Support Tickets",
+        RaiseTrnResolutionSupportTickets = true,
+        RedirectUris =
+        {
+            new Uri("https://localhost:1234/oidc/callback")
+        },
+        Permissions =
+        {
+            Permissions.Endpoints.Authorization,
+            Permissions.Endpoints.Token,
+            Permissions.GrantTypes.AuthorizationCode,
+            Permissions.ResponseTypes.Code,
+            Permissions.Scopes.Email,
+            Permissions.Scopes.Profile,
+            $"{Permissions.Prefixes.Scope}{CustomScopes.DqtRead}"
+        },
+        Requirements =
+        {
+            Requirements.Features.ProofKeyForCodeExchange
+        },
+        TrnRequirementType = TrnRequirementType.Legacy
     };
 }

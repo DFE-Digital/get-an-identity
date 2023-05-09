@@ -26,6 +26,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
 
     public string? ServiceUrl { get; set; }
     public TrnRequirementType TrnRequirementType { get; set; }
+    public bool RaiseTrnResolutionSupportTickets { get; set; }
 
     public static TeacherIdentityApplicationDescriptor Create(
         string clientId,
@@ -33,6 +34,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
         string? displayName,
         string? serviceUrl,
         TrnRequirementType trnRequirementType,
+        bool raiseTrnResolutionSupportTickets,
         bool enableAuthorizationCodeGrant,
         bool enableClientCredentialsGrant,
         IEnumerable<string> redirectUris,
@@ -48,6 +50,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
             DisplayName = displayName,
             ServiceUrl = serviceUrl,
             TrnRequirementType = trnRequirementType,
+            RaiseTrnResolutionSupportTickets = raiseTrnResolutionSupportTickets,
             Requirements =
             {
                 OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange

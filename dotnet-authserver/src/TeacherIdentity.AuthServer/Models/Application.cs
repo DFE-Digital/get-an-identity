@@ -14,6 +14,9 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
     [DefaultValue(TrnRequirementType.Legacy)]
     public TrnRequirementType TrnRequirementType { get; set; }
 
+    [DefaultValue(false)]
+    public bool RaiseTrnResolutionSupportTickets { get; set; }
+
     public string[] GetGrantTypes() => GetPermissions()
         .Where(p => p.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType))
         .Select(p => p[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..])

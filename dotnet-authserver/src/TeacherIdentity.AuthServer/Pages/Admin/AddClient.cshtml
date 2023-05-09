@@ -24,6 +24,10 @@
         </govuk-checkboxes-fieldset>
     </govuk-checkboxes>
 
+    <govuk-checkboxes asp-for="RaiseTrnResolutionSupportTickets">
+        <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.RaiseTrnResolutionSupportTickets)</govuk-checkboxes-item>
+    </govuk-checkboxes>
+
     <h3 class="govuk-heading-m">Grants</h3>
 
     <govuk-checkboxes asp-for="EnableAuthorizationCodeFlow">

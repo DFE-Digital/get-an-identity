@@ -199,16 +199,17 @@ public class EditClientTests : TestBase
         var scope1 = CustomScopes.UserRead;
 
         var teacherIdentityApplicationDescriptor = TeacherIdentityApplicationDescriptor.Create(
-            clientId,
-            clientSecret,
-            displayName,
-            serviceUrl,
-            TrnRequirementType.Required,
-            enableAuthorizationCodeGrant: true,
-            enableClientCredentialsGrant: false,
-            new[] { redirectUri1 },
-            new[] { postLogoutRedirectUri1 },
-            new[] { scope1 });
+                clientId,
+                clientSecret,
+                displayName,
+                serviceUrl,
+                TrnRequirementType.Required,
+                raiseTrnResolutionSupportTickets: false,
+                enableAuthorizationCodeGrant: true,
+                enableClientCredentialsGrant: false,
+                new[] { redirectUri1 },
+                new[] { postLogoutRedirectUri1 },
+                new[] { scope1 });
 
         var appManager = HostFixture.Services.GetRequiredService<TeacherIdentityApplicationManager>();
         await appManager.CreateAsync(teacherIdentityApplicationDescriptor);

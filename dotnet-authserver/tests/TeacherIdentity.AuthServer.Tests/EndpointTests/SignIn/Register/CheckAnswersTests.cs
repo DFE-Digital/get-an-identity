@@ -2,6 +2,7 @@ using AngleSharp.Html.Dom;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
+using ZendeskApi.Client.Requests;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -101,11 +102,32 @@ public class CheckAnswersTests : TestBase
         await JourneyHasExpired_RendersErrorPage(_currentPageAuthenticationState(), CustomScopes.DqtRead, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/check-answers");
     }
 
-    [Fact]
-    public async Task Post_ValidForm_CreatesUserAndRedirectsToPostSignInUrl()
+    [Theory]
+    [InlineData(true, TrnLookupStatus.Pending, true, true)]
+    [InlineData(true, TrnLookupStatus.Pending, false, false)]
+    [InlineData(true, TrnLookupStatus.Found, true, false)]
+    [InlineData(true, TrnLookupStatus.Found, false, false)]
+    [InlineData(false, TrnLookupStatus.None, true, false)]
+    [InlineData(false, TrnLookupStatus.None, false, false)]
+    public async Task Post_ValidForm_CreatesUserAndRedirectsToPostSignInUrl(
+        bool requiresTrnLookup,
+        TrnLookupStatus trnLookupStatus,
+        bool raiseTrnResolutionSupportTickets,
+        bool expectZendeskTicketCreated)
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
+        var additionalScopes = requiresTrnLookup ? CustomScopes.DqtRead : null;
+        var client = raiseTrnResolutionSupportTickets ? TestClients.RaiseTrnResolutionSupportTickets : TestClients.DefaultClient;
+
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes, client);
+        var authState = authStateHelper.AuthenticationState;
+
+        if (requiresTrnLookup)
+        {
+            var trn = trnLookupStatus == TrnLookupStatus.Found ? TestData.GenerateTrn() : null;
+            authState.OnTrnLookupCompleted(trn, trnLookupStatus);
+        }
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/check-answers?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -115,11 +137,13 @@ public class CheckAnswersTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        User? user = null;
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith(authState.PostSignInUrl, response.Headers.Location?.OriginalString);
 
+        User? user = null;
         await TestData.WithDbContext(async dbContext =>
         {
-            user = await dbContext.Users.Where(u => u.EmailAddress == authStateHelper.AuthenticationState.EmailAddress).SingleOrDefaultAsync();
+            user = await dbContext.Users.Where(u => u.EmailAddress == authState.EmailAddress).SingleOrDefaultAsync();
             Assert.NotNull(user);
         });
 
@@ -131,8 +155,9 @@ public class CheckAnswersTests : TestBase
                 Assert.Equal(user?.UserId, userRegisteredEvent.User.UserId);
             });
 
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
+        HostFixture.ZendeskApiWrapper.Verify(
+            mock => mock.CreateTicketAsync(It.Is<TicketCreateRequest>(t => t.Requester.Email == authState.EmailAddress), It.IsAny<CancellationToken>()),
+            expectZendeskTicketCreated ? Times.Once() : Times.Never());
     }
 
     private void AssertRowValid(string rowName, bool shouldExist, string? value, IHtmlDocument doc)

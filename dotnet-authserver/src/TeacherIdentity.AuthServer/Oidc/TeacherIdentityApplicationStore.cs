@@ -60,4 +60,26 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
 
         return default;
     }
+
+    public ValueTask<bool> GetRaiseTrnResolutionSupportTicketsAsync(Application application)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        return new ValueTask<bool>(application.RaiseTrnResolutionSupportTickets);
+    }
+
+    public ValueTask SetRaiseTrnResolutionSupportTicketsAsync(Application application, bool raiseTrnResolutionSupportTickets)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        application.RaiseTrnResolutionSupportTickets = raiseTrnResolutionSupportTickets!;
+
+        return default;
+    }
 }
