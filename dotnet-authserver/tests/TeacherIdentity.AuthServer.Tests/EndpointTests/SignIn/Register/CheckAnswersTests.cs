@@ -119,7 +119,7 @@ public class CheckAnswersTests : TestBase
         var additionalScopes = requiresTrnLookup ? CustomScopes.DqtRead : null;
         var client = raiseTrnResolutionSupportTickets ? TestClients.RaiseTrnResolutionSupportTickets : TestClients.DefaultClient;
 
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes, client);
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes, client: client);
         var authState = authStateHelper.AuthenticationState;
 
         if (requiresTrnLookup)

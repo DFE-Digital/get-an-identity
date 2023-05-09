@@ -44,7 +44,7 @@ public class EditClientModel : PageModel
     [Display(Name = "TRN required")]
     public TrnRequirementType? TrnRequired { get; set; }
 
-    [Display(Name = "Raise TRN resolution support tickets", Description = "Whether support tickets should be raised when the TRN for a user cannot be resolved immediately")]
+    [Display(Name = "Raise TRN resolution support tickets")]
     public bool RaiseTrnResolutionSupportTickets { get; set; }
 
     public bool EnableAuthorizationCodeFlow { get; set; }

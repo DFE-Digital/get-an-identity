@@ -97,6 +97,7 @@ public class AddClientTests : TestBase
         var displayName = Faker.Company.Name();
         var serviceUrl = $"https://{Faker.Internet.DomainName()}/";
         var trnRequirementType = TrnRequirementType.Required;
+        var raiseTrnResolutionSupportTickets = true;
         var redirectUri1 = serviceUrl + "/callback";
         var redirectUri2 = serviceUrl + "/callback2";
         var postLogoutRedirectUri1 = serviceUrl + "/logout-callback";
@@ -113,6 +114,7 @@ public class AddClientTests : TestBase
                 { "DisplayName", displayName },
                 { "ServiceUrl", serviceUrl },
                 { "TrnRequired", trnRequirementType == TrnRequirementType.Required },
+                { "RaiseTrnResolutionSupportTickets", raiseTrnResolutionSupportTickets.ToString() },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { redirectUri1, redirectUri2 }) },
                 { "PostLogoutRedirectUris", string.Join("\n", new[] { postLogoutRedirectUri1, postLogoutRedirectUri2 }) },
@@ -137,6 +139,7 @@ public class AddClientTests : TestBase
         Assert.Equal(displayName, application.DisplayName);
         Assert.Equal(serviceUrl, application.ServiceUrl);
         Assert.Equal(trnRequirementType, application.TrnRequirementType);
+        Assert.Equal(raiseTrnResolutionSupportTickets, application.RaiseTrnResolutionSupportTickets);
         Assert.Collection(
             await applicationStore.GetRedirectUrisAsync(application, CancellationToken.None),
             uri => Assert.Equal(redirectUri1, uri),
@@ -163,6 +166,7 @@ public class AddClientTests : TestBase
                 Assert.Equal(displayName, clientAdded.Client.DisplayName);
                 Assert.Equal(serviceUrl, clientAdded.Client.ServiceUrl);
                 Assert.Equal(trnRequirementType, clientAdded.Client.TrnRequirementType);
+                Assert.Equal(raiseTrnResolutionSupportTickets, clientAdded.Client.RaiseTrnResolutionSupportTickets);
                 Assert.Collection(
                     clientAdded.Client.RedirectUris,
                     uri => Assert.Equal(redirectUri1, uri),

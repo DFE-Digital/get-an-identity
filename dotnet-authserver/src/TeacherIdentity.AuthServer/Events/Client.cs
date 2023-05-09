@@ -10,6 +10,7 @@ public record Client
     public required string? DisplayName { get; init; }
     public required string? ServiceUrl { get; init; }
     public required TrnRequirementType TrnRequirementType { get; init; }
+    public required bool RaiseTrnResolutionSupportTickets { get; init; }
     public required string[] RedirectUris { get; init; }
     public required string[] PostLogoutRedirectUris { get; init; }
     public required string[] Scopes { get; init; }
@@ -20,6 +21,7 @@ public record Client
         DisplayName = descriptor.DisplayName,
         ServiceUrl = descriptor.ServiceUrl,
         TrnRequirementType = descriptor.TrnRequirementType,
+        RaiseTrnResolutionSupportTickets = descriptor.RaiseTrnResolutionSupportTickets,
         RedirectUris = descriptor.RedirectUris.Select(u => u.ToString()).ToArray(),
         PostLogoutRedirectUris = descriptor.PostLogoutRedirectUris.Select(u => u.ToString()).ToArray(),
         Scopes = descriptor.Permissions
@@ -34,6 +36,7 @@ public record Client
         DisplayName = model.DisplayName,
         ServiceUrl = model.ServiceUrl,
         TrnRequirementType = model.TrnRequirementType,
+        RaiseTrnResolutionSupportTickets = model.RaiseTrnResolutionSupportTickets,
         RedirectUris = model.GetRedirectUris(),
         PostLogoutRedirectUris = model.GetPostLogoutRedirectUris(),
         Scopes = model.GetScopes()
