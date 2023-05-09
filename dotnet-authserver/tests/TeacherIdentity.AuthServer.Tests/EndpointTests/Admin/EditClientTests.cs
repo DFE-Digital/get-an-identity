@@ -104,6 +104,7 @@ public class EditClientTests : TestBase
         var newTrnRequirementType = client.TrnRequirementType != TrnRequirementType.Required
             ? TrnRequirementType.Required
             : TrnRequirementType.Optional;
+        var newRaiseTrnResolutionSupportTickets = true;
         var newRedirectUri1 = newServiceUrl + "/callback";
         var newRedirectUri2 = newServiceUrl + "/callback2";
         var newPostLogoutRedirectUri1 = newServiceUrl + "/logout-callback";
@@ -119,6 +120,7 @@ public class EditClientTests : TestBase
                 { "DisplayName", newDisplayName },
                 { "ServiceUrl", newServiceUrl },
                 { "TrnRequired", newTrnRequirementType },
+                { "RaiseTrnResolutionSupportTickets", newRaiseTrnResolutionSupportTickets.ToString() },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { newRedirectUri1, newRedirectUri2 }) },
                 { "PostLogoutRedirectUris", string.Join("\n", new[] { newPostLogoutRedirectUri1, newPostLogoutRedirectUri2 }) },
@@ -142,6 +144,7 @@ public class EditClientTests : TestBase
         Assert.Equal(newDisplayName, application.DisplayName);
         Assert.Equal(newServiceUrl, application.ServiceUrl);
         Assert.Equal(newTrnRequirementType, application.TrnRequirementType);
+        Assert.Equal(newRaiseTrnResolutionSupportTickets, application.RaiseTrnResolutionSupportTickets);
         Assert.Collection(
             await applicationStore.GetRedirectUrisAsync(application, CancellationToken.None),
             uri => Assert.Equal(newRedirectUri1, uri),
@@ -165,6 +168,7 @@ public class EditClientTests : TestBase
                 Assert.Equal(Clock.UtcNow, clientUpdated.CreatedUtc);
                 Assert.Equal(newDisplayName, clientUpdated.Client.DisplayName);
                 Assert.Equal(newTrnRequirementType, clientUpdated.Client.TrnRequirementType);
+                Assert.Equal(newRaiseTrnResolutionSupportTickets, clientUpdated.Client.RaiseTrnResolutionSupportTickets);
                 Assert.Collection(
                     clientUpdated.Client.RedirectUris,
                     uri => Assert.Equal(newRedirectUri1, uri),
@@ -183,7 +187,8 @@ public class EditClientTests : TestBase
                         ClientUpdatedEventChanges.RedirectUris |
                         ClientUpdatedEventChanges.PostLogoutRedirectUris |
                         ClientUpdatedEventChanges.Scopes |
-                        ClientUpdatedEventChanges.TrnRequirementType,
+                        ClientUpdatedEventChanges.TrnRequirementType |
+                        ClientUpdatedEventChanges.RaiseTrnResolutionSupportTickets,
                     clientUpdated.Changes);
             });
     }
@@ -199,16 +204,17 @@ public class EditClientTests : TestBase
         var scope1 = CustomScopes.UserRead;
 
         var teacherIdentityApplicationDescriptor = TeacherIdentityApplicationDescriptor.Create(
-            clientId,
-            clientSecret,
-            displayName,
-            serviceUrl,
-            TrnRequirementType.Required,
-            enableAuthorizationCodeGrant: true,
-            enableClientCredentialsGrant: false,
-            new[] { redirectUri1 },
-            new[] { postLogoutRedirectUri1 },
-            new[] { scope1 });
+                clientId,
+                clientSecret,
+                displayName,
+                serviceUrl,
+                TrnRequirementType.Required,
+                raiseTrnResolutionSupportTickets: false,
+                enableAuthorizationCodeGrant: true,
+                enableClientCredentialsGrant: false,
+                new[] { redirectUri1 },
+                new[] { postLogoutRedirectUri1 },
+                new[] { scope1 });
 
         var appManager = HostFixture.Services.GetRequiredService<TeacherIdentityApplicationManager>();
         await appManager.CreateAsync(teacherIdentityApplicationDescriptor);

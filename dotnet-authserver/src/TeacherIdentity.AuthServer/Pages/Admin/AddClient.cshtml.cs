@@ -43,6 +43,9 @@ public class AddClientModel : PageModel
     [Display(Name = "TRN required", Description = "Whether the client requires a TRN")]
     public bool? TrnRequired { get; set; }
 
+    [Display(Name = "Raise TRN resolution support tickets")]
+    public bool RaiseTrnResolutionSupportTickets { get; set; }
+
     public bool EnableAuthorizationCodeFlow { get; set; }
 
     public bool EnableClientCredentialsFlow { get; set; }
@@ -105,6 +108,7 @@ public class AddClientModel : PageModel
             DisplayName!,
             ServiceUrl!,
             TrnRequired == true ? TrnRequirementType.Required : TrnRequirementType.Optional,
+            RaiseTrnResolutionSupportTickets,
             EnableAuthorizationCodeFlow,
             EnableClientCredentialsFlow,
             RedirectUris,

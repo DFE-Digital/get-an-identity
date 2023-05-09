@@ -7,14 +7,18 @@ namespace TeacherIdentity.AuthServer.Journeys;
 public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 {
     private readonly TrnLookupHelper _trnLookupHelper;
+    private readonly TeacherIdentityApplicationManager _applicationManager;
 
     public CoreSignInJourneyWithTrnLookup(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper, TrnLookupHelper trnLookupHelper)
+        CreateUserHelper createUserHelper,
+        TrnLookupHelper trnLookupHelper,
+        TeacherIdentityApplicationManager applicationManager)
         : base(httpContext, linkGenerator, createUserHelper)
     {
         _trnLookupHelper = trnLookupHelper;
+        _applicationManager = applicationManager;
     }
 
     public override async Task<IActionResult> CreateUser(string currentStep)
@@ -26,10 +30,16 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
 
-            if ((!AuthenticationState.TryGetOAuthState(out var oAuthState) || !oAuthState.HasScope(CustomScopes.Trn)) &&
-                AuthenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
+            if (AuthenticationState.TrnLookupStatus == TrnLookupStatus.Pending)
             {
-                await CreateUserHelper.CreateTrnResolutionZendeskTicket(AuthenticationState);
+                AuthenticationState.EnsureOAuthState();
+                var oAuthState = AuthenticationState.OAuthState;
+
+                var client = await _applicationManager.FindByClientIdAsync(oAuthState.ClientId);
+                if (client!.RaiseTrnResolutionSupportTickets)
+                {
+                    await CreateUserHelper.CreateTrnResolutionZendeskTicket(AuthenticationState);
+                }
             }
         }
         catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))

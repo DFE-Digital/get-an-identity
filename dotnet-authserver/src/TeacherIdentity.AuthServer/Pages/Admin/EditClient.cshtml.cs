@@ -44,6 +44,9 @@ public class EditClientModel : PageModel
     [Display(Name = "TRN required")]
     public TrnRequirementType? TrnRequired { get; set; }
 
+    [Display(Name = "Raise TRN resolution support tickets")]
+    public bool RaiseTrnResolutionSupportTickets { get; set; }
+
     public bool EnableAuthorizationCodeFlow { get; set; }
 
     public bool EnableClientCredentialsFlow { get; set; }
@@ -69,6 +72,7 @@ public class EditClientModel : PageModel
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
         TrnRequired = client.TrnRequirementType;
+        RaiseTrnResolutionSupportTickets = client.RaiseTrnResolutionSupportTickets;
         EnableAuthorizationCodeFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         EnableClientCredentialsFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
         RedirectUris = client.GetRedirectUris();
@@ -142,6 +146,7 @@ public class EditClientModel : PageModel
             .ToImmutableArray();
 
         var changes = ClientUpdatedEventChanges.None |
+            (RaiseTrnResolutionSupportTickets != client.RaiseTrnResolutionSupportTickets ? ClientUpdatedEventChanges.RaiseTrnResolutionSupportTickets : ClientUpdatedEventChanges.None) |
             (ResetClientSecret ? ClientUpdatedEventChanges.ClientSecret : ClientUpdatedEventChanges.None) |
             (DisplayName != client.DisplayName ? ClientUpdatedEventChanges.DisplayName : ClientUpdatedEventChanges.None) |
             (ServiceUrl != client.ServiceUrl ? ClientUpdatedEventChanges.ServiceUrl : ClientUpdatedEventChanges.None) |
@@ -155,6 +160,7 @@ public class EditClientModel : PageModel
         await _applicationStore.SetRedirectUrisAsync(client, RedirectUris.ToImmutableArray(), CancellationToken.None);
         await _applicationStore.SetPostLogoutRedirectUrisAsync(client, PostLogoutRedirectUris.ToImmutableArray(), CancellationToken.None);
         await _applicationStore.SetPermissionsAsync(client, permissions, CancellationToken.None);
+        await _applicationStore.SetRaiseTrnResolutionSupportTicketsAsync(client, RaiseTrnResolutionSupportTickets);
 
         if (TrnRequired is not null && TrnRequired != client.TrnRequirementType)
         {
