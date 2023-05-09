@@ -32,6 +32,7 @@ public class CoreSignInJourney : SignInJourney
             Steps.Landing => !AuthenticationState.EmailAddressVerified,
             SignInJourney.Steps.Email => !AuthenticationState.EmailAddressVerified,
             SignInJourney.Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,
+            Steps.NoAccount => AuthenticationState.EmailAddressVerified,
             Steps.Email => !AuthenticationState.EmailAddressVerified,
             Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,
             Steps.ResendEmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
@@ -72,7 +73,8 @@ public class CoreSignInJourney : SignInJourney
         {
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
             (SignInJourney.Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
-            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.NoAccount,
+            (Steps.NoAccount, _) => Steps.Phone,
             (Steps.Landing, _) => Steps.Email,
             (Steps.Email, _) => Steps.EmailConfirmation,
             (Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
@@ -99,6 +101,7 @@ public class CoreSignInJourney : SignInJourney
     {
         (SignInJourney.Steps.Email, _) => Steps.Landing,
         (SignInJourney.Steps.EmailConfirmation, _) => SignInJourney.Steps.Email,
+        (Steps.NoAccount, _) => SignInJourney.Steps.EmailConfirmation,
         (Steps.Email, _) => Steps.Landing,
         (Steps.EmailConfirmation, _) => Steps.Email,
         (Steps.ResendEmailConfirmation, _) => Steps.EmailConfirmation,
@@ -146,6 +149,7 @@ public class CoreSignInJourney : SignInJourney
         Steps.ResendExistingAccountPhone => LinkGenerator.RegisterResendExistingAccountPhone(),
         Steps.ChangeEmailRequest => LinkGenerator.RegisterChangeEmailRequest(),
         Steps.CheckAnswers => LinkGenerator.RegisterCheckAnswers(),
+        Steps.NoAccount => LinkGenerator.RegisterNoAccount(),
         _ => throw new ArgumentException($"Unknown step: '{step}'.")
     };
 
@@ -178,5 +182,6 @@ public class CoreSignInJourney : SignInJourney
         public const string ResendExistingAccountPhone = $"{nameof(CoreSignInJourney)}.{nameof(ResendExistingAccountPhone)}";
         public const string ChangeEmailRequest = $"{nameof(CoreSignInJourney)}.{nameof(ChangeEmailRequest)}";
         public const string CheckAnswers = $"{nameof(CoreSignInJourney)}.{nameof(CheckAnswers)}";
+        public const string NoAccount = $"{nameof(CoreSignInJourney)}.{nameof(NoAccount)}";
     }
 }
