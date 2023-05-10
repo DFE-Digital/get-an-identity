@@ -80,7 +80,7 @@ public class NiNumberPageTests : TestBase
     public async Task Post_HaveNationalInsuranceNumberNotSet_RedirectsToHasNiNumberPage()
     {
         // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.DqtRead);
+        var authStateHelper = await CreateAuthenticationStateHelper(_previousPageAuthenticationState(), CustomScopes.DqtRead);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/ni-number?{authStateHelper.ToQueryParam()}");
 
