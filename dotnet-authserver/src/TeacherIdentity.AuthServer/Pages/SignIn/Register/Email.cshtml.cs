@@ -34,6 +34,7 @@ public class EmailModel : BaseEmailPageModel
 
     public void OnGet()
     {
+        SetDefaultInputValues();
     }
 
     public async Task<IActionResult> OnPost()
@@ -53,5 +54,10 @@ public class EmailModel : BaseEmailPageModel
         _journey.AuthenticationState.OnEmailSet(Email!);
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    private void SetDefaultInputValues()
+    {
+        Email ??= _journey.AuthenticationState.EmailAddress;
     }
 }

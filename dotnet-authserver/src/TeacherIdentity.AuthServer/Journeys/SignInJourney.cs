@@ -91,7 +91,7 @@ public abstract class SignInJourney
 
     public string GetStartStepUrl() => GetStepUrl(GetStartStep());
 
-    public async virtual Task<IActionResult> OnEmailVerified(User? user, string currentStep)
+    public virtual async Task<IActionResult> OnEmailVerified(User? user, string currentStep)
     {
         if (user is not null && user.UserType == UserType.Staff)
         {
