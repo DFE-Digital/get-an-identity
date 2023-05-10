@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -80,7 +81,7 @@ public class AddStaffUserModel : PageModel
         {
             await _dbContext.SaveChangesAsync();
         }
-        catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("ix_users_email_address"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_email_address"))
         {
             ModelState.AddModelError(nameof(Email), "A user already exists with the specified email address");
             return this.PageWithErrors();

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -64,7 +65,7 @@ public class EditUserEmailModel : PageModel
             {
                 await _dbContext.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("ix_users_email_address"))
+            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_email_address"))
             {
                 ModelState.AddModelError(nameof(Email), "This email address is already in use - Enter a different email address");
                 return this.PageWithErrors();

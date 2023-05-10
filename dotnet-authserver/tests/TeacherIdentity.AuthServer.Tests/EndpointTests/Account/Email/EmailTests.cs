@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.Common;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -198,7 +199,7 @@ public class EmailTests : TestBase
                 dbContext.EstablishmentDomains.Add(establishmentDomain);
                 await dbContext.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
+            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
             {
             }
         });

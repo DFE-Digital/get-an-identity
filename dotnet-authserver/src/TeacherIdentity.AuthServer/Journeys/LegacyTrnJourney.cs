@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ public class LegacyTrnJourney : SignInJourney
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
         }
-        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_trn"))
         {
             // TRN is already linked to an existing account
             return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
