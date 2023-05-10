@@ -125,11 +125,13 @@ public class DateOfBirthPageTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "DateOfBirth", "Enter your date of birth");
     }
 
-    [Fact]
-    public async Task Post_FutureDateOfBirth_ReturnsError()
+    [Theory]
+    [InlineData("01/01/2100", "Your date of birth must be in the past")]
+    [InlineData("01/01/1899", "Enter a valid date of birth")]
+    public async Task Post_InvalidDateOfBirth_ReturnsError(string dateOfBirthString, string errorMessage)
     {
         // Arrange
-        var dateOfBirth = new DateOnly(2100, 1, 1);
+        var dateOfBirth = DateOnly.Parse(dateOfBirthString);
 
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/date-of-birth?{authStateHelper.ToQueryParam()}")
@@ -146,7 +148,7 @@ public class DateOfBirthPageTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "DateOfBirth", "Your date of birth must be in the past");
+        await AssertEx.HtmlResponseHasError(response, "DateOfBirth", errorMessage);
     }
 
     [Fact]

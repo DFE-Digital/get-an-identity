@@ -47,11 +47,34 @@ public class RegexIfTrueAttribute : RegularExpressionAttribute
 }
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
-public class IsPastDateAttribute : RangeAttribute
+public class IsValidDateOfBirthAttribute : RangeAttribute
 {
-    public IsPastDateAttribute(Type type)
-        : base(type, DateTime.MinValue.ToShortDateString(), DateTime.Now.ToShortDateString())
+    public IsValidDateOfBirthAttribute()
+        : base(typeof(DateOnly), new DateTime(1900, 1, 1).ToShortDateString(), DateTime.Now.ToShortDateString())
     {
+    }
+
+    public override bool IsValid(object? value)
+    {
+        if (value is DateOnly dateValue)
+        {
+            var minimumDate = DateOnly.Parse(Minimum.ToString()!);
+            var maximumDate = DateOnly.Parse(Maximum.ToString()!);
+
+            if (dateValue < minimumDate)
+            {
+                ErrorMessage = "Enter a valid date of birth";
+                return false;
+            }
+
+            if (dateValue > maximumDate)
+            {
+                ErrorMessage = "Your date of birth must be in the past";
+                return false;
+            }
+        }
+
+        return base.IsValid(value);
     }
 }
 
