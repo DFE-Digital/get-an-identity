@@ -31,7 +31,7 @@ public class DateOfBirthPage : PageModel
 
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
-    [IsPastDate(typeof(DateOnly), ErrorMessage = "Your date of birth must be in the past")]
+    [IsValidDateOfBirth(typeof(DateOnly))]
     public DateOnly? DateOfBirth { get; set; }
 
     public async Task OnGet()
