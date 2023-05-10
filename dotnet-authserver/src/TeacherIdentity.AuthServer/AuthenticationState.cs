@@ -138,6 +138,8 @@ public class AuthenticationState
     public bool AwardedQtsSet => AwardedQts.HasValue;
     [JsonIgnore]
     public bool HasIttProviderSet => HasIttProvider.HasValue;
+    [JsonIgnore]
+    public bool ContactDetailsVerified => EmailAddressVerified && MobileNumberVerified;
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {
