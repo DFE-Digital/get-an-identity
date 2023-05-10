@@ -82,7 +82,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
         {
             await _dbContext.SaveChangesAsync();
         }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_trn"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
         {
             throw new ErrorException(ErrorRegistry.TrnIsAssignedToAnotherUser());
         }

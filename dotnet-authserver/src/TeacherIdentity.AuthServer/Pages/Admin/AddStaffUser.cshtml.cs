@@ -81,7 +81,7 @@ public class AddStaffUserModel : PageModel
         {
             await _dbContext.SaveChangesAsync();
         }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_email_address"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(Models.User.EmailAddressUniqueIndexName))
         {
             ModelState.AddModelError(nameof(Email), "A user already exists with the specified email address");
             return this.PageWithErrors();

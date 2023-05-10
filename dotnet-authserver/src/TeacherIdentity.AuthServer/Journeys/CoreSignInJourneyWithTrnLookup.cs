@@ -1,6 +1,8 @@
 using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
+using Sentry;
 using TeacherIdentity.AuthServer.Oidc;
+using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
@@ -42,7 +44,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                 }
             }
         }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_trn"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
         {
             // We don't currently handle duplicate TRNs in Core Sign In Journey
             return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);

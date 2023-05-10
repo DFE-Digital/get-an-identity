@@ -104,7 +104,7 @@ public class EditStaffUserModel : PageModel
             {
                 await _dbContext.SaveChangesAsync();
             }
-            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("ix_users_email_address"))
+            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(Models.User.EmailAddressUniqueIndexName))
             {
                 ModelState.AddModelError(nameof(Email), "Another user has the specified email address");
                 return this.PageWithErrors();
