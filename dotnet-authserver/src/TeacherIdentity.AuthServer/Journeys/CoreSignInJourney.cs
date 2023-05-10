@@ -31,7 +31,7 @@ public class CoreSignInJourney : SignInJourney
         {
             Steps.Landing => !AuthenticationState.EmailAddressVerified,
             SignInJourney.Steps.Email => !AuthenticationState.EmailAddressVerified,
-            SignInJourney.Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,
+            SignInJourney.Steps.EmailConfirmation => AuthenticationState.EmailAddressSet && !AuthenticationState.EmailAddressVerified,
             Steps.NoAccount => AuthenticationState.EmailAddressVerified,
             Steps.Email => !AuthenticationState.EmailAddressVerified,
             Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,

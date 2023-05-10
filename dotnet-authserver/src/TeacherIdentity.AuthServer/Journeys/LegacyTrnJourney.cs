@@ -146,7 +146,7 @@ public class LegacyTrnJourney : SignInJourney
             AuthenticationState.TrnLookupState.None => step switch
             {
                 SignInJourney.Steps.Email => !AuthenticationState.EmailAddressVerified,
-                SignInJourney.Steps.EmailConfirmation => AuthenticationState.EmailAddressSet,
+                SignInJourney.Steps.EmailConfirmation => AuthenticationState.EmailAddressSet && !AuthenticationState.EmailAddressVerified,
                 Steps.Trn => AuthenticationState.EmailAddressVerified,
                 Steps.HasTrn => AuthenticationState.EmailAddressVerified,
                 Steps.OfficialName => AuthenticationState.HasTrnSet,
