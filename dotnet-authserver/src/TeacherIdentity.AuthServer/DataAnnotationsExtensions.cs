@@ -49,8 +49,8 @@ public class RegexIfTrueAttribute : RegularExpressionAttribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class IsValidDateOfBirthAttribute : RangeAttribute
 {
-    public IsValidDateOfBirthAttribute(Type type)
-        : base(type, new DateTime(1900, 1, 1).ToShortDateString(), DateTime.Now.ToShortDateString())
+    public IsValidDateOfBirthAttribute()
+        : base(typeof(DateOnly), new DateTime(1900, 1, 1).ToShortDateString(), DateTime.Now.ToShortDateString())
     {
     }
 

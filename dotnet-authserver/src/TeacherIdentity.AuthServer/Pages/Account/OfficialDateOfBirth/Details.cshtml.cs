@@ -23,7 +23,7 @@ public class Details : PageModel
     [BindProperty(SupportsGet = true)]
     [Display(Name = "Date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
-    [IsValidDateOfBirth(typeof(DateOnly))]
+    [IsValidDateOfBirth]
     public DateOnly? DateOfBirth { get; set; }
 
     [FromQuery(Name = "fileName")]
