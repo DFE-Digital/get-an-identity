@@ -1,6 +1,5 @@
 using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
-using Sentry;
 using TeacherIdentity.AuthServer.Oidc;
 using User = TeacherIdentity.AuthServer.Models.User;
 

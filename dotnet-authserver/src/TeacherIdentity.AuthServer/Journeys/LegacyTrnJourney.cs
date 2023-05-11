@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;

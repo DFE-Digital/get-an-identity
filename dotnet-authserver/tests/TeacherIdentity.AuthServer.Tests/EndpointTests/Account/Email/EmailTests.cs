@@ -1,5 +1,4 @@
 using EntityFramework.Exceptions.Common;
-using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
