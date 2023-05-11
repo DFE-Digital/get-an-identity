@@ -28,7 +28,26 @@
                                 <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--s"/>
                                 @foreach (var status in Enum.GetValues(typeof(TrnLookupStatus)))
                                 {
-                                    <govuk-checkboxes-item value="@status">@status</govuk-checkboxes-item>
+                                    if ((TrnLookupStatus)status != TrnLookupStatus.Pending)
+                                    {
+                                        <govuk-checkboxes-item value="@status">@status</govuk-checkboxes-item>
+                                    }
+                                    else
+                                    {
+                                        <govuk-checkboxes-item value="@status">
+                                            @status
+                                            <govuk-checkboxes-item-conditional>
+                                                <govuk-radios asp-for="SupportTicketCreated" class="govuk-radios--small">
+                                                    <govuk-radios-fieldset>
+                                                        <govuk-radios-fieldset-legend class="govuk-fieldset__legend--s" />
+                                                        <govuk-radios-item value="@TeacherIdentity.AuthServer.Pages.Admin.UsersModel.SupportTicketCreatedStatus.All">All</govuk-radios-item>
+                                                        <govuk-radios-item value="@TeacherIdentity.AuthServer.Pages.Admin.UsersModel.SupportTicketCreatedStatus.SupportTicketCreated">Created</govuk-radios-item>
+                                                        <govuk-radios-item value="@TeacherIdentity.AuthServer.Pages.Admin.UsersModel.SupportTicketCreatedStatus.SupportTicketNotCreated">Not created</govuk-radios-item>
+                                                    </govuk-radios-fieldset>
+                                                </govuk-radios>
+                                            </govuk-checkboxes-item-conditional>
+                                         </govuk-checkboxes-item>
+                                    }
                                 }
 
                             </govuk-checkboxes-fieldset>
@@ -82,6 +101,7 @@
                         <tr class="govuk-table__row">
                             <th scope="col" class="govuk-table__header">Name</th>
                             <th scope="col" class="govuk-table__header">Email</th>
+                            <th scope="col" class="govuk-table__header">Support ticket created</th>
                             <th scope="col" class="govuk-table__header"></th>
                             <th scope="col" class="govuk-table__header"></th>
                         </tr>
@@ -92,6 +112,7 @@
                             <tr class="govuk-table__row" data-testid="user-@user.UserId">
                                 <td class="govuk-table__cell"><a asp-page="User" asp-route-userId="@user.UserId">@user.Name</a></td>
                                 <td class="govuk-table__cell empty-hyphens">@Html.ShyEmail(user.EmailAddress)</td>
+                                <td class="govuk-table__cell">@(user.TrnLookupSupportTicketCreated ? "Yes" : "No")</td>
                                 @if (user.Trn is null)
                                 {
                                     <td class="govuk-table__cell"><a asp-page="AssignTrn/Trn" asp-route-userId="@user.UserId">Add a DQT record</a></td>
