@@ -14,7 +14,7 @@
         <div class="govuk-grid-column-full" data-testid="landing-content">
             <form action="@LinkGenerator.RegisterNoAccount()" method="post" asp-antiforgery="true">
                 <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
-                <p>We couldn't find a DfE Identity account belonging to @Html.ShyEmail(Model.EmailAddress!).</p>
+                <p>We could not find a DfE Identity account belonging to @Html.ShyEmail(Model.EmailAddress!).</p>
 
                 <h2 class="govuk-heading-m">Create an account</h2>
 
