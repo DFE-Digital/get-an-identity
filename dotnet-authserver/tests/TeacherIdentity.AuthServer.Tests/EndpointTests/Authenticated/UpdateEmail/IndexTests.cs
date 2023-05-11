@@ -1,6 +1,6 @@
 using System.Text.Encodings.Web;
+using EntityFramework.Exceptions.Common;
 using Flurl;
-using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -189,7 +189,7 @@ public class IndexTests : TestBase
                 dbContext.EstablishmentDomains.Add(establishmentDomain);
                 await dbContext.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
+            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
             {
             }
         });

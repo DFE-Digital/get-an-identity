@@ -1,6 +1,7 @@
 using System.Diagnostics;
+using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
@@ -30,7 +31,7 @@ public class LegacyTrnJourney : SignInJourney
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
         }
-        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
         {
             // TRN is already linked to an existing account
             return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);

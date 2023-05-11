@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
@@ -81,7 +82,7 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
         {
             await _dbContext.SaveChangesAsync();
         }
-        catch (DbUpdateException dex) when (dex.IsUniqueIndexViolation("ix_users_trn"))
+        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
         {
             throw new ErrorException(ErrorRegistry.TrnIsAssignedToAnotherUser());
         }
