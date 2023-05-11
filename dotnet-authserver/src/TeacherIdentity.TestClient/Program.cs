@@ -75,6 +75,12 @@ public class Program
                         ctx.ProtocolMessage.SetParameter("trn_requirement", trnRequirement);
                     }
 
+                    var trnToken = ctx.HttpContext.Request.Query["trn_token"].ToString();
+                    if (!string.IsNullOrEmpty(trnToken))
+                    {
+                        ctx.ProtocolMessage.SetParameter("trn_token", trnToken);
+                    }
+
                     ctx.ProtocolMessage.SetParameter("session_id", ctx.HttpContext.Session.Id);
 
                     return Task.CompletedTask;

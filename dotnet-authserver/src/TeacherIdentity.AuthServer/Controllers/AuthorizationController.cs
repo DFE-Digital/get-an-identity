@@ -25,14 +25,16 @@ public class AuthorizationController : Controller
     private readonly SignInJourneyProvider _signInJourneyProvider;
     private readonly UserClaimHelper _userClaimHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
-
+    private readonly IConfiguration _configuration;
+    
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
         SignInJourneyProvider signInJourneyProvider,
         UserClaimHelper userClaimHelper,
-        TeacherIdentityServerDbContext dbContext)
+        TeacherIdentityServerDbContext dbContext,
+        IConfiguration configuration)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -40,6 +42,7 @@ public class AuthorizationController : Controller
         _signInJourneyProvider = signInJourneyProvider;
         _userClaimHelper = userClaimHelper;
         _dbContext = dbContext;
+        _configuration = configuration;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -91,6 +94,7 @@ public class AuthorizationController : Controller
             var sessionId = request["session_id"]?.Value as string;
 
             TrnRequirementType? trnRequirementType = null;
+            string? trn = null;
 
             if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
@@ -117,6 +121,20 @@ public class AuthorizationController : Controller
                     var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
                     trnRequirementType = client.TrnRequirementType;
                 }
+
+                var requestedTrnToken = request["trn_token"];
+
+                if (_configuration.GetValue("RegisterWithTrnTokenEnabled", false) && requestedTrnToken.HasValue)
+                {
+                    var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == requestedTrnToken.Value.Value as string && t.ExpiresUtc > DateTime.UtcNow);
+                    if (trnToken is not null)
+                    {
+                        if (await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is null)
+                        {
+                            trn = trnToken.Trn;
+                        }
+                    }
+                }
             }
 
             authenticationState = AuthenticationState.FromUser(
@@ -125,6 +143,7 @@ public class AuthorizationController : Controller
                 user,
                 GetCallbackUrl(journeyId),
                 startedAt: DateTime.UtcNow,
+                trn,
                 sessionId,
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri)
                 {

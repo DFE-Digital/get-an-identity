@@ -39,6 +39,7 @@ public partial class AuthenticationStateTests
             user,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
+            trn: null,
             oAuthState: null,
             firstTimeSignInForEmail: firstTimeSignInForEmail);
 
@@ -86,6 +87,7 @@ public partial class AuthenticationStateTests
             user,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
+            trn: null,
             oAuthState: null,
             firstTimeSignInForEmail: firstTimeSignInForEmail);
 

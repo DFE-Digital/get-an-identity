@@ -158,6 +158,7 @@ public class AuthenticationState
         User? user,
         string postSignInUrl,
         DateTime startedAt,
+        string? trn,
         string? sessionId = null,
         OAuthAuthorizationState? oAuthState = null,
         bool? firstTimeSignInForEmail = null)
@@ -171,7 +172,7 @@ public class AuthenticationState
             FirstName = user?.FirstName,
             LastName = user?.LastName,
             DateOfBirth = user?.DateOfBirth,
-            Trn = user?.Trn,
+            Trn = trn ?? user?.Trn,
             HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null,
             TrnLookup = user?.CompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None,
             UserType = user?.UserType,
