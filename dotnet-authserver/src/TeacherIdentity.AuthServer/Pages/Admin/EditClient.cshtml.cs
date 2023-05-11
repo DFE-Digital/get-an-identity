@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
@@ -27,6 +29,10 @@ public class EditClientModel : PageModel
 
     [FromRoute]
     public string ClientId { get; set; } = null!;
+
+    [Display(Name = "Client ID")]
+    [Required(ErrorMessage = "Enter a client ID")]
+    public string? ClientIdInput { get; set; }
 
     [Display(Name = "Reset client secret")]
     public bool ResetClientSecret { get; set; }
@@ -69,6 +75,7 @@ public class EditClientModel : PageModel
             return NotFound();
         }
 
+        ClientIdInput = ClientId;
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
         TrnRequired = client.TrnRequirementType;
@@ -146,6 +153,7 @@ public class EditClientModel : PageModel
             .ToImmutableArray();
 
         var changes = ClientUpdatedEventChanges.None |
+            (ClientIdInput != ClientId ? ClientUpdatedEventChanges.ClientId : ClientUpdatedEventChanges.None) |
             (RaiseTrnResolutionSupportTickets != client.RaiseTrnResolutionSupportTickets ? ClientUpdatedEventChanges.RaiseTrnResolutionSupportTickets : ClientUpdatedEventChanges.None) |
             (ResetClientSecret ? ClientUpdatedEventChanges.ClientSecret : ClientUpdatedEventChanges.None) |
             (DisplayName != client.DisplayName ? ClientUpdatedEventChanges.DisplayName : ClientUpdatedEventChanges.None) |
@@ -155,6 +163,7 @@ public class EditClientModel : PageModel
             (!allScopes.SequenceEqualIgnoringOrder(client.GetScopes()) ? ClientUpdatedEventChanges.Scopes : ClientUpdatedEventChanges.None) |
             (!grantTypes.SequenceEqualIgnoringOrder(client.GetGrantTypes()) ? ClientUpdatedEventChanges.GrantTypes : ClientUpdatedEventChanges.None);
 
+        await _applicationStore.SetClientIdAsync(client, ClientIdInput, CancellationToken.None);
         await _applicationStore.SetDisplayNameAsync(client, DisplayName, CancellationToken.None);
         await _applicationStore.SetServiceUrlAsync(client, ServiceUrl);
         await _applicationStore.SetRedirectUrisAsync(client, RedirectUris.ToImmutableArray(), CancellationToken.None);
@@ -179,6 +188,12 @@ public class EditClientModel : PageModel
 
             using (var txn = await dbContext.Database.BeginTransactionAsync())
             {
+                if (changes == ClientUpdatedEventChanges.ClientId)
+                {
+                    await dbContext.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE users SET registered_with_client_id = {ClientIdInput} WHERE registered_with_client_id = {ClientId}");
+                }
+
                 await _applicationStore.UpdateAsync(client, CancellationToken.None);
 
                 dbContext.AddEvent(new ClientUpdatedEvent()

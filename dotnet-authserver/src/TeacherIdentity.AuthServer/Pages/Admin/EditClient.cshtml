@@ -12,6 +12,7 @@
 <form asp-page="EditClient" asp-route-clientId="@Model.ClientId" method="post">
     <h1 class="govuk-heading-xl">@Model.ClientId</h1>
 
+    <govuk-input asp-for="ClientIdInput" input-class="govuk-input--width-10" />
     <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20" />
     <govuk-input asp-for="ServiceUrl" type="url" />
     <govuk-checkboxes asp-for="ResetClientSecret">

@@ -19,5 +19,6 @@ public enum ClientUpdatedEventChanges
     Scopes = 1 << 5,
     GrantTypes = 1 << 6,
     TrnRequirementType = 1 << 7,
-    RaiseTrnResolutionSupportTickets = 1 << 8
+    RaiseTrnResolutionSupportTickets = 1 << 8,
+    ClientId = 1 << 9
 }
