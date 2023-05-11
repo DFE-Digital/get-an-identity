@@ -69,14 +69,14 @@ public class AuthorizationController : Controller
             if (!UserRequirementsExtensions.TryGetUserRequirementsForScopes(
                 request.HasScope,
                 out var userRequirements,
-                out var invalidScopeErrorMessage))
+                out _))
             {
                 return Forbid(
                     authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
                     properties: new AuthenticationProperties(new Dictionary<string, string?>()
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = invalidScopeErrorMessage
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Scopes combination is not valid."
                     }));
             }
 
@@ -133,6 +133,17 @@ public class AuthorizationController : Controller
                 firstTimeSignInForEmail: authenticateResult.Succeeded != true);
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
+        }
+        else
+        {
+            // Got an existing journey, check its OAuthState matches what's in this request
+            if (authenticationState.OAuthState is null ||
+                authenticationState.OAuthState.ClientId != request.ClientId ||
+                authenticationState.OAuthState.Scope != request.Scope ||
+                authenticationState.OAuthState.RedirectUri != request.RedirectUri)
+            {
+                return BadRequest();
+            }
         }
 
         if (request.HasPrompt(Prompts.None))
@@ -191,7 +202,7 @@ public class AuthorizationController : Controller
             return Forbid(CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
-        var subject = cookiesPrincipal.FindFirst(Claims.Subject)!.Value;
+        var subject = cookiesPrincipal.FindFirstValue(Claims.Subject)!;
         var userId = cookiesPrincipal.GetUserId();
 
         // Retrieve the application details from the database.

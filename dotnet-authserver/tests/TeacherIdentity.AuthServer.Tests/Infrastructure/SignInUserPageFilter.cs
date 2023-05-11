@@ -10,7 +10,7 @@ public class SignInUserPageFilter : IAsyncPageFilter
 {
     public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        if (context.HttpContext.TryGetAuthenticationState(out var authenticationState) && authenticationState.UserId is Guid userId &&
+        if (context.HttpContext.TryGetAuthenticationState(out var authenticationState) && authenticationState.UserId.HasValue &&
             context.HttpContext.User.Identity?.IsAuthenticated == false)
         {
             await authenticationState.SignIn(context.HttpContext);

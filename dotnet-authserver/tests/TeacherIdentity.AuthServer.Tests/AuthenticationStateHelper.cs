@@ -70,7 +70,7 @@ public sealed class AuthenticationStateHelper
         var configure = new Configure(hostFixture);
         await configureAuthenticationState.Invoke(configure)(authenticationState);
 
-        authenticationStateProvider.SetAuthenticationState(httpContext: null, authenticationState);
+        authenticationStateProvider.SetAuthenticationState(authenticationState);
 
         return new AuthenticationStateHelper(journeyId, authenticationStateProvider);
     }

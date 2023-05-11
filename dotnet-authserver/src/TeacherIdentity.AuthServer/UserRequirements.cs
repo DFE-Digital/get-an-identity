@@ -59,37 +59,37 @@ public static class UserRequirementsExtensions
         [NotNullWhen(true)] out UserRequirements userRequirements,
         [NotNullWhen(false)] out string? invalidScopeErrorMessage)
     {
-        userRequirements = UserRequirements.DefaultUserType;
+        userRequirements = UserRequirements.None;
 
         if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
-            userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
+            userRequirements |= UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
         }
 
         if (hasScope(CustomScopes.GetAnIdentitySupport))
         {
-            userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
+            userRequirements |= UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
         }
 
         if (hasScope(CustomScopes.UserRead))
         {
-            userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
+            userRequirements |= UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
         }
 
         if (hasScope(CustomScopes.UserWrite))
         {
-            userRequirements = UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
+            userRequirements |= UserRequirements.StaffUserType | UserRequirements.GetAnIdentitySupport;
         }
 
         if (userRequirements == UserRequirements.None)
         {
-            invalidScopeErrorMessage = $"Could not determine {nameof(UserRequirements)} from scopes.";
-            return false;
+            // Default to requiring Default UserType
+            userRequirements = UserRequirements.DefaultUserType;
         }
 
         if (!ValidateUserRequirements(userRequirements, out var errorMessage))
         {
-            invalidScopeErrorMessage = $"{nameof(UserRequirements)} deduced from scopes are not valid.\n{errorMessage}";
+            invalidScopeErrorMessage = $"Scopes are not valid.\n{errorMessage}";
             return false;
         }
 
