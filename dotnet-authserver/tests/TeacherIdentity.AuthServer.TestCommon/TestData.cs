@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.Models;
 
@@ -13,6 +14,7 @@ public partial class TestData
     private static readonly ConcurrentBag<string> _trns = new();
     private static readonly ConcurrentBag<string> _emails = new();
     private static readonly ConcurrentBag<string> _mobileNumbers = new();
+    private static readonly ConcurrentBag<string> _trnTokens = new();
 
     public TestData(IServiceProvider serviceProvider)
     {
@@ -91,6 +93,21 @@ public partial class TestData
             _mobileNumbers.Add(mobileNumber);
             return mobileNumber;
         }
+    }
+
+    public string GenerateUniqueTrnTokenValue()
+    {
+        string trnToken;
+
+        do
+        {
+            var buffer = new byte[64];
+            RandomNumberGenerator.Fill(buffer);
+            trnToken = Convert.ToHexString(buffer);
+        } while (_trnTokens.Contains(trnToken));
+
+        _trnTokens.Add(trnToken);
+        return trnToken;
     }
 
     public async Task<T> WithDbContext<T>(Func<TeacherIdentityServerDbContext, Task<T>> action)

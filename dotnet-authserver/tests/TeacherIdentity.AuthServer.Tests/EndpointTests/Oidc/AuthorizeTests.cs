@@ -264,6 +264,94 @@ public class AuthorizeTests : TestBase
         Assert.Null(authenticationState.OAuthState.TrnRequirementType);
     }
 
+    [Fact]
+    public async Task ValidTrnToken_SetsTrnOnAuthenticationState()
+    {
+        // Arrange
+        var trn = TestData.GenerateTrn();
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
+
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
+                                $"&trn_token={trnToken}";
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out Guid journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Equal(trn, authenticationState?.Trn);
+    }
+
+    [Fact]
+    public async Task TrnTokenSpecifiedButNotFound_DoesNotSetTrnOnAuthenticationState()
+    {
+        // Arrange
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
+                                $"&trn_token={TestData.GenerateUniqueTrnTokenValue()}";
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out Guid journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Null(authenticationState?.Trn);
+    }
+
+    [Fact]
+    public async Task TrnTokenSpecifiedButExpired_DoesNotSetTrnOnAuthenticationState()
+    {
+        // Arrange
+        var trn = TestData.GenerateTrn();
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(-1));
+
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
+                                $"&trn_token={trnToken}";
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out Guid journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Null(authenticationState?.Trn);
+    }
+
+    [Fact]
+    public async Task TrnTokenSpecifiedButTrnExists_DoesNotSetTrnOnAuthenticationState()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+        var trnToken = await GenerateTrnToken(user.Trn!, expires: Clock.UtcNow.AddDays(1));
+
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
+                                $"&trn_token={trnToken}";
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out Guid journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Null(authenticationState?.Trn);
+    }
+
+    [Fact]
+    public async Task TrnTokenSpecifiedForNonTrnLookupRequiringJourney_DoesNotSetTrnOnAuthenticationState()
+    {
+        // Arrange
+        var trn = TestData.GenerateTrn();
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
+
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid") +
+                                $"&trn_token={trnToken}";
+
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out Guid journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Null(authenticationState?.Trn);
+    }
+
     private static void AssertResponseIsErrorCallback(
         HttpResponseMessage response,
         string expectedError,
@@ -314,5 +402,25 @@ public class AuthorizeTests : TestBase
             throw new Exception("URL is missing journey ID parameter.");
 
         return Guid.Parse(asid);
+    }
+
+    private async Task<string> GenerateTrnToken(string trn, DateTime expires)
+    {
+        var trnToken = new TrnTokenModel()
+        {
+            TrnToken = TestData.GenerateUniqueTrnTokenValue(),
+            Trn = trn,
+            Email = TestData.GenerateUniqueEmail(),
+            CreatedUtc = Clock.UtcNow,
+            ExpiresUtc = expires
+        };
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            dbContext.TrnTokens.Add(trnToken);
+            await dbContext.SaveChangesAsync();
+        });
+
+        return trnToken.TrnToken;
     }
 }
