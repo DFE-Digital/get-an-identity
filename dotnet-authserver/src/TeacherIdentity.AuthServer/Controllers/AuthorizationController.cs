@@ -26,6 +26,7 @@ public class AuthorizationController : Controller
     private readonly UserClaimHelper _userClaimHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IConfiguration _configuration;
+    private readonly IClock _clock;
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
@@ -33,7 +34,7 @@ public class AuthorizationController : Controller
         SignInJourneyProvider signInJourneyProvider,
         UserClaimHelper userClaimHelper,
         TeacherIdentityServerDbContext dbContext,
-        IConfiguration configuration)
+        IConfiguration configuration, IClock clock)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -42,6 +43,7 @@ public class AuthorizationController : Controller
         _userClaimHelper = userClaimHelper;
         _dbContext = dbContext;
         _configuration = configuration;
+        _clock = clock;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -125,7 +127,7 @@ public class AuthorizationController : Controller
 
                 if (_configuration.GetValue("RegisterWithTrnTokenEnabled", false) && requestedTrnToken.HasValue)
                 {
-                    var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == requestedTrnToken.Value.Value as string && t.ExpiresUtc > DateTime.UtcNow);
+                    var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == requestedTrnToken.Value.Value as string && t.ExpiresUtc > _clock.UtcNow);
                     if (trnToken is not null)
                     {
                         if (await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is null)

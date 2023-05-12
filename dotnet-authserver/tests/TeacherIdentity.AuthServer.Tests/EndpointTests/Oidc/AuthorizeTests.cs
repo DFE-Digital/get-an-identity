@@ -269,7 +269,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: DateTime.UtcNow.AddDays(1));
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
                                 $"&trn_token={trnToken}";
@@ -302,7 +302,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: DateTime.UtcNow.AddDays(-1));
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(-1));
 
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
                                 $"&trn_token={trnToken}";
@@ -320,7 +320,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var trnToken = await GenerateTrnToken(user.Trn!, expires: DateTime.UtcNow.AddDays(1));
+        var trnToken = await GenerateTrnToken(user.Trn!, expires: Clock.UtcNow.AddDays(1));
 
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
                                 $"&trn_token={trnToken}";
@@ -338,7 +338,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: DateTime.UtcNow.AddDays(1));
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid") +
                                 $"&trn_token={trnToken}";
@@ -411,7 +411,7 @@ public class AuthorizeTests : TestBase
             TrnToken = TestData.GenerateUniqueTrnTokenValue(),
             Trn = trn,
             Email = TestData.GenerateUniqueEmail(),
-            CreatedUtc = DateTime.UtcNow,
+            CreatedUtc = Clock.UtcNow,
             ExpiresUtc = expires
         };
 
