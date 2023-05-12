@@ -1,5 +1,6 @@
 using ZendeskApi.Client;
 using ZendeskApi.Client.Requests;
+using ZendeskApi.Client.Responses;
 
 namespace TeacherIdentity.AuthServer.Services.Zendesk;
 
@@ -12,6 +13,6 @@ public class ZendeskApiWrapper : IZendeskApiWrapper
         _zendeskClient = zendeskClient;
     }
 
-    public Task CreateTicketAsync(TicketCreateRequest ticket, CancellationToken cancellationToken = default) =>
+    public Task<TicketResponse> CreateTicketAsync(TicketCreateRequest ticket, CancellationToken cancellationToken = default) =>
         _zendeskClient.Tickets.CreateAsync(ticket, cancellationToken);
 }

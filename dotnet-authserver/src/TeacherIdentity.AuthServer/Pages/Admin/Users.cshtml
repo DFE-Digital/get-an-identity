@@ -37,14 +37,9 @@
                                         <govuk-checkboxes-item value="@status">
                                             @status
                                             <govuk-checkboxes-item-conditional>
-                                                <govuk-radios asp-for="SupportTicketCreated" class="govuk-radios--small">
-                                                    <govuk-radios-fieldset>
-                                                        <govuk-radios-fieldset-legend class="govuk-fieldset__legend--s" />
-                                                        <govuk-radios-item value="@TeacherIdentity.AuthServer.Pages.Admin.UsersModel.SupportTicketCreatedStatus.All">All</govuk-radios-item>
-                                                        <govuk-radios-item value="@TeacherIdentity.AuthServer.Pages.Admin.UsersModel.SupportTicketCreatedStatus.SupportTicketCreated">Created</govuk-radios-item>
-                                                        <govuk-radios-item value="@TeacherIdentity.AuthServer.Pages.Admin.UsersModel.SupportTicketCreatedStatus.SupportTicketNotCreated">Not created</govuk-radios-item>
-                                                    </govuk-radios-fieldset>
-                                                </govuk-radios>
+                                                <govuk-checkboxes asp-for="WithSupportTicket" class="govuk-checkboxes--small">
+                                                    <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.WithSupportTicket)</govuk-checkboxes-item>
+                                                </govuk-checkboxes>
                                             </govuk-checkboxes-item-conditional>
                                          </govuk-checkboxes-item>
                                     }
@@ -101,7 +96,7 @@
                         <tr class="govuk-table__row">
                             <th scope="col" class="govuk-table__header">Name</th>
                             <th scope="col" class="govuk-table__header">Email</th>
-                            <th scope="col" class="govuk-table__header">Support ticket created</th>
+                            <th scope="col" class="govuk-table__header">Support ticket</th>
                             <th scope="col" class="govuk-table__header"></th>
                             <th scope="col" class="govuk-table__header"></th>
                         </tr>

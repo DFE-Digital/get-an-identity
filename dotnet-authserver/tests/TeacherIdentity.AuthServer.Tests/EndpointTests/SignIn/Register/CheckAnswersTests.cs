@@ -2,7 +2,9 @@ using AngleSharp.Html.Dom;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
+using ZendeskApi.Client.Models;
 using ZendeskApi.Client.Requests;
+using ZendeskApi.Client.Responses;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -128,6 +130,16 @@ public class CheckAnswersTests : TestBase
             authState.OnTrnLookupCompleted(trn, trnLookupStatus);
         }
 
+        TicketCreateRequest? ticketCreateRequestActual = null;
+        long ticketIdExpected = 1234567;
+        if (expectZendeskTicketCreated)
+        {
+            HostFixture.ZendeskApiWrapper
+                .Setup(z => z.CreateTicketAsync(It.IsAny<TicketCreateRequest>(), It.IsAny<CancellationToken>()))
+                .Callback<TicketCreateRequest, CancellationToken>((r, t) => ticketCreateRequestActual = r)
+                .ReturnsAsync(new TicketResponse() { Ticket = new Ticket() { Id = ticketIdExpected } });
+        }
+
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/check-answers?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -147,17 +159,37 @@ public class CheckAnswersTests : TestBase
             Assert.NotNull(user);
         });
 
-        EventObserver.AssertEventsSaved(
+        var elementInspectors = new List<Action<EventBase>>()
+        {
             e =>
             {
                 var userRegisteredEvent = Assert.IsType<UserRegisteredEvent>(e);
                 Assert.Equal(Clock.UtcNow, userRegisteredEvent.CreatedUtc);
                 Assert.Equal(user?.UserId, userRegisteredEvent.User.UserId);
+            }
+        };
+
+        if (expectZendeskTicketCreated)
+        {
+            elementInspectors.Add(e =>
+            {
+                var supportTicketCreatedEvent = Assert.IsType<TrnLookupSupportTicketCreatedEvent>(e);
+                Assert.Equal(ticketIdExpected, supportTicketCreatedEvent.TicketId);
+                Assert.Equal(Clock.UtcNow, supportTicketCreatedEvent.CreatedUtc);
+                Assert.Equal(user?.UserId, supportTicketCreatedEvent.UserId);
             });
+        }
+
+        EventObserver.AssertEventsSaved(elementInspectors.ToArray());
 
         HostFixture.ZendeskApiWrapper.Verify(
             mock => mock.CreateTicketAsync(It.Is<TicketCreateRequest>(t => t.Requester.Email == authState.EmailAddress), It.IsAny<CancellationToken>()),
             expectZendeskTicketCreated ? Times.Once() : Times.Never());
+
+        if (expectZendeskTicketCreated)
+        {
+            Assert.NotNull(ticketCreateRequestActual);
+        }
     }
 
     private void AssertRowValid(string rowName, bool shouldExist, string? value, IHtmlDocument doc)

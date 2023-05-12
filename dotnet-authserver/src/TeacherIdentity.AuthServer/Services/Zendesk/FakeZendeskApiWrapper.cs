@@ -1,4 +1,6 @@
+using ZendeskApi.Client.Models;
 using ZendeskApi.Client.Requests;
+using ZendeskApi.Client.Responses;
 
 namespace TeacherIdentity.AuthServer.Services.Zendesk;
 
@@ -11,9 +13,9 @@ public class FakeZendeskApiWrapper : IZendeskApiWrapper
         _logger = logger;
     }
 
-    public Task CreateTicketAsync(TicketCreateRequest ticket, CancellationToken cancellationToken = default)
+    public Task<TicketResponse> CreateTicketAsync(TicketCreateRequest ticket, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("FakeZendeskApiWrapper received request to create Zendesk ticket: {@TicketRequest}", ticket);
-        return Task.CompletedTask;
+        return Task.FromResult(new TicketResponse() { Ticket = new Ticket() { Id = 1234567 } });
     }
 }

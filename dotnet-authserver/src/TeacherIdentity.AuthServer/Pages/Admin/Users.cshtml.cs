@@ -37,9 +37,9 @@ public class UsersModel : PageModel
     [FromQuery(Name = "LookupStatus")]
     public TrnLookupStatus?[]? LookupStatus { get; set; }
 
-    [Display(Name = "Support ticket status")]
-    [FromQuery(Name = "SupportTicketCreated")]
-    public SupportTicketCreatedStatus SupportTicketCreated { get; set; }
+    [Display(Name = "With support ticket")]
+    [FromQuery(Name = "WithSupportTicket")]
+    public bool WithSupportTicket { get; set; }
 
     [Display(Name = "Search")]
     [FromQuery(Name = "UserSearch")]
@@ -129,13 +129,6 @@ public class UsersModel : PageModel
         public required bool TrnLookupSupportTicketCreated { get; init; }
     }
 
-    public enum SupportTicketCreatedStatus
-    {
-        All,
-        SupportTicketCreated,
-        SupportTicketNotCreated
-    }
-
     private async Task<Expression<Func<User, bool>>> GetFilterPredicate(TrnLookupStatus?[] lookupStatus, string? userSearch)
     {
         var filterPredicate = PredicateBuilder.New<User>(user => user.UserType == UserType.Default);
@@ -148,13 +141,9 @@ public class UsersModel : PageModel
             if (lookupStatus.Contains(TrnLookupStatus.Pending))
             {
                 var pendingStatusPredicate = PredicateBuilder.New<User>(user => user.TrnLookupStatus == TrnLookupStatus.Pending);
-                if (SupportTicketCreated == SupportTicketCreatedStatus.SupportTicketCreated)
+                if (WithSupportTicket)
                 {
                     pendingStatusPredicate.And(user => user.TrnLookupSupportTicketCreated == true);
-                }
-                else if (SupportTicketCreated == SupportTicketCreatedStatus.SupportTicketNotCreated)
-                {
-                    pendingStatusPredicate.And(user => user.TrnLookupSupportTicketCreated == false);
                 }
 
                 lookupStatusPredicate.Or(pendingStatusPredicate);

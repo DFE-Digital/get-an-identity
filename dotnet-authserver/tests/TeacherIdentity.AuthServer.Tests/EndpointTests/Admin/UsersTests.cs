@@ -113,13 +113,13 @@ public class UsersTests : TestBase, IAsyncLifetime
 
     [Theory]
     [MemberData(nameof(FilterCombination))]
-    public async Task Get_ValidRequestWithLookupStatusFilter_ReturnsExpectedContent((bool active, TrnLookupStatus status)[] filters)
+    public async Task Get_ValidRequestWithLookupStatusFilter_ReturnsExpectedContent((bool active, TrnLookupStatus status)[] filters, bool withSupportTicket)
     {
         // Arrange
         var createdUserIds = new Dictionary<TrnLookupStatus, Guid>();
         foreach (var filter in filters)
         {
-            createdUserIds.Add(filter.status, (await TestData.CreateUser(trnLookupStatus: filter.status)).UserId);
+            createdUserIds.Add(filter.status, (await TestData.CreateUser(trnLookupStatus: filter.status, trnLookupSupportTicketCreated: withSupportTicket)).UserId);
         }
 
         var uri = new Url("/admin/users");
@@ -128,7 +128,7 @@ public class UsersTests : TestBase, IAsyncLifetime
         var activeFilters = filters.Where(filter => filter.active).Select(filter => filter.status).ToArray();
         if (activeFilters.Length > 0)
         {
-            uri.SetQueryParams(GetFilterQueryParams(activeFilters));
+            uri.SetQueryParams(GetFilterQueryParams(activeFilters, withSupportTicket));
             expectedUserIds = activeFilters.Select(filter => createdUserIds[filter]).ToList();
         }
 
@@ -162,6 +162,7 @@ public class UsersTests : TestBase, IAsyncLifetime
                 from filterPending in values
                 from filterFound in values
                 from filterFailed in values
+                from withSupportTicket in values
                 select new object[]
                 {
                     new (bool filter, TrnLookupStatus status)[]
@@ -170,7 +171,8 @@ public class UsersTests : TestBase, IAsyncLifetime
                         (filterPending, TrnLookupStatus.Pending),
                         (filterFound, TrnLookupStatus.Found),
                         (filterFailed, TrnLookupStatus.Failed)
-                    }
+                    },
+                    withSupportTicket
                 };
 
             return filters;
@@ -209,7 +211,7 @@ public class UsersTests : TestBase, IAsyncLifetime
         }
     }
 
-    private Dictionary<string, string> GetFilterQueryParams(TrnLookupStatus[] activeFilters)
+    private Dictionary<string, string> GetFilterQueryParams(TrnLookupStatus[] activeFilters, bool withSupportTicket)
     {
         var filterParams = new Dictionary<string, string>();
 
@@ -220,6 +222,7 @@ public class UsersTests : TestBase, IAsyncLifetime
             count++;
         }
 
+        filterParams.Add("WithSupportTicket", withSupportTicket ? "true" : "false");
         return filterParams;
     }
 
