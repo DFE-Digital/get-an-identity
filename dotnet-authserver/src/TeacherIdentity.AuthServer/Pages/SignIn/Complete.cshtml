@@ -26,7 +26,10 @@
 
 @if (Model.TrnRequirementType == TrnRequirementType.Required && Model.TrnLookupStatus != TrnLookupStatus.Found)
 {
-    <vc:sign-in-complete trn-requirement-type="@Model.TrnRequirementType" trn-lookup-status="@Model.TrnLookupStatus" />
+    <vc:sign-in-complete
+        trn-requirement-type="@Model.TrnRequirementType"
+        trn-lookup-status="@Model.TrnLookupStatus"
+        trn-lookup-support-ticket-created="@Model.TrnLookupSupportTicketCreated" />
 }
 else
 {
@@ -41,6 +44,7 @@ else
 
         <vc:sign-in-complete
             trn-requirement-type="@Model.TrnRequirementType"
-            trn-lookup-status="@Model.TrnLookupStatus" />
+            trn-lookup-status="@Model.TrnLookupStatus"
+            trn-lookup-support-ticket-created="@Model.TrnLookupSupportTicketCreated" />
     </form>
 }

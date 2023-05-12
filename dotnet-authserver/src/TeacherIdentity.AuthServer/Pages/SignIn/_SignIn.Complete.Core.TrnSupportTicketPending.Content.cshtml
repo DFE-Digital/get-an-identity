@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "You cannot access this service yet";
+}
+
+<govuk-panel class="app-panel--interruption" data-testid="trn-support-ticket-pending-content">
+    <govuk-panel-title><span data-testid="trn-support-ticket-pending-postsigninmessage"></span>@ViewBag.Title</govuk-panel-title>
+
+    <govuk-panel-body>
+        <p>We need to find your details in our records so you can use this service.</p>
+        <p>To fix this problem, please email our support team QTS.enquiries@education.gov.uk</p>
+    </govuk-panel-body>
+</govuk-panel>

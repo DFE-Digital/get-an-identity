@@ -15,7 +15,8 @@ public partial class TestData
             bool trnLookupSupportTicketCreated = false,
             string? firstName = null,
             string[]? staffRoles = null,
-            bool? hasMobileNumber = null) =>
+            bool? hasMobileNumber = null,
+            bool trnLookupSupportTicketCreated = false) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn == true && userType != UserType.Default)
