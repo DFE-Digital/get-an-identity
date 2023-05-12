@@ -26,7 +26,6 @@ public class AuthorizationController : Controller
     private readonly UserClaimHelper _userClaimHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IConfiguration _configuration;
-    
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
