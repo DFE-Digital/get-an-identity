@@ -131,7 +131,7 @@ public class CheckAnswersTests : TestBase
         }
 
         TicketCreateRequest? ticketCreateRequestActual = null;
-        long ticketIdExpected = 1234567;
+        long ticketIdExpected = 321;
         if (expectZendeskTicketCreated)
         {
             HostFixture.ZendeskApiWrapper
