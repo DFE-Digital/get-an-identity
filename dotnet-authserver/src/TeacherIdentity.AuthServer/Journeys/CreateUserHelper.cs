@@ -161,7 +161,7 @@ public class CreateUserHelper
             }
         }); ;
 
-        var user = await _dbContext.Users.SingleAsync(u => u.UserId == authenticationState.UserId);
+        var user = await _dbContext.Users.Where(u => u.UserId == authenticationState.UserId).SingleAsync();
         user.TrnLookupSupportTicketCreated = true;
         _dbContext.AddEvent(new Events.TrnLookupSupportTicketCreatedEvent()
         {

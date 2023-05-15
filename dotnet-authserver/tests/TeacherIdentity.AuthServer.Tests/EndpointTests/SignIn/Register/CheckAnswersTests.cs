@@ -171,13 +171,14 @@ public class CheckAnswersTests : TestBase
 
         if (expectZendeskTicketCreated)
         {
-            elementInspectors.Add(e =>
-            {
-                var supportTicketCreatedEvent = Assert.IsType<TrnLookupSupportTicketCreatedEvent>(e);
-                Assert.Equal(ticketIdExpected, supportTicketCreatedEvent.TicketId);
-                Assert.Equal(Clock.UtcNow, supportTicketCreatedEvent.CreatedUtc);
-                Assert.Equal(user?.UserId, supportTicketCreatedEvent.UserId);
-            });
+            elementInspectors.Add(
+                e =>
+                {
+                    var supportTicketCreatedEvent = Assert.IsType<TrnLookupSupportTicketCreatedEvent>(e);
+                    Assert.Equal(ticketIdExpected, supportTicketCreatedEvent.TicketId);
+                    Assert.Equal(Clock.UtcNow, supportTicketCreatedEvent.CreatedUtc);
+                    Assert.Equal(user?.UserId, supportTicketCreatedEvent.UserId);
+                });
         }
 
         EventObserver.AssertEventsSaved(elementInspectors.ToArray());
