@@ -126,30 +126,39 @@ public class CreateUserHelper
         return new RedirectResult(journey.GetNextStepUrl(currentStep));
     }
 
-    public async Task CreateTrnResolutionZendeskTicket(AuthenticationState authenticationState)
+    public async Task CreateTrnResolutionZendeskTicket(
+        Guid userId,
+        string? officialName,
+        string? preferredName,
+        string? emailAddress,
+        string? previousOfficialName,
+        DateOnly? dateOfBirth,
+        string? nationalInsuranceNumber,
+        string? ittProviderName,
+        string? statedTrn)
     {
         var ticketComment = $"""
                 A user has submitted a request to find their TRN. Their information is:
-                Name: {authenticationState.GetOfficialName()}
-                Email: {authenticationState.EmailAddress}
-                Previous name: {authenticationState.GetPreviousOfficialName() ?? "None"}
-                Date of birth: {authenticationState.DateOfBirth:dd/MM/yyyy}
-                NI number: {authenticationState.NationalInsuranceNumber ?? "Not provided"}
-                ITT provider: {authenticationState.IttProviderName ?? "Not provided"}
-                User-provided TRN: {authenticationState.StatedTrn ?? "Not provided"}
+                Name: {officialName}
+                Email: {emailAddress}
+                Previous name: {previousOfficialName ?? "None"}
+                Date of birth: {dateOfBirth:dd/MM/yyyy}
+                NI number: {nationalInsuranceNumber ?? "Not provided"}
+                ITT provider: {ittProviderName ?? "Not provided"}
+                User-provided TRN: {statedTrn ?? "Not provided"}
                 """;
 
         var ticketResponse = await _zendeskApiWrapper.CreateTicketAsync(new()
         {
-            Subject = $"[Get an identity] - Support request from {authenticationState.GetPreferredName() ?? authenticationState.GetOfficialName()}",
+            Subject = $"[Get an identity] - Support request from {preferredName ?? officialName}",
             Comment = new TicketComment()
             {
                 Body = ticketComment
             },
             Requester = new()
             {
-                Email = authenticationState.EmailAddress,
-                Name = authenticationState.GetPreferredName() ?? authenticationState.GetOfficialName()
+                Email = emailAddress,
+                Name = preferredName ?? officialName
             },
             CustomFields = new CustomFields()
             {
@@ -161,7 +170,7 @@ public class CreateUserHelper
             }
         }); ;
 
-        var user = await _dbContext.Users.Where(u => u.UserId == authenticationState.UserId).SingleAsync();
+        var user = await _dbContext.Users.Where(u => u.UserId == userId).SingleAsync();
         user.TrnLookupSupportTicketCreated = true;
         _dbContext.AddEvent(new Events.TrnLookupSupportTicketCreatedEvent()
         {
