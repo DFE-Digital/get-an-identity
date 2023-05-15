@@ -34,7 +34,11 @@ public class BaseEmailPinGenerationPageModel : PageModel
         var emailPrefix = emailParts[0];
         var emailSuffix = emailParts[1];
 
-        var invalidDomainCount = await DbContext.EstablishmentDomains.Where(d => d.DomainName == emailSuffix).CountAsync();
+        var shouldBlockEstablishmentDomains = HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetValue<bool>("BlockEstablishmentEmailDomains");
+        var invalidDomainCount = shouldBlockEstablishmentDomains
+            ? await DbContext.EstablishmentDomains.Where(d => d.DomainName == emailSuffix).CountAsync()
+            : 0;
+
         if (_invalidEmailPrefixes.Contains(emailPrefix) || invalidDomainCount > 0)
         {
             var existingUser = await DbContext.Users.Where(user => user.EmailAddress == email).SingleOrDefaultAsync();
