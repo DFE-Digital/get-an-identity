@@ -11,7 +11,6 @@ public record AuthenticationStateInitialisationData
     public DateOnly? DateOfBirth;
     public string? Trn;
     public bool? HaveCompletedTrnLookup;
-    public AuthenticationState.TrnLookupState? TrnLookup;
     public UserType? UserType;
     public string[]? StaffRoles;
     public TrnLookupStatus? TrnLookupStatus;
@@ -28,9 +27,6 @@ public record AuthenticationStateInitialisationData
             DateOfBirth = user?.DateOfBirth,
             Trn = user?.Trn,
             HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null,
-            TrnLookup = user?.CompletedTrnLookup is not null
-                ? AuthenticationState.TrnLookupState.Complete
-                : AuthenticationState.TrnLookupState.None,
             UserType = user?.UserType,
             StaffRoles = user?.StaffRoles,
             TrnLookupStatus = user?.TrnLookupStatus
