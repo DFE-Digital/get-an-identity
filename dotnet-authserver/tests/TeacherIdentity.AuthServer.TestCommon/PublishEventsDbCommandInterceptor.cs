@@ -28,29 +28,17 @@ public class PublishEventsDbCommandInterceptor : SaveChangesInterceptor
             if (e.State == EntityState.Added)
             {
                 e.Property(e => e.Published).CurrentValue = true;
+
+                eventData.Context.SavedChanges += OnEventSaved;
+
+                void OnEventSaved(object? sender, SavedChangesEventArgs args)
+                {
+                    _eventObserver.OnEventSaved(e.Entity.ToEventBase()).GetAwaiter().GetResult();
+                    eventData.Context.SavedChanges -= OnEventSaved;
+                }
             }
         }
 
         return base.SavingChangesAsync(eventData, result, cancellationToken);
-    }
-
-    public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
-    {
-        var events = eventData.Context!.ChangeTracker.Entries<Event>();
-
-        foreach (var e in events)
-        {
-            if (e.State == EntityState.Unchanged)
-            {
-                await _eventObserver.OnEventSaved(e.Entity.ToEventBase());
-            }
-        }
-
-        return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 }

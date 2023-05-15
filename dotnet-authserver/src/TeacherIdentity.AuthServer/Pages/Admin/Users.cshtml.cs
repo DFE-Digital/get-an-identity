@@ -22,7 +22,8 @@ public class UsersModel : PageModel
         EmailAddress = user.EmailAddress,
         Name = user.FirstName + " " + user.LastName,
         Trn = user.Trn,
-        TrnLookupStatus = user.TrnLookupStatus
+        TrnLookupStatus = user.TrnLookupStatus,
+        TrnLookupSupportTicketCreated = user.TrnLookupSupportTicketCreated
     };
 
     private readonly TeacherIdentityServerDbContext _dbContext;
@@ -35,6 +36,10 @@ public class UsersModel : PageModel
     [Display(Name = "TRN lookup status")]
     [FromQuery(Name = "LookupStatus")]
     public TrnLookupStatus?[]? LookupStatus { get; set; }
+
+    [Display(Name = "With support ticket")]
+    [FromQuery(Name = "WithSupportTicket")]
+    public bool WithSupportTicket { get; set; }
 
     [Display(Name = "Search")]
     [FromQuery(Name = "UserSearch")]
@@ -121,6 +126,7 @@ public class UsersModel : PageModel
         public required string Name { get; init; }
         public required string? Trn { get; init; }
         public required TrnLookupStatus? TrnLookupStatus { get; init; }
+        public required bool TrnLookupSupportTicketCreated { get; init; }
     }
 
     private async Task<Expression<Func<User, bool>>> GetFilterPredicate(TrnLookupStatus?[] lookupStatus, string? userSearch)
@@ -129,7 +135,21 @@ public class UsersModel : PageModel
 
         if (lookupStatus.Length > 0)
         {
-            filterPredicate.And(user => lookupStatus.Contains(user.TrnLookupStatus));
+            var lookupStatusWithoutPending = lookupStatus.Where(s => s != TrnLookupStatus.Pending).ToArray();
+            var lookupStatusPredicate = PredicateBuilder.New<User>(user => lookupStatusWithoutPending.Contains(user.TrnLookupStatus));
+
+            if (lookupStatus.Contains(TrnLookupStatus.Pending))
+            {
+                var pendingStatusPredicate = PredicateBuilder.New<User>(user => user.TrnLookupStatus == TrnLookupStatus.Pending);
+                if (WithSupportTicket)
+                {
+                    pendingStatusPredicate.And(user => user.TrnLookupSupportTicketCreated == true);
+                }
+
+                lookupStatusPredicate.Or(pendingStatusPredicate);
+            }
+
+            filterPredicate.And(lookupStatusPredicate);
         }
 
         if (!string.IsNullOrEmpty(userSearch))

@@ -12,6 +12,7 @@ public partial class TestData
             string? registeredWithClientId = null,
             Guid? mergedWithUserId = null,
             TrnLookupStatus? trnLookupStatus = null,
+            bool trnLookupSupportTicketCreated = false,
             string? firstName = null,
             string[]? staffRoles = null,
             bool? hasMobileNumber = null) =>
@@ -75,7 +76,8 @@ public partial class TestData
                 RegisteredWithClientId = registeredWithClientId,
                 MergedWithUserId = mergedWithUserId,
                 IsDeleted = mergedWithUserId != null,
-                StaffRoles = userType is UserType.Staff ? staffRoles ?? StaffRoles.All : Array.Empty<string>()
+                StaffRoles = userType is UserType.Staff ? staffRoles ?? StaffRoles.All : Array.Empty<string>(),
+                TrnLookupSupportTicketCreated = trnLookupSupportTicketCreated
             };
 
             dbContext.Users.Add(user);

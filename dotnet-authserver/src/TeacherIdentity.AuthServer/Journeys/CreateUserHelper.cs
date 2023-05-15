@@ -126,13 +126,9 @@ public class CreateUserHelper
         return new RedirectResult(journey.GetNextStepUrl(currentStep));
     }
 
-    public Task CreateTrnResolutionZendeskTicket(AuthenticationState authenticationState) =>
-        _zendeskApiWrapper.CreateTicketAsync(new()
-        {
-            Subject = $"[Get an identity] - Support request from {authenticationState.GetPreferredName() ?? authenticationState.GetOfficialName()}",
-            Comment = new TicketComment()
-            {
-                Body = $"""
+    public async Task CreateTrnResolutionZendeskTicket(AuthenticationState authenticationState)
+    {
+        var ticketComment = $"""
                 A user has submitted a request to find their TRN. Their information is:
                 Name: {authenticationState.GetOfficialName()}
                 Email: {authenticationState.EmailAddress}
@@ -141,7 +137,14 @@ public class CreateUserHelper
                 NI number: {authenticationState.NationalInsuranceNumber ?? "Not provided"}
                 ITT provider: {authenticationState.IttProviderName ?? "Not provided"}
                 User-provided TRN: {authenticationState.StatedTrn ?? "Not provided"}
-                """
+                """;
+
+        var ticketResponse = await _zendeskApiWrapper.CreateTicketAsync(new()
+        {
+            Subject = $"[Get an identity] - Support request from {authenticationState.GetPreferredName() ?? authenticationState.GetOfficialName()}",
+            Comment = new TicketComment()
+            {
+                Body = ticketComment
             },
             Requester = new()
             {
@@ -156,5 +159,18 @@ public class CreateUserHelper
                     Value = "request_from_identity_auth_service"
                 }
             }
+        }); ;
+
+        var user = await _dbContext.Users.Where(u => u.UserId == authenticationState.UserId).SingleAsync();
+        user.TrnLookupSupportTicketCreated = true;
+        _dbContext.AddEvent(new Events.TrnLookupSupportTicketCreatedEvent()
+        {
+            TicketId = ticketResponse.Ticket.Id,
+            TicketComment = ticketComment,
+            UserId = user.UserId,
+            CreatedUtc = _clock.UtcNow,
         });
+
+        await _dbContext.SaveChangesAsync();
+    }
 }
