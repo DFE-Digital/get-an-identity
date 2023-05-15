@@ -1,6 +1,7 @@
 using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Journeys;
@@ -9,17 +10,20 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 {
     private readonly TrnLookupHelper _trnLookupHelper;
     private readonly TeacherIdentityApplicationManager _applicationManager;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
 
     public CoreSignInJourneyWithTrnLookup(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
         CreateUserHelper createUserHelper,
         TrnLookupHelper trnLookupHelper,
-        TeacherIdentityApplicationManager applicationManager)
+        TeacherIdentityApplicationManager applicationManager,
+        IBackgroundJobScheduler backgroundJobScheduler)
         : base(httpContext, linkGenerator, createUserHelper)
     {
         _trnLookupHelper = trnLookupHelper;
         _applicationManager = applicationManager;
+        _backgroundJobScheduler = backgroundJobScheduler;
     }
 
     public override async Task<IActionResult> CreateUser(string currentStep)
@@ -39,7 +43,17 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                 var client = await _applicationManager.FindByClientIdAsync(oAuthState.ClientId);
                 if (client!.RaiseTrnResolutionSupportTickets)
                 {
-                    await CreateUserHelper.CreateTrnResolutionZendeskTicket(AuthenticationState);
+                    await _backgroundJobScheduler.Enqueue<CreateUserHelper>(
+                        u => u.CreateTrnResolutionZendeskTicket(
+                            user.UserId,
+                            AuthenticationState.GetOfficialName(),
+                            AuthenticationState.GetPreferredName(),
+                            AuthenticationState.EmailAddress,
+                            AuthenticationState.GetPreviousOfficialName(),
+                            AuthenticationState.DateOfBirth,
+                            AuthenticationState.NationalInsuranceNumber,
+                            AuthenticationState.IttProviderName,
+                            AuthenticationState.StatedTrn));
                 }
             }
         }
