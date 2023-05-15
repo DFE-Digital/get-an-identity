@@ -34,6 +34,33 @@ public class AuthenticationState
         OAuthState = oAuthState;
     }
 
+    public AuthenticationState(
+        Guid journeyId,
+        UserRequirements userRequirements,
+        string postSignInUrl,
+        DateTime startedAt,
+        bool firstTimeSignInForEmail,
+        AuthenticationStateInitialisationData? authStateInitData,
+        string? sessionId = null,
+        OAuthAuthorizationState? oAuthState = null) :
+        this(journeyId, userRequirements, postSignInUrl, startedAt, sessionId, oAuthState)
+    {
+        UserId = authStateInitData?.UserId;
+        FirstTimeSignInForEmail = firstTimeSignInForEmail;
+        EmailAddress = authStateInitData?.EmailAddress;
+        EmailAddressVerified = authStateInitData?.EmailAddressVerified == true;
+        FirstName = authStateInitData?.FirstName;
+        MiddleName = authStateInitData?.MiddleName;
+        LastName = authStateInitData?.LastName;
+        DateOfBirth = authStateInitData?.DateOfBirth;
+        Trn = authStateInitData?.Trn;
+        HaveCompletedTrnLookup = authStateInitData?.HaveCompletedTrnLookup is not null;
+        TrnLookup = authStateInitData?.HaveCompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None;
+        UserType = authStateInitData?.UserType;
+        StaffRoles = authStateInitData?.StaffRoles;
+        TrnLookupStatus = authStateInitData?.TrnLookupStatus;
+    }
+
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
 
     public Guid JourneyId { get; }
@@ -53,6 +80,8 @@ public class AuthenticationState
     public bool EmailAddressVerified { get; private set; }
     [JsonInclude]
     public string? FirstName { get; private set; }
+    [JsonInclude]
+    public string? MiddleName { get; private set; }
     [JsonInclude]
     public string? LastName { get; private set; }
     [JsonInclude]
@@ -151,35 +180,6 @@ public class AuthenticationState
     public static AuthenticationState Deserialize(string serialized) =>
         JsonSerializer.Deserialize<AuthenticationState>(serialized, _jsonSerializerOptions) ??
             throw new ArgumentException($"Serialized {nameof(AuthenticationState)} is not valid.", nameof(serialized));
-
-    public static AuthenticationState FromUser(
-        Guid journeyId,
-        UserRequirements userRequirements,
-        User? user,
-        string postSignInUrl,
-        DateTime startedAt,
-        string? trn,
-        string? sessionId = null,
-        OAuthAuthorizationState? oAuthState = null,
-        bool? firstTimeSignInForEmail = null)
-    {
-        return new AuthenticationState(journeyId, userRequirements, postSignInUrl, startedAt, sessionId, oAuthState)
-        {
-            UserId = user?.UserId,
-            FirstTimeSignInForEmail = firstTimeSignInForEmail,
-            EmailAddress = user?.EmailAddress,
-            EmailAddressVerified = user is not null,
-            FirstName = user?.FirstName,
-            LastName = user?.LastName,
-            DateOfBirth = user?.DateOfBirth,
-            Trn = trn ?? user?.Trn,
-            HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null,
-            TrnLookup = user?.CompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None,
-            UserType = user?.UserType,
-            StaffRoles = user?.StaffRoles,
-            TrnLookupStatus = user?.TrnLookupStatus
-        };
-    }
 
     [MemberNotNull(nameof(OAuthState))]
     public void EnsureOAuthState()

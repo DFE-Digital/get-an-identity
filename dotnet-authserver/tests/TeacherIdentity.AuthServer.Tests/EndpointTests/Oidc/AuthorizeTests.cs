@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.State;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -265,27 +266,40 @@ public class AuthorizeTests : TestBase
     }
 
     [Fact]
-    public async Task ValidTrnToken_SetsTrnOnAuthenticationState()
+    public async Task ValidTrnToken_SetsDataOnAuthenticationState()
     {
         // Arrange
         var trn = TestData.GenerateTrn();
         var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+
+        MockDqtApiResponse(trn, firstName, lastName, dateOfBirth);
+
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
-                                $"&trn_token={trnToken}";
+                                $"&trn_token={trnToken.TrnToken}";
         // Act
         var response = await HttpClient.GetAsync(authorizeEndpoint);
 
         // Assert
         AssertResponseIsNotErrorCallback(response, out Guid journeyId);
         var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+
         Assert.Equal(trn, authenticationState?.Trn);
+        Assert.Equal(firstName, authenticationState?.FirstName);
+        Assert.Equal(lastName, authenticationState?.LastName);
+        Assert.Equal(dateOfBirth, authenticationState?.DateOfBirth);
+        Assert.Equal(trnToken.Email, authenticationState?.EmailAddress);
     }
 
     [Fact]
     public async Task TrnTokenSpecifiedButNotFound_DoesNotSetTrnOnAuthenticationState()
     {
         // Arrange
+        MockDqtApiResponse();
+
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
                                 $"&trn_token={TestData.GenerateUniqueTrnTokenValue()}";
         // Act
@@ -304,8 +318,10 @@ public class AuthorizeTests : TestBase
         var trn = TestData.GenerateTrn();
         var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(-1));
 
+        MockDqtApiResponse(trn);
+
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
-                                $"&trn_token={trnToken}";
+                                $"&trn_token={trnToken.TrnToken}";
         // Act
         var response = await HttpClient.GetAsync(authorizeEndpoint);
 
@@ -322,8 +338,10 @@ public class AuthorizeTests : TestBase
         var user = await TestData.CreateUser(hasTrn: true);
         var trnToken = await GenerateTrnToken(user.Trn!, expires: Clock.UtcNow.AddDays(1));
 
+        MockDqtApiResponse(user.Trn);
+
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
-                                $"&trn_token={trnToken}";
+                                $"&trn_token={trnToken.TrnToken}";
         // Act
         var response = await HttpClient.GetAsync(authorizeEndpoint);
 
@@ -340,8 +358,33 @@ public class AuthorizeTests : TestBase
         var trn = TestData.GenerateTrn();
         var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
+        MockDqtApiResponse(trn);
+
         var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid") +
-                                $"&trn_token={trnToken}";
+                                $"&trn_token={trnToken.TrnToken}";
+
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out Guid journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Null(authenticationState?.Trn);
+    }
+
+    [Fact]
+    public async Task TrnTokenSpecified_TeacherNotFoundInDqt_DoesNotSetTrnOnAuthenticationState()
+    {
+        // Arrange
+        var trn = TestData.GenerateTrn();
+        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
+
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((TeacherInfo?)null);
+
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
+                                $"&trn_token={trnToken.TrnToken}";
 
         // Act
         var response = await HttpClient.GetAsync(authorizeEndpoint);
@@ -404,7 +447,7 @@ public class AuthorizeTests : TestBase
         return Guid.Parse(asid);
     }
 
-    private async Task<string> GenerateTrnToken(string trn, DateTime expires)
+    private async Task<TrnTokenModel> GenerateTrnToken(string trn, DateTime expires)
     {
         var trnToken = new TrnTokenModel()
         {
@@ -421,6 +464,24 @@ public class AuthorizeTests : TestBase
             await dbContext.SaveChangesAsync();
         });
 
-        return trnToken.TrnToken;
+        return trnToken;
+    }
+
+    private void MockDqtApiResponse(string? trn = null, string? firstName = null, string? lastName = null, DateOnly? dateOfBirth = null)
+    {
+        trn ??= TestData.GenerateTrn();
+
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                FirstName = firstName ?? Faker.Name.First(),
+                MiddleName = "",
+                LastName = lastName ?? Faker.Name.Last(),
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = trn,
+                PendingDateOfBirthChange = false,
+                PendingNameChange = false
+            });
     }
 }
