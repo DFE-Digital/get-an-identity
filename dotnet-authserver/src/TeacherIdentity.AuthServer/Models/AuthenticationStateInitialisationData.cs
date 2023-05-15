@@ -17,19 +17,24 @@ public record AuthenticationStateInitialisationData
 
     public static AuthenticationStateInitialisationData FromUser(User? user)
     {
-        return new AuthenticationStateInitialisationData()
+        if (user is null)
         {
-            UserId = user?.UserId,
-            EmailAddress = user?.EmailAddress,
-            EmailAddressVerified = user is not null,
-            FirstName = user?.FirstName,
-            LastName = user?.LastName,
-            DateOfBirth = user?.DateOfBirth,
-            Trn = user?.Trn,
-            HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null,
-            UserType = user?.UserType,
-            StaffRoles = user?.StaffRoles,
-            TrnLookupStatus = user?.TrnLookupStatus
+            return new AuthenticationStateInitialisationData();
+        }
+
+        return new AuthenticationStateInitialisationData
+        {
+            UserId = user.UserId,
+            EmailAddress = user.EmailAddress,
+            EmailAddressVerified = true,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Trn = user.Trn,
+            HaveCompletedTrnLookup = user.CompletedTrnLookup != null,
+            UserType = user.UserType,
+            StaffRoles = user.StaffRoles,
+            TrnLookupStatus = user.TrnLookupStatus
         };
     }
 };

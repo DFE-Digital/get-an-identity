@@ -18,6 +18,7 @@ public class AuthenticationState
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
     };
 
+    [JsonConstructor]
     public AuthenticationState(
         Guid journeyId,
         UserRequirements userRequirements,
