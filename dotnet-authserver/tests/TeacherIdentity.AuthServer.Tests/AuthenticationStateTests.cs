@@ -8,7 +8,7 @@ namespace TeacherIdentity.AuthServer.Tests;
 public partial class AuthenticationStateTests
 {
     [Fact]
-    public void FromUser_DefaultUser_MapsDataOnCorrectly()
+    public void FromUser_DefaultUser_MapsDataToAuthStateCorrectly()
     {
         // Arrange
         var user = new User()
@@ -26,6 +26,7 @@ public partial class AuthenticationStateTests
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         };
+        var authStateInitData = AuthenticationStateInitializationData.FromUser(user);
 
         var firstTimeSignInForEmail = true;
 
@@ -33,15 +34,14 @@ public partial class AuthenticationStateTests
         var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         // Act
-        var authenticationState = AuthenticationState.FromUser(
+        var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            user,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
-            trn: null,
-            oAuthState: null,
-            firstTimeSignInForEmail: firstTimeSignInForEmail);
+            firstTimeSignInForEmail: firstTimeSignInForEmail,
+            authStateInitData,
+            oAuthState: null);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
@@ -74,6 +74,7 @@ public partial class AuthenticationStateTests
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         };
+        var authStateInitData = AuthenticationStateInitializationData.FromUser(user);
 
         var firstTimeSignInForEmail = true;
 
@@ -81,15 +82,14 @@ public partial class AuthenticationStateTests
         var userRequirements = UserRequirements.DefaultUserType | UserRequirements.TrnHolder;
 
         // Act
-        var authenticationState = AuthenticationState.FromUser(
+        var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
-            user,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
-            trn: null,
-            oAuthState: null,
-            firstTimeSignInForEmail: firstTimeSignInForEmail);
+            firstTimeSignInForEmail: firstTimeSignInForEmail,
+            authStateInitData,
+            oAuthState: null);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);

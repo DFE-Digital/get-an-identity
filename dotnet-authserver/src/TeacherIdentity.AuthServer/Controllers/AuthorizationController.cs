@@ -12,6 +12,7 @@ using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -27,6 +28,7 @@ public class AuthorizationController : Controller
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IConfiguration _configuration;
     private readonly IClock _clock;
+    private readonly IDqtApiClient _dqtApiClient;
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
@@ -34,7 +36,9 @@ public class AuthorizationController : Controller
         SignInJourneyProvider signInJourneyProvider,
         UserClaimHelper userClaimHelper,
         TeacherIdentityServerDbContext dbContext,
-        IConfiguration configuration, IClock clock)
+        IConfiguration configuration,
+        IClock clock,
+        IDqtApiClient dqtApiClient)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -44,6 +48,7 @@ public class AuthorizationController : Controller
         _dbContext = dbContext;
         _configuration = configuration;
         _clock = clock;
+        _dqtApiClient = dqtApiClient;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -84,73 +89,50 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            // If the user is signed in with an incompatible UserType then force the user to sign in again
-            var signedInUserId = authenticateResult.Principal?.GetUserId();
-            var user = signedInUserId is not null ? await _dbContext.Users.SingleAsync(u => u.UserId == signedInUserId) : null;
-            if (user?.UserType is UserType userType && !userRequirements.GetPermittedUserTypes().Contains(userType))
-            {
-                user = null;
-            }
-
-            var sessionId = request["session_id"]?.Value as string;
+            var signedInUser = await GetSignedInUser(authenticateResult, userRequirements);
+            var authStateInitData = AuthenticationStateInitializationData.FromUser(signedInUser);
 
             TrnRequirementType? trnRequirementType = null;
-            string? trn = null;
 
             if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
-                var requestedTrnRequirement = request["trn_requirement"];
+                trnRequirementType = await GetTrnRequirementType(request);
 
-                if (requestedTrnRequirement.HasValue)
+                if (trnRequirementType is null)
                 {
-                    if (!Enum.TryParse<TrnRequirementType>(requestedTrnRequirement?.Value as string, out var parsedTrnRequirementType))
-                    {
-                        return Forbid(
-                            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                            properties: new AuthenticationProperties(new Dictionary<string, string?>()
-                            {
-                                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
-                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                                    "Invalid trn_requirement specified."
-                            }));
-                    }
-
-                    trnRequirementType = parsedTrnRequirementType;
-                }
-                else
-                {
-                    var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
-                    trnRequirementType = client.TrnRequirementType;
+                    return Forbid(
+                        authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                        properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                        {
+                            [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                "Invalid trn_requirement specified."
+                        }));
                 }
 
                 var requestedTrnToken = request["trn_token"];
 
                 if (_configuration.GetValue("RegisterWithTrnTokenEnabled", false) && requestedTrnToken.HasValue)
                 {
-                    var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == requestedTrnToken.Value.Value as string && t.ExpiresUtc > _clock.UtcNow);
-                    if (trnToken is not null)
-                    {
-                        if (await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is null)
-                        {
-                            trn = trnToken.Trn;
-                        }
-                    }
+                    // TODO: merge trn token init data with signed in user init data
+                    authStateInitData = await GetTrnTokenInitData(requestedTrnToken.Value.Value as string);
                 }
             }
 
-            authenticationState = AuthenticationState.FromUser(
+            var sessionId = request["session_id"]?.Value as string;
+
+            authenticationState = new AuthenticationState(
                 journeyId,
                 userRequirements,
-                user,
                 GetCallbackUrl(journeyId),
-                startedAt: DateTime.UtcNow,
-                trn,
+                startedAt: _clock.UtcNow,
+                authenticateResult.Succeeded != true,
+                authStateInitData,
                 sessionId,
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri)
                 {
                     TrnRequirementType = trnRequirementType
-                },
-                firstTimeSignInForEmail: authenticateResult.Succeeded != true);
+                });
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
@@ -460,5 +442,70 @@ public class AuthorizationController : Controller
             default:
                 yield break;
         }
+    }
+
+    private async Task<User?> GetSignedInUser(AuthenticateResult authenticateResult, UserRequirements userRequirements)
+    {
+        var signedInUserId = authenticateResult.Principal?.GetUserId();
+
+        if (signedInUserId is null)
+        {
+            return null;
+        }
+
+        var signedInUser = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == signedInUserId);
+
+        // If the user is signed in with an incompatible UserType then force the user to sign in again
+        if (signedInUser?.UserType is UserType userType && !userRequirements.GetPermittedUserTypes().Contains(userType))
+        {
+            return null;
+        }
+
+        return signedInUser;
+    }
+
+    private async Task<TrnRequirementType?> GetTrnRequirementType(OpenIddictRequest request)
+    {
+        var requestedTrnRequirement = request["trn_requirement"];
+
+        if (requestedTrnRequirement.HasValue)
+        {
+            if (!Enum.TryParse<TrnRequirementType>(requestedTrnRequirement?.Value as string, out var parsedTrnRequirementType))
+            {
+                return null;
+            }
+
+            return parsedTrnRequirementType;
+        }
+
+        var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
+        return client.TrnRequirementType;
+    }
+
+    private async Task<AuthenticationStateInitializationData?> GetTrnTokenInitData(string? trnTokenValue)
+    {
+        var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == trnTokenValue && t.ExpiresUtc > _clock.UtcNow);
+
+        if (trnToken is null || await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is not null)
+        {
+            return null;
+        }
+
+        var teacher = await _dqtApiClient.GetTeacherByTrn(trnToken.Trn);
+
+        if (teacher is null)
+        {
+            return null;
+        }
+
+        return new AuthenticationStateInitializationData()
+        {
+            FirstName = teacher.FirstName,
+            MiddleName = teacher.MiddleName,
+            LastName = teacher.LastName,
+            DateOfBirth = teacher.DateOfBirth,
+            EmailAddress = trnToken.Email,
+            Trn = trnToken.Trn,
+        };
     }
 }
