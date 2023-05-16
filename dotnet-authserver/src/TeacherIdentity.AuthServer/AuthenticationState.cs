@@ -60,7 +60,7 @@ public class AuthenticationState
         UserType = authStateInitData?.UserType;
         StaffRoles = authStateInitData?.StaffRoles;
         TrnLookupStatus = authStateInitData?.TrnLookupStatus;
-        TrnToken = authStateInitData?.TrnToken;
+        TrnToken = authStateInitData?.TrnToken == true;
     }
 
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
@@ -141,7 +141,7 @@ public class AuthenticationState
     [JsonInclude]
     public bool? ExistingAccountChosen { get; private set; }
     [JsonInclude]
-    public bool? TrnToken { get; private set; }
+    public bool TrnToken { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
