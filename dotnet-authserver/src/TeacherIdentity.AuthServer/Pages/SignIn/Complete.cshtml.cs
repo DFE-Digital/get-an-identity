@@ -75,7 +75,7 @@ public class CompleteModel : PageModel
         TrnLookupStatus = authenticationState.TrnLookupStatus;
         TrnRequirementType = authenticationState.OAuthState?.TrnRequirementType;
 
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == authenticationState.UserId);
+        var user = await _dbContext.Users.SingleAsync(u => u.UserId == authenticationState.UserId);
         TrnLookupSupportTicketCreated = user?.TrnLookupSupportTicketCreated == true;
 
         var clientId = authenticationState.OAuthState?.ClientId;
