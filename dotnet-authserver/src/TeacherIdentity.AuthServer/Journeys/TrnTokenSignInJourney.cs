@@ -15,6 +15,8 @@ public class TrnTokenSignInJourney : SignInJourney
         return step switch
         {
             Steps.Landing => true,
+            CoreSignInJourney.Steps.Phone => true,
+            CoreSignInJourney.Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             _ => false
         };
     }
@@ -23,12 +25,15 @@ public class TrnTokenSignInJourney : SignInJourney
     {
         return (currentStep, AuthenticationState) switch
         {
+            (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             _ => null
         };
     }
 
     protected override string? GetPreviousStep(string currentStep) => (currentStep, AuthenticationState) switch
     {
+        (CoreSignInJourney.Steps.Phone, _) => Steps.Landing,
+        (CoreSignInJourney.Steps.PhoneConfirmation, _) => CoreSignInJourney.Steps.Phone,
         _ => null
     };
 
@@ -39,6 +44,8 @@ public class TrnTokenSignInJourney : SignInJourney
     protected override string GetStepUrl(string step) => step switch
     {
         Steps.Landing => LinkGenerator.TrnTokenLanding(),
+        CoreSignInJourney.Steps.Phone => LinkGenerator.RegisterPhone(),
+        CoreSignInJourney.Steps.PhoneConfirmation => LinkGenerator.RegisterPhoneConfirmation(),
         _ => throw new ArgumentException($"Unknown step: '{step}'.")
     };
 
