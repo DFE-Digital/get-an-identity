@@ -1,6 +1,7 @@
 using Dfe.Analytics.AspNetCore;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -13,11 +14,16 @@ public class CompleteModel : PageModel
 {
     private readonly SignInJourney _journey;
     private readonly TeacherIdentityApplicationManager _applicationManager;
+    private readonly TeacherIdentityServerDbContext _dbContext;
 
-    public CompleteModel(SignInJourney journey, TeacherIdentityApplicationManager applicationManager)
+    public CompleteModel(
+        SignInJourney journey,
+        TeacherIdentityApplicationManager applicationManager,
+        TeacherIdentityServerDbContext dbContext)
     {
         _journey = journey;
         _applicationManager = applicationManager;
+        _dbContext = dbContext;
     }
 
     public string? Email { get; set; }
@@ -48,6 +54,8 @@ public class CompleteModel : PageModel
 
     public string? ClientDisplayName { get; set; }
 
+    public bool TrnLookupSupportTicketCreated { get; set; }
+
     public async Task OnGet()
     {
         var authenticationState = HttpContext.GetAuthenticationState();
@@ -66,6 +74,9 @@ public class CompleteModel : PageModel
         Scope = authenticationState.OAuthState?.Scope;
         TrnLookupStatus = authenticationState.TrnLookupStatus;
         TrnRequirementType = authenticationState.OAuthState?.TrnRequirementType;
+
+        var user = await _dbContext.Users.SingleAsync(u => u.UserId == authenticationState.UserId);
+        TrnLookupSupportTicketCreated = user?.TrnLookupSupportTicketCreated == true;
 
         var clientId = authenticationState.OAuthState?.ClientId;
         var client = await _applicationManager.FindByClientIdAsync(clientId!);

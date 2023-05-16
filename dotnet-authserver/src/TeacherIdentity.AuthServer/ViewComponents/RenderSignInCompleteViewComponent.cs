@@ -13,16 +13,24 @@ public class RenderSignInCompleteViewComponent : ViewComponent
         _viewComponentHelper = viewComponentHelper;
     }
 
-    public IViewComponentResult Invoke(TrnRequirementType? trnRequirementType, TrnLookupStatus? trnLookupStatus)
+    public IViewComponentResult Invoke(
+        TrnRequirementType? trnRequirementType,
+        TrnLookupStatus? trnLookupStatus,
+        bool trnLookupSupportTicketCreated)
     {
         if (trnRequirementType is null)
         {
-            return View($"~/Pages/SignIn/_SignIn.Complete.Core.NoTrnLookup.cshtml");
+            return View("~/Pages/SignIn/_SignIn.Complete.Core.NoTrnLookup.cshtml");
         }
 
         if (trnRequirementType == TrnRequirementType.Legacy)
         {
             return View("~/Pages/SignIn/_SignIn.Complete.LegacyTRN.Content.cshtml");
+        }
+
+        if (trnRequirementType == TrnRequirementType.Required && trnLookupStatus == TrnLookupStatus.Pending && trnLookupSupportTicketCreated)
+        {
+            return View("~/Pages/SignIn/_SignIn.Complete.Core.TRNSupportTicketPending.Content.cshtml");
         }
 
         var trnState = trnLookupStatus switch
