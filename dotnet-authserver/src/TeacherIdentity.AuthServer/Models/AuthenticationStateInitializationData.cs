@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Models;
 
-public record AuthenticationStateInitialisationData
+public record AuthenticationStateInitializationData
 {
     public Guid? UserId;
     public string? EmailAddress;
@@ -15,14 +15,14 @@ public record AuthenticationStateInitialisationData
     public string[]? StaffRoles;
     public TrnLookupStatus? TrnLookupStatus;
 
-    public static AuthenticationStateInitialisationData FromUser(User? user)
+    public static AuthenticationStateInitializationData FromUser(User? user)
     {
         if (user is null)
         {
-            return new AuthenticationStateInitialisationData();
+            return new AuthenticationStateInitializationData();
         }
 
-        return new AuthenticationStateInitialisationData
+        return new AuthenticationStateInitializationData
         {
             UserId = user.UserId,
             EmailAddress = user.EmailAddress,

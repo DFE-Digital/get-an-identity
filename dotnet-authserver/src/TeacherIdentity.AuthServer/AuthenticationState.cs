@@ -41,7 +41,7 @@ public class AuthenticationState
         string postSignInUrl,
         DateTime startedAt,
         bool firstTimeSignInForEmail,
-        AuthenticationStateInitialisationData? authStateInitData,
+        AuthenticationStateInitializationData? authStateInitData,
         string? sessionId = null,
         OAuthAuthorizationState? oAuthState = null) :
         this(journeyId, userRequirements, postSignInUrl, startedAt, sessionId, oAuthState)

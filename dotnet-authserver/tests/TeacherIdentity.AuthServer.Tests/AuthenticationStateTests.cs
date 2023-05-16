@@ -26,7 +26,7 @@ public partial class AuthenticationStateTests
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         };
-        var authStateInitData = AuthenticationStateInitialisationData.FromUser(user);
+        var authStateInitData = AuthenticationStateInitializationData.FromUser(user);
 
         var firstTimeSignInForEmail = true;
 
@@ -74,7 +74,7 @@ public partial class AuthenticationStateTests
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         };
-        var authStateInitData = AuthenticationStateInitialisationData.FromUser(user);
+        var authStateInitData = AuthenticationStateInitializationData.FromUser(user);
 
         var firstTimeSignInForEmail = true;
 

@@ -90,13 +90,13 @@ public class AuthorizationController : Controller
             }
 
             var signedInUser = await GetSignedInUser(authenticateResult, userRequirements);
-            var authStateInitData = AuthenticationStateInitialisationData.FromUser(signedInUser);
+            var authStateInitData = AuthenticationStateInitializationData.FromUser(signedInUser);
 
             TrnRequirementType? trnRequirementType = null;
 
             if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
-                trnRequirementType = await TryGetTrnRequirementType(request);
+                trnRequirementType = await GetTrnRequirementType(request);
 
                 if (trnRequirementType is null)
                 {
@@ -114,6 +114,7 @@ public class AuthorizationController : Controller
 
                 if (_configuration.GetValue("RegisterWithTrnTokenEnabled", false) && requestedTrnToken.HasValue)
                 {
+                    // TODO: merge trn token init data with signed in user init data
                     authStateInitData = await GetTrnTokenInitData(requestedTrnToken.Value.Value as string);
                 }
             }
@@ -463,7 +464,7 @@ public class AuthorizationController : Controller
         return signedInUser;
     }
 
-    private async Task<TrnRequirementType?> TryGetTrnRequirementType(OpenIddictRequest request)
+    private async Task<TrnRequirementType?> GetTrnRequirementType(OpenIddictRequest request)
     {
         var requestedTrnRequirement = request["trn_requirement"];
 
@@ -481,7 +482,7 @@ public class AuthorizationController : Controller
         return client.TrnRequirementType;
     }
 
-    private async Task<AuthenticationStateInitialisationData?> GetTrnTokenInitData(string? trnTokenValue)
+    private async Task<AuthenticationStateInitializationData?> GetTrnTokenInitData(string? trnTokenValue)
     {
         var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == trnTokenValue && t.ExpiresUtc > _clock.UtcNow);
 
@@ -497,7 +498,7 @@ public class AuthorizationController : Controller
             return null;
         }
 
-        return new AuthenticationStateInitialisationData()
+        return new AuthenticationStateInitializationData()
         {
             FirstName = teacher.FirstName,
             MiddleName = teacher.MiddleName,
