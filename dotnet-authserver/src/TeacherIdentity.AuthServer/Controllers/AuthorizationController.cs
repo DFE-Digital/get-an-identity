@@ -506,6 +506,7 @@ public class AuthorizationController : Controller
             DateOfBirth = teacher.DateOfBirth,
             EmailAddress = trnToken.Email,
             Trn = trnToken.Trn,
+            TrnToken = true,
         };
     }
 }
