@@ -84,6 +84,8 @@ public abstract class IdentityLinkGenerator
 
     public string Landing() => Page("/SignIn/Landing");
 
+    public string TrnTokenLanding() => Page("/SignIn/TrnToken/Landing");
+
     public string Register() => Page("/SignIn/Register/Index");
 
     public string RegisterEmail() => Page("/SignIn/Register/Email");

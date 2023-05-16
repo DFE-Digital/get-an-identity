@@ -9,10 +9,13 @@ public class SignInJourneyProvider
     {
         if (authenticationState.TryGetOAuthState(out var oAuthState) && authenticationState.UserRequirements.RequiresTrnLookup())
         {
-            var useLegacyTrnJourney = oAuthState.TrnRequirementType == TrnRequirementType.Legacy || oAuthState.HasScope(CustomScopes.Trn);
+            if (oAuthState.TrnRequirementType == TrnRequirementType.Legacy || oAuthState.HasScope(CustomScopes.Trn))
+            {
+                return ActivatorUtilities.CreateInstance<LegacyTrnJourney>(httpContext.RequestServices, httpContext);
+            }
 
-            return useLegacyTrnJourney ?
-                ActivatorUtilities.CreateInstance<LegacyTrnJourney>(httpContext.RequestServices, httpContext) :
+            return authenticationState.TrnToken == true ?
+                ActivatorUtilities.CreateInstance<TrnTokenSignInJourney>(httpContext.RequestServices, httpContext) :
                 ActivatorUtilities.CreateInstance<CoreSignInJourneyWithTrnLookup>(httpContext.RequestServices, httpContext);
         }
 
