@@ -60,7 +60,7 @@ public class AuthenticationState
         UserType = authStateInitData?.UserType;
         StaffRoles = authStateInitData?.StaffRoles;
         TrnLookupStatus = authStateInitData?.TrnLookupStatus;
-        TrnToken = authStateInitData?.TrnToken == true;
+        TrnAssociationSource = authStateInitData?.TrnAssociationSource;
     }
 
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
@@ -141,7 +141,7 @@ public class AuthenticationState
     [JsonInclude]
     public bool? ExistingAccountChosen { get; private set; }
     [JsonInclude]
-    public bool TrnToken { get; private set; }
+    public TrnAssociationSource? TrnAssociationSource { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -214,7 +214,9 @@ public class AuthenticationState
 
     public bool IsComplete =>
         EmailAddressVerified &&
-        (TrnLookup == TrnLookupState.Complete || !UserRequirements.HasFlag(UserRequirements.TrnHolder)) &&
+        (!UserRequirements.HasFlag(UserRequirements.TrnHolder) ||
+        TrnAssociationSource == Models.TrnAssociationSource.TrnToken ||
+        TrnLookup == TrnLookupState.Complete) &&
         UserId.HasValue;
 
     public bool HasExpired(DateTime utcNow) => (StartedAt + _journeyLifetime) <= utcNow;
@@ -452,6 +454,7 @@ public class AuthenticationState
         UserType = user.UserType;
         StaffRoles = user.StaffRoles;
         TrnLookupStatus = user.TrnLookupStatus;
+        TrnAssociationSource = user.TrnAssociationSource;
     }
 
     public void OnEmailChanged(string email)
@@ -617,6 +620,7 @@ public class AuthenticationState
 
         Trn = trn;
         TrnLookupStatus = trnLookupStatus;
+        TrnAssociationSource = Models.TrnAssociationSource.Lookup;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
@@ -660,6 +664,7 @@ public class AuthenticationState
         UserType = user.UserType;
         StaffRoles = user.StaffRoles;
         TrnLookupStatus = user.TrnLookupStatus;
+        TrnAssociationSource = user.TrnAssociationSource;
 
         if (HaveCompletedTrnLookup || Trn is not null)
         {

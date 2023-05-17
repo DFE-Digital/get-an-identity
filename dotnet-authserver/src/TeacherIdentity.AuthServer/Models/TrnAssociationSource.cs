@@ -5,5 +5,6 @@ public enum TrnAssociationSource
     Lookup = 0,
     Api = 1,
     SupportUi = 2,
-    UserImport = 3
+    UserImport = 3,
+    TrnToken = 4,
 }

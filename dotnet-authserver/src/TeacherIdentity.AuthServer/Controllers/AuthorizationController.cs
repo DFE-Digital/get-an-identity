@@ -505,8 +505,10 @@ public class AuthorizationController : Controller
             LastName = teacher.LastName,
             DateOfBirth = teacher.DateOfBirth,
             EmailAddress = trnToken.Email,
+            EmailAddressVerified = true,
             Trn = trnToken.Trn,
-            TrnToken = true,
+            TrnAssociationSource = TrnAssociationSource.TrnToken,
+            TrnLookupStatus = TrnLookupStatus.Found,
         };
     }
 }

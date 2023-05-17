@@ -34,7 +34,11 @@ public static class PageExtensions
         await page.FillAsync("label:text-is('Year')", date.Year.ToString());
     }
 
-    public static async Task StartOAuthJourney(this IPage page, string? additionalScope = null, TrnRequirementType? trnRequirement = null)
+    public static async Task StartOAuthJourney(
+        this IPage page,
+        string? additionalScope = null,
+        TrnRequirementType? trnRequirement = null,
+        string? trnToken = null)
     {
         var allScopes = new List<string>()
         {
@@ -54,6 +58,11 @@ public static class PageExtensions
         if (trnRequirement is not null)
         {
             url.SetQueryParam("trn_requirement", trnRequirement);
+        }
+
+        if (trnToken is not null)
+        {
+            url.SetQueryParam("trn_token", trnToken);
         }
 
         await page.GotoAsync(url);
@@ -280,6 +289,12 @@ public static class PageExtensions
         await page.ClickAsync("a:text-is('Create an account')");
     }
 
+    public static async Task RegisterFromTrnTokenLandingPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/trn-token");
+        await page.ClickAsync("a:text-is('Create an account')");
+    }
+
     public static async Task SubmitRegisterEmailPage(this IPage page, string email)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/email");
@@ -326,6 +341,12 @@ public static class PageExtensions
     public static async Task SubmitCheckAnswersPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/check-answers");
+        await page.ClickContinueButton();
+    }
+
+    public static async Task SubmitTrnTokenCheckAnswersPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/trn-token/check-answers");
         await page.ClickContinueButton();
     }
 
