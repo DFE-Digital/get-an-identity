@@ -270,7 +270,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
+        var trnToken = await TestData.GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
         var firstName = Faker.Name.First();
         var lastName = Faker.Name.Last();
@@ -316,7 +316,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(-1));
+        var trnToken = await TestData.GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(-1));
 
         MockDqtApiResponse(trn);
 
@@ -336,7 +336,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
-        var trnToken = await GenerateTrnToken(user.Trn!, expires: Clock.UtcNow.AddDays(1));
+        var trnToken = await TestData.GenerateTrnToken(user.Trn!, expires: Clock.UtcNow.AddDays(1));
 
         MockDqtApiResponse(user.Trn);
 
@@ -356,7 +356,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
+        var trnToken = await TestData.GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
         MockDqtApiResponse(trn);
 
@@ -377,7 +377,7 @@ public class AuthorizeTests : TestBase
     {
         // Arrange
         var trn = TestData.GenerateTrn();
-        var trnToken = await GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
+        var trnToken = await TestData.GenerateTrnToken(trn, expires: Clock.UtcNow.AddDays(1));
 
         HostFixture.DqtApiClient
             .Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
@@ -447,32 +447,12 @@ public class AuthorizeTests : TestBase
         return Guid.Parse(asid);
     }
 
-    private async Task<TrnTokenModel> GenerateTrnToken(string trn, DateTime expires)
-    {
-        var trnToken = new TrnTokenModel()
-        {
-            TrnToken = TestData.GenerateUniqueTrnTokenValue(),
-            Trn = trn,
-            Email = TestData.GenerateUniqueEmail(),
-            CreatedUtc = Clock.UtcNow,
-            ExpiresUtc = expires
-        };
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            dbContext.TrnTokens.Add(trnToken);
-            await dbContext.SaveChangesAsync();
-        });
-
-        return trnToken;
-    }
-
     private void MockDqtApiResponse(string? trn = null, string? firstName = null, string? lastName = null, DateOnly? dateOfBirth = null)
     {
         trn ??= TestData.GenerateTrn();
 
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            .ReturnsAsync(new TeacherInfo()
             {
                 DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
                 FirstName = firstName ?? Faker.Name.First(),

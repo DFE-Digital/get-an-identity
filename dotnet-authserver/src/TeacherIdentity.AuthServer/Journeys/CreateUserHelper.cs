@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -62,9 +61,8 @@ public class CreateUserHelper
 
     public async Task<User> CreateUserWithTrn(AuthenticationState authenticationState)
     {
-        Debug.Assert(authenticationState.TrnLookupStatus.HasValue);
-
         var userId = Guid.NewGuid();
+
         var user = new User()
         {
             CompletedTrnLookup = _clock.UtcNow,
@@ -78,7 +76,7 @@ public class CreateUserHelper
             UserId = userId,
             UserType = UserType.Default,
             Trn = authenticationState.Trn,
-            TrnAssociationSource = authenticationState.Trn is not null ? TrnAssociationSource.Lookup : null,
+            TrnAssociationSource = authenticationState.TrnAssociationSource,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus

@@ -59,7 +59,6 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         }
         catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
         {
-            // We don't currently handle duplicate TRNs in Core Sign In Journey
             return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
         }
 

@@ -95,6 +95,28 @@ public partial class TestData
         }
     }
 
+    public async Task<TrnTokenModel> GenerateTrnToken(string trn, DateTime? expires = null)
+    {
+        expires ??= _clock.UtcNow.AddYears(1);
+
+        var trnToken = new TrnTokenModel()
+        {
+            TrnToken = GenerateUniqueTrnTokenValue(),
+            Trn = trn,
+            Email = GenerateUniqueEmail(),
+            CreatedUtc = _clock.UtcNow,
+            ExpiresUtc = expires.Value
+        };
+
+        await WithDbContext(async dbContext =>
+        {
+            dbContext.TrnTokens.Add(trnToken);
+            await dbContext.SaveChangesAsync();
+        });
+
+        return trnToken;
+    }
+
     public string GenerateUniqueTrnTokenValue()
     {
         string trnToken;

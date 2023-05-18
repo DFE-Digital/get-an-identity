@@ -14,7 +14,7 @@ public record AuthenticationStateInitializationData
     public UserType? UserType;
     public string[]? StaffRoles;
     public TrnLookupStatus? TrnLookupStatus;
-    public bool? TrnToken;
+    public TrnAssociationSource? TrnAssociationSource;
 
     public static AuthenticationStateInitializationData FromUser(User? user)
     {

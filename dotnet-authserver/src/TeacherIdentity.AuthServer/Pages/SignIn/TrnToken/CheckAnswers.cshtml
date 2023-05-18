@@ -1,0 +1,107 @@
+@page "/sign-in/trn-token/check-answers"
+@model TeacherIdentity.AuthServer.Pages.SignIn.TrnToken.CheckAnswers
+@{
+    ViewBag.Title = "Check your answers";
+}
+
+@section BeforeContent
+{
+    <govuk-back-link href="@Model.BackLink" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.TrnTokenCheckAnswers()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="email">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Mobile phone</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.MobilePhoneNumber</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="mobile phone">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.FullName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString(Constants.DateFormat)</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+
+            <p>Check the details we have for you from your DfE teacher record.</p>
+            <p>You’ll need to provide evidence for some name changes and all date of birth changes.</p>
+
+            <h2 class="govuk-heading-m">Personal details</h2>
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>First names</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value class="empty-hyphens">@Model.FirstName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="first names">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Middle names</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.MiddleName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="middle names">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Last names</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.LastName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="last names">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.DateOfBirth?.ToString(Constants.DateFormat)</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+
+            <h2 class="govuk-heading-m">Sign in details</h2>
+
+            <govuk-summary-list>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="sign in email">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+                <govuk-summary-list-row>
+                    <govuk-summary-list-row-key>Mobile phone</govuk-summary-list-row-key>
+                    <govuk-summary-list-row-value>@Model.MobilePhoneNumber</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="" visually-hidden-text="sign in mobile phone">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                </govuk-summary-list-row>
+            </govuk-summary-list>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+
