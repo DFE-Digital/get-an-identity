@@ -19,7 +19,7 @@
                     <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="" visually-hidden-text="email">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.RegisterEmail()" visually-hidden-text="email" data-testid="trn-token-email-change-link">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
                 <govuk-summary-list-row>
@@ -88,7 +88,7 @@
                     <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!)</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="" visually-hidden-text="sign in email">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.RegisterEmail()" visually-hidden-text="sign in email">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
                 <govuk-summary-list-row>
