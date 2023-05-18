@@ -1,4 +1,5 @@
 using EntityFramework.Exceptions.Common;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
@@ -53,7 +54,9 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                             AuthenticationState.DateOfBirth,
                             AuthenticationState.NationalInsuranceNumber,
                             AuthenticationState.IttProviderName,
-                            AuthenticationState.StatedTrn));
+                            AuthenticationState.StatedTrn,
+                            AuthenticationState.OAuthState.ClientId,
+                            AuthenticationState.OAuthState.TrnRequirementType == Models.TrnRequirementType.Required));
                 }
             }
         }
