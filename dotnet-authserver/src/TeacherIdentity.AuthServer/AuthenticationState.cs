@@ -620,7 +620,7 @@ public class AuthenticationState
 
         Trn = trn;
         TrnLookupStatus = trnLookupStatus;
-        TrnAssociationSource = Models.TrnAssociationSource.Lookup;
+        TrnAssociationSource = trn is null ? null : Models.TrnAssociationSource.Lookup;
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

@@ -26,6 +26,7 @@ public class TrnTokenSignInJourney : SignInJourney
         catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
         {
             // We currently do not handle trn index violations for the trn token sign in journey
+            throw;
         }
 
         return new RedirectResult(GetNextStepUrl(currentStep));
