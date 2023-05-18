@@ -38,6 +38,7 @@ public class TrnTokenSignInJourney : SignInJourney
         {
             Steps.Landing => true,
             Steps.CheckAnswers => AuthenticationState.ContactDetailsVerified,
+            CoreSignInJourney.Steps.DateOfBirth => AuthenticationState.ContactDetailsVerified,
             CoreSignInJourney.Steps.Phone => true,
             CoreSignInJourney.Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             CoreSignInJourney.Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
@@ -57,6 +58,7 @@ public class TrnTokenSignInJourney : SignInJourney
             (CoreSignInJourney.Steps.PhoneConfirmation, _) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.Email, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.EmailConfirmation, _) => Steps.CheckAnswers,
+            (CoreSignInJourney.Steps.DateOfBirth, _) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.ResendPhoneConfirmation, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             _ => null
         };
@@ -72,6 +74,7 @@ public class TrnTokenSignInJourney : SignInJourney
         (CoreSignInJourney.Steps.Email, { MobileNumberVerified: true }) => CoreSignInJourney.Steps.Email,
         (CoreSignInJourney.Steps.EmailConfirmation, _) => CoreSignInJourney.Steps.Email,
         (CoreSignInJourney.Steps.ResendEmailConfirmation, _) => CoreSignInJourney.Steps.EmailConfirmation,
+        (CoreSignInJourney.Steps.DateOfBirth, _) => Steps.CheckAnswers,
         (Steps.CheckAnswers, { EmailAddressVerified: false }) => CoreSignInJourney.Steps.EmailConfirmation,
         (Steps.CheckAnswers, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
         (Steps.CheckAnswers, _) => CoreSignInJourney.Steps.Phone,
@@ -92,6 +95,7 @@ public class TrnTokenSignInJourney : SignInJourney
         CoreSignInJourney.Steps.Email => LinkGenerator.RegisterEmail(),
         CoreSignInJourney.Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),
         CoreSignInJourney.Steps.ResendEmailConfirmation => LinkGenerator.RegisterResendEmailConfirmation(),
+        CoreSignInJourney.Steps.DateOfBirth => LinkGenerator.RegisterDateOfBirth(),
         _ => throw new ArgumentException($"Unknown step: '{step}'.")
     };
 
