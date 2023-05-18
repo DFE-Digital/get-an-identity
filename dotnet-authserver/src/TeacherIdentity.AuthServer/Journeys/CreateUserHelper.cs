@@ -134,7 +134,7 @@ public class CreateUserHelper
         string? nationalInsuranceNumber,
         string? ittProviderName,
         string? statedTrn,
-        string? clientId,
+        string? serviceName,
         bool requiresTrnLookup)
     {
         var contactUserWithTrn = requiresTrnLookup ? "Yes" : "No";
@@ -147,7 +147,7 @@ public class CreateUserHelper
                 NI number: {nationalInsuranceNumber ?? "Not provided"}
                 ITT provider: {ittProviderName ?? "Not provided"}
                 User-provided TRN: {statedTrn ?? "Not provided"}
-                Service: {clientId ?? "Not provided"}
+                Service: {serviceName ?? "Not provided"}
                 Contact user with TRN: {contactUserWithTrn}
                 """;
 

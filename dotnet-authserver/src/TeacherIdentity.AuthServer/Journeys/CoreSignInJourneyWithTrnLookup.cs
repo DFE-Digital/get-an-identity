@@ -54,7 +54,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                             AuthenticationState.NationalInsuranceNumber,
                             AuthenticationState.IttProviderName,
                             AuthenticationState.StatedTrn,
-                            AuthenticationState.OAuthState.ClientId,
+                            client.DisplayName,
                             AuthenticationState.OAuthState.TrnRequirementType == Models.TrnRequirementType.Required));
                 }
             }
