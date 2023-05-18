@@ -1,5 +1,4 @@
 using EntityFramework.Exceptions.Common;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
