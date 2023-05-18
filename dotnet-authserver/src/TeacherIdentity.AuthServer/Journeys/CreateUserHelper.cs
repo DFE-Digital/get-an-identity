@@ -133,8 +133,11 @@ public class CreateUserHelper
         DateOnly? dateOfBirth,
         string? nationalInsuranceNumber,
         string? ittProviderName,
-        string? statedTrn)
+        string? statedTrn,
+        string? serviceName,
+        bool requiresTrnLookup)
     {
+        var contactUserWithTrn = requiresTrnLookup ? "Yes" : "No";
         var ticketComment = $"""
                 A user has submitted a request to find their TRN. Their information is:
                 Name: {officialName}
@@ -144,6 +147,8 @@ public class CreateUserHelper
                 NI number: {nationalInsuranceNumber ?? "Not provided"}
                 ITT provider: {ittProviderName ?? "Not provided"}
                 User-provided TRN: {statedTrn ?? "Not provided"}
+                Service: {serviceName ?? "Not provided"}
+                Contact user with TRN: {contactUserWithTrn}
                 """;
 
         var ticketResponse = await _zendeskApiWrapper.CreateTicketAsync(new()
@@ -166,7 +171,7 @@ public class CreateUserHelper
                     Value = "request_from_identity_auth_service"
                 }
             }
-        }); ;
+        });
 
         var user = await _dbContext.Users.Where(u => u.UserId == userId).SingleAsync();
         user.TrnLookupSupportTicketCreated = true;
