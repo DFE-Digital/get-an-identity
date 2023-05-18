@@ -350,6 +350,12 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task ClickChangeLinkTrnTokenCheckAnswersPage(this IPage page, string testId)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/trn-token/check-answers");
+        await page.ClickChangeLinkForElementWithTestId(testId);
+    }
+
     public static async Task SubmitCompletePageForNewUser(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");

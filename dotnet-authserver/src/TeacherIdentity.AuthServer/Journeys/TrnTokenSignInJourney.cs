@@ -37,9 +37,13 @@ public class TrnTokenSignInJourney : SignInJourney
         return step switch
         {
             Steps.Landing => true,
-            Steps.CheckAnswers => AuthenticationState.MobileNumberVerified,
+            Steps.CheckAnswers => AuthenticationState.ContactDetailsVerified,
             CoreSignInJourney.Steps.Phone => true,
             CoreSignInJourney.Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
+            CoreSignInJourney.Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
+            CoreSignInJourney.Steps.Email => AuthenticationState.MobileNumberVerified,
+            CoreSignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false, MobileNumberVerified: true },
+            CoreSignInJourney.Steps.ResendEmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             _ => false
         };
     }
@@ -48,8 +52,11 @@ public class TrnTokenSignInJourney : SignInJourney
     {
         return (currentStep, AuthenticationState) switch
         {
+            (Steps.Landing, _) => CoreSignInJourney.Steps.Phone,
             (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             (CoreSignInJourney.Steps.PhoneConfirmation, _) => Steps.CheckAnswers,
+            (CoreSignInJourney.Steps.Email, _) => CoreSignInJourney.Steps.EmailConfirmation,
+            (CoreSignInJourney.Steps.EmailConfirmation, _) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.ResendPhoneConfirmation, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             _ => null
         };
@@ -60,8 +67,14 @@ public class TrnTokenSignInJourney : SignInJourney
         (CoreSignInJourney.Steps.Phone, _) => Steps.Landing,
         (CoreSignInJourney.Steps.PhoneConfirmation, _) => CoreSignInJourney.Steps.Phone,
         (CoreSignInJourney.Steps.ResendPhoneConfirmation, _) => CoreSignInJourney.Steps.PhoneConfirmation,
-        (Steps.CheckAnswers, { MobileNumberVerified: true }) => CoreSignInJourney.Steps.Phone,
+        (CoreSignInJourney.Steps.Email, { ContactDetailsVerified: true }) => Steps.CheckAnswers,
+        (CoreSignInJourney.Steps.Email, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
+        (CoreSignInJourney.Steps.Email, { MobileNumberVerified: true }) => CoreSignInJourney.Steps.Email,
+        (CoreSignInJourney.Steps.EmailConfirmation, _) => CoreSignInJourney.Steps.Email,
+        (CoreSignInJourney.Steps.ResendEmailConfirmation, _) => CoreSignInJourney.Steps.EmailConfirmation,
+        (Steps.CheckAnswers, { EmailAddressVerified: false }) => CoreSignInJourney.Steps.EmailConfirmation,
         (Steps.CheckAnswers, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
+        (Steps.CheckAnswers, _) => CoreSignInJourney.Steps.Phone,
         _ => null
     };
 
@@ -76,6 +89,9 @@ public class TrnTokenSignInJourney : SignInJourney
         CoreSignInJourney.Steps.Phone => LinkGenerator.RegisterPhone(),
         CoreSignInJourney.Steps.PhoneConfirmation => LinkGenerator.RegisterPhoneConfirmation(),
         CoreSignInJourney.Steps.ResendPhoneConfirmation => LinkGenerator.RegisterResendPhoneConfirmation(),
+        CoreSignInJourney.Steps.Email => LinkGenerator.RegisterEmail(),
+        CoreSignInJourney.Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),
+        CoreSignInJourney.Steps.ResendEmailConfirmation => LinkGenerator.RegisterResendEmailConfirmation(),
         _ => throw new ArgumentException($"Unknown step: '{step}'.")
     };
 
