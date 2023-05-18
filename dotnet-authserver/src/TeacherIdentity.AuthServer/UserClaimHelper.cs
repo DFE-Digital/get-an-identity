@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -79,6 +80,7 @@ public class UserClaimHelper
 
         if (UserRequirementsExtensions.GetUserRequirementsForScopes(hasScope).RequiresTrnLookup())
         {
+            Debug.Assert(user.TrnLookupStatus.HasValue);
             claims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
 
             if (user.Trn is not null)
