@@ -1,8 +1,6 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
-using AspNetCoreRateLimit;
-using AspNetCoreRateLimit.Redis;
 using Dfe.Analytics.AspNetCore;
 using GovUk.Frontend.AspNetCore;
 using Hangfire;
@@ -33,6 +31,7 @@ using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
+using TeacherIdentity.AuthServer.Infrastructure.RateLimiting;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Journeys;
@@ -92,9 +91,9 @@ public class Program
             });
 
             builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConfiguration));
-
-            ConfigureRateLimitServices();
         }
+
+        builder.Services.AddRateLimiting(builder.Environment, builder.Configuration);
 
         builder.Services.AddAntiforgery(options =>
         {
@@ -598,8 +597,8 @@ public class Program
         if (builder.Environment.IsProduction())
         {
             app.UseWhen(
-                ctx => ctx.Request.Path.StartsWithSegments("/api") && !ctx.Request.Path.StartsWithSegments("/api/find-trn"),
-                a => a.UseMiddleware<Infrastructure.Middleware.RateLimitMiddleware>());
+                ctx => ctx.Request.Path.StartsWithSegments("/api"),
+                a => a.UseRateLimiter());
         }
 
         if (builder.Environment.IsProduction())
@@ -674,13 +673,6 @@ public class Program
         app.MapApiEndpoints();
 
         app.Run();
-
-        void ConfigureRateLimitServices()
-        {
-            builder.Services.Configure<ClientRateLimitOptions>(builder.Configuration.GetSection("ClientRateLimiting"));
-            builder.Services.AddRedisRateLimiting();
-            builder.Services.AddSingleton<IRateLimitConfiguration, ApiRateLimitConfiguration>();
-        }
 
         SecurityKey LoadKey(string configurationValue)
         {
