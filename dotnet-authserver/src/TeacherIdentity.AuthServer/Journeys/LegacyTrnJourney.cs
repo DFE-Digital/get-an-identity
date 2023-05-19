@@ -187,6 +187,18 @@ public class LegacyTrnJourney : SignInJourney
             _ => base.GetLastAccessibleStepUrl(requestedStep)
         };
 
+    public override Task<IActionResult> OnEmailVerified(User? user, string currentStep)
+    {
+        if (user is not null && user.UserType == Models.UserType.Default && user.TrnLookupStatus is null)
+        {
+            // User was created in a journey that didn't perform a TRN lookup;
+            // we don't have an 'upgrade' story for that scenario yet but we cannot allow the user to sign in.
+            throw new NotImplementedException("Cannot lookup a TRN for an existing user.");
+        }
+
+        return base.OnEmailVerified(user, currentStep);
+    }
+
     private bool AreAllQuestionsAnswered() =>
         AuthenticationState.EmailAddressSet &&
             AuthenticationState.EmailAddressVerified &&
