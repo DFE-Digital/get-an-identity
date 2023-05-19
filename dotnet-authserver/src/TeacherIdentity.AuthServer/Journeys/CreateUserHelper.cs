@@ -84,6 +84,12 @@ public class CreateUserHelper
 
         _dbContext.Users.Add(user);
 
+        if (authenticationState.TrnToken is not null && authenticationState.TrnAssociationSource == TrnAssociationSource.TrnToken)
+        {
+            _dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"update trn_tokens set user_id = {userId} where trn_token = {authenticationState.TrnToken};");
+        }
+
         _dbContext.AddEvent(new Events.UserRegisteredEvent()
         {
             ClientId = authenticationState.OAuthState?.ClientId,

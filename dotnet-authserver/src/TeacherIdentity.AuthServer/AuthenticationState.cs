@@ -61,6 +61,7 @@ public class AuthenticationState
         StaffRoles = authStateInitData?.StaffRoles;
         TrnLookupStatus = authStateInitData?.TrnLookupStatus;
         TrnAssociationSource = authStateInitData?.TrnAssociationSource;
+        TrnToken = authStateInitData?.TrnToken;
     }
 
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
@@ -142,6 +143,8 @@ public class AuthenticationState
     public bool? ExistingAccountChosen { get; private set; }
     [JsonInclude]
     public TrnAssociationSource? TrnAssociationSource { get; private set; }
+    [JsonInclude]
+    public string? TrnToken { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.

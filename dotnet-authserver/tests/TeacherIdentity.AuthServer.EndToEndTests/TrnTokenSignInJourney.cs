@@ -1,3 +1,4 @@
+using System.Data.Entity;
 using Moq;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
@@ -55,6 +56,9 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         await page.SubmitCompletePageForNewUser();
 
         await page.AssertSignedInOnTestClient(trnToken.Email, trn, firstName, lastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.NotNull(trnTokenModel?.UserId);
     }
 
     [Fact]

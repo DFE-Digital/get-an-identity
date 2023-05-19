@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.Models;
 
@@ -93,6 +94,14 @@ public partial class TestData
             _mobileNumbers.Add(mobileNumber);
             return mobileNumber;
         }
+    }
+
+    public async Task<TrnTokenModel?> GetTrnToken(string trnToken)
+    {
+        return await WithDbContext(async dbContext =>
+        {
+            return await dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == trnToken);
+        });
     }
 
     public async Task<TrnTokenModel> GenerateTrnToken(string trn, DateTime? expires = null)
