@@ -2,6 +2,6 @@ namespace TeacherIdentity.AuthServer.Infrastructure.RateLimiting;
 
 public class FixedWindowOptions
 {
-    public TimeSpan Window { get; set; } = TimeSpan.Zero;
-    public int PermitLimit { get; set; }
+    public required TimeSpan Window { get; set; }
+    public required int PermitLimit { get; set; }
 }
