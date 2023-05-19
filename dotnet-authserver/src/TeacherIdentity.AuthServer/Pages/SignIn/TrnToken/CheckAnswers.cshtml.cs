@@ -20,7 +20,6 @@ public class CheckAnswers : PageModel
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
     public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
     public string? MobilePhoneNumber => _journey.AuthenticationState.MobileNumber;
-    public string? FullName => _journey.AuthenticationState.GetPreferredName();
     public string? FirstName => _journey.AuthenticationState.FirstName;
     public string? MiddleName => _journey.AuthenticationState.MiddleName;
     public string? LastName => _journey.AuthenticationState.LastName;
