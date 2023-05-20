@@ -297,7 +297,6 @@ public class Program
                     model.Filters.Add(new NoCachePageFilter());
                 });
 
-
             options.Conventions.AddFolderApplicationModelConvention(
                 "/SignIn/Trn",
                 model =>
@@ -522,6 +521,15 @@ public class Program
 
         app.UseSerilogRequestLogging();
         app.UseMiddleware<Infrastructure.Middleware.RequestLogContextMiddleware>();
+
+        app.UseWhen(
+            context => context.Request.Path == new PathString("/.well-known/openid-configuration") && context.Request.Method == HttpMethods.Get,
+            a => a.UseCors(options =>
+            {
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+                options.AllowAnyOrigin();
+            }));
 
         app.UseWhen(
             context => !context.Request.Path.StartsWithSegments("/api") && !context.Request.Path.StartsWithSegments("/connect"),
