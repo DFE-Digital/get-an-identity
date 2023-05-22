@@ -88,7 +88,7 @@ public class CreateUserHelper
 
         if (authenticationState.HasTrnToken)
         {
-            _dbContext.Database.ExecuteSqlInterpolatedAsync(
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync(
                 $"update trn_tokens set user_id = {userId} where trn_token = {authenticationState.TrnToken};");
         }
 
