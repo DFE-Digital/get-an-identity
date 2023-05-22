@@ -4,9 +4,12 @@
     ViewBag.Title = "We could not find an account";
 }
 
-@section BeforeContent
+@if (Model.BackLink is not null)
 {
-    <govuk-back-link href="@Model.BackLink" />
+    @section BeforeContent
+    {
+        <govuk-back-link href="@Model.BackLink" />
+    }
 }
 
 <div class="govuk-panel app-panel--interruption" data-testid="landing-panel">
