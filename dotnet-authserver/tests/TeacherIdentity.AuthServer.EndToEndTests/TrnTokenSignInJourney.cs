@@ -1,4 +1,3 @@
-using System.Data.Entity;
 using Moq;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
