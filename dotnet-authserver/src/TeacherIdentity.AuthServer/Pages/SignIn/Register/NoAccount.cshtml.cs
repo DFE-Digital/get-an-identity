@@ -21,7 +21,7 @@ public class NoAccount : PageModel
         _applicationManager = applicationManager;
     }
 
-    public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+    public string? BackLink => _journey.TryGetPreviousStepUrl(CurrentStep, out var backLink) ? backLink : null;
 
     public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
 
