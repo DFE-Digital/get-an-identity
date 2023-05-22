@@ -560,11 +560,11 @@ public class AuthenticationState
         HaveResumedCompletedJourney = true;
     }
 
-    public void OnExistingAccountFound(User existingUserAccount)
+    public void OnExistingAccountSearch(User? existingUserAccount)
     {
-        ExistingAccountUserId = existingUserAccount.UserId;
-        ExistingAccountEmail = existingUserAccount.EmailAddress;
-        ExistingAccountMobileNumber = existingUserAccount.MobileNumber;
+        ExistingAccountUserId = existingUserAccount?.UserId;
+        ExistingAccountEmail = existingUserAccount?.EmailAddress;
+        ExistingAccountMobileNumber = existingUserAccount?.MobileNumber;
     }
 
     public void OnExistingAccountChosen(bool isUsersAccount)

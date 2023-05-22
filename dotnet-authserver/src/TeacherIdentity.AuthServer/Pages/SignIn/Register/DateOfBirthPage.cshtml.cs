@@ -44,17 +44,18 @@ public class DateOfBirthPage : PageModel
         }
 
         var authenticationState = HttpContext.GetAuthenticationState();
-        authenticationState.OnDateOfBirthSet((DateOnly)DateOfBirth!);
 
-        var users = await _userSearchService.FindUsers(
-            authenticationState.FirstName!,
-            authenticationState.LastName!,
-            (DateOnly)DateOfBirth!);
-
-        if (users.Length > 0)
+        if (authenticationState.DateOfBirth != DateOfBirth)
         {
-            authenticationState.OnExistingAccountFound(users[0]);
+            var users = await _userSearchService.FindUsers(
+                authenticationState.FirstName!,
+                authenticationState.LastName!,
+                DateOfBirth!.Value);
+
+            authenticationState.OnExistingAccountSearch(users.Length == 0 ? null : users[0]);
         }
+
+        authenticationState.OnDateOfBirthSet(DateOfBirth!.Value);
 
         return await _journey.Advance(CurrentStep);
     }

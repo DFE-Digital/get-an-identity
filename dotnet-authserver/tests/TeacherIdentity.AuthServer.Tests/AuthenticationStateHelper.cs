@@ -260,7 +260,7 @@ public sealed class AuthenticationStateHelper
             async s =>
             {
                 await RegisterDateOfBirthSet(dateOfBirth, firstName, lastName, mobileNumber, email)(s);
-                s.OnExistingAccountFound(existingUserAccount ?? await TestData.CreateUser());
+                s.OnExistingAccountSearch(existingUserAccount ?? await TestData.CreateUser());
             };
 
         public Func<AuthenticationState, Task> RegisterExistingUserAccountChosen(
