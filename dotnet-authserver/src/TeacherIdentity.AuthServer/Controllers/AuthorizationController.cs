@@ -486,7 +486,9 @@ public class AuthorizationController : Controller
     {
         var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == trnTokenValue && t.ExpiresUtc > _clock.UtcNow);
 
-        if (trnToken is null || await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is not null)
+        if (trnToken is null ||
+            trnToken.UserId is not null ||
+            await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is not null)
         {
             return null;
         }
@@ -507,8 +509,8 @@ public class AuthorizationController : Controller
             EmailAddress = trnToken.Email,
             EmailAddressVerified = true,
             Trn = trnToken.Trn,
-            TrnAssociationSource = TrnAssociationSource.TrnToken,
             TrnLookupStatus = TrnLookupStatus.Found,
+            TrnToken = trnToken.TrnToken,
         };
     }
 }

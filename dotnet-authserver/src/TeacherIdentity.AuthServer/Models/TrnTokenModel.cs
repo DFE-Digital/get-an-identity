@@ -10,4 +10,5 @@ public class TrnTokenModel
     public required string Email { get; set; }
     public required DateTime CreatedUtc { get; set; }
     public required DateTime ExpiresUtc { get; set; }
+    public Guid? UserId { get; set; }
 }

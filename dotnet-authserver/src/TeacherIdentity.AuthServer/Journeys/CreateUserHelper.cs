@@ -62,6 +62,8 @@ public class CreateUserHelper
     public async Task<User> CreateUserWithTrn(AuthenticationState authenticationState)
     {
         var userId = Guid.NewGuid();
+        TrnAssociationSource? trnAssociationSource = authenticationState.Trn is null ? null :
+            authenticationState.HasTrnToken ? TrnAssociationSource.TrnToken : TrnAssociationSource.Lookup;
 
         var user = new User()
         {
@@ -76,13 +78,19 @@ public class CreateUserHelper
             UserId = userId,
             UserType = UserType.Default,
             Trn = authenticationState.Trn,
-            TrnAssociationSource = authenticationState.TrnAssociationSource,
+            TrnAssociationSource = trnAssociationSource,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus
         };
 
         _dbContext.Users.Add(user);
+
+        if (authenticationState.HasTrnToken)
+        {
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"update trn_tokens set user_id = {userId} where trn_token = {authenticationState.TrnToken};");
+        }
 
         _dbContext.AddEvent(new Events.UserRegisteredEvent()
         {
