@@ -14,7 +14,7 @@ public class SignInJourneyProvider
                 return ActivatorUtilities.CreateInstance<LegacyTrnJourney>(httpContext.RequestServices, httpContext);
             }
 
-            return authenticationState.TrnAssociationSource == TrnAssociationSource.TrnToken ?
+            return authenticationState.HasTrnToken ?
                 ActivatorUtilities.CreateInstance<TrnTokenSignInJourney>(httpContext.RequestServices, httpContext) :
                 ActivatorUtilities.CreateInstance<CoreSignInJourneyWithTrnLookup>(httpContext.RequestServices, httpContext);
         }

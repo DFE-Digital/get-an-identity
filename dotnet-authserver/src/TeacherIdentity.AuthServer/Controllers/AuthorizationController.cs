@@ -509,7 +509,6 @@ public class AuthorizationController : Controller
             EmailAddress = trnToken.Email,
             EmailAddressVerified = true,
             Trn = trnToken.Trn,
-            TrnAssociationSource = TrnAssociationSource.TrnToken,
             TrnLookupStatus = TrnLookupStatus.Found,
             TrnToken = trnToken.TrnToken,
         };
