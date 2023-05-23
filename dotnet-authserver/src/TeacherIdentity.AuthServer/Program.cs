@@ -24,7 +24,6 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using Sentry.AspNetCore;
 using Serilog;
-using StackExchange.Redis;
 using TeacherIdentity.AuthServer.Api;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Helpers;
@@ -32,6 +31,7 @@ using TeacherIdentity.AuthServer.Infrastructure;
 using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.RateLimiting;
+using TeacherIdentity.AuthServer.Infrastructure.Redis;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Infrastructure.Swagger;
 using TeacherIdentity.AuthServer.Journeys;
@@ -80,20 +80,8 @@ public class Program
                 .PersistKeysToAzureBlobStorage(
                     connectionString: builder.Configuration.GetConnectionString("DataProtectionBlobStorage"),
                     containerName: builder.Configuration["DataProtectionKeysContainerName"],
-                    blobName: "keys");
-
-            var redisConfiguration = ConfigurationOptions.Parse(
-                builder.Configuration.GetConnectionString("Redis") ?? throw new Exception("Connection string Redis is missing."));
-
-            builder.Services.AddStackExchangeRedisCache(options =>
-            {
-                options.ConfigurationOptions = redisConfiguration;
-            });
-
-            builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConfiguration));
+            blobName: "keys");
         }
-
-        builder.Services.AddRateLimiting(builder.Environment, builder.Configuration);
 
         builder.Services.AddAntiforgery(options =>
         {
@@ -504,6 +492,12 @@ public class Program
                 new QueryStringSignatureHelper(
                     builder.Configuration["QueryStringSignatureKey"] ?? throw new Exception("QueryStringSignatureKey missing from configuration.")))
             .AddSignInJourneyStateProvider();
+
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddRedis(builder.Environment, builder.Configuration, healthCheckBuilder);
+            builder.Services.AddRateLimiting(builder.Environment, builder.Configuration);
+        }
 
         builder.Services.AddNotifications(builder.Environment, builder.Configuration);
 
