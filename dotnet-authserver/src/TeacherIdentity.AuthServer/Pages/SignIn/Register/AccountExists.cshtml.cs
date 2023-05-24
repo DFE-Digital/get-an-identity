@@ -7,7 +7,7 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup), typeof(TrnTokenSignInJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class AccountExists : BaseExistingEmailPageModel
 {
@@ -52,6 +52,7 @@ public class AccountExists : BaseExistingEmailPageModel
         if (IsUsersAccount == true)
         {
             var emailPinGenerationResult = await GenerateEmailPinForExistingEmail(ExistingAccountEmail!);
+
             return emailPinGenerationResult.Success
                 ? await _journey.Advance(CurrentStep)
                 : emailPinGenerationResult.Result!;

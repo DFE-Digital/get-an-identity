@@ -12,3 +12,11 @@ public class TrnTokenModel
     public required DateTime ExpiresUtc { get; set; }
     public Guid? UserId { get; set; }
 }
+
+public class EnhancedTrnToken : TrnTokenModel
+{
+    public required string FirstName { get; set; }
+    public required string? MiddleName { get; set; }
+    public required string LastName { get; set; }
+    public required DateOnly DateOfBirth { get; set; }
+}

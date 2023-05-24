@@ -25,7 +25,8 @@ public class AuthenticationState
         string postSignInUrl,
         DateTime startedAt,
         string? sessionId = null,
-        OAuthAuthorizationState? oAuthState = null)
+        OAuthAuthorizationState? oAuthState = null,
+        bool? firstTimeSignInForEmail = null)
     {
         JourneyId = journeyId;
         UserRequirements = userRequirements;
@@ -33,34 +34,7 @@ public class AuthenticationState
         SessionId = sessionId;
         StartedAt = startedAt;
         OAuthState = oAuthState;
-    }
-
-    public AuthenticationState(
-        Guid journeyId,
-        UserRequirements userRequirements,
-        string postSignInUrl,
-        DateTime startedAt,
-        bool firstTimeSignInForEmail,
-        AuthenticationStateInitializationData? authStateInitData,
-        string? sessionId = null,
-        OAuthAuthorizationState? oAuthState = null) :
-        this(journeyId, userRequirements, postSignInUrl, startedAt, sessionId, oAuthState)
-    {
-        UserId = authStateInitData?.UserId;
         FirstTimeSignInForEmail = firstTimeSignInForEmail;
-        EmailAddress = authStateInitData?.EmailAddress;
-        EmailAddressVerified = authStateInitData?.EmailAddressVerified == true;
-        FirstName = authStateInitData?.FirstName;
-        MiddleName = authStateInitData?.MiddleName;
-        LastName = authStateInitData?.LastName;
-        DateOfBirth = authStateInitData?.DateOfBirth;
-        Trn = authStateInitData?.Trn;
-        HaveCompletedTrnLookup = authStateInitData?.HaveCompletedTrnLookup is not null;
-        TrnLookup = authStateInitData?.HaveCompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None;
-        UserType = authStateInitData?.UserType;
-        StaffRoles = authStateInitData?.StaffRoles;
-        TrnLookupStatus = authStateInitData?.TrnLookupStatus;
-        TrnToken = authStateInitData?.TrnToken;
     }
 
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
@@ -251,6 +225,7 @@ public class AuthenticationState
         HasTrn = default;
         StatedTrn = default;
         HasPreviousName = default;
+        TrnToken = default;
     }
 
     public void OnEmailSet(string email)
@@ -585,6 +560,35 @@ public class AuthenticationState
         UpdateAuthenticationStateWithUserDetails(user);
     }
 
+    public void OnSignedInUserProvided(User? user)
+    {
+        UserId = user?.UserId;
+        EmailAddress = user?.EmailAddress;
+        EmailAddressVerified = user is not null;
+        FirstName = user?.FirstName;
+        LastName = user?.LastName;
+        DateOfBirth = user?.DateOfBirth;
+        Trn = user?.Trn;
+        HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null;
+        TrnLookup = user?.CompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None;
+        UserType = user?.UserType;
+        StaffRoles = user?.StaffRoles;
+        TrnLookupStatus = user?.TrnLookupStatus;
+    }
+
+    public void OnTrnTokenProvided(EnhancedTrnToken trnToken)
+    {
+        TrnToken = trnToken.TrnToken;
+        Trn = trnToken.Trn;
+        TrnLookupStatus = AuthServer.TrnLookupStatus.Found;
+        FirstName ??= trnToken.FirstName;
+        MiddleName ??= trnToken.MiddleName;
+        LastName ??= trnToken.LastName;
+        DateOfBirth ??= trnToken.DateOfBirth;
+        EmailAddress = trnToken.Email;
+        EmailAddressVerified = true;
+    }
+
     public string? GetOfficialName()
     {
         return GetFullName(OfficialFirstName, OfficialLastName);
@@ -659,15 +663,20 @@ public class AuthenticationState
         FirstName = user.FirstName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
-        HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
-        Trn = user.Trn;
         UserType = user.UserType;
         StaffRoles = user.StaffRoles;
-        TrnLookupStatus = user.TrnLookupStatus;
 
-        if (HaveCompletedTrnLookup || Trn is not null)
+        if (!HasTrnToken)
         {
-            TrnLookup = TrnLookupState.Complete;
+            // If we are in a TRN token sign-in journey we don't want to update these values
+            HaveCompletedTrnLookup = user.CompletedTrnLookup is not null;
+            Trn = user.Trn;
+            TrnLookupStatus = user.TrnLookupStatus;
+
+            if (HaveCompletedTrnLookup || Trn is not null)
+            {
+                TrnLookup = TrnLookupState.Complete;
+            }
         }
     }
 }

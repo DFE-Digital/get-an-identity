@@ -19,7 +19,8 @@ public static class ServiceCollectionExtensions
 
         services
             .AddTransient<TrnLookupHelper>()
-            .AddTransient<CreateUserHelper>();
+            .AddTransient<CreateUserHelper>()
+            .AddTransient<TrnTokenHelper>();
 
         services.AddTransient<LegacyTrnJourney>(
             sp => sp.GetRequiredService<SignInJourney>() as LegacyTrnJourney ??

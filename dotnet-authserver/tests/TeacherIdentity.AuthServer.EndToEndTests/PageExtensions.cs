@@ -101,6 +101,12 @@ public static class PageExtensions
         await page.ClickAsync("a:text-is('Sign in')");
     }
 
+    public static async Task SignInFromTrnTokenLandingPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/trn-token");
+        await page.ClickAsync("a:text-is('Sign in')");
+    }
+
     public static async Task SubmitEmailPage(this IPage page, string email)
     {
         await page.WaitForUrlPathAsync("/sign-in/email");
@@ -292,7 +298,7 @@ public static class PageExtensions
     public static async Task RegisterFromTrnTokenLandingPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/trn-token");
-        await page.ClickAsync("a:text-is('Create an account')");
+        await page.ClickButton("Create an account");
     }
 
     public static async Task SubmitRegisterEmailPage(this IPage page, string email)
