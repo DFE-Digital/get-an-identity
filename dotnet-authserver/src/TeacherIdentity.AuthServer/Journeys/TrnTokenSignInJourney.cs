@@ -6,16 +6,12 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class TrnTokenSignInJourney : SignInJourney
 {
-    private readonly TrnTokenHelper _trnTokenHelper;
-
     public TrnTokenSignInJourney(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper,
-        TrnTokenHelper trnTokenHelper)
+        CreateUserHelper createUserHelper)
         : base(httpContext, linkGenerator, createUserHelper)
     {
-        _trnTokenHelper = trnTokenHelper;
     }
 
     public override async Task<IActionResult> CreateUser(string currentStep)
@@ -34,16 +30,6 @@ public class TrnTokenSignInJourney : SignInJourney
         }
 
         return new RedirectResult(GetNextStepUrl(currentStep));
-    }
-
-    public override async Task<IActionResult> OnEmailVerified(User? user, string currentStep)
-    {
-        if (user is not null && user.UserType != UserType.Staff)
-        {
-            await _trnTokenHelper.ApplyTrnTokenToUser(user.UserId, AuthenticationState.TrnToken!);
-        }
-
-        return await base.OnEmailVerified(user, currentStep);
     }
 
     public override bool CanAccessStep(string step)
