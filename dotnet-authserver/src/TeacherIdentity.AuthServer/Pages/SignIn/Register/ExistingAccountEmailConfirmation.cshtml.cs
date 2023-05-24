@@ -64,7 +64,7 @@ public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
         authenticationState.OnExistingAccountVerified(User!);
         await authenticationState.SignIn(HttpContext);
 
-        return await _journey.OnEmailVerified(User, CurrentStep);
+        return await _journey.Advance(CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
