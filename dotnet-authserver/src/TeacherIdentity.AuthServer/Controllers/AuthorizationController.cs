@@ -396,6 +396,7 @@ public class AuthorizationController : Controller
         {
             case Claims.Name:
             case Claims.GivenName:
+            case Claims.MiddleName:
             case Claims.FamilyName:
             case Claims.Birthdate:
             case CustomClaims.PreferredName:

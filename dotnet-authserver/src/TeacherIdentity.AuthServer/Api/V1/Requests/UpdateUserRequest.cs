@@ -14,6 +14,7 @@ public record UpdateUserRequestBody
 {
     private string? _email;
     private string? _firstName;
+    private string? _middleName;
     private string? _lastName;
 
     [SwaggerSchema(Nullable = false)]
@@ -39,6 +40,17 @@ public record UpdateUserRequestBody
     }
 
     [SwaggerSchema(Nullable = false)]
+    public string? MiddleName
+    {
+        get => _middleName;
+        set
+        {
+            _middleName = value;
+            MiddleNameSet = true;
+        }
+    }
+
+    [SwaggerSchema(Nullable = false)]
     public string? LastName
     {
         get => _lastName;
@@ -52,6 +64,8 @@ public record UpdateUserRequestBody
     internal bool EmailSet { get; private set; } = false;
 
     internal bool FirstNameSet { get; private set; } = false;
+
+    internal bool MiddleNameSet { get; private set; } = false;
 
     internal bool LastNameSet { get; private set; } = false;
 }

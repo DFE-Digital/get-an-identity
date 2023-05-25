@@ -12,6 +12,7 @@ public class User
     public Guid UserId { get; set; }
     public required string EmailAddress { get; set; }
     public required string FirstName { get; set; }
+    public string? MiddleName { get; set; }
     public required string LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public required DateTime Created { get; set; }

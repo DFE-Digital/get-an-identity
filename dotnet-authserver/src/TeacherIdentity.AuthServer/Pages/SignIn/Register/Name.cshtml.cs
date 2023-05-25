@@ -32,6 +32,11 @@ public class Name : PageModel
     public string? FirstName { get; set; }
 
     [BindProperty]
+    [Display(Name = "Middle name")]
+    [StringLength(200, ErrorMessage = "Middle name must be 200 characters or less")]
+    public string? MiddleName { get; set; }
+
+    [BindProperty]
     [Display(Name = "Last name")]
     [Required(ErrorMessage = "Enter your last name")]
     [StringLength(200, ErrorMessage = "Last name must be 200 characters or less")]
@@ -62,7 +67,7 @@ public class Name : PageModel
             authenticationState.OnExistingAccountSearch(users.Length == 0 ? null : users[0]);
         }
 
-        HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!);
+        HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!, MiddleName);
 
         return await _journey.Advance(CurrentStep);
     }
@@ -70,6 +75,7 @@ public class Name : PageModel
     private void SetDefaultInputValues()
     {
         FirstName ??= _journey.AuthenticationState.FirstName;
+        MiddleName ??= _journey.AuthenticationState.MiddleName;
         LastName ??= _journey.AuthenticationState.LastName;
     }
 }

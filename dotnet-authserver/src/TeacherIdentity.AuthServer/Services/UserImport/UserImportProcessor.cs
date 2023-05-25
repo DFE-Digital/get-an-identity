@@ -167,6 +167,7 @@ public class UserImportProcessor : IUserImportProcessor
                         UserId = Guid.NewGuid(),
                         EmailAddress = row.EmailAddress!,
                         FirstName = row.FirstName!,
+                        MiddleName = null,
                         LastName = row.LastName!,
                         Created = _clock.UtcNow,
                         Updated = _clock.UtcNow,

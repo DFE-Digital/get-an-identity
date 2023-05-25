@@ -138,6 +138,29 @@ public class NameTests : TestBase
     }
 
     [Fact]
+    public async Task Post_TooLongMiddleName_ReturnsError()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "FirstName", Faker.Name.First() },
+                { "MiddleName", new string('a', 201) },
+                { "LastName", Faker.Name.Last() },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "MiddleName", "Middle name must be 200 characters or less");
+    }
+
+    [Fact]
     public async Task Post_TooLongLastName_ReturnsError()
     {
         // Arrange
@@ -165,6 +188,7 @@ public class NameTests : TestBase
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/name?{authStateHelper.ToQueryParam()}")
@@ -172,6 +196,7 @@ public class NameTests : TestBase
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "FirstName", firstName },
+                { "MiddleName", middleName },
                 { "LastName", lastName },
             }
         };

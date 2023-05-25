@@ -111,6 +111,7 @@ public class PublishEventsBackgroundServiceTests : IClassFixture<DbFixture>, IAs
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             EmailAddress = Faker.Internet.Email(),
             FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.Middle(),
             LastName = Faker.Name.Last(),
             StaffRoles = Array.Empty<string>(),
             Trn = null,

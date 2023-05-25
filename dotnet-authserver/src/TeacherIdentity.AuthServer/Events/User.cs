@@ -7,6 +7,7 @@ public record User
     public required Guid UserId { get; init; }
     public required string EmailAddress { get; init; }
     public required string FirstName { get; init; }
+    public required string? MiddleName { get; init; }
     public required string LastName { get; init; }
     public required DateOnly? DateOfBirth { get; init; }
     public required UserType UserType { get; init; }
@@ -21,6 +22,7 @@ public record User
         DateOfBirth = user.DateOfBirth,
         EmailAddress = user.EmailAddress,
         FirstName = user.FirstName,
+        MiddleName = user.MiddleName,
         LastName = user.LastName,
         StaffRoles = user.StaffRoles,
         Trn = user.Trn,

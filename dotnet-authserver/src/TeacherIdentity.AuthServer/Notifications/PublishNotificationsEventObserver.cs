@@ -55,6 +55,7 @@ public class PublishNotificationsEventObserver : IEventObserver
                         DateOfBirth = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.DateOfBirth) ? Option.Some(userUpdated.User.DateOfBirth) : default,
                         EmailAddress = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.EmailAddress) ? Option.Some(userUpdated.User.EmailAddress) : default,
                         FirstName = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.FirstName) ? Option.Some(userUpdated.User.FirstName) : default,
+                        MiddleName = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.MiddleName) ? Option.Some(userUpdated.User.MiddleName) : default,
                         LastName = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.LastName) ? Option.Some(userUpdated.User.LastName) : default,
                         Trn = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.Trn) ? Option.Some(userUpdated.User.Trn) : default,
                         MobileNumber = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.MobileNumber) ? Option.Some(userUpdated.User.MobileNumber) : default,

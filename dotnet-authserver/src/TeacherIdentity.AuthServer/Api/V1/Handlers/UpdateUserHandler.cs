@@ -52,6 +52,12 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, UserInfo>
             changes |= UserUpdatedEventChanges.FirstName;
         }
 
+        if (request.Body.MiddleNameSet && request.Body.MiddleName != user.MiddleName)
+        {
+            user.MiddleName = request.Body.MiddleName;
+            changes |= UserUpdatedEventChanges.MiddleName;
+        }
+
         if (request.Body.LastNameSet && request.Body.LastName != user.LastName)
         {
             user.LastName = request.Body.LastName!;
@@ -80,6 +86,7 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, UserInfo>
             DateOfBirth = user.DateOfBirth,
             Email = user.EmailAddress,
             FirstName = user.FirstName,
+            MiddleName = user.MiddleName,
             LastName = user.LastName,
             Trn = user.Trn,
             TrnLookupStatus = user.TrnLookupStatus,

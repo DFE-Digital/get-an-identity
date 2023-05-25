@@ -51,6 +51,7 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailRequest, GetUse
             UserId = user.UserId,
             Email = user.EmailAddress,
             FirstName = user.FirstName,
+            MiddleName = user.MiddleName,
             LastName = user.LastName,
             DateOfBirth = user.DateOfBirth,
             Trn = user.Trn,

@@ -137,6 +137,7 @@ public class UpdateUserTests : TestBase
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
         var updatedEmail = Faker.Internet.Email();
         var updatedFirstName = Faker.Name.First();
+        var updatedMiddleName = Faker.Name.Middle();
         var updatedLastName = Faker.Name.Last();
 
         var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/users/{user.UserId}")
@@ -145,6 +146,7 @@ public class UpdateUserTests : TestBase
             {
                 email = updatedEmail,
                 firstName = updatedFirstName,
+                middleName = updatedMiddleName,
                 lastName = updatedLastName
             })
         };
@@ -160,6 +162,7 @@ public class UpdateUserTests : TestBase
         Assert.Equal(user.UserId, responseObj.RootElement.GetProperty("userId").GetGuid());
         Assert.Equal(updatedEmail, responseObj.RootElement.GetProperty("email").GetString());
         Assert.Equal(updatedFirstName, responseObj.RootElement.GetProperty("firstName").GetString());
+        Assert.Equal(updatedMiddleName, responseObj.RootElement.GetProperty("middleName").GetString());
         Assert.Equal(updatedLastName, responseObj.RootElement.GetProperty("lastName").GetString());
 
         user = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
@@ -171,7 +174,7 @@ public class UpdateUserTests : TestBase
                 var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                 Assert.Equal(UserUpdatedEventSource.Api, userUpdatedEvent.Source);
-                Assert.Equal(UserUpdatedEventChanges.EmailAddress | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(UserUpdatedEventChanges.EmailAddress | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.LastName | UserUpdatedEventChanges.MiddleName, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
                 Assert.Equal(TestClients.DefaultClient.ClientId, userUpdatedEvent.UpdatedByClientId);
                 Assert.Equal(TestUsers.AdminUserWithAllRoles.UserId, userUpdatedEvent.UpdatedByUserId);
