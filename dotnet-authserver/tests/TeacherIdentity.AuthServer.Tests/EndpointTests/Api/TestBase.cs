@@ -29,13 +29,13 @@ public class TestBase
 
     public HttpClient ApiKeyHttpClient { get; }
 
-    public Task<HttpClient> CreateHttpClientWithToken(string? scope)
+    public Task<HttpClient> CreateHttpClientWithToken(bool withUser, string? scope)
     {
         var scopes = !string.IsNullOrEmpty(scope) ? new[] { scope } : Array.Empty<string>();
-        return CreateHttpClientWithToken(scopes);
+        return CreateHttpClientWithToken(withUser, scopes);
     }
 
-    public async Task<HttpClient> CreateHttpClientWithToken(params string[] scopes)
+    public async Task<HttpClient> CreateHttpClientWithToken(bool withUser = true, params string[] scopes)
     {
         using var scope = HostFixture.Services.CreateScope();
         var userClaimHelper = scope.ServiceProvider.GetRequiredService<UserClaimHelper>();
@@ -43,9 +43,11 @@ public class TestBase
         var userId = TestUsers.AdminUserWithAllRoles.UserId;
         var client = TestClients.DefaultClient;
 
-        var allScopes = new[] { "email", "profile", "openid" }.Concat(scopes).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var allScopes = (withUser ? new[] { "email", "profile", "openid" } : Array.Empty<string>())
+            .Concat(scopes)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var claims = (await userClaimHelper.GetPublicClaims(userId, hasScope: allScopes.Contains))
+        var claims = (withUser ? await userClaimHelper.GetPublicClaims(userId, hasScope: allScopes.Contains) : Array.Empty<Claim>())
             .Append(new Claim("client_id", client.ClientId!))
             .Append(new Claim(Claims.Issuer, new Uri(HostFixture.Configuration["BaseAddress"]!).AbsoluteUri))
             .Append(new Claim(Claims.Scope, string.Join(" ", allScopes)));

@@ -14,7 +14,7 @@ public class GetUserDetailTests : TestBase
     public async Task Get_UserDoesNotHavePermission_ReturnsForbidden(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         // Act
         var response = await httpClient.GetAsync("/api/v1/users");
@@ -28,7 +28,7 @@ public class GetUserDetailTests : TestBase
     public async Task Get_UserDoesNotExist_ReturnsNotFound(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
         var userId = Guid.NewGuid();
 
         // Act
@@ -43,7 +43,7 @@ public class GetUserDetailTests : TestBase
     public async Task Get_MergedUser_ReturnsUserMergedInto(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var registeredWithClient = TestClients.DefaultClient;
         var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);
@@ -77,7 +77,7 @@ public class GetUserDetailTests : TestBase
     public async Task Get_ValidRequest_ReturnsUser(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var registeredWithClient = TestClients.DefaultClient;
         var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);

@@ -24,7 +24,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_UserDoesNotHavePermission_ReturnsForbidden(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         // Act
         var response = await httpClient.GetAsync("/api/v1/users");
@@ -38,7 +38,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_ValidRequestWithoutPagingParameters_ReturnsAllTeachers(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var user1 = await TestData.CreateUser(hasTrn: true);
         var user2 = await TestData.CreateUser(hasTrn: true);
@@ -75,7 +75,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_WithInvalidPageSize_ReturnsBadRequest(int pageSize)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(CustomScopes.UserRead);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, CustomScopes.UserRead);
 
         // Act
         var response = await httpClient.GetAsync($"/api/v1/users?pageNumber=1&pageSize={pageSize}");
@@ -90,7 +90,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_WithInvalidPageNumber_ReturnsBadRequest(int page)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(CustomScopes.UserRead);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, CustomScopes.UserRead);
 
         // Act
         var response = await httpClient.GetAsync($"/api/v1/users?pageNumber={page}&pageSize=50");
@@ -103,7 +103,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_ValidRequestWithOutOfRangePageNumber_ReturnsEmptyCollection()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(CustomScopes.UserWrite);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, CustomScopes.UserWrite);
 
         var user1 = await TestData.CreateUser(hasTrn: true);
         var user2 = await TestData.CreateUser(hasTrn: true);
@@ -125,7 +125,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_ValidRequestWithValidPageRange_ReturnsCorrectPage(int page)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(CustomScopes.UserWrite);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, CustomScopes.UserWrite);
         var pageSize = 3;
         var skip = (page - 1) * pageSize;
 
@@ -159,7 +159,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
     public async Task Get_ValidRequestWithTrnLookupStatusFilter_OnlyReturnsUsersMatchingTrnLookupStatus()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(CustomScopes.UserWrite);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, CustomScopes.UserWrite);
 
         var userWithNoneStatus = await TestData.CreateUser(trnLookupStatus: TrnLookupStatus.None);
         var userWithPendingStatus = await TestData.CreateUser(trnLookupStatus: TrnLookupStatus.Pending);

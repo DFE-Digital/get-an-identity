@@ -16,7 +16,7 @@ public class UpdateUserTests : TestBase
     public async Task Patch_UserDoesNotHavePermission_ReturnsForbidden(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
         var updatedEmail = Faker.Internet.Email();
@@ -44,7 +44,7 @@ public class UpdateUserTests : TestBase
     public async Task Patch_UserDoesNotExist_ReturnsNotFound()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, PermittedScopes.First());
 
         var userId = Guid.NewGuid();
         var updatedEmail = Faker.Internet.Email();
@@ -72,7 +72,7 @@ public class UpdateUserTests : TestBase
     public async Task Patch_UserIsNotDefaultUserType_ReturnsForbidden()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, PermittedScopes.First());
 
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
         var updatedEmail = Faker.Internet.Email();
@@ -106,7 +106,7 @@ public class UpdateUserTests : TestBase
         string expectedErrorMessage)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, PermittedScopes.First());
 
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
@@ -132,7 +132,7 @@ public class UpdateUserTests : TestBase
     public async Task Patch_ValidRequestWithAllFields_UpdatesUserAndReturnsUpdatedDetails(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
         var updatedEmail = Faker.Internet.Email();
@@ -182,7 +182,7 @@ public class UpdateUserTests : TestBase
     public async Task Patch_WithNoFieldsSpecified_ReturnsUserDetails()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, PermittedScopes.First());
 
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 

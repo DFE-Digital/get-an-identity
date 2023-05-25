@@ -246,10 +246,11 @@ public class Program
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
-                AuthorizationPolicies.TrnTokenApi,
+                AuthorizationPolicies.ApiTrnTokenWrite,
                 policy => policy
-                    .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.AuthenticationScheme)
-                    .RequireAuthenticatedUser());
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .AddRequirements(new ScopeAuthorizationRequirement(CustomScopes.TrnTokenWrite)));
 
             options.AddPolicy(
                 AuthorizationPolicies.ApiUserRead,
