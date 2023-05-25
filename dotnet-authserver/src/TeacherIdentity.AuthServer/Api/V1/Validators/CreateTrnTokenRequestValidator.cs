@@ -4,9 +4,9 @@ using TeacherIdentity.AuthServer.Api.Validation;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Validators;
 
-public class PostTrnTokensRequestValidator : AbstractValidator<PostTrnTokensRequest>
+public class CreateTrnTokenRequestValidator : AbstractValidator<CreateTrnTokenRequest>
 {
-    public PostTrnTokensRequestValidator()
+    public CreateTrnTokenRequestValidator()
     {
         RuleFor(r => r.Trn)
             .Must(trn => trn is null || (trn.Length == 7 && trn.All(Char.IsAsciiDigit)))

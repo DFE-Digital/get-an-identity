@@ -7,12 +7,12 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Handlers;
 
-public class PostTrnTokensHandler : IRequestHandler<PostTrnTokensRequest, PostTrnTokenResponse>
+public class CreateTrnTokenHandler : IRequestHandler<CreateTrnTokenRequest, CreateTrnTokenResponse>
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
 
-    public PostTrnTokensHandler(
+    public CreateTrnTokenHandler(
         TeacherIdentityServerDbContext dbContext,
         IClock clock)
     {
@@ -20,14 +20,14 @@ public class PostTrnTokensHandler : IRequestHandler<PostTrnTokensRequest, PostTr
         _clock = clock;
     }
 
-    public async Task<PostTrnTokenResponse> Handle(PostTrnTokensRequest request, CancellationToken cancellationToken)
+    public async Task<CreateTrnTokenResponse> Handle(CreateTrnTokenRequest request, CancellationToken cancellationToken)
     {
         string trnToken;
         do
         {
             var buffer = new byte[64];
             RandomNumberGenerator.Fill(buffer);
-            trnToken = Convert.ToHexString(buffer);
+            trnToken = Convert.ToHexString(buffer).ToLower();
         } while (await _dbContext.TrnTokens.AnyAsync(t => t.TrnToken == trnToken, cancellationToken));
 
         var created = _clock.UtcNow;
@@ -44,7 +44,7 @@ public class PostTrnTokensHandler : IRequestHandler<PostTrnTokensRequest, PostTr
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new PostTrnTokenResponse()
+        return new CreateTrnTokenResponse()
         {
             Trn = request.Trn,
             Email = request.Email,

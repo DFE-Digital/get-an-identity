@@ -23,11 +23,11 @@ public class TrnTokensController : ControllerBase
     [Authorize(AuthorizationPolicies.ApiTrnTokenWrite)]
     [HttpPost("")]
     [SwaggerOperation(summary: "Generates a TRN token")]
-    [ProducesResponseType(typeof(PostTrnTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CreateTrnTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [MapError(10003, statusCode: StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PostTrnToken([FromBody] PostTrnTokensRequest request)
+    public async Task<IActionResult> CreateTrnToken([FromBody] CreateTrnTokenRequest request)
     {
         var response = await _mediator.Send(request);
         return Ok(response);

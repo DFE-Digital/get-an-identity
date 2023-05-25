@@ -3,7 +3,7 @@ using TeacherIdentity.AuthServer.Api.V1.Responses;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Requests;
 
-public record PostTrnTokensRequest : IRequest<PostTrnTokenResponse>
+public record CreateTrnTokenRequest : IRequest<CreateTrnTokenResponse>
 {
     public required string Trn { get; init; }
 

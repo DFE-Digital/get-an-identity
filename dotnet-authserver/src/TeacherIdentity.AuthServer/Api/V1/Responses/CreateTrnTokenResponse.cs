@@ -1,6 +1,6 @@
 namespace TeacherIdentity.AuthServer.Api.V1.Responses;
 
-public record PostTrnTokenResponse
+public record CreateTrnTokenResponse
 {
     public required string Trn { get; init; }
     public required string Email { get; set; }
