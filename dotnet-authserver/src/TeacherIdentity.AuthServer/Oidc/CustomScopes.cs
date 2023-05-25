@@ -7,8 +7,14 @@ public static class CustomScopes
     public const string UserWrite = "user:write";
     public const string DqtRead = "dqt:read";
     public const string Trn = "trn";
+    public const string TrnTokenWrite = "trn_token:write";
 
     public static string[] All => StaffUserTypeScopes.Concat(DefaultUserTypesScopes).ToArray();
+
+    public static string[] NonUserLevelScopes { get; } = new[]
+    {
+        TrnTokenWrite
+    };
 
     public static string[] StaffUserTypeScopes { get; } = new[]
     {

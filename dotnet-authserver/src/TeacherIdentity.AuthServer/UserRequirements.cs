@@ -61,6 +61,12 @@ public static class UserRequirementsExtensions
     {
         userRequirements = UserRequirements.None;
 
+        if (CustomScopes.NonUserLevelScopes.Any(hasScope))
+        {
+            invalidScopeErrorMessage = "A non user-level scope was specified.";
+            return false;
+        }
+
         if (hasScope(CustomScopes.Trn) || hasScope(CustomScopes.DqtRead))
         {
             userRequirements |= UserRequirements.DefaultUserType | UserRequirements.TrnHolder;

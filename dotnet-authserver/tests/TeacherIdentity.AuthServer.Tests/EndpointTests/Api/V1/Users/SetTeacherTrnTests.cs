@@ -17,7 +17,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_UserDoesNotHavePermission_ReturnsForbidden(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var user = await TestData.CreateUser(hasTrn: false);
         var trn = TestData.GenerateTrn();
@@ -41,7 +41,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_UserDoesNotExist_ReturnsNotFound()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope: PermittedScopes.First());
 
         var userId = Guid.NewGuid();
         var trn = TestData.GenerateTrn();
@@ -65,7 +65,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_UserIsNotTeacher_ReturnsError()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope: PermittedScopes.First());
 
         var user = await TestData.CreateUser(userType: Models.UserType.Staff);
         var trn = TestData.GenerateTrn();
@@ -90,7 +90,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_TrnIsInvalid_ReturnsError(string trn)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope: PermittedScopes.First());
 
         var user = await TestData.CreateUser(hasTrn: false);
 
@@ -113,7 +113,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_TrnIsAlreadyInUse_ReturnsError()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope: PermittedScopes.First());
 
         var user = await TestData.CreateUser(hasTrn: false);
         var otherUser = await TestData.CreateUser(hasTrn: true);
@@ -138,7 +138,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_UserAlreadyHasTrn_ReturnsError()
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope: PermittedScopes.First());
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope: PermittedScopes.First());
 
         var user = await TestData.CreateUser(hasTrn: true);
         var trn = TestData.GenerateTrn();
@@ -163,7 +163,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_ValidRequestWithNonEmptyTrn_UpdatesUserAndReturnsNoContent(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var user = await TestData.CreateUser(hasTrn: false);
         var trn = TestData.GenerateTrn();
@@ -209,7 +209,7 @@ public class SetTeacherTrnTests : TestBase
     public async Task Put_ValidRequestWithEmptyTrn_UpdatesUserAndReturnsNoContent(string scope)
     {
         // Arrange
-        var httpClient = await CreateHttpClientWithToken(scope);
+        var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var user = await TestData.CreateUser(hasTrn: false);
         string? trn = null;

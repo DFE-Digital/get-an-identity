@@ -1,7 +1,5 @@
-using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using TeacherIdentity.AuthServer.Api.V1.Requests;
+using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.TrnTokens;
 
@@ -16,10 +14,18 @@ public class PostTrnTokenTests : TestBase
     public async Task Post_EmptyTrn_ReturnsBadRequest()
     {
         // Arrange
-        var content = new StringContent("{\"Email\":\"testuser@example.com\"}", Encoding.UTF8, "application/json");
+        var httpClient = await CreateHttpClientWithToken(withUser: false, CustomScopes.TrnTokenWrite);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/trn-tokens")
+        {
+            Content = JsonContent.Create(new
+            {
+                email = Faker.Internet.Email()
+            })
+        };
 
         // Act
-        var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
+        var response = await httpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -29,16 +35,19 @@ public class PostTrnTokenTests : TestBase
     public async Task Post_InvalidTrn_ReturnsBadRequest()
     {
         // Arrange
-        var trnTokenRequest = new PostTrnTokensRequest()
+        var httpClient = await CreateHttpClientWithToken(withUser: false, CustomScopes.TrnTokenWrite);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/trn-tokens")
         {
-            Trn = "1",
-            Email = Faker.Internet.Email(),
+            Content = JsonContent.Create(new
+            {
+                email = Faker.Internet.Email(),
+                trn = "1"
+            })
         };
 
-        var content = new StringContent(JsonConvert.SerializeObject(trnTokenRequest), Encoding.UTF8, "application/json");
-
         // Act
-        var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
+        var response = await httpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -48,10 +57,19 @@ public class PostTrnTokenTests : TestBase
     public async Task Post_EmptyEmail_ReturnsBadRequest()
     {
         // Arrange
-        var content = new StringContent($"{{\"Trn\":\"{TestData.GenerateTrn()}\"}}", Encoding.UTF8, "application/json");
+        var httpClient = await CreateHttpClientWithToken(withUser: false, CustomScopes.TrnTokenWrite);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/trn-tokens")
+        {
+            Content = JsonContent.Create(new
+            {
+                email = "",
+                trn = TestData.GenerateTrn()
+            })
+        };
 
         // Act
-        var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
+        var response = await httpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -61,16 +79,19 @@ public class PostTrnTokenTests : TestBase
     public async Task Post_InvalidEmail_ReturnsBadRequest()
     {
         // Arrange
-        var trnTokenRequest = new PostTrnTokensRequest()
+        var httpClient = await CreateHttpClientWithToken(withUser: false, CustomScopes.TrnTokenWrite);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/trn-tokens")
         {
-            Trn = TestData.GenerateTrn(),
-            Email = "invalid",
+            Content = JsonContent.Create(new
+            {
+                email = "invalid",
+                trn = TestData.GenerateTrn()
+            })
         };
 
-        var content = new StringContent(JsonConvert.SerializeObject(trnTokenRequest), Encoding.UTF8, "application/json");
-
         // Act
-        var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
+        var response = await httpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -80,21 +101,27 @@ public class PostTrnTokenTests : TestBase
     public async Task Post_ValidRequest_GeneratesTrnToken()
     {
         // Arrange
-        var trnTokenRequest = new PostTrnTokensRequest()
+        var httpClient = await CreateHttpClientWithToken(withUser: false, CustomScopes.TrnTokenWrite);
+
+        var email = Faker.Internet.Email();
+        var trn = TestData.GenerateTrn();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/trn-tokens")
         {
-            Trn = TestData.GenerateTrn(),
-            Email = Faker.Internet.Email(),
+            Content = JsonContent.Create(new
+            {
+                email,
+                trn
+            })
         };
 
-        var content = new StringContent(JsonConvert.SerializeObject(trnTokenRequest), Encoding.UTF8, "application/json");
-
         // Act
-        var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
+        var response = await httpClient.SendAsync(request);
 
         // Assert
         await TestData.WithDbContext(async dbContext =>
         {
-            var trnToken = await dbContext.TrnTokens.Where(t => t.Email == trnTokenRequest.Email).SingleOrDefaultAsync();
+            var trnToken = await dbContext.TrnTokens.SingleOrDefaultAsync(t => t.Email == email);
             Assert.NotNull(trnToken);
         });
     }
@@ -103,21 +130,27 @@ public class PostTrnTokenTests : TestBase
     public async Task Post_ValidRequest_ReturnsCorrectResponse()
     {
         // Arrange
-        var trnTokenRequest = new PostTrnTokensRequest()
+        var httpClient = await CreateHttpClientWithToken(withUser: false, CustomScopes.TrnTokenWrite);
+
+        var email = Faker.Internet.Email();
+        var trn = TestData.GenerateTrn();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/trn-tokens")
         {
-            Trn = TestData.GenerateTrn(),
-            Email = Faker.Internet.Email(),
+            Content = JsonContent.Create(new
+            {
+                email,
+                trn
+            })
         };
 
-        var content = new StringContent(JsonConvert.SerializeObject(trnTokenRequest), Encoding.UTF8, "application/json");
-
         // Act
-        var response = await ApiKeyHttpClient.PostAsync("/api/v1/trn-tokens", content);
+        var response = await httpClient.SendAsync(request);
 
         // Assert
         var jsonResponse = await AssertEx.JsonResponse(response);
-        Assert.Equal(trnTokenRequest.Trn, jsonResponse.RootElement.GetProperty("trn").GetString());
-        Assert.Equal(trnTokenRequest.Email, jsonResponse.RootElement.GetProperty("email").GetString());
+        Assert.Equal(trn, jsonResponse.RootElement.GetProperty("trn").GetString());
+        Assert.Equal(email, jsonResponse.RootElement.GetProperty("email").GetString());
         Assert.NotNull(jsonResponse.RootElement.GetProperty("trnToken").GetString());
     }
 }

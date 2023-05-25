@@ -20,7 +20,7 @@ public class TrnTokensController : ControllerBase
         _mediator = mediator;
     }
 
-    [Authorize(AuthorizationPolicies.TrnTokenApi)]
+    [Authorize(AuthorizationPolicies.ApiTrnTokenWrite)]
     [HttpPost("")]
     [SwaggerOperation(summary: "Generates a TRN token")]
     [ProducesResponseType(typeof(PostTrnTokenResponse), StatusCodes.Status200OK)]
