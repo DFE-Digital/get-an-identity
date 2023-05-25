@@ -9,7 +9,7 @@ public static class CustomScopes
     public const string Trn = "trn";
     public const string TrnTokenWrite = "trn_token:write";
 
-    public static string[] All => StaffUserTypeScopes.Concat(DefaultUserTypesScopes).ToArray();
+    public static string[] All => StaffUserTypeScopes.Concat(DefaultUserTypesScopes).Concat(NonUserLevelScopes).ToArray();
 
     public static string[] NonUserLevelScopes { get; } = new[]
     {
