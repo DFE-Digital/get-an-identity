@@ -629,7 +629,7 @@ public class AuthenticationState
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);
 
-    public async Task SignIn(HttpContext httpContext)
+    public async Task<ClaimsPrincipal> SignIn(HttpContext httpContext)
     {
         if (!IsComplete)
         {
@@ -637,7 +637,7 @@ public class AuthenticationState
         }
 
         var claims = GetInternalClaims();
-        await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
+        return await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
     }
 
     public enum HasPreviousNameOption

@@ -80,6 +80,7 @@ public class AuthorizationController : Controller
         }
 
         var trnToken = userRequirements.HasFlag(UserRequirements.TrnHolder) ? await _trnTokenHelper.GetValidTrnToken(request) : null;
+        var cookiesPrincipal = authenticateResult.Principal;
 
         // Ensure we have a journey to store state for this request.
         // This also tracks when we have enough information about the user to satisfy the request.
@@ -121,15 +122,8 @@ public class AuthorizationController : Controller
                 authenticateResult.Succeeded != true);
 
             var signedInUser = await GetSignedInUser(authenticateResult, userRequirements);
-
-            if (trnToken is not null)
-            {
-                await _trnTokenHelper.InitializeAuthenticationStateWithToken(signedInUser, authenticationState, trnToken, HttpContext);
-            }
-            else
-            {
-                authenticationState.OnSignedInUserProvided(signedInUser);
-            }
+            var existingUserClaimsPrincipal = await InitializeAuthenticationState(signedInUser, trnToken, authenticationState);
+            cookiesPrincipal ??= existingUserClaimsPrincipal;
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
@@ -171,7 +165,7 @@ public class AuthorizationController : Controller
             authenticationState.Reset(_clock.UtcNow);
         }
 
-        if (!authenticateResult.Succeeded || !authenticationState.IsComplete)
+        if (cookiesPrincipal is null || !authenticationState.IsComplete)
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -198,8 +192,6 @@ public class AuthorizationController : Controller
         }
 
         Debug.Assert(authenticationState.IsComplete);
-
-        var cookiesPrincipal = authenticateResult.Principal!;
 
         // If it's a Staff user verify their permissions
         if (cookiesPrincipal.GetUserType() == UserType.Staff &&
@@ -302,9 +294,11 @@ public class AuthorizationController : Controller
 
             var prompt = string.Join(" ", request.GetPrompts().Remove(Prompts.Login));
 
+            var ignoredParameters = new List<string> { "trn_token", Parameters.Prompt };
+
             var parameters = Request.HasFormContentType ?
-                Request.Form.Where(parameter => parameter.Key != Parameters.Prompt).ToList() :
-                Request.Query.Where(parameter => parameter.Key != Parameters.Prompt).ToList();
+                Request.Form.Where(parameter => !ignoredParameters.Contains(parameter.Key)).ToList() :
+                Request.Query.Where(parameter => !ignoredParameters.Contains(parameter.Key)).ToList();
 
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
@@ -484,5 +478,40 @@ public class AuthorizationController : Controller
 
         var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
         return client.TrnRequirementType;
+    }
+
+    private async Task<ClaimsPrincipal?> InitializeAuthenticationState(User? signedInUser, EnhancedTrnToken? trnToken,
+        AuthenticationState authenticationState)
+    {
+        if (trnToken is null)
+        {
+            authenticationState.OnSignedInUserProvided(signedInUser);
+            return null;
+        }
+
+        if (signedInUser is not null)
+        {
+            _trnTokenHelper.InitializeAuthenticationStateForSignedInUser(signedInUser, authenticationState, trnToken);
+            return null;
+        }
+
+        var existingValidUser = await _trnTokenHelper.GetExistingValidUserForToken(trnToken);
+
+        if (existingValidUser is not null)
+        {
+            if (existingValidUser.Trn is null || existingValidUser.Trn == trnToken.Trn)
+            {
+                _trnTokenHelper.InitializeAuthenticationStateForExistingUser(existingValidUser, authenticationState, trnToken);
+                return await authenticationState.SignIn(HttpContext);
+            }
+        }
+        else
+        {
+            var existingAccountMatch = await _trnTokenHelper.GetExistingAccountMatchForToken(trnToken);
+            authenticationState.OnExistingAccountSearch(existingAccountMatch);
+            authenticationState.OnTrnTokenProvided(trnToken);
+        }
+
+        return null;
     }
 }

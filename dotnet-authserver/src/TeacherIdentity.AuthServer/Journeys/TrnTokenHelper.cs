@@ -42,56 +42,50 @@ public class TrnTokenHelper
         return null;
     }
 
-    public async Task InitializeAuthenticationStateWithToken(
-        User? signedInUser,
+    public void InitializeAuthenticationStateForSignedInUser(
+        User signedInUser,
         AuthenticationState authenticationState,
-        EnhancedTrnToken trnToken,
-        HttpContext httpContext)
+        EnhancedTrnToken trnToken)
     {
-        if (signedInUser is not null)
+        if (signedInUser.EmailAddress == trnToken.Email)
         {
-            if (signedInUser.EmailAddress == trnToken.Email)
-            {
-                authenticationState.OnSignedInUserProvided(signedInUser);
-                if (signedInUser.Trn is null)
-                {
-                    authenticationState.OnTrnTokenProvided(trnToken);
-                }
-            }
-            else
+            authenticationState.OnSignedInUserProvided(signedInUser);
+            if (signedInUser.Trn is null)
             {
                 authenticationState.OnTrnTokenProvided(trnToken);
             }
         }
         else
         {
-            var existingValidUser = await _dbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == trnToken.Email);
-
-            if (existingValidUser is not null)
-            {
-                if (existingValidUser.Trn is not null && existingValidUser.Trn != trnToken.Trn)
-                {
-                    // If we find a matching email in our records but TRN no match, ignore the token
-                    return;
-                }
-
-                authenticationState.OnSignedInUserProvided(existingValidUser);
-                if (existingValidUser.Trn is null)
-                {
-                    authenticationState.OnTrnTokenProvided(trnToken);
-                }
-                await authenticationState.SignIn(httpContext);
-            }
-            else
-            {
-                var users = await _userSearchService.FindUsers(trnToken.FirstName, trnToken.LastName, trnToken.DateOfBirth);
-                authenticationState.OnExistingAccountSearch(users.Length == 0 ? null : users[0]);
-                authenticationState.OnTrnTokenProvided(trnToken);
-            }
+            authenticationState.OnTrnTokenProvided(trnToken);
         }
     }
 
-    public async Task<User> ApplyTrnTokenToUser(Guid? userId, string trnTokenValue)
+    public void InitializeAuthenticationStateForExistingUser(
+        User existingValidUser,
+        AuthenticationState authenticationState,
+        EnhancedTrnToken trnToken)
+    {
+        authenticationState.OnSignedInUserProvided(existingValidUser);
+
+        if (existingValidUser.Trn is null)
+        {
+            authenticationState.OnTrnTokenProvided(trnToken);
+        }
+    }
+
+    public async Task<User?> GetExistingValidUserForToken(EnhancedTrnToken trnToken)
+    {
+        return await _dbContext.Users.SingleOrDefaultAsync(u => u.EmailAddress == trnToken.Email);
+    }
+
+    public async Task<User?> GetExistingAccountMatchForToken(EnhancedTrnToken trnToken)
+    {
+        var users = await _userSearchService.FindUsers(trnToken.FirstName, trnToken.LastName, trnToken.DateOfBirth);
+        return users.Length > 0 ? users[0] : null;
+    }
+
+    public async Task ApplyTrnTokenToUser(Guid? userId, string trnTokenValue)
     {
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
         var trnToken = await _dbContext.TrnTokens.SingleAsync(t => t.TrnToken == trnTokenValue);
@@ -105,8 +99,6 @@ public class TrnTokenHelper
         {
             await InvalidateTrnToken(trnToken.TrnToken, user.UserId);
         }
-
-        return user;
     }
 
     public async Task InvalidateTrnToken(string trnTokenValue, Guid userId)
@@ -150,7 +142,6 @@ public class TrnTokenHelper
     {
         user.Trn = trn;
         user.TrnLookupStatus = TrnLookupStatus.Found;
-        user.CompletedTrnLookup = null;
         user.TrnAssociationSource = TrnAssociationSource.TrnToken;
         user.Updated = _clock.UtcNow;
 
