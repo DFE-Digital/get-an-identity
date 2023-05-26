@@ -73,7 +73,7 @@ public class UserClaimHelper
             new Claim(Claims.FamilyName, user.LastName),
         };
 
-        if (user.MiddleName is not null)
+        if (!string.IsNullOrEmpty(user.MiddleName))
         {
             claims.Add(new Claim(Claims.MiddleName, user.MiddleName));
         }
@@ -131,7 +131,7 @@ public class UserClaimHelper
             new Claim(CustomClaims.UserType, MapUserTypeToClaimValue(userType))
         };
 
-        if (middleName is not null)
+        if (!string.IsNullOrEmpty(middleName))
         {
             claims.Add(new Claim(Claims.MiddleName, middleName));
         }

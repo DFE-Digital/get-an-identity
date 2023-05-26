@@ -13,7 +13,8 @@ namespace TeacherIdentity.AuthServer.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "middle_name",
                 table: "users",
-                type: "text",
+                type: "character varying(200)",
+                maxLength: 200,
                 nullable: true);
         }
 

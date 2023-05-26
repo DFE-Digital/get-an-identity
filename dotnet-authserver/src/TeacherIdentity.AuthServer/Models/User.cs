@@ -3,6 +3,7 @@ namespace TeacherIdentity.AuthServer.Models;
 public class User
 {
     public const int FirstNameMaxLength = 200;
+    public const int MiddleNameMaxLength = 200;
     public const int LastNameMaxLength = 200;
 
     public const string EmailAddressUniqueIndexName = "ix_users_email_address";

@@ -454,7 +454,7 @@ public class AuthenticationState
         EmailAddress = email;
     }
 
-    public void OnNameSet(string? firstName, string? lastName, string? middleName = null)
+    public void OnNameSet(string? firstName, string? middleName, string? lastName)
     {
         HasPreferredName = firstName is not null && lastName is not null;
         FirstName = firstName;

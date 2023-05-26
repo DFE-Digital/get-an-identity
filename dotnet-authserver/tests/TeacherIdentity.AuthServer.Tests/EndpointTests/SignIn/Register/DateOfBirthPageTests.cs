@@ -158,7 +158,7 @@ public class DateOfBirthPageTests : TestBase
         var user = await TestData.CreateUser();
         var dateOfBirth = user.DateOfBirth;
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterNameSet(user.FirstName, user.LastName), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterNameSet(user.FirstName, null, user.LastName), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()

@@ -595,7 +595,8 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnName("merged_with_user_id");
 
                     b.Property<string>("MiddleName")
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("middle_name");
 
                     b.Property<string>("MobileNumber")

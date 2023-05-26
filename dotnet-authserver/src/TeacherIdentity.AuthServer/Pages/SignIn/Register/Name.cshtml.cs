@@ -67,7 +67,7 @@ public class Name : PageModel
             authenticationState.OnExistingAccountSearch(users.Length == 0 ? null : users[0]);
         }
 
-        HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!, MiddleName);
+        HttpContext.GetAuthenticationState().OnNameSet(FirstName!, MiddleName, LastName!);
 
         return await _journey.Advance(CurrentStep);
     }
