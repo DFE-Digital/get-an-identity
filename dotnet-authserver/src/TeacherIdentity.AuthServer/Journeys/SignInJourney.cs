@@ -112,6 +112,27 @@ public abstract class SignInJourney
         return await Advance(currentStep);
     }
 
+    public virtual async Task<IActionResult> OnMobileVerified(User? user, string currentStep)
+    {
+        if (user is not null && user.UserType == UserType.Staff)
+        {
+            return new ViewResult()
+            {
+                ViewName = "StaffUserForbidden",
+                StatusCode = StatusCodes.Status403Forbidden
+            };
+        }
+
+        AuthenticationState.OnMobileNumberVerified(user);
+
+        if (user is not null)
+        {
+            await AuthenticationState.SignIn(HttpContext);
+        }
+
+        return await Advance(currentStep);
+    }
+
     public virtual string GetNextStepUrl(string currentStep)
     {
         if (IsFinished())

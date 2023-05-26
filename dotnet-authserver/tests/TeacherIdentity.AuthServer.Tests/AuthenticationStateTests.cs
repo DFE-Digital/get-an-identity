@@ -26,7 +26,6 @@ public partial class AuthenticationStateTests
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         };
-        var authStateInitData = AuthenticationStateInitializationData.FromUser(user);
 
         var firstTimeSignInForEmail = true;
 
@@ -39,9 +38,10 @@ public partial class AuthenticationStateTests
             userRequirements,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
-            firstTimeSignInForEmail: firstTimeSignInForEmail,
-            authStateInitData,
-            oAuthState: null);
+            oAuthState: null,
+            firstTimeSignInForEmail: firstTimeSignInForEmail);
+
+        authenticationState.OnSignedInUserProvided(user);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);
@@ -74,7 +74,6 @@ public partial class AuthenticationStateTests
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         };
-        var authStateInitData = AuthenticationStateInitializationData.FromUser(user);
 
         var firstTimeSignInForEmail = true;
 
@@ -87,9 +86,10 @@ public partial class AuthenticationStateTests
             userRequirements,
             postSignInUrl: "/",
             startedAt: DateTime.UtcNow,
-            firstTimeSignInForEmail: firstTimeSignInForEmail,
-            authStateInitData,
-            oAuthState: null);
+            oAuthState: null,
+            firstTimeSignInForEmail: firstTimeSignInForEmail);
+
+        authenticationState.OnSignedInUserProvided(user);
 
         // Assert
         Assert.Equal(user.DateOfBirth, authenticationState.DateOfBirth);

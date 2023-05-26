@@ -12,7 +12,6 @@ using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.State;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -26,9 +25,8 @@ public class AuthorizationController : Controller
     private readonly SignInJourneyProvider _signInJourneyProvider;
     private readonly UserClaimHelper _userClaimHelper;
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IConfiguration _configuration;
     private readonly IClock _clock;
-    private readonly IDqtApiClient _dqtApiClient;
+    private readonly TrnTokenHelper _trnTokenHelper;
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
@@ -36,9 +34,8 @@ public class AuthorizationController : Controller
         SignInJourneyProvider signInJourneyProvider,
         UserClaimHelper userClaimHelper,
         TeacherIdentityServerDbContext dbContext,
-        IConfiguration configuration,
         IClock clock,
-        IDqtApiClient dqtApiClient)
+        TrnTokenHelper trnTokenHelper)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -46,9 +43,8 @@ public class AuthorizationController : Controller
         _signInJourneyProvider = signInJourneyProvider;
         _userClaimHelper = userClaimHelper;
         _dbContext = dbContext;
-        _configuration = configuration;
         _clock = clock;
-        _dqtApiClient = dqtApiClient;
+        _trnTokenHelper = trnTokenHelper;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -69,28 +65,28 @@ public class AuthorizationController : Controller
 
         var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
+        if (!UserRequirementsExtensions.TryGetUserRequirementsForScopes(
+                request.HasScope,
+                out var userRequirements,
+                out _))
+        {
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Scopes combination is not valid."
+                }));
+        }
+
+        var trnToken = userRequirements.HasFlag(UserRequirements.TrnHolder) ? await _trnTokenHelper.GetValidTrnToken(request) : null;
+        var cookiesPrincipal = authenticateResult.Principal;
+
         // Ensure we have a journey to store state for this request.
         // This also tracks when we have enough information about the user to satisfy the request.
         if (!HttpContext.TryGetAuthenticationState(out var authenticationState))
         {
             var journeyId = Guid.NewGuid();
-
-            if (!UserRequirementsExtensions.TryGetUserRequirementsForScopes(
-                request.HasScope,
-                out var userRequirements,
-                out _))
-            {
-                return Forbid(
-                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                    properties: new AuthenticationProperties(new Dictionary<string, string?>()
-                    {
-                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Scopes combination is not valid."
-                    }));
-            }
-
-            var signedInUser = await GetSignedInUser(authenticateResult, userRequirements);
-            var authStateInitData = AuthenticationStateInitializationData.FromUser(signedInUser);
 
             TrnRequirementType? trnRequirementType = null;
 
@@ -109,14 +105,6 @@ public class AuthorizationController : Controller
                                 "Invalid trn_requirement specified."
                         }));
                 }
-
-                var requestedTrnToken = request["trn_token"];
-
-                if (_configuration.GetValue("RegisterWithTrnTokenEnabled", false) && requestedTrnToken.HasValue)
-                {
-                    // TODO: merge trn token init data with signed in user init data
-                    authStateInitData = await GetTrnTokenInitData(requestedTrnToken.Value.Value as string);
-                }
             }
 
             var sessionId = request["session_id"]?.Value as string;
@@ -126,13 +114,16 @@ public class AuthorizationController : Controller
                 userRequirements,
                 GetCallbackUrl(journeyId),
                 startedAt: _clock.UtcNow,
-                authenticateResult.Succeeded != true,
-                authStateInitData,
                 sessionId,
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri)
                 {
                     TrnRequirementType = trnRequirementType
-                });
+                },
+                authenticateResult.Succeeded != true);
+
+            var signedInUser = await GetSignedInUser(authenticateResult, userRequirements);
+            var existingUserClaimsPrincipal = await InitializeAuthenticationState(signedInUser, trnToken, authenticationState);
+            cookiesPrincipal ??= existingUserClaimsPrincipal;
 
             HttpContext.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
@@ -169,7 +160,12 @@ public class AuthorizationController : Controller
         var authTicketIsTooOld = authenticateResult.Properties?.IssuedUtc != null &&
             DateTimeOffset.UtcNow - authenticateResult.Properties.IssuedUtc > maxAge;
 
-        if (!authenticateResult.Succeeded || request.HasPrompt(Prompts.Login) || authTicketIsTooOld || !authenticationState.IsComplete)
+        if (authTicketIsTooOld || request.HasPrompt(Prompts.Login))
+        {
+            authenticationState.Reset(_clock.UtcNow);
+        }
+
+        if (cookiesPrincipal is null || !authenticationState.IsComplete)
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -184,18 +180,18 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            if (authTicketIsTooOld || request.HasPrompt(Prompts.Login))
-            {
-                authenticationState.Reset(DateTime.UtcNow);
-            }
-
             var signInJourney = _signInJourneyProvider.GetSignInJourney(authenticationState, HttpContext);
             return Redirect(signInJourney.GetStartStepUrl());
         }
 
-        Debug.Assert(authenticationState.IsComplete);
+        if (trnToken is not null)
+        {
+            // If we have a signed in user we may never enter the TRN token sign in journey, so we have to apply
+            // the token here
+            await _trnTokenHelper.ApplyTrnTokenToUser(authenticationState.UserId, trnToken.TrnToken);
+        }
 
-        var cookiesPrincipal = authenticateResult.Principal!;
+        Debug.Assert(authenticationState.IsComplete);
 
         // If it's a Staff user verify their permissions
         if (cookiesPrincipal.GetUserType() == UserType.Staff &&
@@ -298,9 +294,11 @@ public class AuthorizationController : Controller
 
             var prompt = string.Join(" ", request.GetPrompts().Remove(Prompts.Login));
 
+            var ignoredParameters = new List<string> { "trn_token", Parameters.Prompt };
+
             var parameters = Request.HasFormContentType ?
-                Request.Form.Where(parameter => parameter.Key != Parameters.Prompt).ToList() :
-                Request.Query.Where(parameter => parameter.Key != Parameters.Prompt).ToList();
+                Request.Form.Where(parameter => !ignoredParameters.Contains(parameter.Key)).ToList() :
+                Request.Query.Where(parameter => !ignoredParameters.Contains(parameter.Key)).ToList();
 
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
@@ -482,35 +480,38 @@ public class AuthorizationController : Controller
         return client.TrnRequirementType;
     }
 
-    private async Task<AuthenticationStateInitializationData?> GetTrnTokenInitData(string? trnTokenValue)
+    private async Task<ClaimsPrincipal?> InitializeAuthenticationState(User? signedInUser, EnhancedTrnToken? trnToken,
+        AuthenticationState authenticationState)
     {
-        var trnToken = await _dbContext.TrnTokens.SingleOrDefaultAsync(t => t.TrnToken == trnTokenValue && t.ExpiresUtc > _clock.UtcNow);
-
-        if (trnToken is null ||
-            trnToken.UserId is not null ||
-            await _dbContext.Users.FirstOrDefaultAsync(u => u.Trn == trnToken.Trn) is not null)
+        if (trnToken is null)
         {
+            authenticationState.OnSignedInUserProvided(signedInUser);
             return null;
         }
 
-        var teacher = await _dqtApiClient.GetTeacherByTrn(trnToken.Trn);
-
-        if (teacher is null)
+        if (signedInUser is not null)
         {
+            _trnTokenHelper.InitializeAuthenticationStateForSignedInUser(signedInUser, authenticationState, trnToken);
             return null;
         }
 
-        return new AuthenticationStateInitializationData()
+        var existingValidUser = await _trnTokenHelper.GetExistingValidUserForToken(trnToken);
+
+        if (existingValidUser is not null)
         {
-            FirstName = teacher.FirstName,
-            MiddleName = teacher.MiddleName,
-            LastName = teacher.LastName,
-            DateOfBirth = teacher.DateOfBirth,
-            EmailAddress = trnToken.Email,
-            EmailAddressVerified = true,
-            Trn = trnToken.Trn,
-            TrnLookupStatus = TrnLookupStatus.Found,
-            TrnToken = trnToken.TrnToken,
-        };
+            if (existingValidUser.Trn is null || existingValidUser.Trn == trnToken.Trn)
+            {
+                _trnTokenHelper.InitializeAuthenticationStateForExistingUser(existingValidUser, authenticationState, trnToken);
+                return await authenticationState.SignIn(HttpContext);
+            }
+        }
+        else
+        {
+            var existingAccountMatch = await _trnTokenHelper.GetExistingAccountMatchForToken(trnToken);
+            authenticationState.OnExistingAccountSearch(existingAccountMatch);
+            authenticationState.OnTrnTokenProvided(trnToken);
+        }
+
+        return null;
     }
 }

@@ -9,7 +9,7 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup))]
+[CheckJourneyType(typeof(CoreSignInJourney), typeof(CoreSignInJourneyWithTrnLookup), typeof(TrnTokenSignInJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
 {
@@ -64,7 +64,7 @@ public class ExistingAccountEmailConfirmation : BaseEmailConfirmationPageModel
         authenticationState.OnExistingAccountVerified(User!);
         await authenticationState.SignIn(HttpContext);
 
-        return await _journey.Advance(CurrentStep);
+        return await _journey.OnEmailVerified(User, CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)

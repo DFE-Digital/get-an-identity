@@ -104,7 +104,15 @@ public partial class TestData
         });
     }
 
-    public async Task<TrnTokenModel> GenerateTrnToken(string trn, DateTime? expires = null)
+    public async Task<User> GetUser(Guid userId)
+    {
+        return await WithDbContext(async dbContext =>
+        {
+            return await dbContext.Users.SingleAsync(u => u.UserId == userId);
+        });
+    }
+
+    public async Task<TrnTokenModel> GenerateTrnToken(string trn, DateTime? expires = null, string? email = null)
     {
         expires ??= _clock.UtcNow.AddYears(1);
 
@@ -112,7 +120,7 @@ public partial class TestData
         {
             TrnToken = GenerateUniqueTrnTokenValue(),
             Trn = trn,
-            Email = GenerateUniqueEmail(),
+            Email = email ?? GenerateUniqueEmail(),
             CreatedUtc = _clock.UtcNow,
             ExpiresUtc = expires.Value
         };

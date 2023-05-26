@@ -56,25 +56,10 @@ public class PhoneConfirmation : BasePhoneConfirmationPageModel
             return await HandlePinVerificationFailed(pinVerificationFailedReasons);
         }
 
-        var authenticationState = HttpContext.GetAuthenticationState();
-        var permittedUserTypes = authenticationState.GetPermittedUserTypes();
-
         var user = await _dbContext.Users
             .Where(u => u.NormalizedMobileNumber! == parsedMobileNumber)
             .SingleOrDefaultAsync();
 
-        if (user is not null && !permittedUserTypes.Contains(user.UserType))
-        {
-            return new ForbidResult();
-        }
-
-        authenticationState.OnMobileNumberVerified(user);
-
-        if (user is not null)
-        {
-            await authenticationState.SignIn(HttpContext);
-        }
-
-        return await _journey.Advance(CurrentStep);
+        return await _journey.OnMobileVerified(user, CurrentStep);
     }
 }

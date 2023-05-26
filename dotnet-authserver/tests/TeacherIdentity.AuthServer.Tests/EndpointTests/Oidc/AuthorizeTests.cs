@@ -332,7 +332,7 @@ public class AuthorizeTests : TestBase
     }
 
     [Fact]
-    public async Task TrnTokenSpecifiedButTrnExists_DoesNotSetTrnOnAuthenticationState()
+    public async Task TrnTokenSpecifiedButTrnExists_DoesNotOverwriteUsersTrn()
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
@@ -348,7 +348,7 @@ public class AuthorizeTests : TestBase
         // Assert
         AssertResponseIsNotErrorCallback(response, out Guid journeyId);
         var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
-        Assert.Null(authenticationState?.Trn);
+        Assert.Equal(user.Trn, authenticationState?.Trn);
     }
 
     [Fact]

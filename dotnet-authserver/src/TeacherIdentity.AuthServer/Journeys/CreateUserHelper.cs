@@ -13,17 +13,20 @@ public class CreateUserHelper
     private readonly IUserVerificationService _userVerificationService;
     private readonly IClock _clock;
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
+    private readonly TrnTokenHelper _trnTokenHelper;
 
     public CreateUserHelper(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         IClock clock,
-        IZendeskApiWrapper zendeskApiWrapper)
+        IZendeskApiWrapper zendeskApiWrapper,
+        TrnTokenHelper trnTokenHelper)
     {
         _dbContext = dbContext;
         _userVerificationService = userVerificationService;
         _clock = clock;
         _zendeskApiWrapper = zendeskApiWrapper;
+        _trnTokenHelper = trnTokenHelper;
     }
 
     public async Task<User> CreateUser(AuthenticationState authenticationState)
@@ -59,11 +62,9 @@ public class CreateUserHelper
         return user;
     }
 
-    public async Task<User> CreateUserWithTrn(AuthenticationState authenticationState)
+    public async Task<User> CreateUserWithTrnLookup(AuthenticationState authenticationState)
     {
         var userId = Guid.NewGuid();
-        TrnAssociationSource? trnAssociationSource = authenticationState.Trn is null ? null :
-            authenticationState.HasTrnToken ? TrnAssociationSource.TrnToken : TrnAssociationSource.Lookup;
 
         var user = new User()
         {
@@ -78,7 +79,7 @@ public class CreateUserHelper
             UserId = userId,
             UserType = UserType.Default,
             Trn = authenticationState.Trn,
-            TrnAssociationSource = trnAssociationSource,
+            TrnAssociationSource = authenticationState.Trn is null ? null : TrnAssociationSource.Lookup,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus
@@ -88,9 +89,47 @@ public class CreateUserHelper
 
         if (authenticationState.HasTrnToken)
         {
-            await _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"update trn_tokens set user_id = {userId} where trn_token = {authenticationState.TrnToken};");
+            await _trnTokenHelper.InvalidateTrnToken(authenticationState.TrnToken!, user.UserId);
         }
+
+        _dbContext.AddEvent(new Events.UserRegisteredEvent()
+        {
+            ClientId = authenticationState.OAuthState?.ClientId,
+            CreatedUtc = _clock.UtcNow,
+            User = user
+        });
+
+        await _dbContext.SaveChangesAsync();
+
+        return user;
+    }
+
+    public async Task<User> CreateUserWithTrnToken(AuthenticationState authenticationState)
+    {
+        var userId = Guid.NewGuid();
+
+        var user = new User()
+        {
+            CompletedTrnLookup = null,
+            Created = _clock.UtcNow,
+            DateOfBirth = authenticationState.DateOfBirth,
+            EmailAddress = authenticationState.EmailAddress!,
+            MobileNumber = authenticationState.MobileNumber,
+            FirstName = authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
+            LastName = authenticationState.LastName ?? authenticationState.OfficialLastName!,
+            Updated = _clock.UtcNow,
+            UserId = userId,
+            UserType = UserType.Default,
+            Trn = authenticationState.Trn,
+            TrnAssociationSource = TrnAssociationSource.TrnToken,
+            LastSignedIn = _clock.UtcNow,
+            RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
+            TrnLookupStatus = authenticationState.TrnLookupStatus,
+        };
+
+        _dbContext.Users.Add(user);
+
+        await _trnTokenHelper.InvalidateTrnToken(authenticationState.TrnToken!, user.UserId);
 
         _dbContext.AddEvent(new Events.UserRegisteredEvent()
         {

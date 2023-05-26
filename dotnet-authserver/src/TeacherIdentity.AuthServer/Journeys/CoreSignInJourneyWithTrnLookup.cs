@@ -30,7 +30,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
     {
         try
         {
-            var user = await CreateUserHelper.CreateUserWithTrn(AuthenticationState);
+            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState);
 
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
