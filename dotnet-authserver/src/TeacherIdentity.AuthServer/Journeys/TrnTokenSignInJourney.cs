@@ -6,12 +6,15 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class TrnTokenSignInJourney : SignInJourney
 {
+    private readonly TrnTokenHelper _trnTokenHelper;
+
     public TrnTokenSignInJourney(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper)
+        CreateUserHelper createUserHelper, TrnTokenHelper trnTokenHelper)
         : base(httpContext, linkGenerator, createUserHelper)
     {
+        _trnTokenHelper = trnTokenHelper;
     }
 
     public override async Task<IActionResult> CreateUser(string currentStep)
@@ -32,6 +35,40 @@ public class TrnTokenSignInJourney : SignInJourney
         return new RedirectResult(GetNextStepUrl(currentStep));
     }
 
+    public override string GetNextStepUrl(string currentStep)
+    {
+        if (IsFinished())
+        {
+            return currentStep switch
+            {
+                CoreSignInJourney.Steps.PhoneConfirmation => GetStepUrl(CoreSignInJourney.Steps.PhoneExists),
+                _ => AuthenticationState.PostSignInUrl
+            };
+        }
+
+        return base.GetNextStepUrl(currentStep);
+    }
+
+    public override async Task<IActionResult> OnEmailVerified(User? user, string currentStep)
+    {
+        if (user is not null && AuthenticationState.HasTrnToken)
+        {
+            await _trnTokenHelper.ApplyTrnTokenToUser(user.UserId, AuthenticationState.TrnToken!);
+        }
+
+        return await base.OnEmailVerified(user, currentStep);
+    }
+
+    public override async Task<IActionResult> OnMobileVerified(User? user, string currentStep)
+    {
+        if (user is not null && AuthenticationState.HasTrnToken)
+        {
+            await _trnTokenHelper.ApplyTrnTokenToUser(user.UserId, AuthenticationState.TrnToken!);
+        }
+
+        return await base.OnMobileVerified(user, currentStep);
+    }
+
     public override bool CanAccessStep(string step)
     {
         return step switch
@@ -43,6 +80,7 @@ public class TrnTokenSignInJourney : SignInJourney
             CoreSignInJourney.Steps.DateOfBirth => AuthenticationState.ContactDetailsVerified,
             CoreSignInJourney.Steps.Phone => true,
             CoreSignInJourney.Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
+            CoreSignInJourney.Steps.PhoneExists => AuthenticationState.IsComplete,
             CoreSignInJourney.Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             CoreSignInJourney.Steps.Email => AuthenticationState.MobileNumberVerified,
             CoreSignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false, MobileNumberVerified: true },
@@ -65,7 +103,8 @@ public class TrnTokenSignInJourney : SignInJourney
             (Steps.Landing, { ExistingAccountFound: false }) => CoreSignInJourney.Steps.Phone,
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
-            (CoreSignInJourney.Steps.PhoneConfirmation, _) => Steps.CheckAnswers,
+            (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.PhoneExists,
+            (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: false }) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.Email, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.EmailConfirmation, _) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.DateOfBirth, _) => Steps.CheckAnswers,
@@ -87,6 +126,8 @@ public class TrnTokenSignInJourney : SignInJourney
         (CoreSignInJourney.Steps.Phone, _) => Steps.Landing,
         (CoreSignInJourney.Steps.PhoneConfirmation, _) => CoreSignInJourney.Steps.Phone,
         (CoreSignInJourney.Steps.ResendPhoneConfirmation, _) => CoreSignInJourney.Steps.PhoneConfirmation,
+        (CoreSignInJourney.Steps.PhoneExists, { MobileNumberVerified: true }) => CoreSignInJourney.Steps.Phone,
+        (CoreSignInJourney.Steps.PhoneExists, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
         (CoreSignInJourney.Steps.Email, { ContactDetailsVerified: true }) => Steps.CheckAnswers,
         (CoreSignInJourney.Steps.Email, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
         (CoreSignInJourney.Steps.Email, { MobileNumberVerified: true }) => CoreSignInJourney.Steps.Email,
@@ -117,6 +158,7 @@ public class TrnTokenSignInJourney : SignInJourney
         SignInJourney.Steps.EmailConfirmation => LinkGenerator.EmailConfirmation(),
         CoreSignInJourney.Steps.Phone => LinkGenerator.RegisterPhone(),
         CoreSignInJourney.Steps.PhoneConfirmation => LinkGenerator.RegisterPhoneConfirmation(),
+        CoreSignInJourney.Steps.PhoneExists => LinkGenerator.RegisterPhoneExists(),
         CoreSignInJourney.Steps.ResendPhoneConfirmation => LinkGenerator.RegisterResendPhoneConfirmation(),
         CoreSignInJourney.Steps.Email => LinkGenerator.RegisterEmail(),
         CoreSignInJourney.Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),

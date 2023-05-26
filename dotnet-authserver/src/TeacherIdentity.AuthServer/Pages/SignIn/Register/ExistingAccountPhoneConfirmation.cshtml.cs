@@ -61,12 +61,7 @@ public class ExistingAccountPhoneConfirmation : BasePhoneConfirmationPageModel
             return await HandlePinVerificationFailed(pinVerificationFailedReasons);
         }
 
-        var authenticationState = HttpContext.GetAuthenticationState();
-
-        authenticationState.OnExistingAccountVerified(User!);
-        await authenticationState.SignIn(HttpContext);
-
-        return await _journey.Advance(CurrentStep);
+        return await _journey.OnMobileVerified(User, CurrentStep);
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)

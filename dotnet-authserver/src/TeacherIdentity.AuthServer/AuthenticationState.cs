@@ -236,6 +236,12 @@ public class AuthenticationState
 
     public void OnEmailVerified(User? user = null)
     {
+        if (ExistingAccountChosen == true && user is not null)
+        {
+            OnExistingAccountVerified(user);
+            return;
+        }
+
         if (EmailAddress is null)
         {
             throw new InvalidOperationException($"{nameof(EmailAddress)} is not known.");
@@ -260,6 +266,12 @@ public class AuthenticationState
 
     public void OnMobileNumberVerified(User? user = null)
     {
+        if (ExistingAccountChosen == true && user is not null)
+        {
+            OnExistingAccountVerified(user);
+            return;
+        }
+
         if (MobileNumber is null)
         {
             throw new InvalidOperationException($"{nameof(MobileNumber)} is not known.");
@@ -556,6 +568,7 @@ public class AuthenticationState
     public void OnExistingAccountVerified(User user)
     {
         EmailAddressVerified = true;
+        MobileNumberVerified = true;
 
         UpdateAuthenticationStateWithUserDetails(user);
     }

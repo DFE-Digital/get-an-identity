@@ -87,7 +87,7 @@ public class TrnTokenHelper
 
     public async Task ApplyTrnTokenToUser(Guid? userId, string trnTokenValue)
     {
-        var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
+        var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId && u.UserType != UserType.Staff);
         var trnToken = await _dbContext.TrnTokens.SingleAsync(t => t.TrnToken == trnTokenValue);
 
         if (user.Trn is null)

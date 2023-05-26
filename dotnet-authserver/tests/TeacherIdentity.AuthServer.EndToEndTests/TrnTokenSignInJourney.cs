@@ -135,10 +135,6 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
         Assert.Equal(user.UserId, trnTokenModel?.UserId);
-
-        _hostFixture.EventObserver.AssertEventsSaved(
-            e => Assert.IsType<UserSignedInEvent>(e),
-            e => Assert.IsType<UserSignedInEvent>(e));
     }
 
     [Fact]
@@ -163,7 +159,6 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         Assert.Equal(user.UserId, trnTokenModel?.UserId);
 
         _hostFixture.EventObserver.AssertEventsSaved(
-            e => Assert.IsType<UserSignedInEvent>(e),
             e =>
             {
                 var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
@@ -250,6 +245,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
         Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => Assert.IsType<UserSignedInEvent>(e));
     }
 
     [Fact]
@@ -512,6 +509,105 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         Assert.NotNull(trnTokenModel?.UserId);
     }
 
+    [Fact]
+    public async Task NewUserRegisters_ValidTrnTokenPhoneVerificationMatchesExistingAccountNoTrn_AssignsTrnToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+
+        var trnToken = await CreateValidTrnToken();
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.RegisterFromTrnTokenLandingPage();
+
+        await page.SubmitRegisterPhonePage(user.MobileNumber!);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SignInFromRegisterPhoneExistsPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+    }
+
+    [Fact]
+    public async Task NewUserRegisters_ValidTrnTokenPhoneVerificationMatchesExistingAccountMatchingTrn_InvalidatesTrnToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
+
+        var trnToken = await CreateValidTrnToken(trn: user.Trn);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.RegisterFromTrnTokenLandingPage();
+
+        await page.SubmitRegisterPhonePage(user.MobileNumber!);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SignInFromRegisterPhoneExistsPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => Assert.IsType<UserSignedInEvent>(e));
+    }
+
+    [Fact]
+    public async Task NewUserRegisters_ValidTrnTokenPhoneVerificationMatchesExistingAccountNotMatchingTrn_IgnoresTrnToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
+
+        var differentTrn = _hostFixture.TestData.GenerateTrn();
+        var trnToken = await CreateValidTrnToken(differentTrn);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.RegisterFromTrnTokenLandingPage();
+
+        await page.SubmitRegisterPhonePage(user.MobileNumber!);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SignInFromRegisterPhoneExistsPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, user.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Null(trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(e => Assert.IsType<UserSignedInEvent>(e));
+    }
+
     private async Task SignInUser(User user, IPage page, IBrowserContext context)
     {
         await page.StartOAuthJourney(additionalScope: null);
@@ -527,6 +623,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         await page.AssertSignedInOnTestClient(user, expectTrn: false);
 
         await ClearCookiesForTestClient(context);
+
+        _hostFixture.EventObserver.Clear();
     }
 
     private async Task CompleteCoreSignInJourneyWithTrnLookup(
