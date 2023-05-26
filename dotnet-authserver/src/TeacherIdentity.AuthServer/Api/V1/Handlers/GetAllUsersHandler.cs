@@ -31,7 +31,9 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersRequest, GetAllUser
             allUsers = allUsers.Where(u => request.TrnLookupStatus.Contains(u.TrnLookupStatus!.Value));
         }
 
-        var total = await allUsers.CountAsync();
+        var total = await allUsers
+            .Where(u => u.UserType == UserType.Default)
+            .CountAsync();
 
         var users = await allUsers
             .Where(u => u.UserType == UserType.Default)
