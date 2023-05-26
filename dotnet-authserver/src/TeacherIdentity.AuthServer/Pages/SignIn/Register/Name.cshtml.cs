@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
+using TeacherIdentity.AuthServer.Services.UserSearch;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -12,10 +13,14 @@ public class Name : PageModel
     private const string CurrentStep = CoreSignInJourney.Steps.Name;
 
     private SignInJourney _journey;
+    private readonly IUserSearchService _userSearchService;
 
-    public Name(SignInJourney journey)
+    public Name(
+        SignInJourney journey,
+        IUserSearchService userSearchService)
     {
         _journey = journey;
+        _userSearchService = userSearchService;
     }
 
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
@@ -42,6 +47,19 @@ public class Name : PageModel
         if (!ModelState.IsValid)
         {
             return this.PageWithErrors();
+        }
+
+        var authenticationState = HttpContext.GetAuthenticationState();
+
+        if ((authenticationState.FirstName != FirstName || authenticationState.LastName != LastName) &&
+            authenticationState.DateOfBirthSet)
+        {
+            var users = await _userSearchService.FindUsers(
+                FirstName!,
+                LastName!,
+                authenticationState.DateOfBirth!.Value);
+
+            authenticationState.OnExistingAccountSearch(users.Length == 0 ? null : users[0]);
         }
 
         HttpContext.GetAuthenticationState().OnNameSet(FirstName!, LastName!);
