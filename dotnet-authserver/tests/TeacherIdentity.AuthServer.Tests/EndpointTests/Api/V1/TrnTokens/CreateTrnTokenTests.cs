@@ -3,9 +3,9 @@ using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.TrnTokens;
 
-public class PostTrnTokenTests : TestBase
+public class CreateTrnTokenTests : TestBase
 {
-    public PostTrnTokenTests(HostFixture hostFixture)
+    public CreateTrnTokenTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
