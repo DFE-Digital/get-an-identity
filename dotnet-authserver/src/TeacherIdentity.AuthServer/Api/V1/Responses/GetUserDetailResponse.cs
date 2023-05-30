@@ -16,8 +16,9 @@ public record GetUserDetailResponse : UserInfo
         {
             UserId = new Guid("29e9e624-073e-41f5-b1b3-8164ce3a5233"),
             DateOfBirth = new DateOnly(1990, 1, 1),
-            Email = "kevin.e@example.com",
+            Email = "kevin.brian.e@example.com",
             FirstName = "Kevin",
+            MiddleName = "Brian",
             LastName = "E",
             Trn = "2921020",
             TrnLookupStatus = AuthServer.TrnLookupStatus.Found,

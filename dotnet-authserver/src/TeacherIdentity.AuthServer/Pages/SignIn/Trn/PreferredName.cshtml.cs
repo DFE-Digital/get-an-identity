@@ -56,6 +56,7 @@ public class PreferredName : PageModel
 
         _journey.AuthenticationState.OnNameSet(
             HasPreferredName == true ? PreferredFirstName : null,
+            null,
             HasPreferredName == true ? PreferredLastName : null);
 
         return await _journey.Advance(CurrentStep);

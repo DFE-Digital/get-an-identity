@@ -61,6 +61,7 @@ public class AddStaffUserModel : PageModel
             Created = _clock.UtcNow,
             EmailAddress = Email!,
             FirstName = FirstName!,
+            MiddleName = null,
             LastName = LastName!,
             StaffRoles = cleansedRoles,
             Updated = _clock.UtcNow,

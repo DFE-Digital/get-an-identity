@@ -64,6 +64,7 @@ public partial class TestData
                 MobileNumber = mobileNumber,
                 NormalizedMobileNumber = normalizedMobileNumber,
                 FirstName = firstName ?? Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
                 Created = _clock.UtcNow,
                 CompletedTrnLookup = userType is UserType.Default && haveCompletedTrnLookup != false ? _clock.UtcNow : null,

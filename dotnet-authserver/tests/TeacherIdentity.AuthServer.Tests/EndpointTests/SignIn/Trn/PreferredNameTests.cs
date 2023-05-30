@@ -251,7 +251,7 @@ public class PreferredNameTests : TestBase
         var preferredLastName = "preferred last";
 
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnNameSet(initialFirstName, initialLastName);
+        authStateHelper.AuthenticationState.OnNameSet(initialFirstName, null, initialLastName);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/preferred-name?{authStateHelper.ToQueryParam()}")
         {

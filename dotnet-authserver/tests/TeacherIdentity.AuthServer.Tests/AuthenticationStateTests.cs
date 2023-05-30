@@ -18,6 +18,7 @@ public partial class AuthenticationStateTests
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             EmailAddress = Faker.Internet.Email(),
             FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.Middle(),
             LastName = Faker.Name.Last(),
             Trn = "2345678",
             TrnAssociationSource = TrnAssociationSource.Lookup,
@@ -48,6 +49,7 @@ public partial class AuthenticationStateTests
         Assert.Equal(user.EmailAddress, authenticationState.EmailAddress);
         Assert.True(authenticationState.EmailAddressVerified);
         Assert.Equal(user.FirstName, authenticationState.FirstName);
+        Assert.Equal(user.MiddleName, authenticationState.MiddleName);
         Assert.Equal(user.LastName, authenticationState.LastName);
         Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
         Assert.True(authenticationState.HaveCompletedTrnLookup);
@@ -68,6 +70,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = Faker.Internet.Email(),
             FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.First(),
             LastName = Faker.Name.Last(),
             StaffRoles = new[] { StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport },
             Updated = DateTime.UtcNow,
@@ -96,6 +99,7 @@ public partial class AuthenticationStateTests
         Assert.Equal(user.EmailAddress, authenticationState.EmailAddress);
         Assert.True(authenticationState.EmailAddressVerified);
         Assert.Equal(user.FirstName, authenticationState.FirstName);
+        Assert.Equal(user.MiddleName, authenticationState.MiddleName);
         Assert.Equal(user.LastName, authenticationState.LastName);
         Assert.Equal(firstTimeSignInForEmail, authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(user.StaffRoles, authenticationState.StaffRoles);
@@ -111,6 +115,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var trn = "2345678";
         var userId = Guid.NewGuid();
@@ -124,6 +129,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             Trn = trn,
             Updated = DateTime.UtcNow,
@@ -152,8 +158,9 @@ public partial class AuthenticationStateTests
         {
             new Claim(Claims.Subject, userId.ToString()!),
             new Claim(Claims.Email, email),
-            new Claim(Claims.Name, firstName + " " + lastName),
+            new Claim(Claims.Name, firstName + " " + middleName + " " + lastName),
             new Claim(Claims.GivenName, firstName),
+            new Claim(Claims.MiddleName, middleName),
             new Claim(Claims.FamilyName, lastName),
             new Claim(CustomClaims.Trn, trn),
             new Claim(CustomClaims.UserType, userType.ToString())
@@ -168,6 +175,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var userId = Guid.NewGuid();
         var userType = UserType.Staff;
@@ -179,6 +187,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             StaffRoles = staffRoles,
             Updated = DateTime.UtcNow,
@@ -206,8 +215,9 @@ public partial class AuthenticationStateTests
         {
             new Claim(Claims.Subject, userId.ToString()!),
             new Claim(Claims.Email, email),
-            new Claim(Claims.Name, firstName + " " + lastName),
+            new Claim(Claims.Name, firstName + " " + middleName + " " + lastName),
             new Claim(Claims.GivenName, firstName),
+            new Claim(Claims.MiddleName, middleName),
             new Claim(Claims.FamilyName, lastName),
             new Claim(Claims.Role, StaffRoles.GetAnIdentityAdmin),
             new Claim(Claims.Role, StaffRoles.GetAnIdentitySupport),
@@ -274,6 +284,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var userId = Guid.NewGuid();
 
@@ -283,6 +294,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             Updated = DateTime.UtcNow,
             UserId = userId,
@@ -305,6 +317,7 @@ public partial class AuthenticationStateTests
         Assert.False(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(middleName, authenticationState.MiddleName);
         Assert.Equal(lastName, authenticationState.LastName);
         Assert.Null(authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
@@ -322,6 +335,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var trn = "2345678";
         var userId = Guid.NewGuid();
@@ -333,6 +347,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             Trn = trn,
             Updated = DateTime.UtcNow,
@@ -356,6 +371,7 @@ public partial class AuthenticationStateTests
         Assert.False(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(middleName, authenticationState.MiddleName);
         Assert.Equal(lastName, authenticationState.LastName);
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
@@ -374,6 +390,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var trn = "2345678";
         var userId = Guid.NewGuid();
@@ -385,6 +402,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             Trn = trn,
             TrnAssociationSource = TrnAssociationSource.Api,
@@ -410,6 +428,7 @@ public partial class AuthenticationStateTests
         Assert.False(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(middleName, authenticationState.MiddleName);
         Assert.Equal(lastName, authenticationState.LastName);
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
@@ -428,6 +447,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var trn = "2345678";
         var userId = Guid.NewGuid();
@@ -439,6 +459,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             Trn = trn,
             Updated = DateTime.UtcNow,
@@ -463,6 +484,7 @@ public partial class AuthenticationStateTests
         Assert.True(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(middleName, authenticationState.MiddleName);
         Assert.Equal(lastName, authenticationState.LastName);
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);
@@ -536,6 +558,7 @@ public partial class AuthenticationStateTests
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var email = Faker.Internet.Email();
         var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
         var trn = "2345678";
         var userId = Guid.NewGuid();
@@ -548,6 +571,7 @@ public partial class AuthenticationStateTests
             Created = DateTime.UtcNow,
             EmailAddress = email,
             FirstName = firstName,
+            MiddleName = middleName,
             LastName = lastName,
             Trn = trn,
             Updated = DateTime.UtcNow,
@@ -573,6 +597,7 @@ public partial class AuthenticationStateTests
         Assert.True(authenticationState.FirstTimeSignInForEmail);
         Assert.Equal(dateOfBirth, authenticationState.DateOfBirth);
         Assert.Equal(firstName, authenticationState.FirstName);
+        Assert.Equal(middleName, authenticationState.MiddleName);
         Assert.Equal(lastName, authenticationState.LastName);
         Assert.Equal(trn, authenticationState.Trn);
         Assert.Equal(userId, authenticationState.UserId);

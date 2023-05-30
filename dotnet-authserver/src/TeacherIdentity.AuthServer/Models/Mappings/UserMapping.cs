@@ -15,6 +15,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.EmailAddress).IsUnique().HasDatabaseName(User.EmailAddressUniqueIndexName).HasFilter("is_deleted = false");
         builder.HasIndex(u => u.Trn).IsUnique().HasFilter("is_deleted = false and trn is not null");
         builder.Property(u => u.FirstName).HasMaxLength(User.FirstNameMaxLength).IsRequired();
+        builder.Property(u => u.MiddleName).HasMaxLength(User.FirstNameMaxLength);
         builder.Property(u => u.LastName).HasMaxLength(User.LastNameMaxLength).IsRequired();
         builder.Property(u => u.DateOfBirth).HasDefaultValueSql("NULL");
         builder.Property(u => u.Created).IsRequired();

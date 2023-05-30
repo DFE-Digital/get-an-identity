@@ -46,6 +46,7 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersRequest, GetAllUser
                 UserId = u.UserId,
                 Email = u.EmailAddress,
                 FirstName = u.FirstName,
+                MiddleName = u.MiddleName,
                 LastName = u.LastName,
                 DateOfBirth = u.DateOfBirth,
                 Trn = u.Trn,

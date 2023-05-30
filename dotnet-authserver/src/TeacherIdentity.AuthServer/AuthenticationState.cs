@@ -205,6 +205,7 @@ public class AuthenticationState
         EmailAddress = default;
         EmailAddressVerified = default;
         FirstName = default;
+        MiddleName = default;
         LastName = default;
         OfficialFirstName = default;
         OfficialLastName = default;
@@ -336,6 +337,7 @@ public class AuthenticationState
 
         UserId = user.UserId;
         FirstName = user.FirstName;
+        MiddleName = user.MiddleName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = true;
@@ -379,6 +381,7 @@ public class AuthenticationState
 
         UserId = user.UserId;
         FirstName = user.FirstName;
+        MiddleName = user.MiddleName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         FirstTimeSignInForEmail = true;
@@ -434,6 +437,7 @@ public class AuthenticationState
         EmailAddress = user.EmailAddress;
         UserId = user.UserId;
         FirstName = user.FirstName;
+        MiddleName = user.MiddleName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         HaveCompletedTrnLookup = true;
@@ -450,10 +454,11 @@ public class AuthenticationState
         EmailAddress = email;
     }
 
-    public void OnNameSet(string? firstName, string? lastName)
+    public void OnNameSet(string? firstName, string? middleName, string? lastName)
     {
         HasPreferredName = firstName is not null && lastName is not null;
         FirstName = firstName;
+        MiddleName = middleName;
         LastName = lastName;
     }
 
@@ -579,6 +584,7 @@ public class AuthenticationState
         EmailAddress = user?.EmailAddress;
         EmailAddressVerified = user is not null;
         FirstName = user?.FirstName;
+        MiddleName = user?.MiddleName;
         LastName = user?.LastName;
         DateOfBirth = user?.DateOfBirth;
         Trn = user?.Trn;
@@ -674,6 +680,7 @@ public class AuthenticationState
         EmailAddress = user.EmailAddress;
         MobileNumber = user.MobileNumber;
         FirstName = user.FirstName;
+        MiddleName = user.MiddleName;
         LastName = user.LastName;
         DateOfBirth = user.DateOfBirth;
         UserType = user.UserType;

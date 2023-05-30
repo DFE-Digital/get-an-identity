@@ -27,6 +27,7 @@ public class UserClaimHelper
             authenticationState.UserId!.Value,
             authenticationState.EmailAddress!,
             authenticationState.FirstName!,
+            authenticationState.MiddleName,
             authenticationState.LastName!,
             authenticationState.Trn,
             authenticationState.UserType!.Value,
@@ -39,6 +40,7 @@ public class UserClaimHelper
             user.UserId,
             user.EmailAddress,
             user.FirstName,
+            user.MiddleName,
             user.LastName,
             user.Trn,
             user.UserType,
@@ -56,16 +58,25 @@ public class UserClaimHelper
             return Array.Empty<Claim>();
         }
 
+        var fullName = user.MiddleName is null
+            ? $"{user.FirstName} {user.LastName}"
+            : $"{user.FirstName} {user.MiddleName} {user.LastName}";
+
         var claims = new List<Claim>()
         {
             new Claim(Claims.Subject, userId.ToString()!),
             new Claim(Claims.Email, user.EmailAddress),
             new Claim(Claims.EmailVerified, bool.TrueString),
-            new Claim(Claims.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim(Claims.Name, fullName),
             new Claim(CustomClaims.PreferredName, $"{user.FirstName} {user.LastName}"),
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
         };
+
+        if (!string.IsNullOrEmpty(user.MiddleName))
+        {
+            claims.Add(new Claim(Claims.MiddleName, user.MiddleName));
+        }
 
         if (user.DateOfBirth is DateOnly dateOfBirth)
         {
@@ -100,20 +111,30 @@ public class UserClaimHelper
         Guid userId,
         string email,
         string firstName,
+        string? middleName,
         string lastName,
         string? trn,
         UserType userType,
         string[]? staffRoles)
     {
+        var fullName = middleName is null
+            ? $"{firstName} {lastName}"
+            : $"{firstName} {middleName} {lastName}";
+
         var claims = new List<Claim>()
         {
             new Claim(Claims.Subject, userId.ToString()!),
             new Claim(Claims.Email, email),
-            new Claim(Claims.Name, firstName + " " + lastName),
+            new Claim(Claims.Name, fullName),
             new Claim(Claims.GivenName, firstName),
             new Claim(Claims.FamilyName, lastName),
             new Claim(CustomClaims.UserType, MapUserTypeToClaimValue(userType))
         };
+
+        if (!string.IsNullOrEmpty(middleName))
+        {
+            claims.Add(new Claim(Claims.MiddleName, middleName));
+        }
 
         if (trn is not null)
         {
