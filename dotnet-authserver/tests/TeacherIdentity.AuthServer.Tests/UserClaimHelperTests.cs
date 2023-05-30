@@ -41,10 +41,14 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             new Claim(Claims.Name, user.FirstName + " " + user.MiddleName + " " + user.LastName),
             new Claim(CustomClaims.PreferredName, user.FirstName + " " + user.LastName),
             new Claim(Claims.GivenName, user.FirstName),
-            new Claim(Claims.MiddleName, user.MiddleName),
             new Claim(Claims.FamilyName, user.LastName),
             new Claim(Claims.Birthdate, user.DateOfBirth!.Value.ToString("yyyy-MM-dd")),
         };
+
+        if (!string.IsNullOrEmpty(user.MiddleName))
+        {
+            expectedClaims.Add(new Claim(Claims.MiddleName, user.MiddleName));
+        }
 
         if (haveTrnScope)
         {
