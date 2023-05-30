@@ -2,6 +2,10 @@
 @model TeacherIdentity.AuthServer.Pages.Account.Name.Confirm
 @{
     ViewBag.Title = "Confirm change";
+
+    var fullName = string.IsNullOrEmpty(Model.MiddleName) ?
+        $"{Model.FirstName} {Model.LastName}" :
+        $"{Model.FirstName} {Model.MiddleName} {Model.LastName}";
 }
 
 @section BeforeContent
@@ -11,13 +15,13 @@
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountNameConfirm(Model.FirstName!, Model.LastName!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountNameConfirm(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 
             <govuk-summary-list>
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.FirstName @Model.LastName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-value>@fullName</govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
                         <govuk-summary-list-row-action href="@LinkGenerator.AccountName(Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>

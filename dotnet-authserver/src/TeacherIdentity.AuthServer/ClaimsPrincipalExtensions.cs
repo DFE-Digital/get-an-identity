@@ -12,6 +12,9 @@ public static class ClaimsPrincipalExtensions
 
     public static string GetFirstName(this ClaimsPrincipal principal) => GetClaim(principal, Claims.GivenName);
 
+    public static string? GetMiddleName(this ClaimsPrincipal principal) =>
+        TryGetClaim(principal, Claims.MiddleName, out var middleName) ? middleName : null;
+
     public static string GetLastName(this ClaimsPrincipal principal) => GetClaim(principal, Claims.FamilyName);
 
     public static string[] GetStaffRoles(this ClaimsPrincipal principal) =>

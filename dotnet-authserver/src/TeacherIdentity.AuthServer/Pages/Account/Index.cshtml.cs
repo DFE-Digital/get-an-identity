@@ -46,6 +46,7 @@ public class IndexModel : PageModel
             .Select(u => new
             {
                 u.FirstName,
+                u.MiddleName,
                 u.LastName,
                 u.DateOfBirth,
                 u.EmailAddress,
@@ -54,7 +55,7 @@ public class IndexModel : PageModel
             })
             .SingleAsync();
 
-        Name = $"{user.FirstName} {user.LastName}";
+        Name = string.IsNullOrEmpty(user.MiddleName) ? $"{user.FirstName} {user.LastName}" : $"{user.FirstName} {user.MiddleName} {user.LastName}";
         DateOfBirth = user.DateOfBirth;
         Email = user.EmailAddress;
         MobileNumber = user.MobileNumber;

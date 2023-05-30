@@ -66,6 +66,27 @@ public class NameTests : TestBase
     }
 
     [Fact]
+    public async Task Post_TooLongMiddleName_ReturnsError()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "FirstName", Faker.Name.First() },
+                { "MiddleName", new string('a', 201) },
+                { "LastName", Faker.Name.Last() },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "MiddleName", "Middle name must be 200 characters or less");
+    }
+
+    [Fact]
     public async Task Post_TooLongLastName_ReturnsError()
     {
         // Arrange
@@ -94,6 +115,7 @@ public class NameTests : TestBase
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "FirstName", Faker.Name.First() },
+                { "MiddleName", Faker.Name.Middle() },
                 { "LastName", Faker.Name.Last() },
             }
         };
@@ -130,7 +152,7 @@ public class NameTests : TestBase
     }
 
     [Fact]
-    public async Task Get_Prepopulates_FirstandLastName()
+    public async Task Get_Prepopulates_FirstMiddleAndLastName()
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name");
@@ -142,6 +164,7 @@ public class NameTests : TestBase
         var doc = await response.GetDocument();
 
         Assert.True(doc.GetElementById("FirstName")?.GetAttribute("value")?.Length > 0);
+        Assert.True(doc.GetElementById("MiddleName")?.GetAttribute("value")?.Length > 0);
         Assert.True(doc.GetElementById("LastName")?.GetAttribute("value")?.Length > 0);
     }
 }
