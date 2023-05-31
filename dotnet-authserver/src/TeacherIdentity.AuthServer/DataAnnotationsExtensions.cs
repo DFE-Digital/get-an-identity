@@ -141,6 +141,26 @@ public class EmailAddressAttribute : ValidationAttribute
 }
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class EmailAddressIfTrueAttribute : EmailAddressAttribute
+{
+    private string PropertyName { get; }
+
+    public EmailAddressIfTrueAttribute(string propertyName)
+    {
+        PropertyName = propertyName;
+    }
+
+    protected override ValidationResult IsValid(object? value, ValidationContext context)
+    {
+        object instance = context.ObjectInstance;
+        Type type = instance.GetType();
+
+        bool.TryParse(type.GetProperty(PropertyName)?.GetValue(instance)?.ToString(), out bool isRequired);
+        return isRequired && !base.IsValid(value) ? new ValidationResult(ErrorMessage) : ValidationResult.Success!;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class NationalInsuranceNumber : ValidationAttribute
 {
     public override bool IsValid(object? value)

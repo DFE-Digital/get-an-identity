@@ -26,6 +26,9 @@ public static class RegisterJourneyAuthenticationStateHelper
                 case RegisterJourneyPage.Phone:
                     return c => c.EmailVerified();
 
+                case RegisterJourneyPage.InstitutionEmail:
+                    return c => c.EmailVerified(isInstitutionEmail: true);
+
                 case RegisterJourneyPage.PhoneConfirmation:
                 case RegisterJourneyPage.ResendPhone:
                     return c => c.MobileNumberSet(mobileNumber);
@@ -84,6 +87,7 @@ public enum RegisterJourneyPage
     Index,
     Email,
     EmailConfirmation,
+    InstitutionEmail,
     EmailExists,
     ResendEmail,
     Phone,

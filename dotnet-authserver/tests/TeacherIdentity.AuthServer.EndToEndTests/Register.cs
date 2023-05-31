@@ -450,6 +450,98 @@ public class Register : IClassFixture<HostFixture>
             e => _hostFixture.AssertEventIsUserSignedIn(e, existingUser.UserId, expectOAuthProperties: true));
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task NewUser_WithInstitutionEmail_CanRegister(bool useInstitutionEmail)
+    {
+        var invalidEmailSuffix = "invalid.sch.uk";
+
+        await _hostFixture.TestData.WithDbContext(async dbContext =>
+        {
+            var establishmentDomain = new EstablishmentDomain
+            {
+                DomainName = invalidEmailSuffix
+            };
+
+            try
+            {
+                dbContext.EstablishmentDomains.Add(establishmentDomain);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        });
+
+        var institutionEmail = $"james@{invalidEmailSuffix}";
+        var personalEmail = Faker.Internet.Email();
+        var expectedEmail = useInstitutionEmail ? institutionEmail : personalEmail;
+
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(institutionEmail);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        if (useInstitutionEmail)
+        {
+            await page.SubmitRegisterInstitutionEmailPage(useInstitutionEmail);
+        }
+        else
+        {
+            await page.SubmitRegisterInstitutionEmailPage(useInstitutionEmail, personalEmail);
+
+            await page.SubmitRegisterEmailConfirmationPage();
+        }
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitDateOfBirthPage(dateOfBirth);
+
+        await page.SubmitCheckAnswersPage();
+
+        await page.SubmitCompletePageForNewUser();
+
+        await page.AssertSignedInOnTestClient(expectedEmail, trn: null, firstName, lastName);
+
+        Guid createdUserId = default;
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userRegisteredEvent = Assert.IsType<UserRegisteredEvent>(e);
+                Assert.Equal(_hostFixture.TestClientId, userRegisteredEvent.ClientId);
+                Assert.Equal(expectedEmail, userRegisteredEvent.User.EmailAddress);
+                Assert.Equal(mobileNumber, userRegisteredEvent.User.MobileNumber);
+                Assert.Equal(firstName, userRegisteredEvent.User.FirstName);
+                Assert.Equal(lastName, userRegisteredEvent.User.LastName);
+                Assert.Equal(dateOfBirth, userRegisteredEvent.User.DateOfBirth);
+
+                createdUserId = userRegisteredEvent.User.UserId;
+            },
+            e =>
+            {
+                var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
+                Assert.Equal(createdUserId, userSignedInEvent.User.UserId);
+            });
+    }
+
     private void ConfigureDqtApiFindTeachersRequest(FindTeachersResponseResult? result)
     {
         var results = result is not null ? new[] { result } : Array.Empty<FindTeachersResponseResult>();

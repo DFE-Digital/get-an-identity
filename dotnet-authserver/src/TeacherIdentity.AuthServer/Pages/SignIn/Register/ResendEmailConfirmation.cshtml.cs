@@ -43,14 +43,14 @@ public class ResendEmailConfirmationModel : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        var emailPinGenerationResult = await GenerateEmailPinForNewEmail(Email!);
+        var emailPinGenerationResult = await GenerateEmailPinForNewEmail(Email!, allowInstitutionEmails: true);
 
         if (!emailPinGenerationResult.Success)
         {
             return emailPinGenerationResult.Result!;
         }
 
-        HttpContext.GetAuthenticationState().OnEmailSet(Email!);
+        HttpContext.GetAuthenticationState().OnEmailSet(Email!, await IsInstitutionEmail(Email!));
 
         return await _journey.Advance(CurrentStep);
     }

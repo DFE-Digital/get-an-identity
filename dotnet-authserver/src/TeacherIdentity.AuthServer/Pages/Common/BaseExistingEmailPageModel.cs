@@ -14,7 +14,7 @@ public class BaseExistingEmailPageModel : BaseEmailPinGenerationPageModel
 
     public async Task<PinGenerationResultAction> GenerateEmailPinForExistingEmail(string email)
     {
-        var emailPinGenerationFailedReasons = await GenerateEmailPin(email, false);
+        var emailPinGenerationFailedReasons = await GenerateEmailPin(email, true);
 
         switch (emailPinGenerationFailedReasons)
         {

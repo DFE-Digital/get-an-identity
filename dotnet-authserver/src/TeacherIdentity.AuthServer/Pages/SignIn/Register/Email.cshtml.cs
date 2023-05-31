@@ -44,14 +44,14 @@ public class EmailModel : BaseEmailPageModel
             return this.PageWithErrors();
         }
 
-        var emailPinGenerationResult = await GenerateEmailPinForNewEmail(Email!);
+        var emailPinGenerationResult = await GenerateEmailPinForNewEmail(Email!, allowInstitutionEmails: true);
 
         if (!emailPinGenerationResult.Success)
         {
             return emailPinGenerationResult.Result!;
         }
 
-        _journey.AuthenticationState.OnEmailSet(Email!);
+        _journey.AuthenticationState.OnEmailSet(Email!, await IsInstitutionEmail(Email!));
 
         return await _journey.Advance(CurrentStep);
     }

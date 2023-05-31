@@ -100,14 +100,17 @@ public sealed class AuthenticationStateHelper
         public Func<AuthenticationState, Task> Start() =>
             s => Task.CompletedTask;
 
-        public Func<AuthenticationState, Task> EmailSet(string? email = null) =>
+        public Func<AuthenticationState, Task> EmailSet(string? email = null, bool isInstitutionEmail = false) =>
             s =>
             {
-                s.OnEmailSet(email ?? Faker.Internet.Email());
+                s.OnEmailSet(email ?? Faker.Internet.Email(), isInstitutionEmail);
                 return Task.CompletedTask;
             };
 
-        public Func<AuthenticationState, Task> EmailVerified(string? email = null, User? user = null) =>
+        public Func<AuthenticationState, Task> EmailVerified(
+            string? email = null,
+            User? user = null,
+            bool isInstitutionEmail = false) =>
             async s =>
             {
                 if (email is not null && user is not null && email != user.EmailAddress)
@@ -115,7 +118,7 @@ public sealed class AuthenticationStateHelper
                     throw new ArgumentException("Email does not match user's email.", nameof(email));
                 }
 
-                await EmailSet(email ?? user?.EmailAddress)(s);
+                await EmailSet(email ?? user?.EmailAddress, isInstitutionEmail)(s);
                 s.OnEmailVerified(user);
             };
 

@@ -116,6 +116,10 @@ public class AuthenticationState
     public bool? ExistingAccountChosen { get; private set; }
     [JsonInclude]
     public string? TrnToken { get; private set; }
+    [JsonInclude]
+    public bool IsInstitutionEmail { get; private set; }
+    [JsonInclude]
+    public bool? InstitutionEmailChosen { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -149,6 +153,8 @@ public class AuthenticationState
     public bool ContactDetailsVerified => EmailAddressVerified && MobileNumberVerified;
     [JsonIgnore]
     public bool HasTrnToken => !string.IsNullOrEmpty(TrnToken);
+    [JsonIgnore]
+    public bool HasValidEmail => !IsInstitutionEmail || InstitutionEmailChosen == true;
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {
@@ -229,10 +235,17 @@ public class AuthenticationState
         TrnToken = default;
     }
 
-    public void OnEmailSet(string email)
+    public void OnEmailSet(string email, bool isInstitutionEmail = false)
     {
         EmailAddress = email;
         EmailAddressVerified = false;
+        IsInstitutionEmail = isInstitutionEmail;
+        InstitutionEmailChosen = null;
+    }
+
+    public void OnInstitutionalEmailChosen()
+    {
+        InstitutionEmailChosen = true;
     }
 
     public void OnEmailVerified(User? user = null)

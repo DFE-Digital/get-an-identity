@@ -59,6 +59,11 @@ public class EmailPage : BaseEmailPageModel
             return emailPinGenerationResult.Result!;
         }
 
+        if (await IsInstitutionEmail(Email!))
+        {
+
+        }
+
         return Redirect(_linkGenerator.AccountEmailConfirm(Email!, ClientRedirectInfo));
     }
 }

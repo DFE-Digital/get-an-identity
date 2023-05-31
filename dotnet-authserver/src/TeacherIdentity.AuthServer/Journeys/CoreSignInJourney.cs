@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
+using TeacherIdentity.AuthServer.Models;
+
 namespace TeacherIdentity.AuthServer.Journeys;
 
 public class CoreSignInJourney : SignInJourney
@@ -36,6 +39,7 @@ public class CoreSignInJourney : SignInJourney
             Steps.Email => true,
             Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             Steps.ResendEmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
+            Steps.InstitutionEmail => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: true, IsInstitutionEmail: true },
             Steps.EmailExists => AuthenticationState.IsComplete,
             Steps.Phone => AuthenticationState.EmailAddressVerified,
             Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false, EmailAddressVerified: true },
@@ -78,8 +82,11 @@ public class CoreSignInJourney : SignInJourney
             (Steps.Landing, _) => Steps.Email,
             (Steps.Email, _) => Steps.EmailConfirmation,
             (Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
+            (Steps.EmailConfirmation, { IsComplete: false, IsInstitutionEmail: true }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.InstitutionEmail,
             (Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
             (Steps.ResendEmailConfirmation, _) => Steps.EmailConfirmation,
+            (Steps.InstitutionEmail, { EmailAddressVerified: false }) => Steps.EmailConfirmation,
+            (Steps.InstitutionEmail, { EmailAddressVerified: true }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
             (Steps.Phone, _) => Steps.PhoneConfirmation,
             (Steps.PhoneConfirmation, { IsComplete: true }) => Steps.PhoneExists,
             (Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Name,
@@ -108,6 +115,8 @@ public class CoreSignInJourney : SignInJourney
         (Steps.ResendEmailConfirmation, _) => Steps.EmailConfirmation,
         (Steps.EmailExists, { EmailAddressVerified: true }) => Steps.Email,
         (Steps.EmailExists, { EmailAddressVerified: false }) => Steps.EmailConfirmation,
+        (Steps.InstitutionEmail, _) => Steps.Email,
+        (Steps.Phone, { EmailAddressVerified: true, IsInstitutionEmail: true }) => Steps.InstitutionEmail,
         (Steps.Phone, { EmailAddressVerified: true }) => Steps.Email,
         (Steps.Phone, { EmailAddressVerified: false }) => Steps.EmailConfirmation,
         (Steps.PhoneConfirmation, _) => Steps.Phone,
@@ -138,6 +147,7 @@ public class CoreSignInJourney : SignInJourney
         Steps.Landing => LinkGenerator.Landing(),
         Steps.Email => LinkGenerator.RegisterEmail(),
         Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),
+        Steps.InstitutionEmail => LinkGenerator.RegisterInstitutionEmail(),
         Steps.ResendEmailConfirmation => LinkGenerator.RegisterResendEmailConfirmation(),
         Steps.EmailExists => LinkGenerator.RegisterEmailExists(),
         Steps.Phone => LinkGenerator.RegisterPhone(),
@@ -163,6 +173,7 @@ public class CoreSignInJourney : SignInJourney
         {
             EmailAddressSet: true,
             EmailAddressVerified: true,
+            HasValidEmail: true,
             MobileNumberSet: true,
             MobileNumberVerified: true,
             PreferredNameSet: true,
@@ -174,6 +185,7 @@ public class CoreSignInJourney : SignInJourney
         public const string Landing = $"{nameof(CoreSignInJourney)}.{nameof(Landing)}";
         public const string Email = $"{nameof(CoreSignInJourney)}.{nameof(Email)}";
         public const string EmailConfirmation = $"{nameof(CoreSignInJourney)}.{nameof(EmailConfirmation)}";
+        public const string InstitutionEmail = $"{nameof(CoreSignInJourney)}.{nameof(InstitutionEmail)}";
         public const string ResendEmailConfirmation = $"{nameof(CoreSignInJourney)}.{nameof(ResendEmailConfirmation)}";
         public const string EmailExists = $"{nameof(CoreSignInJourney)}.{nameof(EmailExists)}";
         public const string Phone = $"{nameof(CoreSignInJourney)}.{nameof(Phone)}";

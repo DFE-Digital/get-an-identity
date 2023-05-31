@@ -315,6 +315,22 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task SubmitRegisterInstitutionEmailPage(this IPage page, bool useInsitutionEmail, string? newEmailAddress = null)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/institution-email");
+
+        if (!useInsitutionEmail)
+        {
+            await page.ClickAsync("label:text-is('Enter a personal email address')");
+            await page.FillAsync("label:text-is('Email address')", newEmailAddress!);
+        }
+        else
+        {
+            await page.ClickAsync("label:text-is('Use')"); // use institution email address
+        }
+        await page.ClickContinueButton();
+    }
+
     public static async Task SubmitRegisterPhonePage(this IPage page, string mobileNumber)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/phone");
