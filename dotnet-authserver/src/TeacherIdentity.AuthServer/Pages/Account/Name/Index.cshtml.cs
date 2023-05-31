@@ -23,6 +23,10 @@ public class Name : PageModel
     [StringLength(200, ErrorMessage = "First name must be 200 characters or less")]
     public string? FirstName { get; set; }
 
+    [Display(Name = "Middle name")]
+    [StringLength(200, ErrorMessage = "Middle name must be 200 characters or less")]
+    public string? MiddleName { get; set; }
+
     [Display(Name = "Last name", Description = "Or family names")]
     [Required(ErrorMessage = "Enter your last name")]
     [StringLength(200, ErrorMessage = "Last name must be 200 characters or less")]
@@ -31,6 +35,7 @@ public class Name : PageModel
     public void OnGet()
     {
         FirstName = User.GetFirstName();
+        MiddleName = User.GetMiddleName();
         LastName = User.GetLastName();
     }
 
@@ -41,6 +46,6 @@ public class Name : PageModel
             return this.PageWithErrors();
         }
 
-        return Redirect(_linkGenerator.AccountNameConfirm(FirstName!, LastName!, ClientRedirectInfo));
+        return Redirect(_linkGenerator.AccountNameConfirm(FirstName!, MiddleName, LastName!, ClientRedirectInfo));
     }
 }

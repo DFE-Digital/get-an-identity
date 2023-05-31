@@ -30,6 +30,9 @@ public class Confirm : PageModel
     [FromQuery(Name = "firstName")]
     public string? FirstName { get; set; }
 
+    [FromQuery(Name = "middleName")]
+    public string? MiddleName { get; set; }
+
     [FromQuery(Name = "lastName")]
     public string? LastName { get; set; }
 
@@ -54,6 +57,11 @@ public class Confirm : PageModel
             changes |= UserUpdatedEventChanges.FirstName;
         }
 
+        if (user.MiddleName != MiddleName)
+        {
+            changes |= UserUpdatedEventChanges.MiddleName;
+        }
+
         if (user.LastName != LastName)
         {
             changes |= UserUpdatedEventChanges.LastName;
@@ -63,6 +71,7 @@ public class Confirm : PageModel
         {
             user.FirstName = FirstName!;
             user.LastName = LastName!;
+            user.MiddleName = MiddleName;
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new UserUpdatedEvent()

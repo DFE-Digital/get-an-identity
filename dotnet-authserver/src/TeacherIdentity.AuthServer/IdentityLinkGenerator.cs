@@ -175,9 +175,10 @@ public abstract class IdentityLinkGenerator
         Page("/Account/Name/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public string AccountNameConfirm(string firstName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountNameConfirm(string firstName, string? middleName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/Name/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
+            .SetQueryParam("middleName", middleName)
             .SetQueryParam("lastName", lastName)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
