@@ -103,7 +103,8 @@ public class InstitutionEmailTests : TestBase
 
         Assert.True(authStateHelper.AuthenticationState.InstitutionEmailChosen);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(It.IsAny<string>()), Times.Never);    }
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(It.IsAny<string>()), Times.Never);    
+    }
 
     [Fact]
     public async Task Post_ValidPersonalEmailWithBlockedClient_ReturnsTooManyRequestsStatusCode()

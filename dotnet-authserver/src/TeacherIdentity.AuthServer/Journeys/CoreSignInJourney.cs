@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using TeacherIdentity.AuthServer.Models;
-
 namespace TeacherIdentity.AuthServer.Journeys;
 
 public class CoreSignInJourney : SignInJourney
