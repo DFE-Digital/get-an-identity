@@ -1,5 +1,4 @@
 using System.Text.Encodings.Web;
-using EntityFramework.Exceptions.Common;
 using Flurl;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
