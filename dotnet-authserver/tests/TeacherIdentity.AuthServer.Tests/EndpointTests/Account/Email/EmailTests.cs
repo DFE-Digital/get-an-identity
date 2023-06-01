@@ -185,23 +185,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            try
-            {
-                var establishmentDomain = new EstablishmentDomain
-                {
-                    DomainName = invalidSuffix
-                };
-
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
-            {
-            }
-        });
+        await TestData.AddEstablishmentDomain(invalidSuffix);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email")
         {

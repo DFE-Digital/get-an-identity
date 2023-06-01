@@ -103,7 +103,7 @@ public class InstitutionEmailTests : TestBase
 
         Assert.True(authStateHelper.AuthenticationState.InstitutionEmailChosen);
 
-        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(It.IsAny<string>()), Times.Never);    
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -206,24 +206,7 @@ public class InstitutionEmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "invalid.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            try
-            {
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        });
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var email = "admin@invalid.sch.uk";

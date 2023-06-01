@@ -456,24 +456,7 @@ public class Register : IClassFixture<HostFixture>
     public async Task NewUser_WithInstitutionEmail_CanRegister(bool useInstitutionEmail)
     {
         var invalidEmailSuffix = "invalid.sch.uk";
-
-        await _hostFixture.TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            try
-            {
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        });
+        await _hostFixture.TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
         var institutionEmail = $"james@{invalidEmailSuffix}";
         var personalEmail = Faker.Internet.Email();

@@ -608,6 +608,75 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         _hostFixture.EventObserver.AssertEventsSaved(e => Assert.IsType<UserSignedInEvent>(e));
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task NewTeacherUser_WithTrnTokenChangesToInstitutionEmail_CreatesUserAndCompletesFlow(bool useInstitutionEmail)
+    {
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = _hostFixture.TestData.GenerateTrn();
+
+        var trnToken = await _hostFixture.TestData.GenerateTrnToken(trn);
+
+        _hostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = dateOfBirth,
+                FirstName = firstName,
+                MiddleName = middleName,
+                LastName = lastName,
+                Trn = trn,
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingDateOfBirthChange = false,
+                PendingNameChange = false
+            });
+
+        var invalidEmailSuffix = "invalid.sch.uk";
+        await _hostFixture.TestData.AddEstablishmentDomain(invalidEmailSuffix);
+
+        var newInstitutionEmail = $"james@{invalidEmailSuffix}";
+        var newPersonalEmail = Faker.Internet.Email();
+        var newExpectedEmail = useInstitutionEmail ? newInstitutionEmail : newPersonalEmail;
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.RegisterFromTrnTokenLandingPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.ClickChangeLinkTrnTokenCheckAnswersPage("trn-token-email-change-link");
+
+        await page.SubmitRegisterEmailPage(newInstitutionEmail);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        if (useInstitutionEmail)
+        {
+            await page.SubmitRegisterInstitutionEmailPage(useInstitutionEmail);
+        }
+        else
+        {
+            await page.SubmitRegisterInstitutionEmailPage(useInstitutionEmail, newPersonalEmail);
+
+            await page.SubmitRegisterEmailConfirmationPage();
+        }
+
+        await page.SubmitTrnTokenCheckAnswersPage();
+
+        await page.SubmitCompletePageForNewUser();
+
+        await page.AssertSignedInOnTestClient(newExpectedEmail, trn, firstName, lastName);
+    }
+
     private async Task SignInUser(User user, IPage page, IBrowserContext context)
     {
         await page.StartOAuthJourney(additionalScope: null);

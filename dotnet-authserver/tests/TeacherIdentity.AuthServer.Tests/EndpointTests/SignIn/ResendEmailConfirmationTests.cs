@@ -304,17 +304,7 @@ public class ResendEmailConfirmationTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "myschool4561.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
-        });
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
@@ -337,17 +327,8 @@ public class ResendEmailConfirmationTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "myschool4562.sch.uk";
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
-        });
 
         var user = await TestData.CreateUser(email: $"john.doe32@{invalidEmailSuffix}");
 

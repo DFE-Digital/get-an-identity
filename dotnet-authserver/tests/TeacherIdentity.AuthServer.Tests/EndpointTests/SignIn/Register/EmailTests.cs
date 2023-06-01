@@ -165,24 +165,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "invalid.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            try
-            {
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        });
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
         var email = $"principal@{invalidEmailSuffix}";
 
