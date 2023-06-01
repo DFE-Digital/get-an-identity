@@ -7,7 +7,7 @@ using TeacherIdentity.AuthServer.Services.UserVerification;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup), typeof(CoreSignInJourney))]
+[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup), typeof(CoreSignInJourney), typeof(TrnTokenSignInJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class InstitutionEmail : BaseEmailPageModel
 {
