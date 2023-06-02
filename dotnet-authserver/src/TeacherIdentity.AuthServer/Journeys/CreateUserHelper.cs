@@ -63,7 +63,7 @@ public class CreateUserHelper
         return user;
     }
 
-    public async Task<User> CreateUserWithTrnLookup(AuthenticationState authenticationState)
+    public async Task<User> CreateUserWithTrnLookup(AuthenticationState authenticationState, bool populatePreferredName = false)
     {
         var userId = Guid.NewGuid();
 
@@ -86,6 +86,11 @@ public class CreateUserHelper
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus
         };
+
+        if (populatePreferredName)
+        {
+            user.PreferredName = authenticationState.GetPreferredName();
+        }
 
         _dbContext.Users.Add(user);
 

@@ -26,7 +26,7 @@ public class LegacyTrnJourney : SignInJourney
     {
         try
         {
-            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState);
+            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState, populatePreferredName: true);
 
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);

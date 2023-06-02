@@ -5,6 +5,7 @@ public class User
     public const int FirstNameMaxLength = 200;
     public const int MiddleNameMaxLength = 200;
     public const int LastNameMaxLength = 200;
+    public const int PreferredNameMaxLength = 200;
 
     public const string EmailAddressUniqueIndexName = "ix_users_email_address";
     public const string MobileNumberUniqueIndexName = "ix_users_mobile_number";
@@ -15,6 +16,7 @@ public class User
     public required string FirstName { get; set; }
     public string? MiddleName { get; set; }
     public required string LastName { get; set; }
+    public string? PreferredName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public required DateTime Created { get; set; }
     public required DateTime Updated { get; set; }

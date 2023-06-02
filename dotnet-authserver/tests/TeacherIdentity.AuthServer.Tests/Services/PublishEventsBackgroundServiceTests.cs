@@ -113,6 +113,7 @@ public class PublishEventsBackgroundServiceTests : IClassFixture<DbFixture>, IAs
             FirstName = Faker.Name.First(),
             MiddleName = Faker.Name.Middle(),
             LastName = Faker.Name.Last(),
+            PreferredName = null,
             StaffRoles = Array.Empty<string>(),
             Trn = null,
             TrnAssociationSource = null,

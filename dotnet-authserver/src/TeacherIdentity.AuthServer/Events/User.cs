@@ -9,6 +9,7 @@ public record User
     public required string FirstName { get; init; }
     public required string? MiddleName { get; init; }
     public required string LastName { get; init; }
+    public required string? PreferredName { get; init; }
     public required DateOnly? DateOfBirth { get; init; }
     public required UserType UserType { get; init; }
     public required string? Trn { get; init; }
@@ -24,6 +25,7 @@ public record User
         FirstName = user.FirstName,
         MiddleName = user.MiddleName,
         LastName = user.LastName,
+        PreferredName = user.PreferredName,
         StaffRoles = user.StaffRoles,
         Trn = user.Trn,
         MobileNumber = user.MobileNumber,

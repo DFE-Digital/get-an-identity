@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.Users;
 
@@ -62,6 +63,7 @@ public class GetUserDetailTests : TestBase
                 firstName = user.FirstName,
                 middleName = user.MiddleName,
                 lastName = user.LastName,
+                preferredName = user.PreferredName,
                 dateOfBirth = user.DateOfBirth,
                 trn = user.Trn,
                 trnLookupStatus = user.TrnLookupStatus,
@@ -81,7 +83,7 @@ public class GetUserDetailTests : TestBase
         var httpClient = await CreateHttpClientWithToken(withUser: true, scope);
 
         var registeredWithClient = TestClients.DefaultClient;
-        var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId);
+        var user = await TestData.CreateUser(hasTrn: true, registeredWithClientId: registeredWithClient.ClientId, hasPreferredName: true);
 
         // Act
         var response = await httpClient.GetAsync($"/api/v1/users/{user.UserId}");
@@ -96,6 +98,7 @@ public class GetUserDetailTests : TestBase
                 firstName = user.FirstName,
                 middleName = user.MiddleName,
                 lastName = user.LastName,
+                preferredName = user.PreferredName,
                 dateOfBirth = user.DateOfBirth,
                 trn = user.Trn,
                 trnLookupStatus = user.TrnLookupStatus,
