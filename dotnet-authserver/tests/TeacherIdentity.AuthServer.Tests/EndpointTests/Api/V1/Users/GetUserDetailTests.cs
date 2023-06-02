@@ -1,5 +1,4 @@
 using TeacherIdentity.AuthServer.Oidc;
-using TeacherIdentity.AuthServer.Pages.SignIn.Trn;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.Users;
 
