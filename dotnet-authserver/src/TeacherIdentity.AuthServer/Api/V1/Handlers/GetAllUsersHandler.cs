@@ -48,6 +48,7 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersRequest, GetAllUser
                 FirstName = u.FirstName,
                 MiddleName = u.MiddleName,
                 LastName = u.LastName,
+                PreferredName = u.PreferredName,
                 DateOfBirth = u.DateOfBirth,
                 Trn = u.Trn,
                 TrnLookupStatus = u.TrnLookupStatus,

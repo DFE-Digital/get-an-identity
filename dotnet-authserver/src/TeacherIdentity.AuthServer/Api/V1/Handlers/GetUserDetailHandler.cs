@@ -53,6 +53,7 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailRequest, GetUse
             FirstName = user.FirstName,
             MiddleName = user.MiddleName,
             LastName = user.LastName,
+            PreferredName = user.PreferredName,
             DateOfBirth = user.DateOfBirth,
             Trn = user.Trn,
             TrnLookupStatus = user.TrnLookupStatus,

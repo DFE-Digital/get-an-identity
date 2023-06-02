@@ -17,6 +17,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.FirstName).HasMaxLength(User.FirstNameMaxLength).IsRequired();
         builder.Property(u => u.MiddleName).HasMaxLength(User.FirstNameMaxLength);
         builder.Property(u => u.LastName).HasMaxLength(User.LastNameMaxLength).IsRequired();
+        builder.Property(u => u.PreferredName).HasMaxLength(User.PreferredNameMaxLength);
         builder.Property(u => u.DateOfBirth).HasDefaultValueSql("NULL");
         builder.Property(u => u.Created).IsRequired();
         builder.Property(u => u.CompletedTrnLookup);

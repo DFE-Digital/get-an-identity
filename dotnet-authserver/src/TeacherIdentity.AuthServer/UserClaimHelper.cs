@@ -68,15 +68,12 @@ public class UserClaimHelper
             new Claim(Claims.Email, user.EmailAddress),
             new Claim(Claims.EmailVerified, bool.TrueString),
             new Claim(Claims.Name, fullName),
-            new Claim(CustomClaims.PreferredName, $"{user.FirstName} {user.LastName}"),
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
         };
 
-        if (!string.IsNullOrEmpty(user.MiddleName))
-        {
-            claims.Add(new Claim(Claims.MiddleName, user.MiddleName));
-        }
+        AddOptionalClaim(claims, CustomClaims.PreferredName, user.PreferredName);
+        AddOptionalClaim(claims, Claims.MiddleName, user.MiddleName);
 
         if (user.DateOfBirth is DateOnly dateOfBirth)
         {
@@ -131,15 +128,8 @@ public class UserClaimHelper
             new Claim(CustomClaims.UserType, MapUserTypeToClaimValue(userType))
         };
 
-        if (!string.IsNullOrEmpty(middleName))
-        {
-            claims.Add(new Claim(Claims.MiddleName, middleName));
-        }
-
-        if (trn is not null)
-        {
-            claims.Add(new Claim(CustomClaims.Trn, trn));
-        }
+        AddOptionalClaim(claims, Claims.MiddleName, middleName);
+        AddOptionalClaim(claims, CustomClaims.Trn, trn);
 
         foreach (var role in staffRoles ?? Array.Empty<string>())
         {
@@ -147,5 +137,13 @@ public class UserClaimHelper
         }
 
         return claims;
+    }
+
+    private static void AddOptionalClaim(List<Claim> claims, string claimType, string? stringValue)
+    {
+        if (!string.IsNullOrEmpty(stringValue))
+        {
+            claims.Add(new Claim(claimType, stringValue));
+        }
     }
 }

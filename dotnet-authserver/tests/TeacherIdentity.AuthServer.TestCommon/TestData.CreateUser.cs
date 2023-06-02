@@ -15,7 +15,8 @@ public partial class TestData
             bool trnLookupSupportTicketCreated = false,
             string? firstName = null,
             string[]? staffRoles = null,
-            bool? hasMobileNumber = null) =>
+            bool? hasMobileNumber = null,
+            bool hasPreferredName = false) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn == true && userType != UserType.Default)
@@ -57,15 +58,19 @@ public partial class TestData
                 normalizedMobileNumber = MobileNumber.Parse(mobileNumber);
             }
 
+            firstName ??= Faker.Name.First();
+            var lastName = Faker.Name.Last();
+
             var user = new User()
             {
                 UserId = Guid.NewGuid(),
                 EmailAddress = email ?? Faker.Internet.Email(),
                 MobileNumber = mobileNumber,
                 NormalizedMobileNumber = normalizedMobileNumber,
-                FirstName = firstName ?? Faker.Name.First(),
+                FirstName = firstName,
                 MiddleName = Faker.Name.Middle(),
-                LastName = Faker.Name.Last(),
+                LastName = lastName,
+                PreferredName = hasPreferredName ? $"{firstName} {lastName}" : null,
                 Created = _clock.UtcNow,
                 CompletedTrnLookup = userType is UserType.Default && haveCompletedTrnLookup != false ? _clock.UtcNow : null,
                 UserType = userType,

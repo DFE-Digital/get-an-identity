@@ -15,14 +15,11 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
     }
 
     [Theory]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
-    public async Task GetPublicClaims_FromUser_ReturnsExpectedClaims(bool haveTrnScope, bool hasMobileNumber)
+    [MemberData(nameof(GetOptionalClaimsData))]
+    public async Task GetPublicClaims_FromUser_ReturnsExpectedClaims(bool haveTrnScope, bool hasMobileNumber, bool hasPreferredName)
     {
         // Arrange
-        var user = await _dbFixture.TestData.CreateUser(hasTrn: haveTrnScope, hasMobileNumber: hasMobileNumber);
+        var user = await _dbFixture.TestData.CreateUser(hasTrn: haveTrnScope, hasMobileNumber: hasMobileNumber, hasPreferredName: hasPreferredName);
 
         using var dbContext = _dbFixture.GetDbContext();
         var userClaimHelper = new UserClaimHelper(dbContext);
@@ -39,11 +36,15 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             new Claim(Claims.Email, user.EmailAddress),
             new Claim(Claims.EmailVerified, bool.TrueString),
             new Claim(Claims.Name, user.FirstName + " " + user.MiddleName + " " + user.LastName),
-            new Claim(CustomClaims.PreferredName, user.FirstName + " " + user.LastName),
             new Claim(Claims.GivenName, user.FirstName),
             new Claim(Claims.FamilyName, user.LastName),
             new Claim(Claims.Birthdate, user.DateOfBirth!.Value.ToString("yyyy-MM-dd")),
         };
+
+        if (hasPreferredName)
+        {
+            expectedClaims.Add(new Claim(CustomClaims.PreferredName, user.FirstName + " " + user.LastName));
+        }
 
         if (!string.IsNullOrEmpty(user.MiddleName))
         {
@@ -105,6 +106,22 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         else
         {
             Assert.DoesNotContain(result, c => c.Type == CustomClaims.PreviousUserId);
+        }
+    }
+
+    public static IEnumerable<object[]> GetOptionalClaimsData()
+    {
+        var boolValues = new[] { true, false };
+
+        foreach (var haveTrnScope in boolValues)
+        {
+            foreach (var hasMobileNumber in boolValues)
+            {
+                foreach (var hasPreferredName in boolValues)
+                {
+                    yield return new object[] { haveTrnScope, hasMobileNumber, hasPreferredName };
+                }
+            }
         }
     }
 }

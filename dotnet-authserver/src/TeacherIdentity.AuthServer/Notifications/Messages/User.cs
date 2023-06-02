@@ -9,6 +9,7 @@ public record User
     public required string FirstName { get; init; }
     public required string? MiddleName { get; init; }
     public required string LastName { get; init; }
+    public required string? PreferredName { get; init; }
     public required DateOnly? DateOfBirth { get; init; }
     public required string? Trn { get; init; }
     public required string? MobileNumber { get; init; }
@@ -21,6 +22,7 @@ public record User
         FirstName = user.FirstName,
         MiddleName = user.MiddleName,
         LastName = user.LastName,
+        PreferredName = user.PreferredName,
         Trn = user.Trn,
         TrnLookupStatus = user.TrnLookupStatus.ToOption(),
         MobileNumber = user.MobileNumber,

@@ -20,6 +20,7 @@ public record GetUserDetailResponse : UserInfo
             FirstName = "Kevin",
             MiddleName = "Brian",
             LastName = "E",
+            PreferredName = "Kevin E",
             Trn = "2921020",
             TrnLookupStatus = AuthServer.TrnLookupStatus.Found,
             MobileNumber = "07890123456",
