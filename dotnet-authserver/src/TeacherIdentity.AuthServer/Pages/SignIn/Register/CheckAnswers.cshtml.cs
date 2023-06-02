@@ -22,7 +22,7 @@ public class CheckAnswers : PageModel
     public bool? RequiresTrnLookup => _journey.AuthenticationState.UserRequirements.RequiresTrnLookup();
     public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
     public string? MobilePhoneNumber => _journey.AuthenticationState.MobileNumber;
-    public string? FullName => _journey.AuthenticationState.GetPreferredName();
+    public string? FullName => _journey.AuthenticationState.GetName();
     public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;
     public bool? HasNationalInsuranceNumberSet => _journey.AuthenticationState.HasNationalInsuranceNumberSet;
     public string? NationalInsuranceNumber => _journey.AuthenticationState.NationalInsuranceNumber;

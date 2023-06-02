@@ -26,7 +26,7 @@ public class LegacyTrnJourney : SignInJourney
     {
         try
         {
-            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState, populatePreferredName: true);
+            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState, useOfficialNameDefault: true);
 
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
@@ -152,7 +152,7 @@ public class LegacyTrnJourney : SignInJourney
                 Steps.HasTrn => AuthenticationState.EmailAddressVerified,
                 Steps.OfficialName => AuthenticationState.HasTrnSet,
                 Steps.PreferredName => AuthenticationState.OfficialNameSet,
-                Steps.DateOfBirth => AuthenticationState.PreferredNameSet,
+                Steps.DateOfBirth => AuthenticationState.NameSet,
                 Steps.HasNationalInsuranceNumber => AuthenticationState.DateOfBirthSet,
                 Steps.NationalInsuranceNumber =>
                     AuthenticationState.HasNationalInsuranceNumberSet && AuthenticationState.HasNationalInsuranceNumber == true,
@@ -204,7 +204,7 @@ public class LegacyTrnJourney : SignInJourney
             AuthenticationState.EmailAddressVerified &&
             AuthenticationState.HasTrnSet &&
             AuthenticationState.OfficialNameSet &&
-            AuthenticationState.PreferredNameSet &&
+            AuthenticationState.NameSet &&
             AuthenticationState.DateOfBirthSet &&
             AuthenticationState.HasNationalInsuranceNumberSet &&
             (AuthenticationState.NationalInsuranceNumberSet || AuthenticationState.HasNationalInsuranceNumber == false) &&

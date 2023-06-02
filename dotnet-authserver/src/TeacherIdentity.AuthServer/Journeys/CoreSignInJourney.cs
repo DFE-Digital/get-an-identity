@@ -43,6 +43,7 @@ public class CoreSignInJourney : SignInJourney
             Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             Steps.PhoneExists => AuthenticationState.IsComplete,
             Steps.Name => AuthenticationState.ContactDetailsVerified,
+            Steps.PreferredName => AuthenticationState is { NameSet: true, ContactDetailsVerified: true },
             Steps.DateOfBirth => AuthenticationState is { PreferredNameSet: true, ContactDetailsVerified: true },
             Steps.AccountExists => AuthenticationState.ExistingAccountFound,
             Steps.ExistingAccountEmailConfirmation => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: true },
@@ -89,7 +90,9 @@ public class CoreSignInJourney : SignInJourney
             (Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Name,
             (Steps.ResendPhoneConfirmation, _) => Steps.PhoneConfirmation,
             (Steps.Name, { ExistingAccountFound: true }) => Steps.AccountExists,
-            (Steps.Name, { ExistingAccountFound: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.DateOfBirth,
+            (Steps.Name, { ExistingAccountFound: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.PreferredName,
+            (Steps.PreferredName, { ExistingAccountFound: true }) => Steps.AccountExists,
+            (Steps.PreferredName, { ExistingAccountFound: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.DateOfBirth,
             (Steps.DateOfBirth, { ExistingAccountFound: true }) => Steps.AccountExists,
             (Steps.DateOfBirth, { ExistingAccountFound: false }) => Steps.CheckAnswers,
             (Steps.AccountExists, { ExistingAccountChosen: true }) => Steps.ExistingAccountEmailConfirmation,
@@ -122,7 +125,8 @@ public class CoreSignInJourney : SignInJourney
         (Steps.PhoneExists, { MobileNumberVerified: false }) => Steps.PhoneConfirmation,
         (Steps.Name, { MobileNumberVerified: true }) => Steps.Phone,
         (Steps.Name, { MobileNumberVerified: false }) => Steps.PhoneConfirmation,
-        (Steps.DateOfBirth, _) => Steps.Name,
+        (Steps.PreferredName, _) => Steps.Name,
+        (Steps.DateOfBirth, _) => Steps.PreferredName,
         (Steps.AccountExists, _) => Steps.DateOfBirth,
         (Steps.ExistingAccountEmailConfirmation, _) => Steps.AccountExists,
         (Steps.ResendExistingAccountEmail, _) => Steps.ExistingAccountEmailConfirmation,
@@ -152,6 +156,7 @@ public class CoreSignInJourney : SignInJourney
         Steps.ResendPhoneConfirmation => LinkGenerator.RegisterResendPhoneConfirmation(),
         Steps.PhoneExists => LinkGenerator.RegisterPhoneExists(),
         Steps.Name => LinkGenerator.RegisterName(),
+        Steps.PreferredName => LinkGenerator.RegisterPreferredName(),
         Steps.DateOfBirth => LinkGenerator.RegisterDateOfBirth(),
         Steps.AccountExists => LinkGenerator.RegisterAccountExists(),
         Steps.ExistingAccountEmailConfirmation => LinkGenerator.RegisterExistingAccountEmailConfirmation(),
@@ -173,8 +178,9 @@ public class CoreSignInJourney : SignInJourney
             HasValidEmail: true,
             MobileNumberSet: true,
             MobileNumberVerified: true,
+            NameSet: true,
             PreferredNameSet: true,
-            DateOfBirthSet: true
+            DateOfBirthSet: true,
         };
 
     public new static class Steps
@@ -190,6 +196,7 @@ public class CoreSignInJourney : SignInJourney
         public const string ResendPhoneConfirmation = $"{nameof(CoreSignInJourney)}.{nameof(ResendPhoneConfirmation)}";
         public const string PhoneExists = $"{nameof(CoreSignInJourney)}.{nameof(PhoneExists)}";
         public const string Name = $"{nameof(CoreSignInJourney)}.{nameof(Name)}";
+        public const string PreferredName = $"{nameof(CoreSignInJourney)}.{nameof(PreferredName)}";
         public const string DateOfBirth = $"{nameof(CoreSignInJourney)}.{nameof(DateOfBirth)}";
         public const string AccountExists = $"{nameof(CoreSignInJourney)}.{nameof(AccountExists)}";
         public const string ExistingAccountEmailConfirmation = $"{nameof(CoreSignInJourney)}.{nameof(ExistingAccountEmailConfirmation)}";

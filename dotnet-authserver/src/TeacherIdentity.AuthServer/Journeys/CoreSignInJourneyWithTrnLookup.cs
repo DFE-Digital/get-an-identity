@@ -47,7 +47,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                         u => u.CreateTrnResolutionZendeskTicket(
                             user.UserId,
                             AuthenticationState.GetOfficialName(),
-                            AuthenticationState.GetPreferredName(),
+                            AuthenticationState.GetName(),
                             AuthenticationState.EmailAddress,
                             AuthenticationState.GetPreviousOfficialName(),
                             AuthenticationState.DateOfBirth,
@@ -196,7 +196,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         AuthenticationState.EmailAddressVerified &&
         AuthenticationState.MobileNumberSet &&
         AuthenticationState.MobileNumberVerified &&
-        AuthenticationState.PreferredNameSet &&
+        AuthenticationState.NameSet &&
         AuthenticationState.DateOfBirthSet &&
         AuthenticationState.HasNationalInsuranceNumberSet &&
         (AuthenticationState.NationalInsuranceNumberSet || AuthenticationState.HasNationalInsuranceNumber == false) &&

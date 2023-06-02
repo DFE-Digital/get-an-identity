@@ -42,6 +42,7 @@ public class CreateUserHelper
             FirstName = authenticationState.FirstName!,
             MiddleName = authenticationState.MiddleName,
             LastName = authenticationState.LastName!,
+            PreferredName = authenticationState.PreferredName,
             Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Default,
@@ -63,7 +64,7 @@ public class CreateUserHelper
         return user;
     }
 
-    public async Task<User> CreateUserWithTrnLookup(AuthenticationState authenticationState, bool populatePreferredName = false)
+    public async Task<User> CreateUserWithTrnLookup(AuthenticationState authenticationState)
     {
         var userId = Guid.NewGuid();
 
@@ -77,6 +78,7 @@ public class CreateUserHelper
             FirstName = authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
             MiddleName = authenticationState.MiddleName,
             LastName = authenticationState.LastName ?? authenticationState.OfficialLastName!,
+            PreferredName = authenticationState.PreferredName ?? authenticationState.GetOfficialName(),
             Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Default,
@@ -86,11 +88,6 @@ public class CreateUserHelper
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus
         };
-
-        if (populatePreferredName)
-        {
-            user.PreferredName = authenticationState.GetPreferredName();
-        }
 
         _dbContext.Users.Add(user);
 
@@ -124,6 +121,7 @@ public class CreateUserHelper
             MobileNumber = authenticationState.MobileNumber,
             FirstName = authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
             LastName = authenticationState.LastName ?? authenticationState.OfficialLastName!,
+            PreferredName = authenticationState.PreferredName,
             Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Default,

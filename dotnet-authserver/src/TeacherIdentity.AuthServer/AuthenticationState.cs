@@ -61,7 +61,7 @@ public class AuthenticationState
     [JsonInclude]
     public string? LastName { get; private set; }
     [JsonInclude]
-    public bool? HasPreferredName { get; private set; }
+    public bool? HasName { get; private set; }
     [JsonInclude]
     public string? OfficialFirstName { get; private set; }
     [JsonInclude]
@@ -120,6 +120,8 @@ public class AuthenticationState
     public bool IsInstitutionEmail { get; private set; }
     [JsonInclude]
     public bool? InstitutionEmailChosen { get; private set; }
+    [JsonInclude]
+    public string? PreferredName { get; private set; }
 
     /// <summary>
     /// Whether the user has gone back to an earlier page after this journey has been completed.
@@ -134,7 +136,7 @@ public class AuthenticationState
     [JsonIgnore]
     public bool HasTrnSet => HasTrn.HasValue;
     [JsonIgnore]
-    public bool PreferredNameSet => HasPreferredName.HasValue;
+    public bool NameSet => HasName.HasValue;
     [JsonIgnore]
     public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
     [JsonIgnore]
@@ -155,6 +157,8 @@ public class AuthenticationState
     public bool HasTrnToken => !string.IsNullOrEmpty(TrnToken);
     [JsonIgnore]
     public bool HasValidEmail => !IsInstitutionEmail || InstitutionEmailChosen == true;
+    [JsonIgnore]
+    public bool PreferredNameSet => !string.IsNullOrEmpty(PreferredName);
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {
@@ -469,7 +473,7 @@ public class AuthenticationState
 
     public void OnNameSet(string? firstName, string? middleName, string? lastName)
     {
-        HasPreferredName = firstName is not null && lastName is not null;
+        HasName = firstName is not null && lastName is not null;
         FirstName = firstName;
         MiddleName = middleName;
         LastName = lastName;
@@ -493,6 +497,11 @@ public class AuthenticationState
         HasPreviousName = hasPreviousName;
         PreviousOfficialFirstName = previousOfficialFirstName;
         PreviousOfficialLastName = previousOfficialLastName;
+    }
+
+    public void OnPreferredNameSet(string preferredName)
+    {
+        PreferredName = preferredName;
     }
 
     public void OnDateOfBirthSet(DateOnly dateOfBirth)
@@ -623,24 +632,27 @@ public class AuthenticationState
 
     public string? GetOfficialName()
     {
-        return GetFullName(OfficialFirstName, OfficialLastName);
+        return GetFullName(OfficialFirstName, null, OfficialLastName);
     }
 
     public string? GetPreviousOfficialName()
     {
-        return GetFullName(PreviousOfficialFirstName, PreviousOfficialLastName);
+        return GetFullName(PreviousOfficialFirstName, null, PreviousOfficialLastName);
     }
 
-    public string? GetPreferredName()
+    public string? GetName()
     {
-        return GetFullName(FirstName, LastName);
+        return GetFullName(FirstName, MiddleName, LastName);
     }
 
-    private string? GetFullName(string? firstName, string? lastName)
+    private string? GetFullName(string? firstName, string? middleName, string? lastName)
     {
-        return !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName)
-            ? $"{firstName} {lastName}"
-            : null;
+        if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
+        {
+            return null;
+        }
+
+        return string.IsNullOrEmpty(middleName) ? $"{firstName} {lastName}" : $"{firstName} {middleName} {lastName}";
     }
 
     public void OnTrnLookupCompleted(string? trn, TrnLookupStatus trnLookupStatus)
