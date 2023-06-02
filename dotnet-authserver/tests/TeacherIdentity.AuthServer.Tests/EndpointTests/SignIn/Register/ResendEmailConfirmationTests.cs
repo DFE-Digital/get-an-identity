@@ -220,41 +220,21 @@ public class ResendEmailConfirmationTests : TestBase
         HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(differentEmail), Times.Once);
     }
 
-    [Theory]
-    [InlineData("admin")]
-    [InlineData("academy")]
-    public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
-    }
-
     [Fact]
-    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoNotReturnError()
+    public async Task Post_ValidInstitutionEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToRegisterEmailConfirmation()
     {
         // Arrange
-        var invalidPrefix = "headteacher";
-        var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
+        var invalidEmailSuffix = "invalid.sch.uk";
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
+
+        var email = $"headteacher@{invalidEmailSuffix}";
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/resend-email-confirmation?{authStateHelper.ToQueryParam()}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", user.EmailAddress }
+                { "Email", email }
             }
         };
 
@@ -263,6 +243,12 @@ public class ResendEmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/email-confirmation", response.Headers.Location?.OriginalString);
+
+        Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
+        Assert.True(authStateHelper.AuthenticationState.IsInstitutionEmail);
+
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Once);
     }
 
     [Fact]

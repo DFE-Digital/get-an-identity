@@ -14,9 +14,12 @@ public class BaseEmailPageModel : BaseEmailPinGenerationPageModel
     {
     }
 
-    public async Task<PinGenerationResultAction> GenerateEmailPinForNewEmail(string email, string fieldName = "Email")
+    public async Task<PinGenerationResultAction> GenerateEmailPinForNewEmail(
+        string email,
+        string fieldName = "Email",
+        bool allowInstitutionEmails = false)
     {
-        var emailPinGenerationFailedReasons = await GenerateEmailPin(email, true);
+        var emailPinGenerationFailedReasons = await GenerateEmailPin(email, allowInstitutionEmails);
 
         switch (emailPinGenerationFailedReasons)
         {

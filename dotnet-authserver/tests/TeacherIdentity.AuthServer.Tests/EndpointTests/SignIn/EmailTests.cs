@@ -1,4 +1,3 @@
-using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -175,17 +174,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "myschool3211.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
-        });
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
@@ -208,17 +197,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "myschool3212.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
-        });
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
         var user = await TestData.CreateUser(email: $"john.doe22@{invalidEmailSuffix}");
 

@@ -1,0 +1,41 @@
+@page "/sign-in/register/institution-email"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Register.InstitutionEmail
+@{
+    ViewBag.Title = "Your email address looks like it’s from a work or education setting";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@Model.BackLink" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.RegisterInstitutionEmail()" method="post" asp-antiforgery="true">
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+
+            <p>
+                We recommend setting your DfE Identity account up with a personal email address.
+                This is so you will not lose access to it if you move to another work or education setting.
+            </p>
+
+            <govuk-radios asp-for="UsePersonalEmail">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend is-page-heading="false" class="govuk-fieldset__legend--s"/>
+
+                    <govuk-radios-item value="@true">Enter a personal email address
+                        <govuk-radios-item-conditional>
+                            <govuk-input asp-for="PersonalEmailAddress" type="email" autocomplete="email" spellcheck="false">
+                                <govuk-input-label class="govuk-label--s"/>
+                            </govuk-input>
+                        </govuk-radios-item-conditional>
+                    </govuk-radios-item>
+
+                    <govuk-radios-item value="@false">Use <strong>@Html.ShyEmail(Model.InstitutionEmailAddress!)</strong></govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>
+

@@ -1,5 +1,4 @@
 using System.Text.Encodings.Web;
-using EntityFramework.Exceptions.Common;
 using Flurl;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -176,23 +175,7 @@ public class IndexTests : TestBase
     {
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            try
-            {
-                var establishmentDomain = new EstablishmentDomain
-                {
-                    DomainName = invalidSuffix
-                };
-
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
-            {
-            }
-        });
+        await TestData.AddEstablishmentDomain(invalidSuffix);
 
         var returnUrl = "/_tests/empty";
 

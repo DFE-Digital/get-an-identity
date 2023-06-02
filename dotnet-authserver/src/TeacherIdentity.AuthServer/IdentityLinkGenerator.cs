@@ -96,6 +96,8 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterEmailExists() => Page("/SignIn/Register/EmailExists");
 
+    public string RegisterInstitutionEmail() => Page("/SignIn/Register/InstitutionEmail");
+
     public string RegisterPhone() => Page("/SignIn/Register/Phone");
 
     public string RegisterPhoneConfirmation() => Page("/SignIn/Register/PhoneConfirmation");

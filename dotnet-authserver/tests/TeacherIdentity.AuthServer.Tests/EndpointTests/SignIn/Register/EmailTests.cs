@@ -1,4 +1,3 @@
-using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
@@ -160,109 +159,21 @@ public class EmailTests : TestBase
         HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Once);
     }
 
-    [Theory]
-    [InlineData("admin")]
-    [InlineData("academy")]
-    public async Task Post_EmailWithInvalidPrefix_ReturnsError(string emailPrefix)
-    {
-        // Arrange
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "Email", TestData.GenerateUniqueEmail(emailPrefix) }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
-    }
-
     [Fact]
-    public async Task Post_EmailWithInvalidPrefixAlreadyExists_DoesNotReturnError()
-    {
-        // Arrange
-        var invalidPrefix = "headteacher";
-        var user = await TestData.CreateUser(email: TestData.GenerateUniqueEmail(invalidPrefix));
-
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "Email", user.EmailAddress }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Post_EmailWithInvalidSuffix_ReturnsError()
+    public async Task Post_ValidInstitutionEmail_SetsEmailOnAuthenticationStateGeneratesPinAndRedirectsToRegisterEmailConfirmation()
     {
         // Arrange
         var invalidEmailSuffix = "invalid.sch.uk";
+        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
 
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
-        });
+        var email = $"principal@{invalidEmailSuffix}";
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "Email", $"john.doe11@{invalidEmailSuffix}" }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        await AssertEx.HtmlResponseHasError(response, "Email", "Enter a personal email address not one from a work or education setting.");
-    }
-
-    [Fact]
-    public async Task Post_EmailWithInvalidSuffixAlreadyExists_DoesNotReturnError()
-    {
-        // Arrange
-        var invalidEmailSuffix = "myschool1232.sch.uk";
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var establishmentDomain = new EstablishmentDomain
-            {
-                DomainName = invalidEmailSuffix
-            };
-
-            dbContext.EstablishmentDomains.Add(establishmentDomain);
-            await dbContext.SaveChangesAsync();
-        });
-
-        var user = await TestData.CreateUser(email: $"john.doe12@{invalidEmailSuffix}");
-
-        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/email?{authStateHelper.ToQueryParam()}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "Email", user.EmailAddress }
+                { "Email", email }
             }
         };
 
@@ -271,6 +182,12 @@ public class EmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/email-confirmation", response.Headers.Location?.OriginalString);
+
+        Assert.Equal(email, authStateHelper.AuthenticationState.EmailAddress);
+        Assert.True(authStateHelper.AuthenticationState.IsInstitutionEmail);
+
+        HostFixture.UserVerificationService.Verify(mock => mock.GenerateEmailPin(email), Times.Once);
     }
 
     [Fact]

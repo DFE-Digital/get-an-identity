@@ -1,4 +1,3 @@
-using EntityFramework.Exceptions.Common;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -199,23 +198,7 @@ public class ResendTests : TestBase
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
         var email = Faker.Internet.Email();
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            try
-            {
-                var establishmentDomain = new EstablishmentDomain
-                {
-                    DomainName = invalidSuffix
-                };
-
-                dbContext.EstablishmentDomains.Add(establishmentDomain);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
-            {
-            }
-        });
+        await TestData.AddEstablishmentDomain(invalidSuffix);
 
         var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {

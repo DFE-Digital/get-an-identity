@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using EntityFramework.Exceptions.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TeacherIdentity.AuthServer.Models;
@@ -147,6 +148,27 @@ public partial class TestData
 
         _trnTokens.Add(trnToken);
         return trnToken;
+    }
+
+    public async Task AddEstablishmentDomain(string invalidEmailSuffix)
+    {
+        await WithDbContext(async dbContext =>
+        {
+            var establishmentDomain = new EstablishmentDomain
+            {
+                DomainName = invalidEmailSuffix
+            };
+
+            try
+            {
+                dbContext.EstablishmentDomains.Add(establishmentDomain);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation("pk_establishment_domains"))
+            {
+                // ignored
+            }
+        });
     }
 
     public async Task<T> WithDbContext<T>(Func<TeacherIdentityServerDbContext, Task<T>> action)
