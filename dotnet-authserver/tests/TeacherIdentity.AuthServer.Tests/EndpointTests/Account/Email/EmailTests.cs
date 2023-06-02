@@ -1,4 +1,3 @@
-using EntityFramework.Exceptions.Common;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
