@@ -108,6 +108,8 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterName() => Page("/SignIn/Register/Name");
 
+    public string RegisterPreferredName() => Page("/SignIn/Register/PreferredNamePage");
+
     public string RegisterDateOfBirth() => Page("/SignIn/Register/DateOfBirthPage");
 
     public string RegisterAccountExists() => Page("/SignIn/Register/AccountExists");

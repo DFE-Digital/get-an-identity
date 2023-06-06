@@ -25,6 +25,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var firstName = Faker.Name.First();
         var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
+        var preferredName = Faker.Name.FullName();
         var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var trn = _hostFixture.TestData.GenerateTrn();
 
@@ -53,6 +54,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         await page.SubmitRegisterPhonePage(mobileNumber);
 
         await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
@@ -99,6 +102,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         await page.SubmitRegisterPhonePage(mobileNumber);
 
         await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.ClickChangeLinkTrnTokenCheckAnswersPage("trn-token-email-change-link");
 
@@ -216,6 +221,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         await page.SubmitRegisterPhonePage(differentMobileNumber);
 
         await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
@@ -499,6 +506,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitRegisterPhoneConfirmationPage();
 
+        await page.SubmitRegisterPreferredNamePage();
+
         await page.SubmitTrnTokenCheckAnswersPage();
 
         await page.SubmitCompletePageForNewUser();
@@ -653,6 +662,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitRegisterPhoneConfirmationPage();
 
+        await page.SubmitRegisterPreferredNamePage();
+
         await page.ClickChangeLinkTrnTokenCheckAnswersPage("trn-token-email-change-link");
 
         await page.SubmitRegisterEmailPage(newInstitutionEmail);
@@ -732,6 +743,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         await page.SubmitRegisterPhoneConfirmationPage();
 
         await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitDateOfBirthPage(dateOfBirth);
 

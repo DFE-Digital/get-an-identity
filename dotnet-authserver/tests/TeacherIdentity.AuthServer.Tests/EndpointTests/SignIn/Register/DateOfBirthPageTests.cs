@@ -35,9 +35,9 @@ public class DateOfBirthPageTests : TestBase
     }
 
     [Fact]
-    public async Task Get_NameNotSet_RedirectsToNamePage()
+    public async Task Get_NameNotSet_RedirectsToPreferredNamePage()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/date-of-birth", "/sign-in/register/name");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Get, "/sign-in/register/date-of-birth", "/sign-in/register/preferred-name");
     }
 
     [Fact]
@@ -71,9 +71,9 @@ public class DateOfBirthPageTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NameNotSet_RedirectsToNamePage()
+    public async Task Post_NameNotSet_RedirectsToPreferredNamePage()
     {
-        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/date-of-birth", "/sign-in/register/name");
+        await GivenAuthenticationState_RedirectsTo(_previousPageAuthenticationState(), additionalScopes: null, trnRequirementType: null, HttpMethod.Post, "/sign-in/register/date-of-birth", "/sign-in/register/preferred-name");
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class DateOfBirthPageTests : TestBase
         var user = await TestData.CreateUser();
         var dateOfBirth = user.DateOfBirth;
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterNameSet(user.FirstName, null, user.LastName), additionalScopes: null);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.RegisterPreferredNameSet(firstName: user.FirstName, lastName: user.LastName), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/date-of-birth?{authStateHelper.ToQueryParam()}")
         {
             Content = new FormUrlEncodedContentBuilder()
@@ -239,6 +239,6 @@ public class DateOfBirthPageTests : TestBase
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.DateOfBirth);
-    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Name);
+    private readonly AuthenticationStateConfigGenerator _previousPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.PreferredName);
     private readonly AuthenticationStateConfigGenerator _allQuestionsAnsweredAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.CheckAnswers);
 }

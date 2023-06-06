@@ -77,7 +77,6 @@ public class TrnTokenSignInJourney : SignInJourney
             Steps.CheckAnswers => AuthenticationState.ContactDetailsVerified,
             SignInJourney.Steps.Email => true,
             SignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
-            CoreSignInJourney.Steps.DateOfBirth => AuthenticationState.ContactDetailsVerified,
             CoreSignInJourney.Steps.Phone => true,
             CoreSignInJourney.Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             CoreSignInJourney.Steps.PhoneExists => AuthenticationState.IsComplete,
@@ -86,6 +85,8 @@ public class TrnTokenSignInJourney : SignInJourney
             CoreSignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false, MobileNumberVerified: true },
             CoreSignInJourney.Steps.ResendEmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             CoreSignInJourney.Steps.InstitutionEmail => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: true, MobileNumberVerified: true, IsInstitutionEmail: true },
+            CoreSignInJourney.Steps.PreferredName => AuthenticationState.ContactDetailsVerified,
+            CoreSignInJourney.Steps.DateOfBirth => AuthenticationState is { PreferredNameSet: true, ContactDetailsVerified: true },
             CoreSignInJourney.Steps.AccountExists => AuthenticationState.ExistingAccountFound,
             CoreSignInJourney.Steps.ExistingAccountEmailConfirmation => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: true },
             CoreSignInJourney.Steps.ResendExistingAccountEmail => AuthenticationState is { ExistingAccountFound: true, ExistingAccountChosen: true },
@@ -98,6 +99,8 @@ public class TrnTokenSignInJourney : SignInJourney
 
     protected override string? GetNextStep(string currentStep)
     {
+        var shouldCheckAnswers = AreAllQuestionsAnswered() && !AuthenticationState.ExistingAccountFound;
+
         return (currentStep, AuthenticationState) switch
         {
             (Steps.Landing, { ExistingAccountFound: true }) => CoreSignInJourney.Steps.AccountExists,
@@ -105,12 +108,13 @@ public class TrnTokenSignInJourney : SignInJourney
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.PhoneExists,
-            (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: false }) => Steps.CheckAnswers,
+            (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.PreferredName,
             (CoreSignInJourney.Steps.Email, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.EmailConfirmation, { IsInstitutionEmail: false }) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.EmailConfirmation, { IsInstitutionEmail: true }) => CoreSignInJourney.Steps.InstitutionEmail,
             (CoreSignInJourney.Steps.InstitutionEmail, { InstitutionEmailChosen: true }) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.InstitutionEmail, _) => CoreSignInJourney.Steps.EmailConfirmation,
+            (CoreSignInJourney.Steps.PreferredName, _) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.DateOfBirth, _) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.ResendPhoneConfirmation, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             (CoreSignInJourney.Steps.AccountExists, { ExistingAccountChosen: true }) => CoreSignInJourney.Steps.ExistingAccountEmailConfirmation,
@@ -139,11 +143,13 @@ public class TrnTokenSignInJourney : SignInJourney
         (CoreSignInJourney.Steps.ResendEmailConfirmation, _) => CoreSignInJourney.Steps.EmailConfirmation,
         (CoreSignInJourney.Steps.InstitutionEmail, { EmailAddressVerified: false }) => CoreSignInJourney.Steps.EmailConfirmation,
         (CoreSignInJourney.Steps.InstitutionEmail, { EmailAddressVerified: true }) => CoreSignInJourney.Steps.Email,
+        (CoreSignInJourney.Steps.PreferredName, { MobileNumberVerified: true }) => CoreSignInJourney.Steps.Phone,
+        (CoreSignInJourney.Steps.PreferredName, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
         (CoreSignInJourney.Steps.DateOfBirth, _) => Steps.CheckAnswers,
         (Steps.CheckAnswers, { EmailAddressVerified: false }) => CoreSignInJourney.Steps.EmailConfirmation,
         (Steps.CheckAnswers, { EmailAddressVerified: true, IsInstitutionEmail: true, InstitutionEmailChosen: false }) => CoreSignInJourney.Steps.InstitutionEmail,
         (Steps.CheckAnswers, { EmailAddressVerified: true, IsInstitutionEmail: true, InstitutionEmailChosen: null }) => CoreSignInJourney.Steps.InstitutionEmail,
-        (Steps.CheckAnswers, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PhoneConfirmation,
+        (Steps.CheckAnswers, { MobileNumberVerified: false }) => CoreSignInJourney.Steps.PreferredName,
         (Steps.CheckAnswers, _) => CoreSignInJourney.Steps.Phone,
         (CoreSignInJourney.Steps.AccountExists, _) => Steps.Landing,
         (CoreSignInJourney.Steps.ExistingAccountEmailConfirmation, _) => CoreSignInJourney.Steps.AccountExists,
@@ -153,6 +159,19 @@ public class TrnTokenSignInJourney : SignInJourney
         (CoreSignInJourney.Steps.ResendExistingAccountPhone, _) => CoreSignInJourney.Steps.ExistingAccountPhoneConfirmation,
         _ => null
     };
+
+    private bool AreAllQuestionsAnswered() =>
+        AuthenticationState is
+        {
+            EmailAddressSet: true,
+            EmailAddressVerified: true,
+            HasValidEmail: true,
+            MobileNumberSet: true,
+            MobileNumberVerified: true,
+            NameSet: true,
+            PreferredNameSet: true,
+            DateOfBirthSet: true,
+        };
 
     protected override string GetStartStep() => Steps.Landing;
 
@@ -172,6 +191,7 @@ public class TrnTokenSignInJourney : SignInJourney
         CoreSignInJourney.Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),
         CoreSignInJourney.Steps.InstitutionEmail => LinkGenerator.RegisterInstitutionEmail(),
         CoreSignInJourney.Steps.ResendEmailConfirmation => LinkGenerator.RegisterResendEmailConfirmation(),
+        CoreSignInJourney.Steps.PreferredName => LinkGenerator.RegisterPreferredName(),
         CoreSignInJourney.Steps.DateOfBirth => LinkGenerator.RegisterDateOfBirth(),
         CoreSignInJourney.Steps.AccountExists => LinkGenerator.RegisterAccountExists(),
         CoreSignInJourney.Steps.ExistingAccountEmailConfirmation => LinkGenerator.RegisterExistingAccountEmailConfirmation(),

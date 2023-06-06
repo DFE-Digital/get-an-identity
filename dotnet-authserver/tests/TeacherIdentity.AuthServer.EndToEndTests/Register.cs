@@ -42,6 +42,8 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitRegisterNamePage(firstName, lastName);
 
+        await page.SubmitRegisterPreferredNamePage();
+
         await page.SubmitDateOfBirthPage(dateOfBirth);
 
         await page.SubmitCheckAnswersPage();
@@ -121,6 +123,8 @@ public class Register : IClassFixture<HostFixture>
         await page.SubmitRegisterPhoneConfirmationPage();
 
         await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitDateOfBirthPage(dateOfBirth);
 
@@ -205,6 +209,8 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitRegisterNamePage(firstName, lastName);
 
+        await page.SubmitRegisterPreferredNamePage();
+
         await page.SubmitDateOfBirthPage(dateOfBirth);
 
         await page.SubmitCheckAnswersPage();
@@ -278,6 +284,8 @@ public class Register : IClassFixture<HostFixture>
         await page.SubmitRegisterPhoneConfirmationPage();
 
         await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitDateOfBirthPage(dateOfBirth);
 
@@ -388,6 +396,8 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitRegisterNamePage(existingUser.FirstName, existingUser.LastName);
 
+        await page.SubmitRegisterPreferredNamePage();
+
         await page.SubmitDateOfBirthPage(existingUser.DateOfBirth!.Value);
 
         await page.SubmitAccountExistsPage(isUsersAccount: true);
@@ -431,6 +441,8 @@ public class Register : IClassFixture<HostFixture>
         await page.SubmitRegisterPhoneConfirmationPage();
 
         await page.SubmitRegisterNamePage(existingUser.FirstName, existingUser.LastName);
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitDateOfBirthPage(existingUser.DateOfBirth!.Value);
 
@@ -494,6 +506,8 @@ public class Register : IClassFixture<HostFixture>
         await page.SubmitRegisterPhoneConfirmationPage();
 
         await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitRegisterPreferredNamePage();
 
         await page.SubmitDateOfBirthPage(dateOfBirth);
 

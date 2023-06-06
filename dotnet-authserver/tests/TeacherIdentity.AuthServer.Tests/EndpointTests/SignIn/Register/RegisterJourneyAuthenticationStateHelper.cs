@@ -36,8 +36,11 @@ public static class RegisterJourneyAuthenticationStateHelper
                 case RegisterJourneyPage.Name:
                     return c => c.MobileVerified();
 
-                case RegisterJourneyPage.DateOfBirth:
+                case RegisterJourneyPage.PreferredName:
                     return c => c.RegisterNameSet();
+
+                case RegisterJourneyPage.DateOfBirth:
+                    return c => c.RegisterPreferredNameSet();
 
                 case RegisterJourneyPage.HasNiNumber:
                     return c => c.RegisterDateOfBirthSet();
@@ -95,6 +98,7 @@ public enum RegisterJourneyPage
     PhoneExists,
     ResendPhone,
     Name,
+    PreferredName,
     DateOfBirth,
     AccountExists,
     ExistingAccountEmailConfirmation,

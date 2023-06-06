@@ -353,6 +353,24 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task SubmitRegisterPreferredNamePage(this IPage page, string? preferredName = null)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/register/preferred-name");
+
+        if (string.IsNullOrEmpty(preferredName))
+        {
+            await page.ClickAsync("label:text-is('Use')"); // Use existing name
+        }
+        else
+        {
+            await page.ClickAsync("label:text-is('Other')"); // Use other name
+            await page.FillAsync("label:text-is('Your preferred name')", preferredName);
+        }
+
+        await page.FocusAsync("button:text-is('Continue')");
+        await page.ClickContinueButton();
+    }
+
     public static async Task SubmitDateOfBirthPage(this IPage page, DateOnly dateOfBirth)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/date-of-birth");

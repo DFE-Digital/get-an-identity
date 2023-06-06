@@ -24,7 +24,7 @@ public class NoMatch : PageModel
     public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
     public string? OfficialName => _journey.AuthenticationState.GetOfficialName();
     public string? PreviousOfficialName => _journey.AuthenticationState.GetPreviousOfficialName();
-    public string? PreferredName => _journey.AuthenticationState.GetPreferredName();
+    public string? PreferredName => _journey.AuthenticationState.GetName();
     public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;
     public bool? HaveNationalInsuranceNumber => _journey.AuthenticationState.HasNationalInsuranceNumber;
     public string? NationalInsuranceNumber => _journey.AuthenticationState.NationalInsuranceNumber;

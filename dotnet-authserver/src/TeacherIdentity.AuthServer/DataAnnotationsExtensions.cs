@@ -168,3 +168,23 @@ public class NationalInsuranceNumber : ValidationAttribute
         return value is string str && NationalInsuranceNumberHelper.IsValid(str);
     }
 }
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+public class StringLengthIfTrueAttribute : StringLengthAttribute
+{
+    private string PropertyName { get; }
+
+    public StringLengthIfTrueAttribute(string propertyName, int maximumLength) : base(maximumLength)
+    {
+        PropertyName = propertyName;
+    }
+
+    protected override ValidationResult IsValid(object? value, ValidationContext context)
+    {
+        object instance = context.ObjectInstance;
+        Type type = instance.GetType();
+
+        bool.TryParse(type.GetProperty(PropertyName)?.GetValue(instance)?.ToString(), out bool isRequired);
+        return isRequired && !base.IsValid(value) ? new ValidationResult(ErrorMessage) : ValidationResult.Success!;
+    }
+}

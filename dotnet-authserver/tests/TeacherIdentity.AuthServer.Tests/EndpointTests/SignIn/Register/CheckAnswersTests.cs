@@ -69,7 +69,7 @@ public class CheckAnswersTests : TestBase
         var doc = await response.GetDocument();
         Assert.Equal(authState.EmailAddress, doc.GetSummaryListValueForKey("Email"));
         Assert.Equal(authState.MobileNumber, doc.GetSummaryListValueForKey("Mobile phone"));
-        Assert.Equal($"{authState.FirstName} {authState.LastName}", doc.GetSummaryListValueForKey("Name"));
+        Assert.Equal($"{authState.GetName()}", doc.GetSummaryListValueForKey("Name"));
         Assert.Equal(authState.DateOfBirth?.ToString(Constants.DateFormat), doc.GetSummaryListValueForKey("Date of birth"));
 
         var hasNiNumberSet = registerJourneyStage > RegisterJourneyPage.HasNiNumber;

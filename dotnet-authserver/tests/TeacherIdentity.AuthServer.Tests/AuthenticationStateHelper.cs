@@ -160,8 +160,8 @@ public sealed class AuthenticationStateHelper
                 s.OnNameSet(firstName ?? Faker.Name.First(), middleName ?? Faker.Name.Last(), lastName ?? Faker.Name.Last());
             };
 
-        public Func<AuthenticationState, Task> RegisterDateOfBirthSet(
-            DateOnly? dateOfBirth = null,
+        public Func<AuthenticationState, Task> RegisterPreferredNameSet(
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -170,12 +170,31 @@ public sealed class AuthenticationStateHelper
             User? user = null) =>
             async s =>
             {
+                firstName ??= Faker.Name.First();
+                lastName ??= Faker.Name.Last();
+
                 await RegisterNameSet(firstName, middleName, lastName, mobileNumber, email, user)(s);
+                s.OnPreferredNameSet(preferredName ?? $"{firstName} {lastName}");
+            };
+
+        public Func<AuthenticationState, Task> RegisterDateOfBirthSet(
+            DateOnly? dateOfBirth = null,
+            string? preferredName = null,
+            string? firstName = null,
+            string? middleName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            string? email = null,
+            User? user = null) =>
+            async s =>
+            {
+                await RegisterPreferredNameSet(preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
             };
 
         public Func<AuthenticationState, Task> RegisterHasNiNumberSet(
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -184,12 +203,13 @@ public sealed class AuthenticationStateHelper
             User? user = null) =>
             async s =>
             {
-                await RegisterDateOfBirthSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email, user)(s);
+                await RegisterDateOfBirthSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnHasNationalInsuranceNumberSet(true);
             };
 
         public Func<AuthenticationState, Task> RegisterNiNumberSet(
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -198,12 +218,13 @@ public sealed class AuthenticationStateHelper
             User? user = null) =>
             async s =>
             {
-                await RegisterHasNiNumberSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email, user)(s);
+                await RegisterHasNiNumberSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnNationalInsuranceNumberSet(Faker.Identification.UkNationalInsuranceNumber());
             };
 
         public Func<AuthenticationState, Task> RegisterHasTrnSet(
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -212,12 +233,13 @@ public sealed class AuthenticationStateHelper
             User? user = null) =>
             async s =>
             {
-                await RegisterNiNumberSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email, user)(s);
+                await RegisterNiNumberSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnHasTrnSet(true);
             };
 
         public Func<AuthenticationState, Task> RegisterTrnSet(
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -226,12 +248,13 @@ public sealed class AuthenticationStateHelper
             User? user = null) =>
             async s =>
             {
-                await RegisterHasTrnSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email, user)(s);
+                await RegisterHasTrnSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnTrnSet(TestData.GenerateTrn());
             };
 
         public Func<AuthenticationState, Task> RegisterHasQtsSet(
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -241,12 +264,13 @@ public sealed class AuthenticationStateHelper
             bool? awardedQts = null) =>
             async s =>
             {
-                await RegisterTrnSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email, user)(s);
+                await RegisterTrnSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnAwardedQtsSet(awardedQts == true);
             };
 
         public Func<AuthenticationState, Task> RegisterIttProviderSet(
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -257,13 +281,14 @@ public sealed class AuthenticationStateHelper
             string? ittProviderName = "provider") =>
             async s =>
             {
-                await RegisterHasQtsSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email, user, awardedQts)(s);
+                await RegisterHasQtsSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user, awardedQts)(s);
                 s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
             };
 
         public Func<AuthenticationState, Task> RegisterExistingUserAccountMatch(
             User? existingUserAccount = null,
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -271,13 +296,14 @@ public sealed class AuthenticationStateHelper
             string? email = null) =>
             async s =>
             {
-                await RegisterDateOfBirthSet(dateOfBirth, firstName, middleName, lastName, mobileNumber, email)(s);
+                await RegisterDateOfBirthSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email)(s);
                 s.OnExistingAccountSearch(existingUserAccount ?? await TestData.CreateUser());
             };
 
         public Func<AuthenticationState, Task> RegisterExistingUserAccountChosen(
             User? existingUserAccount = null,
             DateOnly? dateOfBirth = null,
+            string? preferredName = null,
             string? firstName = null,
             string? middleName = null,
             string? lastName = null,
@@ -285,7 +311,7 @@ public sealed class AuthenticationStateHelper
             string? email = null) =>
             async s =>
             {
-                await RegisterExistingUserAccountMatch(existingUserAccount, dateOfBirth, firstName, middleName, lastName, mobileNumber, email)(s);
+                await RegisterExistingUserAccountMatch(existingUserAccount, dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email)(s);
                 s.OnExistingAccountChosen(true);
             };
 
