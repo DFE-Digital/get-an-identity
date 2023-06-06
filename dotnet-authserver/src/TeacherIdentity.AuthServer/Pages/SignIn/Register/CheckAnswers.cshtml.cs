@@ -23,6 +23,7 @@ public class CheckAnswers : PageModel
     public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
     public string? MobilePhoneNumber => _journey.AuthenticationState.MobileNumber;
     public string? FullName => _journey.AuthenticationState.GetName();
+    public string? PreferredName => _journey.AuthenticationState.PreferredName;
     public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;
     public bool? HasNationalInsuranceNumberSet => _journey.AuthenticationState.HasNationalInsuranceNumberSet;
     public string? NationalInsuranceNumber => _journey.AuthenticationState.NationalInsuranceNumber;
