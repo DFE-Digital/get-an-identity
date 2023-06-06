@@ -61,7 +61,7 @@ public class AuthenticationState
     [JsonInclude]
     public string? LastName { get; private set; }
     [JsonInclude]
-    public bool? HasName { get; private set; }
+    public bool NameSet { get; private set; }
     [JsonInclude]
     public string? OfficialFirstName { get; private set; }
     [JsonInclude]
@@ -136,8 +136,6 @@ public class AuthenticationState
     [JsonIgnore]
     public bool HasTrnSet => HasTrn.HasValue;
     [JsonIgnore]
-    public bool NameSet => HasName.HasValue;
-    [JsonIgnore]
     public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
     [JsonIgnore]
     public bool DateOfBirthSet => DateOfBirth.HasValue;
@@ -159,6 +157,8 @@ public class AuthenticationState
     public bool HasValidEmail => !IsInstitutionEmail || InstitutionEmailChosen == true;
     [JsonIgnore]
     public bool PreferredNameSet => !string.IsNullOrEmpty(PreferredName);
+    [JsonIgnore]
+    public bool HasName => !string.IsNullOrEmpty(GetName());
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {
@@ -237,6 +237,8 @@ public class AuthenticationState
         StatedTrn = default;
         HasPreviousName = default;
         TrnToken = default;
+        PreferredName = default;
+        NameSet = default;
     }
 
     public void OnEmailSet(string email, bool isInstitutionEmail = false)
@@ -473,7 +475,7 @@ public class AuthenticationState
 
     public void OnNameSet(string? firstName, string? middleName, string? lastName)
     {
-        HasName = firstName is not null && lastName is not null;
+        NameSet = true;
         FirstName = firstName;
         MiddleName = middleName;
         LastName = lastName;

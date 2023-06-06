@@ -196,7 +196,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         AuthenticationState.EmailAddressVerified &&
         AuthenticationState.MobileNumberSet &&
         AuthenticationState.MobileNumberVerified &&
-        AuthenticationState.NameSet &&
+        AuthenticationState.HasName &&
         AuthenticationState.DateOfBirthSet &&
         AuthenticationState.HasNationalInsuranceNumberSet &&
         (AuthenticationState.NationalInsuranceNumberSet || AuthenticationState.HasNationalInsuranceNumber == false) &&
