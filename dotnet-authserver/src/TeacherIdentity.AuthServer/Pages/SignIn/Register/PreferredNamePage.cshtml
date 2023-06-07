@@ -22,12 +22,9 @@
                     <govuk-radios-item value="@false">Use @Model.ExistingName</govuk-radios-item>
                     <govuk-radios-item value="@true">Other
                         <govuk-radios-item-conditional>
-                            <govuk-input asp-for="PreferredName" spellcheck="false">
-                                <govuk-input-label class="govuk-label--s"/>
-                            </govuk-input>
+                            <govuk-input asp-for="PreferredName" spellcheck="false"/>
                         </govuk-radios-item-conditional>
                     </govuk-radios-item>
-
                 </govuk-radios-fieldset>
             </govuk-radios>
 
