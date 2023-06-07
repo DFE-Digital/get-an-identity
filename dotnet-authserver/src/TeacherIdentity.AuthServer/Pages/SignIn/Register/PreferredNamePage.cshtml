@@ -11,10 +11,11 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.RegisterPreferredName()" method="post" asp-antiforgery="true">
-            <h1 class="govuk-heading-l">@ViewBag.Title</h1>
-
-            <p>For example, Mike Smith instead of Michael Smith.</p>
-            <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
+            <govuk-radios-fieldset-legend>
+                <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+                <p>For example, Mike Smith instead of Michael Smith.</p>
+                <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
+            </govuk-radios-fieldset-legend>
 
             <govuk-radios asp-for="HasPreferredName">
                 <govuk-radios-fieldset>
