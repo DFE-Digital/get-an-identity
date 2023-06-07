@@ -11,8 +11,6 @@ namespace TeacherIdentity.AuthServer;
 
 public class AuthenticationState
 {
-    private static readonly TimeSpan _journeyLifetime = TimeSpan.FromMinutes(20);
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
@@ -38,6 +36,7 @@ public class AuthenticationState
     }
 
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
+    public static TimeSpan JourneyLifetime { get; } = TimeSpan.FromHours(2);
 
     public Guid JourneyId { get; }
     public UserRequirements UserRequirements { get; }
@@ -205,7 +204,7 @@ public class AuthenticationState
         TrnLookup == TrnLookupState.Complete) &&
         UserId.HasValue;
 
-    public bool HasExpired(DateTime utcNow) => (StartedAt + _journeyLifetime) <= utcNow;
+    public bool HasExpired(DateTime utcNow) => (StartedAt + JourneyLifetime) <= utcNow;
 
     public void Reset(DateTime utcNow)
     {
