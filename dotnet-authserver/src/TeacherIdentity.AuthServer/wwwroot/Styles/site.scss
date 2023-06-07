@@ -176,3 +176,7 @@ $app-button-inverse-hover-background-colour: govuk-tint($app-button-inverse-fore
   padding-left: 5px;
   background-color: #F3F2F1;
 }
+
+.gai-summary-row-fallback-text {
+  color: $govuk-secondary-text-colour;
+}
