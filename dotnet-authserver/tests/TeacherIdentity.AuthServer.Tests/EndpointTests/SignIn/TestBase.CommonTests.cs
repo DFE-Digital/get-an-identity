@@ -109,7 +109,7 @@ public partial class TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => async s =>
             {
-                s.Reset(Clock.UtcNow.Subtract(TimeSpan.FromMinutes(20)));
+                s.Reset(Clock.UtcNow.Subtract(AuthenticationState.JourneyLifetime));
                 await configureAuthenticationHelper(c)(s);
             },
             additionalScopes,
@@ -146,7 +146,7 @@ public partial class TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => async s =>
             {
-                s.Reset(Clock.UtcNow.Subtract(TimeSpan.FromMinutes(20)));
+                s.Reset(Clock.UtcNow.Subtract(AuthenticationState.JourneyLifetime));
                 await configureAuthenticationHelper(c)(s);
             },
             additionalScopes,
