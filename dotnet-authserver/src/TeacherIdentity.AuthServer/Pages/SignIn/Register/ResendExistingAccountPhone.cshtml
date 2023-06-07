@@ -11,7 +11,7 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.RegisterResendExistingAccountPhone()" method="post" asp-antiforgery="true">
-            <h1 class="govuk-heading-xl">Request security code to your mobile phone</h1>
+            <h1 class="govuk-heading-l">Request security code to your mobile phone</h1>
 
             <p>We’ll send text message to <b>@Redactor.RedactMobileNumber(Model.ExistingMobileNumber!)</b> which contains a security code</p>
 

@@ -9,7 +9,7 @@
         <form action="@LinkGenerator.TrnInUseChooseEmail()" method="post" asp-antiforgery="true">
             <govuk-radios asp-for="Email">
                 <govuk-radios-fieldset>
-                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl"/>
+                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--l"/>
 
                     <govuk-radios-item value="@Model.SignedInEmail" data-testid="Email-SignedIn">@Model.SignedInEmail</govuk-radios-item>
                     <govuk-radios-item value="@Model.ExistingAccountEmail" data-testid="Email-ExistingAccount">@Model.ExistingAccountEmail</govuk-radios-item>

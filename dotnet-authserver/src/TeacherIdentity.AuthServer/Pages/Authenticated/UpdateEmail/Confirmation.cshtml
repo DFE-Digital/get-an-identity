@@ -15,7 +15,7 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.UpdateEmailConfirmation(Model.Email!, Model.ReturnUrl, Model.CancelUrl)" method="post" asp-antiforgery="true">
-            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+            <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
             <p>We’ve emailed a confirmation code to <span data-testid="email">@Model.Email</span></p>
 
