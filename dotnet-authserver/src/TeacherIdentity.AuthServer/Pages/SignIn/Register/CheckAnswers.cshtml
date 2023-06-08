@@ -59,7 +59,7 @@
                         <govuk-summary-list-row>
                             <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
                             <govuk-summary-list-row-value>
-                                <span fallback-text="Not given">@Model.NationalInsuranceNumber</span>
+                                <span fallback-text="Not provided">@Model.NationalInsuranceNumber</span>
                             </govuk-summary-list-row-value>
                             <govuk-summary-list-row-actions>
                                 <govuk-summary-list-row-action href="@LinkGenerator.RegisterHasNiNumber()" visually-hidden-text="national insurance number">Change</govuk-summary-list-row-action>
@@ -81,7 +81,7 @@
                         <govuk-summary-list-row>
                             <govuk-summary-list-row-key>Where did you get your QTS?</govuk-summary-list-row-key>
                             <govuk-summary-list-row-value>
-                                <span fallback-text="Not given">@Model.IttProviderName</span>
+                                <span fallback-text="Not provided">@Model.IttProviderName</span>
                             </govuk-summary-list-row-value>
                             <govuk-summary-list-row-actions>
                                 <govuk-summary-list-row-action href="@LinkGenerator.RegisterIttProvider()" visually-hidden-text="teacher training provider">Change</govuk-summary-list-row-action>

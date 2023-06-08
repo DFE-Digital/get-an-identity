@@ -54,7 +54,9 @@
                 {
                     <govuk-summary-list-row>
                         <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
-                        <govuk-summary-list-row-value>@(Model.NationalInsuranceNumber ?? "Not given")</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-value>
+                            <span fallback-text="Not provided">@Model.NationalInsuranceNumber</span>
+                        </govuk-summary-list-row-value>
                     </govuk-summary-list-row>
                 }
                 @if (Model.AwardedQts is not null)
