@@ -21,7 +21,7 @@ public class TrnPage : PageModel
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
     [BindProperty]
-    [Display(Name = "Enter your TRN")]
+    [Display(Name = "Teacher reference number (TRN)")]
     [Required(ErrorMessage = "Enter your TRN")]
     [RegularExpression(@"\A\D*(\d{1}\D*){7}\D*\Z", ErrorMessage = "Your TRN number should contain 7 digits")]
     public string? StatedTrn { get; set; }

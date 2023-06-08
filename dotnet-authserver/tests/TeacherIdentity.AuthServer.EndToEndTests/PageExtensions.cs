@@ -427,7 +427,7 @@ public static class PageExtensions
     public static async Task SubmitRegisterTrnPage(this IPage page, string trn)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/trn");
-        await page.FillAsync("text=Enter your TRN", trn);
+        await page.FillAsync("text=Teacher reference number (TRN)", trn);
         await page.ClickContinueButton();
     }
 
