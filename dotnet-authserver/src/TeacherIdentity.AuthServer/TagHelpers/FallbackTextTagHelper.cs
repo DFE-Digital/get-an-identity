@@ -12,7 +12,7 @@ public class FallbackTextTagHelper : TagHelper
 
     public override async void Process(TagHelperContext context, TagHelperOutput output)
     {
-        if (string.IsNullOrEmpty((await output.GetChildContentAsync()).GetContent()))
+        if ((await output.GetChildContentAsync()).IsEmptyOrWhiteSpace)
         {
             output.Content.SetHtmlContent(FallbackText);
             output.AddClass("gai-summary-row-fallback-text", HtmlEncoder.Default);
