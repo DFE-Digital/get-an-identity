@@ -16,7 +16,7 @@
         <form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
             @if (Model.JourneyType == typeof(TeacherIdentity.AuthServer.Journeys.LegacyTrnJourney))
             {
-                <h1 class="govuk-heading-xl">Your email address</h1>
+                <h1 class="govuk-heading-l">Your email address</h1>
 
                 <p>We use your email address to find your details in our records.</p>
 
@@ -36,7 +36,7 @@
             else
             {
                 <govuk-input asp-for="Email" type="email" autocomplete="email">
-                    <govuk-input-label class="govuk-label--xl" />
+                    <govuk-input-label class="govuk-label--l" />
                 </govuk-input>
             }
 

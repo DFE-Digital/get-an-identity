@@ -23,7 +23,7 @@ public class PreferredNamePage : PageModel
     public string ExistingName => _journey.AuthenticationState.GetName()!;
 
     [BindProperty]
-    [Display(Name = "Use preferred name?")]
+    [Display(Name = " ")]
     [Required(ErrorMessage = "Select which name to use")]
     public bool? HasPreferredName { get; set; }
 

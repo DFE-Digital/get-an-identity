@@ -7,7 +7,7 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.TrnHasTrn()" method="post" asp-antiforgery="true">
-            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+            <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
             <p>Your TRN is 7 digits long, for example 4567814.</p>
             <p>It might include the letters RP and a slash, for example RP99/12345</p>
@@ -18,7 +18,7 @@
                     <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m"/>
                     <govuk-radios-item value="True">Yes, I know my TRN
                         <govuk-radios-item-conditional>
-                            <govuk-input asp-for="StatedTrn" spellcheck="false">
+                            <govuk-input asp-for="StatedTrn" input-class="govuk-!-width-one-quarter" spellcheck="false">
                                 <govuk-input-label class="govuk-label--s"/>
                             </govuk-input>
                         </govuk-radios-item-conditional>

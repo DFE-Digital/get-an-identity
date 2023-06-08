@@ -6,7 +6,7 @@ public class PinValidator
     {
         if (string.IsNullOrEmpty(code))
         {
-            return "Enter a correct security code";
+            return "Enter a security code";
         }
         else if (!code.All(c => c >= '0' && c <= '9'))
         {

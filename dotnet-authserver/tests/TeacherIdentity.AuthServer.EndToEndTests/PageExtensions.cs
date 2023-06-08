@@ -359,7 +359,7 @@ public static class PageExtensions
 
         if (string.IsNullOrEmpty(preferredName))
         {
-            await page.ClickAsync("label:text-is('Use')"); // Use existing name
+            await page.ClickAsync("label:has-text('Use')"); // Use existing name
         }
         else
         {

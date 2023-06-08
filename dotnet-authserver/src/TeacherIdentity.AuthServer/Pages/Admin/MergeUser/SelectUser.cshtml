@@ -42,8 +42,8 @@
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form asp-page="MergeUser" asp-route-userId="@Model.UserId">
             <govuk-select asp-for="UserIdToMerge">
-                <govuk-select-label is-page-heading="true" class="govuk-label--xl">
-                    <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+                <govuk-select-label is-page-heading="true" class="govuk-label--l">
+                    <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
                     <p>Which user do you want to merge with <b>@Model.UserId</b>.</p>
                 </govuk-select-label>

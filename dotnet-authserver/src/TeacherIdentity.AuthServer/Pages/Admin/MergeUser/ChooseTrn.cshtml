@@ -13,7 +13,7 @@
         <form asp-page="ChooseTrn" method="post">
             <govuk-radios asp-for="Trn">
                 <govuk-radios-fieldset>
-                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--xl"/>
+                    <govuk-radios-fieldset-legend class="govuk-fieldset__legend--l"/>
 
                     <govuk-radios-item value="@(Model.UserTrn ?? "None")">@(Model.UserTrn ?? "None")</govuk-radios-item>
                     <govuk-radios-item value="@(Model.UserToMergeTrn ?? "None")">@(Model.UserToMergeTrn ?? "None")</govuk-radios-item>

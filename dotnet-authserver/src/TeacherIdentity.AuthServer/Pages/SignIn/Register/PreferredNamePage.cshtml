@@ -11,22 +11,20 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.RegisterPreferredName()" method="post" asp-antiforgery="true">
-            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
-
-            <p>For example, Mike Smith instead of Michael Smith.</p>
-            <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
+            <govuk-radios-fieldset-legend>
+                <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+                <p>For example, Mike Smith instead of Michael Smith.</p>
+                <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
+            </govuk-radios-fieldset-legend>
 
             <govuk-radios asp-for="HasPreferredName">
                 <govuk-radios-fieldset>
-                    <govuk-radios-item value="@false">Use <strong>@Html.ShyEmail(Model.ExistingName)</strong></govuk-radios-item>
+                    <govuk-radios-item value="@false">Use @Model.ExistingName</govuk-radios-item>
                     <govuk-radios-item value="@true">Other
                         <govuk-radios-item-conditional>
-                            <govuk-input asp-for="PreferredName" spellcheck="false">
-                                <govuk-input-label class="govuk-label--s"/>
-                            </govuk-input>
+                            <govuk-input asp-for="PreferredName" spellcheck="false"/>
                         </govuk-radios-item-conditional>
                     </govuk-radios-item>
-
                 </govuk-radios-fieldset>
             </govuk-radios>
 
