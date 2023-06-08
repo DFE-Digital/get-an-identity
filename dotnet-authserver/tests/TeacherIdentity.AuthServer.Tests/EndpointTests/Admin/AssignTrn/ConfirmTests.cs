@@ -171,7 +171,7 @@ public class ConfirmTests : TestBase
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
         Assert.Equal($"{dqtFirstName} {dqtLastName}", doc.GetSummaryListValueForKey("DQT name"));
         Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
-        Assert.Equal("Given", doc.GetSummaryListValueForKey("National insurance number"));
+        Assert.Equal("Provided", doc.GetSummaryListValueForKey("National insurance number"));
         Assert.Equal(trn, doc.GetSummaryListValueForKey("TRN"));
     }
 

@@ -111,7 +111,7 @@ public class UserTests : TestBase
         Assert.NotNull(doc.GetElementByTestId("DqtSection"));
         Assert.Equal($"{dqtFirstName} {dqtLastName}", doc.GetSummaryListValueForKey("DQT name"));
         Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
-        Assert.Equal("Given", doc.GetSummaryListValueForKey("National insurance number"));
+        Assert.Equal("Provided", doc.GetSummaryListValueForKey("National insurance number"));
         Assert.Equal(user.Trn, doc.GetSummaryListValueForKey("TRN"));
     }
 

@@ -212,7 +212,7 @@ public class CheckAnswersTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal(hasNino ? nino : "Not given", doc.GetSummaryListValueForKey("National Insurance number"));
+        Assert.Equal(hasNino ? nino : "Not provided", doc.GetSummaryListValueForKey("National Insurance number"));
     }
 
     [Fact]
