@@ -45,7 +45,8 @@ public class PreferredNamePage : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.GetAuthenticationState().OnPreferredNameSet(PreferredName ?? ExistingName);
+        var preferredName = HasPreferredName == true ? PreferredName : ExistingName;
+        HttpContext.GetAuthenticationState().OnPreferredNameSet(preferredName!);
 
         return await _journey.Advance(CurrentStep);
     }

@@ -23,6 +23,7 @@ public class CheckAnswers : PageModel
     public string? FirstName => _journey.AuthenticationState.FirstName;
     public string? MiddleName => _journey.AuthenticationState.MiddleName;
     public string? LastName => _journey.AuthenticationState.LastName;
+    public string? PreferredName => _journey.AuthenticationState.PreferredName;
     public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;
 
     public void OnGet()
