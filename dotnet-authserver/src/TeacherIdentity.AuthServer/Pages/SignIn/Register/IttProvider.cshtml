@@ -16,20 +16,21 @@
     <script asp-add-nonce="true">
         window.onload = function () {
             const inputName = '@nameof(Model.IttProviderName)';
-            const select = document.querySelector(`select[name=${inputName}`);
-            const value = select.value;
-            const container = select.parentElement;
+            const input = document.querySelector(`input[name=${inputName}`);
+            const value = input.value;
+            const container = input.parentElement;
 
             accessibleAutocomplete({
                 element: container,
                 id: inputName,
                 source: @Html.Raw(Json.Serialize(Model.IttProviderNames)),
-                defaultValue: value
+                defaultValue: value,
+                showNoOptionsFound: false,
             })
 
-            container.removeChild(select);
-            const input = container.querySelector('input');
-            input.name = inputName;
+            container.removeChild(input);
+            const accessibleAutocompleteInput = container.querySelector('input');
+            accessibleAutocompleteInput.name = inputName;
         }
     </script>
 }
@@ -47,14 +48,9 @@
 
                     <govuk-radios-item value="True">Yes
                         <govuk-radios-item-conditional>
-                            <govuk-select asp-for="IttProviderName">
-                                <govuk-select-label class="govuk-label--s"/>
-                                <govuk-select-item value=""></govuk-select-item>
-                                @foreach (var ittProviderName in Model.IttProviderNames ?? Enumerable.Empty<string>())
-                                {
-                                    <govuk-select-item value="@ittProviderName">@ittProviderName</govuk-select-item>
-                                }
-                            </govuk-select>
+                            <govuk-input asp-for="IttProviderName">
+                                <govuk-input-label class="govuk-label--s"/>
+                            </govuk-input>
                         </govuk-radios-item-conditional>
                     </govuk-radios-item>
                     <govuk-radios-item value="False">No</govuk-radios-item>

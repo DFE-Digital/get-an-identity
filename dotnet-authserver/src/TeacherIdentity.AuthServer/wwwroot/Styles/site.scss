@@ -11,6 +11,10 @@ p {
   @extend .govuk-body;
 }
 
+.autocomplete__option {
+  font-family: $govuk-font-family;
+}
+
 .app-panel--interruption {
   background-color: govuk-colour("blue");
   color: govuk-colour("white");
