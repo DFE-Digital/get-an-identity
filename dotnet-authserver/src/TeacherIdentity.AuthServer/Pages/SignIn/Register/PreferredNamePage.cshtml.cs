@@ -19,18 +19,19 @@ public class PreferredNamePage : PageModel
     }
 
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+    public bool HasMiddleName => _journey.AuthenticationState.HasMiddleName;
+    public string ExistingName(bool includeMiddleName) => _journey.AuthenticationState.GetName(includeMiddleName)!;
 
-    public string ExistingName => _journey.AuthenticationState.GetName()!;
 
     [BindProperty]
     [Display(Name = " ")]
     [Required(ErrorMessage = "Select which name to use")]
-    public bool? HasPreferredName { get; set; }
+    public PreferredNameOption? PreferredNameChoice { get; set; }
 
     [BindProperty]
     [Display(Name = "Your preferred name")]
-    [RequiredIfTrue(nameof(HasPreferredName), ErrorMessage = "Enter your preferred name")]
-    [StringLengthIfTrue(nameof(HasPreferredName), 200, ErrorMessage = "Preferred name must be 200 characters or less")]
+    [RequiredIfTrue(nameof(PreferredNameChoice), "PreferredName", ErrorMessage = "Enter your preferred name")]
+    [StringLengthIfTrue(nameof(PreferredNameChoice), 200, "PreferredName", ErrorMessage = "Preferred name must be 200 characters or less")]
     public string? PreferredName { get; set; }
 
     public void OnGet()
@@ -45,7 +46,14 @@ public class PreferredNamePage : PageModel
             return this.PageWithErrors();
         }
 
-        var preferredName = HasPreferredName == true ? PreferredName : ExistingName;
+        var preferredName = PreferredNameChoice switch
+        {
+            PreferredNameOption.ExistingFullName => ExistingName(includeMiddleName: true),
+            PreferredNameOption.ExistingName => ExistingName(includeMiddleName: false),
+            PreferredNameOption.PreferredName => PreferredName,
+            _ => throw new ArgumentOutOfRangeException(nameof(PreferredNameChoice), PreferredNameChoice, "Invalid preferred name option chosen")
+        };
+
         HttpContext.GetAuthenticationState().OnPreferredNameSet(preferredName!);
 
         return await _journey.Advance(CurrentStep);
@@ -55,10 +63,30 @@ public class PreferredNamePage : PageModel
     {
         var authState = _journey.AuthenticationState;
 
-        if (!string.IsNullOrEmpty(authState.PreferredName) && authState.PreferredName != authState.GetName())
+        if (string.IsNullOrEmpty(authState.PreferredName))
         {
-            HasPreferredName = true;
+            return;
+        }
+
+        if (authState.HasMiddleName && authState.PreferredName == authState.GetName(includeMiddleName: true))
+        {
+            PreferredNameChoice = PreferredNameOption.ExistingFullName;
+        }
+        else if (authState.PreferredName == authState.GetName(includeMiddleName: false))
+        {
+            PreferredNameChoice = PreferredNameOption.ExistingName;
+        }
+        else
+        {
+            PreferredNameChoice = PreferredNameOption.PreferredName;
             PreferredName = authState.PreferredName;
         }
+    }
+
+    public enum PreferredNameOption
+    {
+        ExistingFullName,
+        ExistingName,
+        PreferredName
     }
 }

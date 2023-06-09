@@ -1,4 +1,5 @@
 @page "/sign-in/register/preferred-name"
+@using TeacherIdentity.AuthServer.Pages.SignIn.Register
 @model TeacherIdentity.AuthServer.Pages.SignIn.Register.PreferredNamePage
 @{
     ViewBag.Title = "What is your preferred name?";
@@ -17,10 +18,18 @@
                 <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
             </govuk-radios-fieldset-legend>
 
-            <govuk-radios asp-for="HasPreferredName">
+            <govuk-radios asp-for="PreferredNameChoice">
                 <govuk-radios-fieldset>
-                    <govuk-radios-item value="@false">Use @Model.ExistingName</govuk-radios-item>
-                    <govuk-radios-item value="@true">Other
+                    <govuk-radios-item value="@PreferredNamePage.PreferredNameOption.ExistingName">
+                        Use @Model.ExistingName(includeMiddleName: false)
+                    </govuk-radios-item>
+                    @if (Model.HasMiddleName)
+                    {
+                        <govuk-radios-item value="@PreferredNamePage.PreferredNameOption.ExistingFullName">
+                            Use @Model.ExistingName(includeMiddleName: true)
+                        </govuk-radios-item>
+                    }
+                    <govuk-radios-item value="@PreferredNamePage.PreferredNameOption.PreferredName">Other
                         <govuk-radios-item-conditional>
                             <govuk-input asp-for="PreferredName" spellcheck="false"/>
                         </govuk-radios-item-conditional>

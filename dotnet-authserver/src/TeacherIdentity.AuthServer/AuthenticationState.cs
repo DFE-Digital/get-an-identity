@@ -158,6 +158,8 @@ public class AuthenticationState
     public bool HasValidEmail => !IsInstitutionEmail || InstitutionEmailChosen == true;
     [JsonIgnore]
     public bool PreferredNameSet => !string.IsNullOrEmpty(PreferredName);
+    [JsonIgnore]
+    public bool HasMiddleName => !string.IsNullOrEmpty(MiddleName);
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {
@@ -639,9 +641,9 @@ public class AuthenticationState
         return GetFullName(PreviousOfficialFirstName, null, PreviousOfficialLastName);
     }
 
-    public string? GetName()
+    public string? GetName(bool includeMiddleName = true)
     {
-        return GetFullName(FirstName, MiddleName, LastName);
+        return GetFullName(FirstName, includeMiddleName ? MiddleName : null, LastName);
     }
 
     private string? GetFullName(string? firstName, string? middleName, string? lastName)

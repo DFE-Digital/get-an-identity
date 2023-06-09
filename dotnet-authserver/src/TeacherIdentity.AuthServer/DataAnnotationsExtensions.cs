@@ -9,10 +9,12 @@ namespace TeacherIdentity.AuthServer;
 public class RequiredIfTrueAttribute : RequiredAttribute
 {
     private string PropertyName { get; }
+    private string? TargetValue { get; }
 
-    public RequiredIfTrueAttribute(string propertyName)
+    public RequiredIfTrueAttribute(string propertyName, string? targetValue = null)
     {
         PropertyName = propertyName;
+        TargetValue = targetValue;
     }
 
     protected override ValidationResult IsValid(object? value, ValidationContext context)
@@ -20,7 +22,18 @@ public class RequiredIfTrueAttribute : RequiredAttribute
         object instance = context.ObjectInstance;
         Type type = instance.GetType();
 
-        bool.TryParse(type.GetProperty(PropertyName)?.GetValue(instance)?.ToString(), out bool isRequired);
+        var propertyValue = type.GetProperty(PropertyName)?.GetValue(instance)?.ToString();
+        bool isRequired;
+
+        if (TargetValue is null)
+        {
+            bool.TryParse(propertyValue, out isRequired);
+        }
+        else
+        {
+            isRequired = propertyValue == TargetValue;
+        }
+
         return isRequired && !base.IsValid(value) ? new ValidationResult(ErrorMessage) : ValidationResult.Success!;
     }
 }
@@ -173,10 +186,12 @@ public class NationalInsuranceNumber : ValidationAttribute
 public class StringLengthIfTrueAttribute : StringLengthAttribute
 {
     private string PropertyName { get; }
+    private string? TargetValue { get; }
 
-    public StringLengthIfTrueAttribute(string propertyName, int maximumLength) : base(maximumLength)
+    public StringLengthIfTrueAttribute(string propertyName, int maximumLength, string? targetValue = null) : base(maximumLength)
     {
         PropertyName = propertyName;
+        TargetValue = targetValue;
     }
 
     protected override ValidationResult IsValid(object? value, ValidationContext context)
@@ -184,7 +199,18 @@ public class StringLengthIfTrueAttribute : StringLengthAttribute
         object instance = context.ObjectInstance;
         Type type = instance.GetType();
 
-        bool.TryParse(type.GetProperty(PropertyName)?.GetValue(instance)?.ToString(), out bool isRequired);
+        var propertyValue = type.GetProperty(PropertyName)?.GetValue(instance)?.ToString();
+        bool isRequired;
+
+        if (TargetValue is null)
+        {
+            bool.TryParse(propertyValue, out isRequired);
+        }
+        else
+        {
+            isRequired = propertyValue == TargetValue;
+        }
+
         return isRequired && !base.IsValid(value) ? new ValidationResult(ErrorMessage) : ValidationResult.Success!;
     }
 }
