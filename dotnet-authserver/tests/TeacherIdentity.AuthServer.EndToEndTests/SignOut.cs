@@ -113,4 +113,30 @@ public class SignOut : IClassFixture<HostFixture>
                 Assert.Equal(_hostFixture.TestClientId, userSignedOut.ClientId);
             });
     }
+
+    [Fact]
+    public async Task SignOutFromCompletePage()
+    {
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.SignInFromLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage();
+
+        await page.WaitForUrlPathAsync("/sign-in/complete");
+        await page.ClickAsync("text=Sign out");
+
+        await page.WaitForUrlPathAsync("/sign-in/landing");
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e => Assert.IsType<Events.UserSignedInEvent>(e),
+            e => Assert.IsType<Events.UserSignedOutEvent>(e));
+    }
 }
