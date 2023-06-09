@@ -18,7 +18,7 @@
                 <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
             </govuk-radios-fieldset-legend>
 
-            <govuk-radios asp-for="HasPreferredName">
+            <govuk-radios asp-for="PreferredNameChoice">
                 <govuk-radios-fieldset>
                     <govuk-radios-item value="@PreferredNamePage.PreferredNameOption.ExistingName">
                         Use @Model.ExistingName(includeMiddleName: false)

@@ -62,7 +62,7 @@ public class PreferredNamePageTests : TestBase
     }
 
     [Fact]
-    public async Task Post_EmptyHasPreferredName_ReturnsError()
+    public async Task Post_EmptyPreferredNameChoice_ReturnsError()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
@@ -75,11 +75,11 @@ public class PreferredNamePageTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasPreferredName", "Select which name to use");
+        await AssertEx.HtmlResponseHasError(response, "PreferredNameChoice", "Select which name to use");
     }
 
     [Fact]
-    public async Task Post_HasPreferredNameFalse_SetsPreferredNameOnAuthenticationStateAndRedirects()
+    public async Task Post_PreferredNameChoiceExistingName_SetsPreferredNameOnAuthenticationStateAndRedirects()
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
@@ -87,7 +87,7 @@ public class PreferredNamePageTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "HasPreferredName", false },
+                { "PreferredNameChoice", "ExistingName" },
             }
         };
 
@@ -98,7 +98,30 @@ public class PreferredNamePageTests : TestBase
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.StartsWith("/sign-in/register/date-of-birth", response.Headers.Location?.OriginalString);
 
-        Assert.Equal(authStateHelper.AuthenticationState.GetName(), authStateHelper.AuthenticationState.PreferredName);
+        Assert.Equal(authStateHelper.AuthenticationState.GetName(includeMiddleName: false), authStateHelper.AuthenticationState.PreferredName);
+    }
+
+    [Fact]
+    public async Task Post_PreferredNameChoiceExistingFullName_SetsPreferredNameOnAuthenticationStateAndRedirects()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/preferred-name?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "PreferredNameChoice", "ExistingFullName" },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.StartsWith("/sign-in/register/date-of-birth", response.Headers.Location?.OriginalString);
+
+        Assert.Equal(authStateHelper.AuthenticationState.GetName(includeMiddleName: true), authStateHelper.AuthenticationState.PreferredName);
     }
 
     [Fact]
@@ -110,7 +133,7 @@ public class PreferredNamePageTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "HasPreferredName", true },
+                { "PreferredNameChoice", "PreferredName" },
             }
         };
 
@@ -131,7 +154,7 @@ public class PreferredNamePageTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "HasPreferredName", true },
+                { "PreferredNameChoice", "PreferredName" },
                 { "PreferredName", new string('a', 201) },
             }
         };
@@ -154,7 +177,7 @@ public class PreferredNamePageTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "HasPreferredName", true },
+                { "PreferredNameChoice", "PreferredName" },
                 { "PreferredName", preferredName },
             }
         };

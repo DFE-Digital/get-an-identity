@@ -26,12 +26,12 @@ public class PreferredNamePage : PageModel
     [BindProperty]
     [Display(Name = " ")]
     [Required(ErrorMessage = "Select which name to use")]
-    public PreferredNameOption? HasPreferredName { get; set; }
+    public PreferredNameOption? PreferredNameChoice { get; set; }
 
     [BindProperty]
     [Display(Name = "Your preferred name")]
-    [RequiredIfTrue(nameof(HasPreferredName), ErrorMessage = "Enter your preferred name")]
-    [StringLengthIfTrue(nameof(HasPreferredName), 200, ErrorMessage = "Preferred name must be 200 characters or less")]
+    [RequiredIfTrue(nameof(PreferredNameChoice), "PreferredName", ErrorMessage = "Enter your preferred name")]
+    [StringLengthIfTrue(nameof(PreferredNameChoice), 200, "PreferredName", ErrorMessage = "Preferred name must be 200 characters or less")]
     public string? PreferredName { get; set; }
 
     public void OnGet()
@@ -46,12 +46,12 @@ public class PreferredNamePage : PageModel
             return this.PageWithErrors();
         }
 
-        var preferredName = HasPreferredName switch
+        var preferredName = PreferredNameChoice switch
         {
             PreferredNameOption.ExistingFullName => ExistingName(includeMiddleName: true),
             PreferredNameOption.ExistingName => ExistingName(includeMiddleName: false),
             PreferredNameOption.PreferredName => PreferredName,
-            _ => throw new ArgumentOutOfRangeException(nameof(HasPreferredName), HasPreferredName, "Invalid preferred name option chosen")
+            _ => throw new ArgumentOutOfRangeException(nameof(PreferredNameChoice), PreferredNameChoice, "Invalid preferred name option chosen")
         };
 
         HttpContext.GetAuthenticationState().OnPreferredNameSet(preferredName!);
@@ -70,15 +70,15 @@ public class PreferredNamePage : PageModel
 
         if (authState.HasMiddleName && authState.PreferredName == authState.GetName(includeMiddleName: true))
         {
-            HasPreferredName = PreferredNameOption.ExistingFullName;
+            PreferredNameChoice = PreferredNameOption.ExistingFullName;
         }
         else if (authState.PreferredName == authState.GetName(includeMiddleName: false))
         {
-            HasPreferredName = PreferredNameOption.ExistingName;
+            PreferredNameChoice = PreferredNameOption.ExistingName;
         }
         else
         {
-            HasPreferredName = PreferredNameOption.PreferredName;
+            PreferredNameChoice = PreferredNameOption.PreferredName;
             PreferredName = authState.PreferredName;
         }
     }
