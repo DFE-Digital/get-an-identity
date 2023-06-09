@@ -41,13 +41,15 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                 var oAuthState = AuthenticationState.OAuthState;
 
                 var client = await _applicationManager.FindByClientIdAsync(oAuthState.ClientId);
+                var preferredName = AuthenticationState.GetName();
+
                 if (client!.RaiseTrnResolutionSupportTickets)
                 {
                     await _backgroundJobScheduler.Enqueue<CreateUserHelper>(
                         u => u.CreateTrnResolutionZendeskTicket(
                             user.UserId,
                             AuthenticationState.GetOfficialName(),
-                            AuthenticationState.GetName(),
+                            preferredName,
                             AuthenticationState.EmailAddress,
                             AuthenticationState.GetPreviousOfficialName(),
                             AuthenticationState.DateOfBirth,
