@@ -34,7 +34,7 @@ public class IttProvider : PageModel
     // Properties are set in the order that they are declared. Because the value of HasIttProvider
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
     [Display(Name = "Did a university, SCITT or school award your QTS?")]
-    [Required(ErrorMessage = "Tell us how you were awarded qualified teacher status (QTS)")]
+    [Required(ErrorMessage = "Select yes if you were awarded qualified teacher status (QTS)")]
     public bool? HasIttProvider { get; set; }
 
     [Display(Name = "Where did you get your QTS?", Description = "Your university, SCITT, school or other training provider")]

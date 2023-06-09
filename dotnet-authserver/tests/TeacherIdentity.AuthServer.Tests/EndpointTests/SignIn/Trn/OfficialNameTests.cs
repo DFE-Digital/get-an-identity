@@ -175,7 +175,7 @@ public class OfficialNameTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasPreviousName", "Tell us if you have changed your name");
+        await AssertEx.HtmlResponseHasError(response, "HasPreviousName", "Select if you have changed your name");
     }
 
     [Fact]

@@ -25,7 +25,7 @@ public class Merge : PageModel
 
     [BindProperty]
     [Display(Name = "Select which user to merge")]
-    [Required(ErrorMessage = "Tell us which user you want to merge")]
+    [Required(ErrorMessage = "Select which user you want to merge")]
     public Guid? UserIdToMerge { get; set; }
 
     [FromRoute]

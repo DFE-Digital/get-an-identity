@@ -97,7 +97,7 @@ public class SelectUserTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "UserIdToMerge", "Tell us which user you want to merge");
+        await AssertEx.HtmlResponseHasError(response, "UserIdToMerge", "Select which user you want to merge");
     }
 
     [Fact]

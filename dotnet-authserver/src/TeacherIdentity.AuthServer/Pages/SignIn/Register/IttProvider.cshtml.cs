@@ -36,7 +36,7 @@ public class IttProvider : PageModel
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
     [BindProperty]
     [Display(Name = "Did a university, SCITT or school award your QTS?")]
-    [Required(ErrorMessage = "Tell us how you were awarded qualified teacher status (QTS)")]
+    [Required(ErrorMessage = "Select yes if you were awarded qualified teacher status (QTS)")]
     public bool? HasIttProvider { get; set; }
 
     [BindProperty]

@@ -29,7 +29,7 @@ public class PreferredName : PageModel
     // Properties are set in the order that they are declared. Because the value of HasPreferredName
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
     [Display(Name = " ")]
-    [Required(ErrorMessage = "Tell us if this is your preferred name")]
+    [Required(ErrorMessage = "Select yes if this is your preferred name")]
     public bool? HasPreferredName { get; set; }
 
     [Display(Name = "Preferred first name")]
