@@ -1,5 +1,7 @@
+@using TeacherIdentity.AuthServer.Journeys;
 @inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @inject ClientScopedViewHelper ClientScopedViewHelper
+@inject SignInJourneyProvider SignInJourneyProvider
 @{
     if (string.IsNullOrEmpty(ViewBag.Title))
     {
@@ -8,16 +10,24 @@
 
     Layout = "_GovUkPageTemplate";
 
-    var serviceName = ViewBag.ServiceName ?? "Get an identity to access Teacher Services";
-    var serviceUrl = ViewBag.ServiceUrl ?? "/";
+    var serviceName = ViewBag.ServiceName;
+    var serviceUrl = ViewBag.ServiceUrl;
 
-    var client = await CurrentClientProvider.GetCurrentClient();
-
-    if (client is not null)
+    if (Context.TryGetAuthenticationState(out var authenticationState) &&
+        authenticationState.TryGetOAuthState(out var oAuthState) &&
+        SignInJourneyProvider.GetSignInJourney(authenticationState, Context).GetType() == typeof(LegacyTrnJourney))
     {
-        serviceName = client.DisplayName;
-        serviceUrl = Context.TryGetAuthenticationState(out var authenticationState) ? authenticationState?.OAuthState?.ResolveServiceUrl(client) : "/";
+        var client = await CurrentClientProvider.GetCurrentClient();
+
+        if (client is not null)
+        {
+            serviceName ??= client.DisplayName;
+            serviceUrl ??= oAuthState.ResolveServiceUrl(client);
+        }
     }
+
+    serviceName ??= "DfE Identity account";
+    serviceUrl ??= "/";
 }
 
 @section Head {
