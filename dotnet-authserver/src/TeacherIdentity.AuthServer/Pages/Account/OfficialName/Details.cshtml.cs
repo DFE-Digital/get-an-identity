@@ -27,7 +27,7 @@ public class Details : PageModel
     public string? FirstName { get; set; }
 
     [BindProperty(SupportsGet = true)]
-    [Display(Name = "Middle name (optional)")]
+    [Display(Name = "Middle name")]
     [StringLength(100, ErrorMessage = "Middle name must be 100 characters or less")]
     public string? MiddleName { get; set; }
 
