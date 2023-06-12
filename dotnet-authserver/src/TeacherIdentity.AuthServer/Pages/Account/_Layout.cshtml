@@ -2,7 +2,7 @@
     ViewBag.ServiceUrl = LinkGenerator.Account(Context.GetClientRedirectInfo());
     Layout = "/Views/Shared/_Layout.cshtml";
 
-    var signOutUrl = Context.GetClientRedirectInfo()?.SignOutUri ?? LinkGenerator.AccountSignOut();
+    var signOutUrl = Context.GetClientRedirectInfo()?.SignOutUri ?? LinkGenerator.SignOut();
 }
 
 @section HeaderNav {

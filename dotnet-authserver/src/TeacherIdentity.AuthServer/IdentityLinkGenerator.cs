@@ -172,8 +172,8 @@ public abstract class IdentityLinkGenerator
         Page("/Account/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
 
-    public string AccountSignOut() =>
-        Page("/Account/SignOut", authenticationJourneyRequired: false);
+    public string SignOut() =>
+        Page("/SignOut", authenticationJourneyRequired: false);
 
     public string AccountName(ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/Name/Index", authenticationJourneyRequired: false)
