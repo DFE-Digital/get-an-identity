@@ -121,7 +121,7 @@ public class HasNiNumberPageTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasNiNumber", "Tell us if you have a National Insurance number");
+        await AssertEx.HtmlResponseHasError(response, "HasNiNumber", "Select yes if you have a National Insurance number");
     }
 
     [Theory]

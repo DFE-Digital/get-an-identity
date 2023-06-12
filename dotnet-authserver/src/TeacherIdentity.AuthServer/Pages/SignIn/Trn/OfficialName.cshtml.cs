@@ -39,7 +39,7 @@ public class OfficialName : PageModel
     [Display(Name = "Previous last name (optional)")]
     public string? PreviousOfficialLastName { get; set; }
 
-    [Required(ErrorMessage = "Tell us if you have changed your name")]
+    [Required(ErrorMessage = "Select if you have changed your name")]
     public HasPreviousNameOption? HasPreviousName { get; set; }
 
     public void OnGet()

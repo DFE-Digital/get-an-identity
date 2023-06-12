@@ -122,7 +122,7 @@ public class PreferredNameTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasPreferredName", "Tell us if this is your preferred name");
+        await AssertEx.HtmlResponseHasError(response, "HasPreferredName", "Select yes if this is your preferred name");
     }
 
     [Fact]

@@ -90,7 +90,7 @@ public class HasTrnPageTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasTrn", "Tell us if you know your TRN");
+        await AssertEx.HtmlResponseHasError(response, "HasTrn", "Select yes if you know your TRN");
     }
 
     [Fact]

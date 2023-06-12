@@ -160,7 +160,7 @@ public class AwardedQtsPageTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "AwardedQts", "Tell us if you have been awarded qualified teacher status (QTS)");
+        await AssertEx.HtmlResponseHasError(response, "AwardedQts", "Select yes if you have been awarded qualified teacher status (QTS)");
     }
 
     [Theory]

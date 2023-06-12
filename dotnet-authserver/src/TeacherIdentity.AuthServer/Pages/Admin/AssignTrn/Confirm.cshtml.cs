@@ -42,7 +42,7 @@ public class ConfirmModel : PageModel
 
     [BindProperty]
     [Display(Name = "Do you want to add this DQT record?")]
-    [Required(ErrorMessage = "Tell us if this is the right DQT record")]
+    [Required(ErrorMessage = "Select yes if this is the right DQT record")]
     public bool? AddRecord { get; set; }
 
     public IActionResult OnGet()

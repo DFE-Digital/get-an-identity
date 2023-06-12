@@ -144,7 +144,7 @@ public class IttProviderTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "HasIttProvider", "Tell us how you were awarded qualified teacher status (QTS)");
+        await AssertEx.HtmlResponseHasError(response, "HasIttProvider", "Select yes if you were awarded qualified teacher status (QTS)");
     }
 
     [Fact]

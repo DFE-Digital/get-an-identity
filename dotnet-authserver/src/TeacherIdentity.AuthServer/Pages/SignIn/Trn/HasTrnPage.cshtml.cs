@@ -21,7 +21,7 @@ public class HasTrnPage : PageModel
     // Properties are set in the order that they are declared. Because the value of HasTrn
     // is used in the conditional RequiredIfTrue attribute, it should be set first.
     [Display(Name = "Do you know your TRN?")]
-    [Required(ErrorMessage = "Tell us if you know your TRN")]
+    [Required(ErrorMessage = "Select yes if you know your TRN")]
     public bool? HasTrn { get; set; }
 
     [Display(Name = "What is your TRN?")]

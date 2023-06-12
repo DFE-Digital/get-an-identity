@@ -23,7 +23,7 @@ public class HasNiNumberPage : PageModel
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep)!;
 
     [Display(Name = "Do you have a National Insurance number?")]
-    [Required(ErrorMessage = "Tell us if you have a National Insurance number")]
+    [Required(ErrorMessage = "Select yes if you have a National Insurance number")]
     public bool? HasNiNumber { get; set; }
 
     public void OnGet()

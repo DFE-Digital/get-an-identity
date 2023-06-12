@@ -22,7 +22,7 @@ public class HasTrnPage : PageModel
 
     [BindProperty]
     [Display(Name = "Do you have a TRN?")]
-    [Required(ErrorMessage = "Tell us if you know your TRN")]
+    [Required(ErrorMessage = "Select yes if you know your TRN")]
     public bool? HasTrn { get; set; }
 
     public void OnGet()

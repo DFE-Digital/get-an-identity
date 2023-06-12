@@ -360,7 +360,7 @@ public class ConfirmTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "AddRecord", "Tell us if this is the right DQT record");
+        await AssertEx.HtmlResponseHasError(response, "AddRecord", "Select yes if this is the right DQT record");
     }
 
     [Fact]

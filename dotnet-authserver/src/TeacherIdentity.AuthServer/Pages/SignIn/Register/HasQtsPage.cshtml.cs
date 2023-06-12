@@ -22,7 +22,7 @@ public class HasQtsPage : PageModel
 
     [BindProperty]
     [Display(Name = "Have you been awarded qualified teacher status (QTS)?")]
-    [Required(ErrorMessage = "Tell us if you have been awarded qualified teacher status (QTS)")]
+    [Required(ErrorMessage = "Select yes if you have been awarded qualified teacher status (QTS)")]
     public bool? AwardedQts { get; set; }
 
     public void OnGet()
