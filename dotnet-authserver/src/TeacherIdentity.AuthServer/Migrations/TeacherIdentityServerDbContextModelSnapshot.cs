@@ -801,6 +801,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("web_hook_id");
 
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created");
+
                     b.Property<bool>("Enabled")
                         .HasColumnType("boolean")
                         .HasColumnName("enabled");
@@ -816,6 +820,10 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("secret");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated");
 
                     b.Property<int>("WebHookMessageTypes")
                         .ValueGeneratedOnAdd()

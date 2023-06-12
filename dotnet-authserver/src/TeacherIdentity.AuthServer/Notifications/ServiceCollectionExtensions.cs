@@ -32,11 +32,6 @@ public static class ServiceCollectionExtensions
                 services.AddSingleton<INotificationPublisher, WebHookNotificationPublisher>();
             }
 
-            services.AddOptions<WebHookOptions>()
-                .Bind(configuration.GetSection("WebHooks"))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-
             services
                 .AddSingleton<IWebHookNotificationSender, WebHookNotificationSender>()
                 .AddHttpClient<IWebHookNotificationSender, WebHookNotificationSender>(httpClient =>
@@ -51,6 +46,11 @@ public static class ServiceCollectionExtensions
                     PreAuthenticate = true
                 });
         }
+
+        services.AddOptions<WebHookOptions>()
+               .Bind(configuration.GetSection("WebHooks"))
+               .ValidateDataAnnotations()
+               .ValidateOnStart();
 
         return services;
     }

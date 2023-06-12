@@ -11,4 +11,6 @@ public class WebHook
     public required bool Enabled { get; set; }
     public required string Secret { get; set; }
     public required WebHookMessageTypes WebHookMessageTypes { get; set; }
+    public required DateTime Created { get; set; }
+    public required DateTime Updated { get; set; }
 }

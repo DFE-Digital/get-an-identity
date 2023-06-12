@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
@@ -15,11 +17,13 @@ public class EditWebHookModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
+    private readonly int _webHooksCacheDuration;
 
-    public EditWebHookModel(TeacherIdentityServerDbContext dbContext, IClock clock)
+    public EditWebHookModel(TeacherIdentityServerDbContext dbContext, IClock clock, IOptions<WebHookOptions> webHookOptions)
     {
         _dbContext = dbContext;
         _clock = clock;
+        _webHooksCacheDuration = webHookOptions.Value.WebHooksCacheDurationSeconds;
     }
 
     [FromRoute]
@@ -44,6 +48,11 @@ public class EditWebHookModel : PageModel
     [BindProperty]
     public bool RegenerateSecret { get; set; }
 
+    [BindProperty]
+    public bool WithinCache { get; set; }
+
+    private DateTime _webHookUpdated;
+
     public async Task<IActionResult> OnGet()
     {
         var webHook = await _dbContext.WebHooks.SingleOrDefaultAsync(wh => wh.WebHookId == WebHookId);
@@ -57,6 +66,12 @@ public class EditWebHookModel : PageModel
         Enabled = webHook.Enabled;
         Secret = webHook.Secret;
         WebHookMessageTypes = webHook.WebHookMessageTypes;
+        _webHookUpdated = webHook.Updated;
+
+        if (_webHookUpdated > _clock.UtcNow.AddSeconds(-_webHooksCacheDuration))
+        {
+            WithinCache = true;
+        }
 
         return Page();
     }
@@ -94,6 +109,7 @@ public class EditWebHookModel : PageModel
         webHook.Enabled = Enabled;
         webHook.Endpoint = Endpoint!;
         webHook.WebHookMessageTypes = WebHookMessageTypes;
+        webHook.Updated = _clock.UtcNow;
 
         if (RegenerateSecret)
         {
@@ -115,7 +131,6 @@ public class EditWebHookModel : PageModel
 
             await _dbContext.SaveChangesAsync();
 
-            TempData.SetFlashSuccess("Web hook updated");
         }
 
         return RedirectToPage("EditWebHook", new { webHookId = WebHookId });
