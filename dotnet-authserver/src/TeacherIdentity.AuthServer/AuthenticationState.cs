@@ -35,7 +35,7 @@ public class AuthenticationState
         FirstTimeSignInForEmail = firstTimeSignInForEmail;
     }
 
-    public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromMinutes(20);
+    public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromHours(1);
     public static TimeSpan JourneyLifetime { get; } = TimeSpan.FromHours(2);
 
     public Guid JourneyId { get; }
