@@ -18,7 +18,7 @@ public abstract class BaseEvidencePage : PageModel
 
     [BindProperty]
     [Required(ErrorMessage = "Select a file")]
-    [FileExtensions(".pdf", ".jpg", ".jpeg", ErrorMessage = "The selected file must be a PDF or JPEG")]
+    [FileExtensions(".pdf", ".jpg", ".jpeg", ".png", ErrorMessage = "The selected file must be an image or a PDF")]
     [FileSize(MaxFileSizeMb * 1024 * 1024, ErrorMessage = "The selected file must be smaller than 3MB")]
     public IFormFile? EvidenceFile { get; set; }
 

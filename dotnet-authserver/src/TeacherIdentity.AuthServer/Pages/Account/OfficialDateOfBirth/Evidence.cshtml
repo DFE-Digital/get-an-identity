@@ -15,7 +15,7 @@
         <form action="@LinkGenerator.AccountOfficialDateOfBirthEvidence((DateOnly)Model.DateOfBirth!, Model.ClientRedirectInfo)" method="post" enctype="multipart/form-data" asp-antiforgery="true">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
-            <p>Your evidence must be in pdf or jpeg format and be a photo of scan of 1 of the following:</p>
+            <p>Your evidence must be an image or a PDF and be a photo of scan of 1 of the following:</p>
 
             <ul class="govuk-list govuk-list--bullet">
                 <li>birth certificate</li>
@@ -25,7 +25,7 @@
 
             <p>Your scan must be readable and smaller than @BaseEvidencePage.MaxFileSizeMb MB.</p>
 
-            <govuk-file-upload asp-for="EvidenceFile" input-accept=".pdf, .jpg, .jpeg">
+            <govuk-file-upload asp-for="EvidenceFile" input-accept=".pdf, .jpg, .jpeg, .png">
                 <govuk-file-upload-label>Your evidence</govuk-file-upload-label>
             </govuk-file-upload>
 
