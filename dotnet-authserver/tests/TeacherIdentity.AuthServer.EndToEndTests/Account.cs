@@ -92,7 +92,7 @@ public class Account : IClassFixture<HostFixture>
 
         await page.WaitForUrlPathAsync("/account/official-date-of-birth/evidence");
         await page.SetInputFilesAsync(
-            "text=Upload a file",
+            "label:text-is('Your evidence')",
             new FilePayload()
             {
                 Name = "evidence.jpg",
@@ -174,13 +174,13 @@ public class Account : IClassFixture<HostFixture>
 
         await page.WaitForUrlPathAsync("/account/official-name/details");
         await page.FillAsync("text=First name", newFirstName);
-        await page.FillAsync("text=Middle name (optional)", newMiddleName);
+        await page.FillAsync("text=Middle name", newMiddleName);
         await page.FillAsync("text=Last name", newLastName);
         await page.ClickContinueButton();
 
         await page.WaitForUrlPathAsync("/account/official-name/evidence");
         await page.SetInputFilesAsync(
-            "text=Upload a file",
+            "label:text-is('Your evidence')",
             new FilePayload()
             {
                 Name = "evidence.jpg",
