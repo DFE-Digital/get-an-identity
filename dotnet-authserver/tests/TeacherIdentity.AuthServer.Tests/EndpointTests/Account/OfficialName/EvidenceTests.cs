@@ -125,7 +125,7 @@ public class EvidenceTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "EvidenceFile", "The selected file must be a PDF or JPEG");
+        await AssertEx.HtmlResponseHasError(response, "EvidenceFile", "The selected file must be an image or a PDF");
     }
 
     [Theory]
