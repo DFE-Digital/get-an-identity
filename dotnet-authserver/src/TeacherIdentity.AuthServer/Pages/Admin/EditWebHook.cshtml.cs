@@ -51,8 +51,6 @@ public class EditWebHookModel : PageModel
     [BindProperty]
     public bool WithinCache { get; set; }
 
-    private DateTime _webHookUpdated;
-
     public async Task<IActionResult> OnGet()
     {
         var webHook = await _dbContext.WebHooks.SingleOrDefaultAsync(wh => wh.WebHookId == WebHookId);
