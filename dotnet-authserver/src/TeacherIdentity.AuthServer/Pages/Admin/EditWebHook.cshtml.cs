@@ -66,12 +66,7 @@ public class EditWebHookModel : PageModel
         Enabled = webHook.Enabled;
         Secret = webHook.Secret;
         WebHookMessageTypes = webHook.WebHookMessageTypes;
-        _webHookUpdated = webHook.Updated;
-
-        if (_webHookUpdated > _clock.UtcNow.AddSeconds(-_webHooksCacheDuration))
-        {
-            WithinCache = true;
-        }
+        WithinCache = webHook.Updated > _clock.UtcNow.AddSeconds(-_webHooksCacheDuration);
 
         return Page();
     }
