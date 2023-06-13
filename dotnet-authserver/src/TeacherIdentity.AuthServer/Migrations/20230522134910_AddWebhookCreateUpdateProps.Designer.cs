@@ -14,7 +14,7 @@ namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
     [Migration("20230522134910_add-webhook-create-update-props")]
-    partial class addwebhookcreateupdateprops
+    partial class AddWebhookCreateUpdateProps
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

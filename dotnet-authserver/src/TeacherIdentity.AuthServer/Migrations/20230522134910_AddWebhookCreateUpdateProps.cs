@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     /// <inheritdoc />
-    public partial class addwebhookcreateupdateprops : Migration
+    public partial class AddWebhookCreateUpdateProps : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
