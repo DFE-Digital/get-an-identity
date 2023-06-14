@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -21,7 +22,7 @@ public class CheckAnswers : PageModel
 
     public bool? RequiresTrnLookup => _journey.AuthenticationState.UserRequirements.RequiresTrnLookup();
     public string? EmailAddress => _journey.AuthenticationState.EmailAddress;
-    public string? MobilePhoneNumber => _journey.AuthenticationState.MobileNumber;
+    public string? MobilePhoneNumber => MobileNumber.Parse(_journey.AuthenticationState.MobileNumber!).ToDisplayString();
     public string? FullName => _journey.AuthenticationState.GetName();
     public string? PreferredName => _journey.AuthenticationState.PreferredName;
     public DateOnly? DateOfBirth => _journey.AuthenticationState.DateOfBirth;

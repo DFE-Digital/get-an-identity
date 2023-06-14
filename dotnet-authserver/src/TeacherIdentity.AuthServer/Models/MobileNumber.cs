@@ -259,6 +259,8 @@ public sealed class MobileNumber : IEquatable<MobileNumber>, IParsable<MobileNum
         _normalizedValue = normalizedValue;
     }
 
+    public string ToDisplayString() => _normalizedValue[..2] == "44" ? '0' + _normalizedValue[2..] : '+' + _normalizedValue;
+
     public static MobileNumber Parse(string number)
     {
         if (!TryParseCore(number, out var result, out var error))

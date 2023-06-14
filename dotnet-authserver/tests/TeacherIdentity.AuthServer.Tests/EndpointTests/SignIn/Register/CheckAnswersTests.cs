@@ -1,6 +1,7 @@
 using AngleSharp.Html.Dom;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using ZendeskApi.Client.Models;
 using ZendeskApi.Client.Requests;
@@ -68,7 +69,7 @@ public class CheckAnswersTests : TestBase
         // Assert
         var doc = await response.GetDocument();
         Assert.Equal(authState.EmailAddress, doc.GetSummaryListValueForKey("Email"));
-        Assert.Equal(authState.MobileNumber, doc.GetSummaryListValueForKey("Mobile phone"));
+        Assert.Equal(MobileNumber.Parse(authState.MobileNumber!).ToDisplayString(), doc.GetSummaryListValueForKey("Mobile phone"));
         Assert.Equal($"{authState.GetName()}", doc.GetSummaryListValueForKey("Name"));
         Assert.Equal(authState.PreferredName, doc.GetSummaryListValueForKey("Preferred name"));
         Assert.Equal(authState.DateOfBirth?.ToString(Constants.DateFormat), doc.GetSummaryListValueForKey("Date of birth"));
