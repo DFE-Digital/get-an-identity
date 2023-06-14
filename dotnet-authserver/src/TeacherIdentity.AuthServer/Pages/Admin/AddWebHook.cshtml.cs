@@ -63,7 +63,9 @@ public class AddWebHookModel : PageModel
             Enabled = Enabled,
             Endpoint = Endpoint!,
             Secret = WebHook.GenerateSecret(),
-            WebHookMessageTypes = WebHookMessageTypes
+            WebHookMessageTypes = WebHookMessageTypes,
+            Created = _clock.UtcNow,
+            Updated = _clock.UtcNow
         });
 
         _dbContext.AddEvent(new WebHookAddedEvent()

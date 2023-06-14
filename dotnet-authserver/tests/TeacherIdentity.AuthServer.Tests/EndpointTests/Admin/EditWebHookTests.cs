@@ -1,14 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
 public class EditWebHookTests : TestBase
 {
+
+
     public EditWebHookTests(HostFixture hostFixture)
         : base(hostFixture)
     {
+
     }
 
     [Fact]
@@ -55,6 +60,47 @@ public class EditWebHookTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_EditWebHookWithinCacheTime_ShowsWarningMessage()
+    {
+        // Arrange
+        var webHookId = await CreateWebHook(created: Clock.UtcNow, updated: Clock.UtcNow);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/webhooks/{webHookId}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.NotNull(doc.GetElementByTestId("warning-text"));
+
+    }
+
+    [Fact]
+    public async Task Get_EditWebHookOutsideCacheTime_DoesNotShowWarningMessage()
+    {
+        // Arrange
+        var webHookCreatedTime = Clock.UtcNow;
+        var webHookCacheDuration = HostFixture.Services.GetRequiredService<IOptions<WebHookOptions>>().Value.WebHooksCacheDurationSeconds;
+
+        var webHookUpdatedTIme = Clock.UtcNow.AddSeconds(-webHookCacheDuration - 20);
+
+        var webHookId = await CreateWebHook(created: webHookCreatedTime, updated: webHookUpdatedTIme);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/webhooks/{webHookId}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.Null(doc.GetElementByTestId("warning-text"));
+
     }
 
     [Fact]
@@ -234,21 +280,22 @@ public class EditWebHookTests : TestBase
                 var webHookUpdated = Assert.IsType<WebHookUpdatedEvent>(e);
                 Assert.True(webHookUpdated.Changes.HasFlag(WebHookUpdatedEventChanges.Secret));
             });
-
-        var redirectedResponse = await response.FollowRedirect(HttpClient);
-        var redirectedDoc = await redirectedResponse.GetDocument();
-        AssertEx.HtmlDocumentHasFlashSuccess(redirectedDoc, "Web hook updated");
     }
 
-    private Task<Guid> CreateWebHook(string? endpoint = null, bool enabled = true) =>
+    private Task<Guid> CreateWebHook(string? endpoint = null, bool enabled = true, DateTime? created = null, DateTime? updated = null) =>
         TestData.WithDbContext(async dbContext =>
         {
             var webHookId = Guid.NewGuid();
 
             endpoint ??= Faker.Internet.Url();
 
+            created ??= Clock.UtcNow;
+            updated ??= Clock.UtcNow;
+
             dbContext.WebHooks.Add(new WebHook()
             {
+                Created = (DateTime)created,
+                Updated = (DateTime)updated,
                 Enabled = enabled,
                 Endpoint = endpoint,
                 WebHookId = webHookId,

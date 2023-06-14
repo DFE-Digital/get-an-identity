@@ -12,6 +12,11 @@
 <form asp-page="EditWebHook" asp-route-webHookId="@Model.WebHookId" method="post">
     <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
+    @if (Model.WithinCache)
+    {
+        <govuk-warning-text icon-fallback-text="Warning" data-testid="warning-text">The web hook has been updated but previous changes could still be cached.</govuk-warning-text>
+    }
+
     <govuk-input asp-for="Endpoint" type="url" />
 
     <govuk-checkboxes asp-for="Enabled">

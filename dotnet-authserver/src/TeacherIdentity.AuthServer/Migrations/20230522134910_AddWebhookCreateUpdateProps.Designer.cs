@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -12,9 +13,11 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230522134910_add-webhook-create-update-props")]
+    partial class AddWebhookCreateUpdateProps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -527,10 +530,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnName("trn")
                         .IsFixedLength();
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
                     b.HasKey("TrnToken")
                         .HasName("pk_trn_tokens");
 
@@ -594,11 +593,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("merged_with_user_id");
 
-                    b.Property<string>("MiddleName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("middle_name");
-
                     b.Property<string>("MobileNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -608,11 +602,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)")
                         .HasColumnName("normalized_mobile_number");
-
-                    b.Property<string>("PreferredName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("preferred_name");
 
                     b.Property<string>("RegisteredWithClientId")
                         .HasMaxLength(100)
