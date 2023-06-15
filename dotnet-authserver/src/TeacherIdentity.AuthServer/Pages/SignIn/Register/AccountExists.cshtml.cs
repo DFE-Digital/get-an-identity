@@ -19,7 +19,7 @@ public class AccountExists : BaseExistingEmailPageModel
         SignInJourney journey,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        IClock clock, CreateUserHelper createUserHelper) :
+        IClock clock, UserHelper userHelper) :
         base(userVerificationService, dbContext)
     {
         _journey = journey;

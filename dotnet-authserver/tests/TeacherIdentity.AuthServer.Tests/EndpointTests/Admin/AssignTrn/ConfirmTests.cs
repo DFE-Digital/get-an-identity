@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
@@ -366,12 +367,73 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_WithTrnAndAddRecordConfirmed_AssignsTrnToUserEmitsEventAndRedirects()
+    public async Task Post_WithAddRecordConfirmedWithDifferentDqtName_UpdatesUserNameAndTrnEmitsEventAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
-        ConfigureDqtApiMock(trn);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtMiddleName = Faker.Name.Middle();
+        var dqtLastName = Faker.Name.Last();
+        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
+        var dqtEmail = Faker.Internet.Email();
+
+        ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "AddRecord", bool.TrueString }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal($"/admin/users/{user.UserId}", response.Headers.Location?.OriginalString);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
+            Assert.Equal(trn, user.Trn);
+            Assert.Equal(dqtFirstName, user.FirstName);
+            Assert.Equal(dqtMiddleName, user.MiddleName);
+            Assert.Equal(dqtLastName, user.LastName);
+            Assert.Equal(TrnAssociationSource.SupportUi, user.TrnAssociationSource);
+            Assert.Equal(TrnLookupStatus.Found, user.TrnLookupStatus);
+            Assert.Equal(Clock.UtcNow, user.Updated);
+        });
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                Assert.Equal(UserUpdatedEventSource.SupportUi, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            });
+    }
+
+    [Fact]
+    public async Task Post_WithTrnAndAddRecordConfirmedAndDqtNameMatch_AssignsTrnToUserEmitsEventAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        var dqtFirstName = user.FirstName;
+        var dqtMiddleName = user.MiddleName;
+        var dqtLastName = user.LastName;
+        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
+        var dqtEmail = Faker.Internet.Email();
+
+        ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {

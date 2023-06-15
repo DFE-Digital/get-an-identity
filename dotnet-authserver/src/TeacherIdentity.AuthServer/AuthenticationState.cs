@@ -4,7 +4,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -635,31 +637,23 @@ public class AuthenticationState
 
     public string? GetOfficialName()
     {
-        return GetFullName(OfficialFirstName, null, OfficialLastName);
+        return NameHelper.GetFullName(OfficialFirstName, null, OfficialLastName);
     }
 
     public string? GetPreviousOfficialName()
     {
-        return GetFullName(PreviousOfficialFirstName, null, PreviousOfficialLastName);
+        return NameHelper.GetFullName(PreviousOfficialFirstName, null, PreviousOfficialLastName);
     }
 
     public string? GetName(bool includeMiddleName = true)
     {
-        return GetFullName(FirstName, includeMiddleName ? MiddleName : null, LastName);
+        return NameHelper.GetFullName(FirstName, includeMiddleName ? MiddleName : null, LastName);
     }
 
-    private string? GetFullName(string? firstName, string? middleName, string? lastName)
+    public void OnTrnLookupCompleted(FindTeachersResponseResult? findTeachersResult, TrnLookupStatus trnLookupStatus)
     {
-        if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
-        {
-            return null;
-        }
+        var trn = findTeachersResult?.Trn;
 
-        return string.IsNullOrEmpty(middleName) ? $"{firstName} {lastName}" : $"{firstName} {middleName} {lastName}";
-    }
-
-    public void OnTrnLookupCompleted(string? trn, TrnLookupStatus trnLookupStatus)
-    {
         if (trn is not null && trnLookupStatus != AuthServer.TrnLookupStatus.Found)
         {
             throw new ArgumentException($"{nameof(trnLookupStatus)} must be '{AuthServer.TrnLookupStatus.Found} when {nameof(trn)} is not null.");
@@ -672,6 +666,13 @@ public class AuthenticationState
 
         Trn = trn;
         TrnLookupStatus = trnLookupStatus;
+
+        if (findTeachersResult is not null)
+        {
+            FirstName = findTeachersResult.FirstName;
+            MiddleName = findTeachersResult.MiddleName;
+            LastName = findTeachersResult.LastName;
+        }
     }
 
     public string Serialize() => JsonSerializer.Serialize(this, _jsonSerializerOptions);

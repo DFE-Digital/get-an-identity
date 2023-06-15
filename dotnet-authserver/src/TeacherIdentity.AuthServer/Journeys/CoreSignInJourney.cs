@@ -5,8 +5,8 @@ public class CoreSignInJourney : SignInJourney
     public CoreSignInJourney(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper)
-        : base(httpContext, linkGenerator, createUserHelper)
+        UserHelper userHelper)
+        : base(httpContext, linkGenerator, userHelper)
     {
     }
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Trn;
 
@@ -90,7 +91,7 @@ public class CheckAnswersTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
+        authState.OnTrnLookupCompleted(GetTeachersResponseResult(trn), TrnLookupStatus.Found);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
 
@@ -220,7 +221,7 @@ public class CheckAnswersTests : TestBase
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.DateOfBirthSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: TestData.GenerateTrn(), trnLookupStatus: TrnLookupStatus.Found);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: GetTeachersResponseResult(TestData.GenerateTrn()), trnLookupStatus: TrnLookupStatus.Found);
         Assert.Null(authStateHelper.AuthenticationState.HasNationalInsuranceNumber);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}");
@@ -360,7 +361,7 @@ public class CheckAnswersTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.AwardedQtsSet(awardedQts: false), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
@@ -390,7 +391,7 @@ public class CheckAnswersTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnTrnLookupCompleted(trn, TrnLookupStatus.Found);
+        authState.OnTrnLookupCompleted(GetTeachersResponseResult(trn), TrnLookupStatus.Found);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
@@ -420,7 +421,7 @@ public class CheckAnswersTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Trn.IttProviderSet(), CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnTrnLookupCompleted(existingUserWithTrn.Trn, TrnLookupStatus.Found);
+        authState.OnTrnLookupCompleted(GetTeachersResponseResult(existingUserWithTrn.Trn), TrnLookupStatus.Found);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/check-answers?{authStateHelper.ToQueryParam()}")
         {
@@ -481,5 +482,21 @@ public class CheckAnswersTests : TestBase
                 }
             };
         }
+    }
+
+    private FindTeachersResponseResult GetTeachersResponseResult(string? trn = null)
+    {
+        return new FindTeachersResponseResult()
+        {
+            Trn = trn ?? TestData.GenerateTrn(),
+            EmailAddresses = new[] { Faker.Internet.Email() },
+            FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.Middle(),
+            LastName = Faker.Name.Last(),
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+            Uid = "",
+            HasActiveSanctions = false,
+        };
     }
 }

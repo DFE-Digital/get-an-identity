@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
 
         services
             .AddTransient<TrnLookupHelper>()
-            .AddTransient<CreateUserHelper>()
+            .AddTransient<UserHelper>()
             .AddTransient<TrnTokenHelper>();
 
         services.AddTransient<LegacyTrnJourney>(

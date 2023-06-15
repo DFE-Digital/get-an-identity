@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using ZendeskApi.Client.Models;
 using ZendeskApi.Client.Requests;
 using ZendeskApi.Client.Responses;
@@ -58,7 +59,7 @@ public class CheckAnswersTests : TestBase
 
         if (requiresTrnLookup)
         {
-            authState.OnTrnLookupCompleted(TestData.GenerateTrn(), TrnLookupStatus.Found);
+            authState.OnTrnLookupCompleted(GetTeachersResponseResult(TestData.GenerateTrn()), TrnLookupStatus.Found);
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/register/check-answers?{authStateHelper.ToQueryParam()}");
@@ -129,7 +130,7 @@ public class CheckAnswersTests : TestBase
         if (requiresTrnLookup)
         {
             var trn = trnLookupStatus == TrnLookupStatus.Found ? TestData.GenerateTrn() : null;
-            authState.OnTrnLookupCompleted(trn, trnLookupStatus);
+            authState.OnTrnLookupCompleted(GetTeachersResponseResult(trn), trnLookupStatus);
         }
 
         TicketCreateRequest? ticketCreateRequestActual = null;
@@ -218,4 +219,20 @@ public class CheckAnswersTests : TestBase
     };
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.CheckAnswers);
+
+    private FindTeachersResponseResult GetTeachersResponseResult(string? trn = null)
+    {
+        return new FindTeachersResponseResult()
+        {
+            Trn = trn!,
+            EmailAddresses = new[] { Faker.Internet.Email() },
+            FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.Middle(),
+            LastName = Faker.Name.Last(),
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+            Uid = "",
+            HasActiveSanctions = false,
+        };
+    }
 }

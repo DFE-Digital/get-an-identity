@@ -9,17 +9,17 @@ public abstract class SignInJourney
     protected SignInJourney(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper)
+        UserHelper userHelper)
     {
         AuthenticationState = httpContext.GetAuthenticationState();
         HttpContext = httpContext;
         LinkGenerator = linkGenerator;
-        CreateUserHelper = createUserHelper;
+        UserHelper = userHelper;
     }
 
     public virtual async Task<IActionResult> CreateUser(string currentStep)
     {
-        var user = await CreateUserHelper.CreateUser(AuthenticationState);
+        var user = await UserHelper.CreateUser(AuthenticationState);
 
         AuthenticationState.OnUserRegistered(user);
         await AuthenticationState.SignIn(HttpContext);
@@ -38,7 +38,7 @@ public abstract class SignInJourney
 
     public IdentityLinkGenerator LinkGenerator { get; }
 
-    protected CreateUserHelper CreateUserHelper { get; }
+    protected UserHelper UserHelper { get; }
 
     protected abstract bool IsFinished();
 
@@ -106,7 +106,7 @@ public abstract class SignInJourney
 
         if (user is not null)
         {
-            await AuthenticationState.SignIn(HttpContext);
+            await SignInExistingUser(user);
         }
 
         return await Advance(currentStep);
@@ -127,10 +127,19 @@ public abstract class SignInJourney
 
         if (user is not null)
         {
-            await AuthenticationState.SignIn(HttpContext);
+            await SignInExistingUser(user);
         }
 
         return await Advance(currentStep);
+    }
+
+    private async Task SignInExistingUser(User user)
+    {
+        if (user.Trn is not null)
+        {
+            await UserHelper.EnsureDqtUserNameMatch(user, AuthenticationState);
+        }
+        await AuthenticationState.SignIn(HttpContext);
     }
 
     public virtual string GetNextStepUrl(string currentStep)

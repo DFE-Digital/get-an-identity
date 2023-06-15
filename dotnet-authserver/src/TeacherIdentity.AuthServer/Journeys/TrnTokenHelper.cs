@@ -90,13 +90,9 @@ public class TrnTokenHelper
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId && u.UserType != UserType.Staff);
         var trnToken = await _dbContext.TrnTokens.SingleAsync(t => t.TrnToken == trnTokenValue);
 
-        if (user.Trn is null)
+        if (user.Trn is null || user.Trn == trnToken.Trn)
         {
-            user = await UpdateUserTrn(user, trnToken.Trn);
-        }
-
-        if (user.Trn == trnToken.Trn)
-        {
+            user = await UpdateUserFromToken(user, trnToken.Trn);
             await InvalidateTrnToken(trnToken.TrnToken, user.UserId);
         }
     }
@@ -138,24 +134,47 @@ public class TrnTokenHelper
         };
     }
 
-    private async Task<User> UpdateUserTrn(User user, string trn)
+    private async Task<User> UpdateUserFromToken(User user, string trn)
     {
-        user.Trn = trn;
-        user.TrnLookupStatus = TrnLookupStatus.Found;
-        user.TrnAssociationSource = TrnAssociationSource.TrnToken;
-        user.Updated = _clock.UtcNow;
+        var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn);
+        var changes = UserUpdatedEventChanges.None;
 
-        _dbContext.AddEvent(new UserUpdatedEvent()
+        if (dqtUser is not null)
         {
-            Source = UserUpdatedEventSource.TrnToken,
-            CreatedUtc = _clock.UtcNow,
-            Changes = UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus,
-            User = user,
-            UpdatedByUserId = null,
-            UpdatedByClientId = null
-        });
+            changes |= (user.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : 0) |
+                       (user.MiddleName != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : 0) |
+                       (user.LastName != dqtUser.LastName ? UserUpdatedEventChanges.LastName : 0);
 
-        await _dbContext.SaveChangesAsync();
+            user.FirstName = dqtUser.FirstName;
+            user.MiddleName = dqtUser.MiddleName;
+            user.LastName = dqtUser.LastName;
+        }
+
+        if (user.Trn is null)
+        {
+            user.Trn = trn;
+            user.TrnLookupStatus = TrnLookupStatus.Found;
+            user.TrnAssociationSource = TrnAssociationSource.TrnToken;
+
+            changes |= UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus;
+        }
+
+        if (changes != UserUpdatedEventChanges.None)
+        {
+            user.Updated = _clock.UtcNow;
+
+            _dbContext.AddEvent(new UserUpdatedEvent()
+            {
+                Source = UserUpdatedEventSource.TrnToken,
+                CreatedUtc = _clock.UtcNow,
+                Changes = changes,
+                User = user,
+                UpdatedByUserId = null,
+                UpdatedByClientId = null
+            });
+
+            await _dbContext.SaveChangesAsync();
+        }
 
         return user;
     }

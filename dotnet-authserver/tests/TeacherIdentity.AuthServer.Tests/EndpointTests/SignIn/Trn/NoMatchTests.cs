@@ -68,7 +68,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -94,7 +94,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: previousFirstName, previousOfficialLastName: previousLastName),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -115,7 +115,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(previousOfficialFirstName: null, previousOfficialLastName: null),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -139,7 +139,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: preferredFirstName, preferredLastName: preferredLastName),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -160,7 +160,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(preferredFirstName: null, preferredLastName: null),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -184,7 +184,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(nationalInsuranceNumber: nino),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -207,7 +207,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => haveQts ? c.Trn.IttProviderSet() : c.Trn.AwardedQtsSet(awardedQts: false),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, trnLookupStatus: TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -230,7 +230,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: ittProviderName),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -251,7 +251,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.IttProviderSet(ittProviderName: null),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -272,7 +272,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.AwardedQtsSet(awardedQts: false),
             CustomScopes.Trn, TrnRequirementType.Legacy);
-        authStateHelper.AuthenticationState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authStateHelper.AuthenticationState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}");
 
@@ -342,7 +342,7 @@ public class NoMatchTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(ConfigureValidAuthenticationState, CustomScopes.Trn, TrnRequirementType.Legacy);
         var authState = authStateHelper.AuthenticationState;
 
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
@@ -364,7 +364,7 @@ public class NoMatchTests : TestBase
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
-        authState.OnTrnLookupCompleted(trn: null, TrnLookupStatus.Pending);
+        authState.OnTrnLookupCompleted(findTeachersResult: null, TrnLookupStatus.Pending);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
@@ -398,7 +398,7 @@ public class NoMatchTests : TestBase
         var authState = authStateHelper.AuthenticationState;
 
         authState.OnAwardedQtsSet(false);
-        authState.OnTrnLookupCompleted(trn: null, trnLookupStatus);
+        authState.OnTrnLookupCompleted(findTeachersResult: null, trnLookupStatus);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/no-match?{authStateHelper.ToQueryParam()}")
         {
@@ -426,7 +426,7 @@ public class NoMatchTests : TestBase
     private Func<AuthenticationState, Task> ConfigureValidAuthenticationState(Configure configure) => async s =>
     {
         await configure.Trn.IttProviderSet()(s);
-        s.OnTrnLookupCompleted(trn: null, trnLookupStatus: TrnLookupStatus.Pending);
+        s.OnTrnLookupCompleted(findTeachersResult: null, trnLookupStatus: TrnLookupStatus.Pending);
     };
 
     public static TheoryData<AuthenticationStateConfiguration, string> MissingAnswersData

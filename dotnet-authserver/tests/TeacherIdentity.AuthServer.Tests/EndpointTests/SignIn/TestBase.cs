@@ -64,6 +64,7 @@ public abstract partial class TestBase
                         DateOfBirth = authState.DateOfBirth,
                         EmailAddresses = new[] { authState.EmailAddress! },
                         FirstName = authState.FirstName!,
+                        MiddleName = authState.MiddleName!,
                         LastName = authState.LastName!,
                         HasActiveSanctions = false,
                         NationalInsuranceNumber = authState.NationalInsuranceNumber,

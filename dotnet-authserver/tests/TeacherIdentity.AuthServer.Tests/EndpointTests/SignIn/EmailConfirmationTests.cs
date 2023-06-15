@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -457,5 +458,69 @@ public class EmailConfirmationTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status403Forbidden, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForKnownUserWithTrnAndDifferentDqtName_UpdatesUserSignsInAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(user.EmailAddress);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtMiddleName = Faker.Name.Middle();
+        var dqtLastName = Faker.Name.Last();
+
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                FirstName = dqtFirstName,
+                MiddleName = dqtMiddleName,
+                LastName = dqtLastName,
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!,
+                PendingDateOfBirthChange = false,
+                PendingNameChange = false
+            });
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
+
+        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
+        Assert.NotNull(authStateHelper.AuthenticationState.UserId);
+        Assert.False(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
+        Assert.Equal(user.Trn, authStateHelper.AuthenticationState.Trn);
+        Assert.Equal(dqtFirstName, authStateHelper.AuthenticationState.FirstName);
+        Assert.Equal(dqtMiddleName, authStateHelper.AuthenticationState.MiddleName);
+        Assert.Equal(dqtLastName, authStateHelper.AuthenticationState.LastName);
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                Assert.Equal(UserUpdatedEventSource.TrnMatchedToExistingUser, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+                Assert.Equal(dqtFirstName, userUpdatedEvent.User.FirstName);
+                Assert.Equal(dqtMiddleName, userUpdatedEvent.User.MiddleName);
+                Assert.Equal(dqtLastName, userUpdatedEvent.User.LastName);
+            });
     }
 }
