@@ -1,4 +1,3 @@
-using Bogus;
 using Microsoft.Playwright;
 using Moq;
 using TeacherIdentity.AuthServer.Events;
