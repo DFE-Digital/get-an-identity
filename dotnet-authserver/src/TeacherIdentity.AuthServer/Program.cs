@@ -496,6 +496,13 @@ public class Program
 
         if (builder.Environment.IsProduction())
         {
+            builder.Services.AddHsts(options =>
+            {
+                options.Preload = true;
+                options.IncludeSubDomains = true;
+                options.MaxAge = TimeSpan.FromDays(365);
+            });
+
             builder.Services.AddRedis(builder.Environment, builder.Configuration, healthCheckBuilder);
             builder.Services.AddRateLimiting(builder.Environment, builder.Configuration);
         }
