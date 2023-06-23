@@ -1,0 +1,53 @@
+@page "/admin/users/{userId}/remove-trn"
+@model TeacherIdentity.AuthServer.Pages.Admin.AssignTrn.RemoveModel
+@{
+    ViewBag.Title = "Remove TRN";
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="/Admin/User" asp-route-userId="@Model.UserId" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <form asp-page="Remove" asp-route-userId="@Model.UserId">
+            <h1 class="govuk-heading-l">Remove TRN</h1>
+
+            <govuk-warning-text icon-fallback-text="Warning">
+                Some services may not automatically handle a user’s accounts having its TRN removed.
+                Be sure to communicate this change to relevant parties.
+            </govuk-warning-text>
+
+            <section class="x-govuk-summary-card govuk-!-margin-bottom-6">
+                <header class="x-govuk-summary-card__header">
+                    <h2 class="x-govuk-summary-card__title">
+                        Account details
+                    </h2>
+                </header>
+
+                <div class="x-govuk-summary-card__body">
+                    <govuk-summary-list>
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.Email!)</govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                    </govuk-summary-list>
+                </div>
+            </section>
+
+            <govuk-checkboxes asp-for="ConfirmRemoveTrn">
+                <govuk-checkboxes-item value="@true">Remove TRN from this account</govuk-checkboxes-item>
+            </govuk-checkboxes>
+
+            <govuk-button type="submit" class="govuk-button--warning">Confirm</govuk-button>
+        </form>
+    </div>
+</div>
