@@ -59,7 +59,7 @@ public class PublishNotificationsEventObserver : IEventObserver
                         LastName = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.LastName) ? Option.Some(userUpdated.User.LastName) : default,
                         Trn = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.Trn) ? Option.Some(userUpdated.User.Trn) : default,
                         MobileNumber = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.MobileNumber) ? Option.Some(userUpdated.User.MobileNumber) : default,
-                        TrnLookupStatus = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.TrnLookupStatus) ? Option.Some(userUpdated.User.TrnLookupStatus!.Value) : default
+                        TrnLookupStatus = userUpdated.Changes.HasFlag(UserUpdatedEventChanges.TrnLookupStatus) ? Option.Some(userUpdated.User.TrnLookupStatus) : default
                     }
                 },
                 MessageType = UserUpdatedMessage.MessageTypeName,
