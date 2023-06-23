@@ -19,5 +19,5 @@ public record UserUpdatedMessageChanges
     public required Option<DateOnly?> DateOfBirth { get; init; }
     public required Option<string?> Trn { get; init; }
     public required Option<string?> MobileNumber { get; init; }
-    public required Option<TrnLookupStatus> TrnLookupStatus { get; init; }
+    public required Option<TrnLookupStatus?> TrnLookupStatus { get; init; }
 }
