@@ -59,7 +59,8 @@ public class WebHookNotificationPublisher : INotificationPublisher
             });
 
         return webhooks!
-            .Where(wh => wh.WebHookMessageTypes.HasFlag(MapNotificationMessageTypeToWebHookMessageType(notification.MessageType)))
+            .Where(wh => wh.WebHookMessageTypes.HasFlag(MapNotificationMessageTypeToWebHookMessageType(notification.MessageType))
+                || (notification.MessageType == PingMessage.MessageTypeName && wh.WebHookId == (notification.Message as PingMessage)?.WebHookId))
             .ToArray();
     }
 

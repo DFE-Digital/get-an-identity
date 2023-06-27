@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Notifications.Messages;
 using TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
@@ -108,7 +109,7 @@ public class EditWebHookTests : TestBase
     {
         var webHookId = await CreateWebHook();
 
-        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Post, $"/admin/webhooks/{webHookId}");
+        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save");
     }
 
     [Fact]
@@ -116,7 +117,7 @@ public class EditWebHookTests : TestBase
     {
         var webHookId = await CreateWebHook();
 
-        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post, $"/admin/webhooks/{webHookId}");
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save");
     }
 
     [Fact]
@@ -128,7 +129,7 @@ public class EditWebHookTests : TestBase
         var enabled = true;
         var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -154,7 +155,7 @@ public class EditWebHookTests : TestBase
         var enabled = true;
         var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -205,7 +206,7 @@ public class EditWebHookTests : TestBase
 
         var originalSecret = (await TestData.WithDbContext(dbContext => dbContext.WebHooks.SingleAsync(u => u.WebHookId == webHookId))).Secret;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -249,7 +250,7 @@ public class EditWebHookTests : TestBase
 
         var originalSecret = (await TestData.WithDbContext(dbContext => dbContext.WebHooks.SingleAsync(u => u.WebHookId == webHookId))).Secret;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -280,6 +281,67 @@ public class EditWebHookTests : TestBase
                 var webHookUpdated = Assert.IsType<WebHookUpdatedEvent>(e);
                 Assert.True(webHookUpdated.Changes.HasFlag(WebHookUpdatedEventChanges.Secret));
             });
+    }
+
+    [Fact]
+    public async Task PostPing_ValidRequest_PublishesNotificationAndRedirects()
+    {
+        // Arrange
+        var webHookId = await CreateWebHook(enabled: false);
+        var endpoint = Faker.Internet.Url();
+        var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Ping")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal($"/admin/webhooks/{webHookId}", response.Headers.Location?.OriginalString);
+
+        HostFixture.NotificationPublisher.Verify(p => p.PublishNotification(It.IsAny<NotificationEnvelope>()));
+    }
+
+    [Fact]
+    public async Task PostPing_WhenPublishingNotificationThrowsException_ShowsErrorMessage()
+    {
+        // Arrange
+        var webHookId = await CreateWebHook(enabled: false);
+        var endpoint = Faker.Internet.Url();
+        var enabled = true;
+        var webHookMessageTypes = WebHookMessageTypes.UserMerged;
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Ping")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Endpoint", endpoint },
+                { "Enabled", enabled },
+                { "WebHookMessageTypes", webHookMessageTypes }
+            }
+        };
+
+        HostFixture.NotificationPublisher
+            .Setup(p => p.PublishNotification(It.IsAny<NotificationEnvelope>()))
+            .Throws(new Exception("Something bad happened"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.NotNull(doc.GetElementById("Endpoint-error"));
     }
 
     private Task<Guid> CreateWebHook(string? endpoint = null, bool enabled = true, DateTime? created = null, DateTime? updated = null) =>
