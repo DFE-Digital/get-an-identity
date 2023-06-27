@@ -56,7 +56,7 @@ public class Confirm : PageModel
             FirstName = FirstName!,
             MiddleName = MiddleName,
             LastName = LastName!,
-            EvidenceFileName = FileId!,
+            EvidenceFileName = FileName!,
             EvidenceFileUrl = sasUri,
             Trn = User.GetTrn()!
         };
