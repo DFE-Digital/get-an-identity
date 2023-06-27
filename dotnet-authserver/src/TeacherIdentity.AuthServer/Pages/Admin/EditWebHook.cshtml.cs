@@ -157,7 +157,7 @@ public class EditWebHookModel : PageModel
         catch (Exception exception)
         {
             ModelState.AddModelError(nameof(Endpoint), $"Failed sending message: {exception.Message}");
-            var webHook = await _dbContext.WebHooks.SingleOrDefaultAsync(wh => wh.WebHookId == WebHookId);
+            var webHook = await _dbContext.WebHooks.SingleAsync(wh => wh.WebHookId == WebHookId);
             Secret = webHook?.Secret;
             return this.PageWithErrors();
         }
