@@ -109,7 +109,7 @@ public class EditWebHookTests : TestBase
     {
         var webHookId = await CreateWebHook();
 
-        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save");
+        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Post, $"/admin/webhooks/{webHookId}");
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class EditWebHookTests : TestBase
     {
         var webHookId = await CreateWebHook();
 
-        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save");
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post, $"/admin/webhooks/{webHookId}");
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class EditWebHookTests : TestBase
         var enabled = true;
         var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -155,7 +155,7 @@ public class EditWebHookTests : TestBase
         var enabled = true;
         var webHookMessageTypes = WebHookMessageTypes.UserMerged;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -206,7 +206,7 @@ public class EditWebHookTests : TestBase
 
         var originalSecret = (await TestData.WithDbContext(dbContext => dbContext.WebHooks.SingleAsync(u => u.WebHookId == webHookId))).Secret;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -250,7 +250,7 @@ public class EditWebHookTests : TestBase
 
         var originalSecret = (await TestData.WithDbContext(dbContext => dbContext.WebHooks.SingleAsync(u => u.WebHookId == webHookId))).Secret;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}?handler=Save")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/webhooks/{webHookId}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {

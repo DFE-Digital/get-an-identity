@@ -77,7 +77,7 @@ public class EditWebHookModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostSave()
+    public async Task<IActionResult> OnPost()
     {
         if (!string.IsNullOrEmpty(Endpoint) &&
             (!Uri.TryCreate(Endpoint!, UriKind.Absolute, out var uri) || (uri.Scheme != "http" && uri.Scheme != "https")))
