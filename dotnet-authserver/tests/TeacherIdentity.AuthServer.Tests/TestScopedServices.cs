@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Notification;
@@ -16,6 +17,7 @@ public class TestScopedServices
         Clock = new();
         DqtApiClient = new();
         NotificationSender = new();
+        NotificationPublisher = new();
         RateLimitStore = new();
         SpyRegistry = new();
         UserImportCsvStorageService = new();
@@ -33,6 +35,8 @@ public class TestScopedServices
     public Mock<IDqtApiClient> DqtApiClient { get; }
 
     public Mock<INotificationSender> NotificationSender { get; }
+
+    public Mock<INotificationPublisher> NotificationPublisher { get; }
 
     public Mock<IRateLimitStore> RateLimitStore { get; }
 

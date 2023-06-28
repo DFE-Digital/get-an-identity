@@ -8,6 +8,8 @@ using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Notifications;
+using TeacherIdentity.AuthServer.Notifications.Messages;
 using TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
@@ -17,12 +19,18 @@ public class EditWebHookModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
+    private readonly INotificationPublisher _notificationPublisher;
     private readonly int _webHooksCacheDuration;
 
-    public EditWebHookModel(TeacherIdentityServerDbContext dbContext, IClock clock, IOptions<WebHookOptions> webHookOptions)
+    public EditWebHookModel(
+        TeacherIdentityServerDbContext dbContext,
+        IClock clock,
+        IOptions<WebHookOptions> webHookOptions,
+        INotificationPublisher notificationPublisher)
     {
         _dbContext = dbContext;
         _clock = clock;
+        _notificationPublisher = notificationPublisher;
         _webHooksCacheDuration = webHookOptions.Value.WebHooksCacheDurationSeconds;
     }
 
@@ -82,15 +90,16 @@ public class EditWebHookModel : PageModel
             ModelState.AddModelError(nameof(WebHookMessageTypes), "Select at least one event which will trigger the webhook");
         }
 
-        if (!ModelState.IsValid)
-        {
-            return this.PageWithErrors();
-        }
-
         var webHook = await _dbContext.WebHooks.SingleOrDefaultAsync(wh => wh.WebHookId == WebHookId);
         if (webHook is null)
         {
             return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            Secret = webHook.Secret;
+            return this.PageWithErrors();
         }
 
         var changes = WebHookUpdatedEventChanges.None |
@@ -123,7 +132,34 @@ public class EditWebHookModel : PageModel
             });
 
             await _dbContext.SaveChangesAsync();
+        }
 
+        return RedirectToPage("EditWebHook", new { webHookId = WebHookId });
+    }
+
+    public async Task<IActionResult> OnPostPing()
+    {
+        var pingNotification = new NotificationEnvelope()
+        {
+            NotificationId = Guid.NewGuid(),
+            Message = new PingMessage()
+            {
+                WebHookId = WebHookId
+            },
+            MessageType = PingMessage.MessageTypeName,
+            TimeUtc = _clock.UtcNow
+        };
+
+        try
+        {
+            await _notificationPublisher.PublishNotification(pingNotification);
+        }
+        catch (Exception exception)
+        {
+            ModelState.AddModelError(nameof(Endpoint), $"Failed sending message: {exception.Message}");
+            var webHook = await _dbContext.WebHooks.SingleAsync(wh => wh.WebHookId == WebHookId);
+            Secret = webHook?.Secret;
+            return this.PageWithErrors();
         }
 
         return RedirectToPage("EditWebHook", new { webHookId = WebHookId });

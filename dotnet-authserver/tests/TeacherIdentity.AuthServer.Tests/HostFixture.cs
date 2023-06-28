@@ -12,6 +12,7 @@ using OpenIddict.Server.AspNetCore;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Notification;
@@ -44,6 +45,8 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
     public CaptureEventObserver EventObserver => (CaptureEventObserver)Services.GetRequiredService<IEventObserver>();
 
     public Mock<INotificationSender> NotificationSender => TestScopedServices.Current.NotificationSender;
+
+    public Mock<INotificationPublisher> NotificationPublisher => TestScopedServices.Current.NotificationPublisher;
 
     public Mock<IRateLimitStore> RateLimitStore => TestScopedServices.Current.RateLimitStore;
 
@@ -151,6 +154,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IEventObserver, CaptureEventObserver>();
             services.AddTransient(_ => DqtApiClient.Object);
             services.AddTransient(_ => NotificationSender.Object);
+            services.AddTransient(_ => NotificationPublisher.Object);
             services.AddTransient(_ => RateLimitStore.Object);
             services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
             services.Decorate<IUserVerificationService>(inner => SpyRegistry.Get<IUserVerificationService>().Wrap(inner));
