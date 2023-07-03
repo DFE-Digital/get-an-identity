@@ -9,7 +9,6 @@ public class TestBase : IAsyncLifetime
     protected TestBase(WebHooksHostFixture hostFixture)
     {
         HostFixture = hostFixture;
-        HostFixture.ResetMocks();
         HostFixture.InitializeWebHookRequestObserver();
     }
 

@@ -6,7 +6,7 @@ public class WebHookRequestObserver : IWebHookRequestObserver
 
     public void Initialize() => _requests.Value ??= new List<WebHookRequest>();
 
-    public Task OnWebHookRequestReceived(WebHookRequest webHookRequest)
+    public void OnWebHookRequestReceived(WebHookRequest webHookRequest)
     {
         if (_requests.Value is null)
         {
@@ -14,8 +14,6 @@ public class WebHookRequestObserver : IWebHookRequestObserver
         }
 
         _requests.Value.Add(webHookRequest);
-
-        return Task.CompletedTask;
     }
 
     public void AssertWebHookRequestsReceived(params Action<WebHookRequest>[] requestInspectors)

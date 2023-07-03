@@ -14,6 +14,13 @@ public class WebHookNotificationSender : IWebHookNotificationSender
         _httpClient = httpClient;
     }
 
+    public static string CalculateSignature(string secret, string payload)
+    {
+        var secretBytes = Encoding.UTF8.GetBytes(secret);
+        var payloadBytes = Encoding.UTF8.GetBytes(payload);
+        return Convert.ToHexString(HMACSHA256.HashData(secretBytes, payloadBytes));
+    }
+
     public async Task SendNotification(Guid notificationId, string endpoint, string payload, string secret)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
@@ -25,7 +32,7 @@ public class WebHookNotificationSender : IWebHookNotificationSender
 
         if (secret != string.Empty)
         {
-            request.Headers.Add("X-Hub-Signature-256", CalculateSignature());
+            request.Headers.Add("X-Hub-Signature-256", CalculateSignature(secret, payload));
         }
 
         var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -34,13 +41,6 @@ public class WebHookNotificationSender : IWebHookNotificationSender
         {
             var body = await response.Content.ReadAsStringAsync();
             throw new Exception($"Failed to deliver web hook; received status code: {response.StatusCode}.\nBody:\n{body}");
-        }
-
-        string CalculateSignature()
-        {
-            var secretBytes = Encoding.UTF8.GetBytes(secret);
-            var payloadBytes = Encoding.UTF8.GetBytes(payload);
-            return Convert.ToHexString(HMACSHA256.HashData(secretBytes, payloadBytes));
         }
     }
 }

@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Optional;
@@ -7,6 +5,7 @@ using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Notifications.Messages;
+using TeacherIdentity.AuthServer.Notifications.WebHooks;
 using User = TeacherIdentity.AuthServer.Notifications.Messages.User;
 
 namespace TeacherIdentity.AuthServer.Tests.WebHooks;
@@ -56,7 +55,7 @@ public class WebHooksEndToEndTests : TestBase
                 Assert.NotNull(r.Signature);
                 Assert.NotNull(r.Body);
                 Assert.Equal("application/json", r.ContentType);
-                var expectedSignature = GenerateExpectedSignature(secret, r.Body);
+                var expectedSignature = WebHookNotificationSender.CalculateSignature(secret, r.Body);
                 Assert.Equal(expectedSignature, r.Signature);
 
                 var expectedJson = JsonSerializer.SerializeToNode(new
@@ -153,7 +152,7 @@ public class WebHooksEndToEndTests : TestBase
                 Assert.NotNull(r.Signature);
                 Assert.NotNull(r.Body);
                 Assert.Equal("application/json", r.ContentType);
-                var expectedSignature = GenerateExpectedSignature(secret, r.Body);
+                var expectedSignature = WebHookNotificationSender.CalculateSignature(secret, r.Body);
                 Assert.Equal(expectedSignature, r.Signature);
 
                 var expectedJson = JsonSerializer.SerializeToNode(new
@@ -298,7 +297,7 @@ public class WebHooksEndToEndTests : TestBase
                 Assert.NotNull(r.Signature);
                 Assert.NotNull(r.Body);
                 Assert.Equal("application/json", r.ContentType);
-                var expectedSignature = GenerateExpectedSignature(secret, r.Body);
+                var expectedSignature = WebHookNotificationSender.CalculateSignature(secret, r.Body);
                 Assert.Equal(expectedSignature, r.Signature);
 
                 var expectedJson = JsonSerializer.SerializeToNode(new
@@ -393,7 +392,7 @@ public class WebHooksEndToEndTests : TestBase
                 Assert.NotNull(r.Signature);
                 Assert.NotNull(r.Body);
                 Assert.Equal("application/json", r.ContentType);
-                var expectedSignature = GenerateExpectedSignature(secret, r.Body);
+                var expectedSignature = WebHookNotificationSender.CalculateSignature(secret, r.Body);
                 Assert.Equal(expectedSignature, r.Signature);
 
                 var expectedJson = JsonSerializer.SerializeToNode(new
@@ -429,12 +428,5 @@ public class WebHooksEndToEndTests : TestBase
         {
             WebHookRequestObserver.AssertWebHookRequestsReceived(Array.Empty<Action<WebHookRequest>>());
         }
-    }
-
-    private static string GenerateExpectedSignature(string secret, string content)
-    {
-        var key = Encoding.UTF8.GetBytes(secret);
-        var source = Encoding.UTF8.GetBytes(content);
-        return Convert.ToHexString(HMACSHA256.HashData(key, source));
     }
 }

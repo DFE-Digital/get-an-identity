@@ -4,7 +4,7 @@ public interface IWebHookRequestObserver
 {
     void Initialize();
 
-    Task OnWebHookRequestReceived(WebHookRequest webHookRequest);
+    void OnWebHookRequestReceived(WebHookRequest webHookRequest);
 
     void AssertWebHookRequestsReceived(params Action<WebHookRequest>[] requestInspectors);
 }

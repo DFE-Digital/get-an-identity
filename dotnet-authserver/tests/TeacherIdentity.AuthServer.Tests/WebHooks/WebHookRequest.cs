@@ -1,8 +1,8 @@
 namespace TeacherIdentity.AuthServer.Tests.WebHooks;
 
-public class WebHookRequest
+public record WebHookRequest
 {
-    public string? ContentType { get; set; }
-    public string? Signature { get; set; }
-    public string? Body { get; set; }
+    public required string ContentType { get; init; }
+    public required string Signature { get; init; }
+    public required string Body { get; init; }
 }

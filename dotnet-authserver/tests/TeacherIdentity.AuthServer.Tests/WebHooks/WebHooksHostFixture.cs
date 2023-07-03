@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Notifications.WebHooks;
@@ -5,20 +7,30 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.WebHooks;
 
-public class WebHooksHostFixture : HostFixture
+public class WebHooksHostFixture : WebApplicationFactory<Program>
 {
     private const string TestWebHookEndpointUri = "/test-webhooks";
 
     public readonly Guid TestWebHookId = Guid.NewGuid();
+    private readonly TestConfiguration _testConfiguration;
 
-    public WebHooksHostFixture(TestConfiguration testConfiguration, DbHelper dbHelper)
-        : base(testConfiguration, dbHelper)
+    public WebHooksHostFixture(
+        TestConfiguration testConfiguration,
+        DbHelper dbHelper)
     {
+        _testConfiguration = testConfiguration;
+        DbHelper = dbHelper;
     }
+
+    public TestClock Clock => TestScopedServices.Current.Clock;
+
+    public IConfiguration Configuration => Services.GetRequiredService<IConfiguration>();
 
     public IWebHookRequestObserver WebHookRequestObserver => Services.GetRequiredService<IWebHookRequestObserver>();
 
-    public override async Task Initialize()
+    public DbHelper DbHelper { get; }
+
+    public async Task Initialize()
     {
         await DbHelper.EnsureSchema();
     }
@@ -43,9 +55,14 @@ public class WebHooksHostFixture : HostFixture
         await dbContext.SaveChangesAsync();
     }
 
-    protected override void ConfigureWebHooks(IServiceCollection services)
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        services
+        builder.UseEnvironment("UnitTests");
+        builder.UseConfiguration(_testConfiguration.Configuration);
+
+        builder.ConfigureServices(services =>
+        {
+            services
             .AddSingleton<INotificationPublisher, WebHookNotificationPublisher>()
             .AddSingleton<IWebHookNotificationSender>((sp) =>
             {
@@ -53,11 +70,8 @@ public class WebHooksHostFixture : HostFixture
                 return new WebHookNotificationSender(httpClient);
             })
             .AddSingleton<IWebHookRequestObserver, WebHookRequestObserver>();
-    }
+        });
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        base.ConfigureWebHost(builder);
         builder.Configure(app =>
         {
             app.UseRouting();
@@ -77,14 +91,21 @@ public class WebHooksHostFixture : HostFixture
 
                     var webHookRequest = new WebHookRequest()
                     {
-                        ContentType = contentType,
-                        Signature = signature,
+                        ContentType = contentType!,
+                        Signature = signature!,
                         Body = body
                     };
 
-                    await webHookRequestObserver.OnWebHookRequestReceived(webHookRequest);
+                    webHookRequestObserver.OnWebHookRequestReceived(webHookRequest);
                 });
             });
         });
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Ensure we can flow AsyncLocals from tests to the server
+        builder.ConfigureServices(services => services.Configure<TestServerOptions>(o => o.PreserveExecutionContext = true));
+        return base.CreateHost(builder);
     }
 }
