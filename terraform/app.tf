@@ -54,7 +54,8 @@ locals {
       Zendesk__UseFakeClient                       = lookup(local.infrastructure_secrets, "ZENDESK_TOKEN", "") == "" ? "true" : "false",
       QueryStringSignatureKey                      = local.infrastructure_secrets.QUERYSTRING_SIGNATURE_KEY,
       UserVerification__UseFixedPin                = lookup(local.infrastructure_secrets, "USER_VERIFICATION_USE_FIXED_PIN", "false"),
-      UserVerification__Pin                        = lookup(local.infrastructure_secrets, "USER_VERIFICATION_PIN", "")
+      UserVerification__Pin                        = lookup(local.infrastructure_secrets, "USER_VERIFICATION_PIN", ""),
+      RegisterWithTrnTokenEnabled                  = lookup(local.infrastructure_secrets, "TRN_TOKEN_JOURNEY_ENABLED", "false")
     }
   )
 
