@@ -25,7 +25,7 @@ public class CreateTrnTokenHandler : IRequestHandler<CreateTrnTokenRequest, Crea
         string trnToken;
         do
         {
-            var buffer = new byte[64];
+            var buffer = new byte[8];
             RandomNumberGenerator.Fill(buffer);
             trnToken = Convert.ToHexString(buffer).ToLower();
         } while (await _dbContext.TrnTokens.AnyAsync(t => t.TrnToken == trnToken, cancellationToken));

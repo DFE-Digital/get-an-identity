@@ -8,7 +8,7 @@ public class TrnTokenMapping : IEntityTypeConfiguration<TrnTokenModel>
     public void Configure(EntityTypeBuilder<TrnTokenModel> builder)
     {
         builder.ToTable("trn_tokens");
-        builder.Property(t => t.TrnToken).HasMaxLength(128).IsFixedLength();
+        builder.Property(t => t.TrnToken).HasMaxLength(128);
         builder.HasKey(t => t.TrnToken);
         builder.Property(t => t.Email).HasMaxLength(TrnTokenModel.EmailAddressMaxLength).IsRequired().UseCollation("case_insensitive");
         builder.HasIndex(u => u.Email).HasDatabaseName(TrnTokenModel.EmailAddressUniqueIndexName);
