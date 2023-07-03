@@ -128,7 +128,7 @@ public class FileExtensionsAttribute : ValidationAttribute
         {
             var fileName = file.FileName;
 
-            return AllowedExtensions.Any(extension => fileName.EndsWith(extension));
+            return AllowedExtensions.Any(extension => fileName.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
         }
 
         return true;
