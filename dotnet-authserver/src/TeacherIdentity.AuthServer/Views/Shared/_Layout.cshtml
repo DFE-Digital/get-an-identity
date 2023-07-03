@@ -2,6 +2,7 @@
 @inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @inject ClientScopedViewHelper ClientScopedViewHelper
 @inject SignInJourneyProvider SignInJourneyProvider
+@inject IConfiguration Configuration
 @{
     if (string.IsNullOrEmpty(ViewBag.Title))
     {
@@ -91,12 +92,10 @@
                     <h2 class="govuk-heading-m">Get help</h2>
 
                     <p class="govuk-!-font-size-16">
-                    Email: <a class="govuk-link govuk-footer__link" href="mailto:teachingstatus@education.gov.uk">teachingstatus@education.gov.uk</a>
-                    <br>
-                    You’ll get a response within 5 working days.
+                        Email: <a class="govuk-link govuk-footer__link" href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a>
+                        <br>
+                        You’ll get a response within 5 working days.
                     </p>
-
-                    <p class="govuk-!-font-size-16">Phone: 020 7593 5393<br>Monday to Friday, 9am to 5pm (except public holidays)</p>
 
                     <hr class="govuk-section-break govuk-section-break--l">
 

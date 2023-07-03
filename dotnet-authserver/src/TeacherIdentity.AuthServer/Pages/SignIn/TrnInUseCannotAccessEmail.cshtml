@@ -1,4 +1,5 @@
 @page "/sign-in/trn/different-email-cannot-access"
+@inject IConfiguration Configuration
 @{
     ViewBag.Title = "You need to prove your identity to change your email address";
 }
@@ -10,13 +11,6 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <h1 class="govuk-heading-l">You need to prove your identity to change your email address</h1>
-
-        <p>Call the Teaching Regulation Agency (TRA) for support.</p>
-
-        <p>
-            Telephone: 020 7593 5394<br>
-            Lines are open Monday to Thursday, 9am to 5pm, and on Friday from 9am to 4:30pm (except public holidays)
-        </p>
 
         <h2 class="govuk-heading-m">Send a secure email using Galaxkey</h2>
 
@@ -34,7 +28,7 @@
 
         <ul class="govuk-list govuk-list--bullet">
             <li>select ‘Compose’ to create a new secure email</li>
-            <li>enter ‘teachingstatus@education.gov.uk’ as the recipient</li>
+            <li>enter ‘@(Configuration["SupportEmail"])’ as the recipient</li>
             <li>enter ‘Change of details’ as the subject line</li>
             <li>
                 in your email include:

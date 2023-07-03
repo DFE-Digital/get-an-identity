@@ -1,3 +1,4 @@
+@inject IConfiguration Configuration
 @{
     ViewBag.Title = "You’ve made too many requests";
 }
@@ -9,7 +10,7 @@
             You’re seeing this message as you’ve tried to enter an incorrect code too many times. Please wait a few moments before trying again.
         </p>
         <p>
-            If you have any questions, please email us at teachingstatus@education.gov.uk
+            If you have any questions, please email us at @(Configuration["SupportEmail"])
         </p>
     </div>
 </div>
