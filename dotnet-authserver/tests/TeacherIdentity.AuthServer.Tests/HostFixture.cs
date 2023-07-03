@@ -62,7 +62,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
 
     public Mock<IZendeskApiWrapper> ZendeskApiWrapper => TestScopedServices.Current.ZendeskApiWrapper;
 
-    public async Task Initialize()
+    public virtual async Task Initialize()
     {
         await DbHelper.EnsureSchema();
 
@@ -154,13 +154,13 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddSingleton<IEventObserver, CaptureEventObserver>();
             services.AddTransient(_ => DqtApiClient.Object);
             services.AddTransient(_ => NotificationSender.Object);
-            services.AddTransient(_ => NotificationPublisher.Object);
             services.AddTransient(_ => RateLimitStore.Object);
             services.AddTransient<IRequestClientIpProvider, TestRequestClientIpProvider>();
             services.Decorate<IUserVerificationService>(inner => SpyRegistry.Get<IUserVerificationService>().Wrap(inner));
             services.AddTransient(_ => ZendeskApiWrapper.Object);
             services.AddTransient(_ => UserImportCsvStorageService.Object);
             services.AddTransient(_ => DqtEvidenceStorageService.Object);
+            ConfigureWebHooks(services);
         });
     }
 
@@ -170,6 +170,11 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
         builder.ConfigureServices(services => services.Configure<TestServerOptions>(o => o.PreserveExecutionContext = true));
 
         return base.CreateHost(builder);
+    }
+
+    protected virtual void ConfigureWebHooks(IServiceCollection services)
+    {
+        services.AddTransient(_ => NotificationPublisher.Object);
     }
 
     private class RemoveAutoValidateAntiforgeryPageApplicationModelProvider : IPageApplicationModelProvider
