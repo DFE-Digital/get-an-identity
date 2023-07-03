@@ -1,3 +1,4 @@
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "You cannot access this service yet";
 }
@@ -7,6 +8,6 @@
 
     <govuk-panel-body>
         <p>We need to find your details in our records so you can use this service.</p>
-        <p>To fix this problem, please email our support team teachingstatus@education.gov.uk</p>
+        <p>To fix this problem, please email our support team @(Configuration["SupportEmail"])</p>
     </govuk-panel-body>
 </govuk-panel>
