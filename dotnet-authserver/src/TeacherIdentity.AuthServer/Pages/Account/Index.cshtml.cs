@@ -28,6 +28,7 @@ public class IndexModel : PageModel
 
     public string? Name { get; set; }
     public string? OfficialName { get; set; }
+    public string? PreferredName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? Email { get; set; }
     public string? MobileNumber { get; set; }
@@ -48,6 +49,7 @@ public class IndexModel : PageModel
                 u.FirstName,
                 u.MiddleName,
                 u.LastName,
+                u.PreferredName,
                 u.DateOfBirth,
                 u.EmailAddress,
                 u.MobileNumber,
@@ -56,6 +58,7 @@ public class IndexModel : PageModel
             .SingleAsync();
 
         Name = string.IsNullOrEmpty(user.MiddleName) ? $"{user.FirstName} {user.LastName}" : $"{user.FirstName} {user.MiddleName} {user.LastName}";
+        PreferredName = user.PreferredName;
         DateOfBirth = user.DateOfBirth;
         Email = user.EmailAddress;
         MobileNumber = user.MobileNumber;

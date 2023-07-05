@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
+using TeacherIdentity.AuthServer.Pages.Common;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -81,12 +82,5 @@ public class PreferredNamePage : PageModel
             PreferredNameChoice = PreferredNameOption.PreferredName;
             PreferredName = authState.PreferredName;
         }
-    }
-
-    public enum PreferredNameOption
-    {
-        ExistingFullName,
-        ExistingName,
-        PreferredName
     }
 }

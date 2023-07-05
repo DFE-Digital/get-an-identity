@@ -187,6 +187,18 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
+    public string AccountPreferredName(string? preferredName, ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/PreferredName/Index", authenticationJourneyRequired: false)
+            .SetQueryParam("preferredName", preferredName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountPreferredNameConfirm(string preferredName, ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/PreferredName/Confirm", authenticationJourneyRequired: false)
+            .SetQueryParam("preferredName", preferredName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
+
     public string AccountDateOfBirth(ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);

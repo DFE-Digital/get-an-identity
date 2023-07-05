@@ -75,12 +75,13 @@ public class WebHooksEndToEndTests : TestBase
     }
 
     [Theory]
-    [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.DateOfBirth | UserUpdatedEventChanges.EmailAddress | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName | UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.MobileNumber | UserUpdatedEventChanges.TrnLookupStatus, true)]
+    [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.DateOfBirth | UserUpdatedEventChanges.EmailAddress | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName | UserUpdatedEventChanges.PreferredName | UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.MobileNumber | UserUpdatedEventChanges.TrnLookupStatus, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.DateOfBirth, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.EmailAddress, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.FirstName, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.MiddleName, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.LastName, true)]
+    [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.PreferredName, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.Trn, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.MobileNumber, true)]
     [InlineData(WebHookMessageTypes.UserUpdated, UserUpdatedEventChanges.TrnLookupStatus, true)]
@@ -121,6 +122,7 @@ public class WebHooksEndToEndTests : TestBase
             FirstName = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.FirstName) ? Option.Some(user.FirstName) : default,
             MiddleName = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.MiddleName) ? Option.Some<string?>(user.MiddleName) : default,
             LastName = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.LastName) ? Option.Some(user.LastName) : default,
+            PreferredName = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.PreferredName) ? Option.Some<string?>(user.PreferredName) : default,
             Trn = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.Trn) ? Option.Some<string?>(user.Trn) : default,
             MobileNumber = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.MobileNumber) ? Option.Some<string?>(user.MobileNumber) : default,
             TrnLookupStatus = userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.TrnLookupStatus) ? Option.Some(user.TrnLookupStatus) : default
@@ -180,6 +182,7 @@ public class WebHooksEndToEndTests : TestBase
                             firstName = user.FirstName,
                             middleName = user.MiddleName,
                             lastName = user.LastName,
+                            preferredName = user.PreferredName,
                             mobileNumber = user.MobileNumber,
                             trn = user.Trn,
                             trnLookupStatus = user.TrnLookupStatus.ToString()
@@ -213,6 +216,11 @@ public class WebHooksEndToEndTests : TestBase
                 if (!userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.LastName))
                 {
                     changes.Remove("lastName");
+                }
+
+                if (!userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.PreferredName))
+                {
+                    changes.Remove("preferredName");
                 }
 
                 if (!userUpdatedEventChanges.HasFlag(UserUpdatedEventChanges.MobileNumber))

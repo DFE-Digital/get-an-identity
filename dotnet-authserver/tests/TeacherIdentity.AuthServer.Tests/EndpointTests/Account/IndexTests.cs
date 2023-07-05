@@ -78,7 +78,7 @@ public class IndexTests : TestBase
     public async Task Get_ValidRequest_ReturnsUserDetails()
     {
         // Arrange
-        var user = await TestData.CreateUser();
+        var user = await TestData.CreateUser(hasPreferredName: true);
         HostFixture.SetUserId(user.UserId);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -90,6 +90,29 @@ public class IndexTests : TestBase
         var doc = await response.GetDocument();
 
         Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
+        Assert.Equal(user.PreferredName, doc.GetSummaryListValueForKey("Preferred name"));
+        Assert.Equal($"{user.DateOfBirth?.ToString(Constants.DateFormat)}", doc.GetSummaryListValueForKey("Date of birth"));
+        Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email"));
+        Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile number"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithoutPreferredName_ReturnsUserDetailsWithPlaceholderForPreferredName()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasPreferredName: false);
+        HostFixture.SetUserId(user.UserId);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
+        Assert.Equal("Not provided", doc.GetSummaryListValueForKey("Preferred name"));
         Assert.Equal($"{user.DateOfBirth?.ToString(Constants.DateFormat)}", doc.GetSummaryListValueForKey("Date of birth"));
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email"));
         Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile number"));
