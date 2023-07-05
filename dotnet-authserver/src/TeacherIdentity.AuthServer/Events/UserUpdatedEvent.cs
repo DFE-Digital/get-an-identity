@@ -21,6 +21,7 @@ public enum UserUpdatedEventChanges
     TrnLookupStatus = 1 << 5,
     MobileNumber = 1 << 6,
     MiddleName = 1 << 7,
+    PreferredName = 1 << 8
 }
 
 public enum UserUpdatedEventSource
