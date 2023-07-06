@@ -5,6 +5,7 @@ using TeacherIdentity.AuthServer.Services.DqtEvidence;
 using TeacherIdentity.AuthServer.Services.Establishment;
 using TeacherIdentity.AuthServer.Services.EventPublishing;
 using TeacherIdentity.AuthServer.Services.Notification;
+using TeacherIdentity.AuthServer.Services.TrnTokens;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
@@ -30,6 +31,7 @@ public static class ServiceCollectionExtensions
             .AddUserVerification(environment, configuration)
             .AddSingleton<Redactor>()
             .AddZendesk(environment, configuration)
-            .AddEventPublishing(environment);
+            .AddEventPublishing(environment)
+            .AddTrnTokens(configuration);
     }
 }
