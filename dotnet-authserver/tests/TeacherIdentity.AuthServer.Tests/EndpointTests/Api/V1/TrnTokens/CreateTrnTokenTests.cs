@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Api.V1.TrnTokens;
@@ -152,5 +153,15 @@ public class CreateTrnTokenTests : TestBase
         Assert.Equal(trn, jsonResponse.RootElement.GetProperty("trn").GetString());
         Assert.Equal(email, jsonResponse.RootElement.GetProperty("email").GetString());
         Assert.NotNull(jsonResponse.RootElement.GetProperty("trnToken").GetString());
+
+        EventObserver.AssertEventsSaved(e =>
+        {
+            var trnTokenAddedEvent = Assert.IsType<TrnTokenAddedEvent>(e);
+            Assert.Equal(Clock.UtcNow, trnTokenAddedEvent.CreatedUtc);
+            Assert.True(trnTokenAddedEvent.ExpiresUtc > Clock.UtcNow);
+            Assert.Equal(email, trnTokenAddedEvent.Email);
+            Assert.Equal(trn, trnTokenAddedEvent.Trn);
+            Assert.Equal(TestClients.DefaultClient.ClientId, trnTokenAddedEvent.AddedByApiClientId);
+        });
     }
 }

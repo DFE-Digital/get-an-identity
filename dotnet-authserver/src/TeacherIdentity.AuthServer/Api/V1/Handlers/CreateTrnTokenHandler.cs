@@ -1,55 +1,35 @@
-using System.Security.Cryptography;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
 using TeacherIdentity.AuthServer.Api.V1.Responses;
-using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.TrnTokens;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Handlers;
 
 public class CreateTrnTokenHandler : IRequestHandler<CreateTrnTokenRequest, CreateTrnTokenResponse>
 {
-    private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly IClock _clock;
+    private readonly TrnTokenService _trnTokenService;
+    private readonly ICurrentUserProvider _currentUserProvider;
 
-    public CreateTrnTokenHandler(
-        TeacherIdentityServerDbContext dbContext,
-        IClock clock)
+    public CreateTrnTokenHandler(TrnTokenService trnTokenService, ICurrentUserProvider currentUserProvider)
     {
-        _dbContext = dbContext;
-        _clock = clock;
+        _trnTokenService = trnTokenService;
+        _currentUserProvider = currentUserProvider;
     }
 
     public async Task<CreateTrnTokenResponse> Handle(CreateTrnTokenRequest request, CancellationToken cancellationToken)
     {
-        string trnToken;
-        do
-        {
-            var buffer = new byte[8];
-            RandomNumberGenerator.Fill(buffer);
-            trnToken = Convert.ToHexString(buffer).ToLower();
-        } while (await _dbContext.TrnTokens.AnyAsync(t => t.TrnToken == trnToken, cancellationToken));
-
-        var created = _clock.UtcNow;
-        var expires = created.AddMonths(6);
-
-        _dbContext.TrnTokens.Add(new TrnTokenModel()
-        {
-            TrnToken = trnToken,
-            Trn = request.Trn,
-            Email = request.Email,
-            CreatedUtc = created,
-            ExpiresUtc = expires,
-        });
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        var trnToken = await _trnTokenService.GenerateToken(
+            request.Email,
+            request.Trn,
+            apiClientId: _currentUserProvider.CurrentClientId,
+            currentUserId: null);
 
         return new CreateTrnTokenResponse()
         {
             Trn = request.Trn,
             Email = request.Email,
-            TrnToken = trnToken,
-            ExpiresUtc = expires,
+            TrnToken = trnToken.TrnToken,
+            ExpiresUtc = trnToken.ExpiresUtc,
         };
     }
 }

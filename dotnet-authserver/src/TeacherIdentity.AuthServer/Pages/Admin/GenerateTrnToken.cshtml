@@ -1,0 +1,20 @@
+@page "/admin/trn-tokens/new"
+@model TeacherIdentity.AuthServer.Pages.Admin.GenerateTrnTokenModel
+@{
+    ViewBag.Title = "Generate TRN token";
+}
+
+<form asp-page="GenerateTrnToken">
+    <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+
+    <govuk-input asp-for="Email" type="email" input-class="govuk-input--width-20" autocomplete="off" />
+
+    <govuk-input asp-for="Trn" input-class="govuk-!-width-one-quarter" spellcheck="false" />
+
+    @if (Model.TrnToken is not null)
+    {
+        <govuk-input asp-for="TrnToken" disabled input-class="govuk-input--width-20" />
+    }
+
+    <govuk-button type="submit">Generate</govuk-button>
+</form>
