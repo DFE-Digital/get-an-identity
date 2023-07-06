@@ -10,7 +10,7 @@
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountName(Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
             <govuk-input asp-for="FirstName" spellcheck="false" autocomplete="given-name">

@@ -40,7 +40,7 @@
                 <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountName(Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             @if (Model.Trn is not null)
@@ -92,7 +92,7 @@
                 @if (dateOfBirthChangeEnabled)
                 {
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.AccountDateOfBirth(Model.ClientRedirectInfo)" visually-hidden-text="date of birth" data-testid="dob-change-link">Change</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountDateOfBirth(dateOfBirth: null, Model.ClientRedirectInfo)" visually-hidden-text="date of birth" data-testid="dob-change-link">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 }
             </govuk-summary-list-row>
