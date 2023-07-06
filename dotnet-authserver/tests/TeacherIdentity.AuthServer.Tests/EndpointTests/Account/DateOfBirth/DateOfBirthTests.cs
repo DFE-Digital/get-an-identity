@@ -19,7 +19,9 @@ public class DateOfBirthTests : TestBase
 
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -40,7 +42,9 @@ public class DateOfBirthTests : TestBase
     public async Task Post_EmptyDateOfBirth_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth"))
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -60,7 +64,9 @@ public class DateOfBirthTests : TestBase
         // Arrange
         var dateOfBirth = DateOnly.Parse(dateOfBirthString);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -83,7 +89,9 @@ public class DateOfBirthTests : TestBase
         // Arrange
         var dateOfBirth = new DateOnly(2000, 1, 1);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -109,7 +117,9 @@ public class DateOfBirthTests : TestBase
 
         var clientRedirectInfo = CreateClientRedirectInfo();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/date-of-birth?{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/date-of-birth?{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -127,6 +137,45 @@ public class DateOfBirthTests : TestBase
         Assert.Contains(clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
     }
 
+    [Fact]
+    public async Task Get_ValidRequestWithNamesInQueryParam_PopulatesFieldsFromQueryParam()
+    {
+        // Arrange
+        var previouslyStatedDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/date-of-birth?dateOfBirth={previouslyStatedDateOfBirth:yyyy-MM-dd}"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+        Assert.Equal($"{previouslyStatedDateOfBirth:%d}", doc.GetElementById("DateOfBirth.Day")?.GetAttribute("value"));
+        Assert.Equal($"{previouslyStatedDateOfBirth:%M}", doc.GetElementById("DateOfBirth.Month")?.GetAttribute("value"));
+        Assert.Equal($"{previouslyStatedDateOfBirth:yyyy}", doc.GetElementById("DateOfBirth.Year")?.GetAttribute("value"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithoutNamesInQueryParam_PopulatesFieldsFromDatabase()
+    {
+        // Arrange
+        var defaultDateOfBirth = TestUsers.DefaultUser.DateOfBirth!.Value;
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/date-of-birth"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+        Assert.Equal($"{defaultDateOfBirth:%d}", doc.GetElementById("DateOfBirth.Day")?.GetAttribute("value"));
+        Assert.Equal($"{defaultDateOfBirth:%M}", doc.GetElementById("DateOfBirth.Month")?.GetAttribute("value"));
+        Assert.Equal($"{defaultDateOfBirth:yyyy}", doc.GetElementById("DateOfBirth.Year")?.GetAttribute("value"));
+    }
+
     private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDobChange)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
@@ -141,28 +190,5 @@ public class DateOfBirthTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = hasPendingDobChange
             });
-    }
-
-    [Fact]
-    public async Task Get_Prepopulates_DateOfBirth()
-    {
-
-        // Arrange
-        var defaultDateOfBirth = TestUsers.DefaultUser.DateOfBirth!.Value;
-
-        var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            AppendQueryParameterSignature($"/account/date-of-birth?DateOfBirth=={defaultDateOfBirth:yyyy-MM-dd}"));
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-        Assert.True(doc.GetElementById("DateOfBirth.Day")?.GetAttribute("value")?.Length > 0);
-        Assert.True(doc.GetElementById("DateOfBirth.Month")?.GetAttribute("value")?.Length > 0);
-        Assert.True(doc.GetElementById("DateOfBirth.Year")?.GetAttribute("value")?.Length > 0);
-
-
     }
 }

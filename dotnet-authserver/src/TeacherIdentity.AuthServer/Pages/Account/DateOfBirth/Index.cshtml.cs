@@ -1,15 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Infrastructure.Filters;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Pages.Account.DateOfBirth;
 
-[BindProperties]
+[VerifyQueryParameterSignature]
 public class DateOfBirthPage : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
@@ -26,9 +26,9 @@ public class DateOfBirthPage : PageModel
         _dqtApiClient = dqtApiClient;
     }
 
-    [BindNever]
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
 
+    [BindProperty(SupportsGet = true)]
     [Display(Name = "Your date of birth", Description = "For example, 27 3 1987")]
     [Required(ErrorMessage = "Enter your date of birth")]
     [IsValidDateOfBirth]
@@ -36,12 +36,16 @@ public class DateOfBirthPage : PageModel
 
     public async Task OnGet()
     {
-        var userId = User.GetUserId();
+        if (DateOfBirth is null)
+        {
+            var userId = User.GetUserId();
+            DateOfBirth = await _dbContext.Users
+               .Where(u => u.UserId == userId)
+               .Select(u => u.DateOfBirth)
+               .FirstOrDefaultAsync();
+        }
 
-        DateOfBirth = await _dbContext.Users
-           .Where(u => u.UserId == userId)
-           .Select(u => u.DateOfBirth)
-           .FirstOrDefaultAsync();
+        ModelState.Clear();
     }
 
     public IActionResult OnPost()

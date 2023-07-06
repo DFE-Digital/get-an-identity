@@ -11,7 +11,9 @@ public class NameTests : TestBase
     public async Task Post_EmptyFirstName_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -30,7 +32,9 @@ public class NameTests : TestBase
     public async Task Post_EmptyLastName_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -49,7 +53,9 @@ public class NameTests : TestBase
     public async Task Post_TooLongFirstName_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -69,7 +75,9 @@ public class NameTests : TestBase
     public async Task Post_TooLongMiddleName_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -90,7 +98,9 @@ public class NameTests : TestBase
     public async Task Post_TooLongLastName_ReturnsError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -110,7 +120,9 @@ public class NameTests : TestBase
     public async Task Post_ValidName_RedirectsToConfirmPage()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -134,7 +146,9 @@ public class NameTests : TestBase
         // Arrange
         var clientRedirectInfo = CreateClientRedirectInfo();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/account/name?{clientRedirectInfo.ToQueryParam()}")
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature($"/account/name?{clientRedirectInfo.ToQueryParam()}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -152,10 +166,37 @@ public class NameTests : TestBase
     }
 
     [Fact]
-    public async Task Get_Prepopulates_FirstMiddleAndLastName()
+    public async Task Get_ValidRequestWithNamesInQueryParam_PopulatesFieldsFromQueryParams()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/name");
+        var previouslyStatedFirstName = Faker.Name.First();
+        var previouslyStatedMiddleName = Faker.Name.Middle();
+        var previouslyStatedLastName = Faker.Name.Last();
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature(
+                $"/account/name" +
+                $"?firstName={Uri.EscapeDataString(previouslyStatedFirstName)}" +
+                $"&middleName={Uri.EscapeDataString(previouslyStatedMiddleName)}" +
+                $"&lastName={Uri.EscapeDataString(previouslyStatedLastName)}"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+        Assert.Equal(previouslyStatedFirstName, doc.GetElementById("FirstName")?.GetAttribute("value"));
+        Assert.Equal(previouslyStatedMiddleName, doc.GetElementById("MiddleName")?.GetAttribute("value"));
+        Assert.Equal(previouslyStatedLastName, doc.GetElementById("LastName")?.GetAttribute("value"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestWithoutNamesInQueryParam_PopulatesFieldsFromDatabase()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/name"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -163,8 +204,8 @@ public class NameTests : TestBase
         // Assert
         var doc = await response.GetDocument();
 
-        Assert.True(doc.GetElementById("FirstName")?.GetAttribute("value")?.Length > 0);
-        Assert.True(doc.GetElementById("MiddleName")?.GetAttribute("value")?.Length > 0);
-        Assert.True(doc.GetElementById("LastName")?.GetAttribute("value")?.Length > 0);
+        Assert.Equal(TestUsers.DefaultUser.FirstName, doc.GetElementById("FirstName")?.GetAttribute("value"));
+        Assert.Equal(TestUsers.DefaultUser.MiddleName, doc.GetElementById("MiddleName")?.GetAttribute("value"));
+        Assert.Equal(TestUsers.DefaultUser.LastName, doc.GetElementById("LastName")?.GetAttribute("value"));
     }
 }

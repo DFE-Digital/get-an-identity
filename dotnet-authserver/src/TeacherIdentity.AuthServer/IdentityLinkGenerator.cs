@@ -175,9 +175,13 @@ public abstract class IdentityLinkGenerator
     public string SignOut() =>
         Page("/SignOut", authenticationJourneyRequired: false);
 
-    public string AccountName(ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountName(string? firstName, string? middleName, string? lastName, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/Name/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam("firstName", firstName)
+            .SetQueryParam("middleName", middleName)
+            .SetQueryParam("lastName", lastName)
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountNameConfirm(string firstName, string? middleName, string lastName, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/Name/Confirm", authenticationJourneyRequired: false)
@@ -199,9 +203,11 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
-    public string AccountDateOfBirth(ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountDateOfBirth(DateOnly? dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/DateOfBirth/Index", authenticationJourneyRequired: false)
-            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
+            .SetQueryParam("dateOfBirth", dateOfBirth?.ToString(DateOfBirthFormat))
+            .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+            .AppendQueryStringSignature(QueryStringSignatureHelper);
 
     public string AccountDateOfBirthConfirm(DateOnly dateOfBirth, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/DateOfBirth/Confirm", authenticationJourneyRequired: false)
