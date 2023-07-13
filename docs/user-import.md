@@ -10,14 +10,16 @@ The user import feature has been created to automate the creation of teaching ac
 
 The user import requires a CSV file with a header with the following fields:
 
-| Header Name   | Description                                                  | Mandatory? | Expected Format                                    |
-| ------------- | ------------------------------------------------------------ | -----------| -------------------------------------------------- |
-| ID            | The unique ID associated with the user in the source service | Mandatory  | A string up to 100 characters                      |
-| EMAIL_ADDRESS | The user's email address                                     | Mandatory  | A valid email address format up to 200 characters* |
-| FIRST_NAME    | The user's first name                                        | Mandatory  | A string up to 200 characters                      |
-| LAST_NAME     | The user's last name                                         | Mandatory  | A string up to 200 characters                      |
-| DATE_OF_BIRTH | The user's date of birth                                     | Mandatory  | A valid date in ddMMyyyy format e.g. 03051971      |
-| TRN           | The user's TRN (if known in the source service)              | Optional   | Empty or a 7 digit number                          |
+| Header Name    | Description                                                  | Mandatory? | Expected Format                                       |
+| -------------- | ------------------------------------------------------------ | -----------| ----------------------------------------------------- |
+| ID             | The unique ID associated with the user in the source service | Mandatory  | A string of up to 100 characters                      |
+| EMAIL_ADDRESS  | The user's email address                                     | Mandatory  | A valid email address format of up to 200 characters* |
+| TRN            | The user's TRN (if known in the source service)              | Optional   | Empty or a 7 digit number                             |
+| FIRST_NAME     | The user's first name                                        | Optional   | Mandatory string of up to 200 characters if TRN is empty <br/> otherwise must be empty |
+| MIDDLE_NAME    | The user's middle name                                       | Optional   | Empty or a string of up to 200 characters if TRN is empty <br/> otherwise must be empty |
+| LAST_NAME      | The user's last name                                         | Optional   | Mandatory string of up to 200 characters if TRN is empty <br/> otherwise must be empty |
+| PREFERRED_NAME | The user's preferred name                                    | Optional   | Empty or a string of up to 200 characters             |
+| DATE_OF_BIRTH  | The user's date of birth                                     | Mandatory  | A valid date in ddMMyyyy format e.g. 03051971         |
 
 \* Note that there is no validation of whether the email address supplied is actually a valid personal email
 
@@ -48,9 +50,11 @@ flowchart TD
     emailmatch -- Yes --> trn{Is the TRN supplied in the CSV?}
     trn -- No --> none[Nothing to do - user data not updated]
     none --> setuserid[Update result data with user Id]
-    trn -- Yes --> trnmissing{Is the TRN missing<br/>for the existing user record?}
+    trn -- Yes --> trnindqt{Does the TRN match a record in DQT?}
+    trnindqt -- Yes --> trnmissing{Is the TRN missing<br/>for the existing user record?}
+    trnindqt -- No --> invalid
     trnmissing -- Yes --> trninuse{Is there already another user<br/> with the same TRN?}
-    trninuse -- No --> updatetrn[(Update TRN for existing user)]
+    trninuse -- No --> updatetrn[(Update TRN and name from DQT for existing user)]
     trninuse -- Yes --> invalid
     updatetrn --> setuserid
     trnmissing -- No --> trnmatch{Is the TRN in the CSV different<br/>to the existing identity user?}

@@ -7,6 +7,7 @@ using EntityFramework.Exceptions.Common;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserSearch;
 using User = TeacherIdentity.AuthServer.Models.User;
 
@@ -17,6 +18,7 @@ public class UserImportProcessor : IUserImportProcessor
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserImportStorageService _userImportStorageService;
     private readonly IUserSearchService _userSearchService;
+    private readonly IDqtApiClient _dqtApiClient;
     private readonly IClock _clock;
     private readonly ILogger<UserImportProcessor> _logger;
 
@@ -24,12 +26,14 @@ public class UserImportProcessor : IUserImportProcessor
         TeacherIdentityServerDbContext dbContext,
         IUserImportStorageService userImportStorageService,
         IUserSearchService userSearchService,
+        IDqtApiClient dqtApiClient,
         IClock clock,
         ILogger<UserImportProcessor> logger)
     {
         _dbContext = dbContext;
         _userImportStorageService = userImportStorageService;
         _userSearchService = userSearchService;
+        _dqtApiClient = dqtApiClient;
         _clock = clock;
         _logger = logger;
     }
@@ -57,6 +61,10 @@ public class UserImportProcessor : IUserImportProcessor
             UserImportRow? row = null;
             User? user = null;
             string? id = null;
+            TeacherInfo? dqtTeacher = null;
+            string? firstName = null;
+            string? middleName = null;
+            string? lastName = null;
 
             // Check we don't have wonky rows i.e. too few or too many fields
             if (!csv.TryGetField<string>(UserImportRow.ColumnCount - 1, out _))
@@ -93,32 +101,75 @@ public class UserImportProcessor : IUserImportProcessor
                 }
                 else
                 {
-                    // Use same email address validation as data annotations attribute
-                    var atIndex = row.EmailAddress.IndexOf('@');
-                    if (atIndex <= 0 ||
-                        atIndex == row.EmailAddress.Length - 1 ||
-                        atIndex != row.EmailAddress.LastIndexOf('@'))
+                    // Use same email address validation as Notify
+                    if (!EmailAddress.TryParse(row.EmailAddress, out _))
                     {
                         errors.Add($"{UserImportRow.EmailAddressHeader} field should be in a valid email address format");
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(row.FirstName))
+                if (!string.IsNullOrEmpty(row.Trn))
                 {
-                    errors.Add($"{UserImportRow.FirstNameHeader} field is empty");
-                }
-                else if (row.FirstName.Length > User.FirstNameMaxLength)
-                {
-                    errors.Add($"{UserImportRow.FirstNameHeader} field should have a maximum of {User.FirstNameMaxLength} characters");
+                    if (!Regex.IsMatch(row.Trn, @"^\d{7}$"))
+                    {
+                        errors.Add($"{UserImportRow.TrnHeader} field must be empty or a 7 digit number");
+                    }
+                    else
+                    {
+                        dqtTeacher = await _dqtApiClient.GetTeacherByTrn(row.Trn);
+                        if (dqtTeacher is null)
+                        {
+                            errors.Add($"{UserImportRow.TrnHeader} field must match a record in DQT");
+                        }
+                    }
                 }
 
-                if (string.IsNullOrWhiteSpace(row.LastName))
+                if (string.IsNullOrEmpty(row.Trn))
                 {
-                    errors.Add($"{UserImportRow.LastNameHeader} field is empty");
+                    if (string.IsNullOrWhiteSpace(row.FirstName))
+                    {
+                        errors.Add($"{UserImportRow.FirstNameHeader} field is empty");
+                    }
+                    else if (row.FirstName.Length > User.FirstNameMaxLength)
+                    {
+                        errors.Add($"{UserImportRow.FirstNameHeader} field should have a maximum of {User.FirstNameMaxLength} characters");
+                    }
+
+                    if (!string.IsNullOrEmpty(row.MiddleName) && row.MiddleName.Length > User.MiddleNameMaxLength)
+                    {
+                        errors.Add($"{UserImportRow.MiddleNameHeader} field should have a maximum of {User.MiddleNameMaxLength} characters");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(row.LastName))
+                    {
+                        errors.Add($"{UserImportRow.LastNameHeader} field is empty");
+                    }
+                    else if (row.LastName.Length > User.LastNameMaxLength)
+                    {
+                        errors.Add($"{UserImportRow.LastNameHeader} field should have a maximum of {User.LastNameMaxLength} characters");
+                    }
                 }
-                else if (row.LastName.Length > User.LastNameMaxLength)
+                else
                 {
-                    errors.Add($"{UserImportRow.LastNameHeader} field should have a maximum of {User.LastNameMaxLength} characters");
+                    if (!string.IsNullOrWhiteSpace(row.FirstName))
+                    {
+                        errors.Add($"{UserImportRow.FirstNameHeader} field must be empty when {UserImportRow.TrnHeader} field is specified");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(row.MiddleName))
+                    {
+                        errors.Add($"{UserImportRow.MiddleNameHeader} field must be empty when {UserImportRow.TrnHeader} field is specified");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(row.LastName))
+                    {
+                        errors.Add($"{UserImportRow.LastNameHeader} field must be empty when {UserImportRow.TrnHeader} field is specified");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(row.PreferredName) && row.PreferredName.Length > User.PreferredNameMaxLength)
+                {
+                    errors.Add($"{UserImportRow.PreferredNameHeader} field should have a maximum of {User.PreferredNameMaxLength} characters");
                 }
 
                 if (string.IsNullOrWhiteSpace(row.DateOfBirth))
@@ -128,11 +179,6 @@ public class UserImportProcessor : IUserImportProcessor
                 else if (!DateOnly.TryParseExact(row.DateOfBirth, "ddMMyyyy", out _))
                 {
                     errors.Add($"{UserImportRow.DateOfBirthHeader} field should be a valid date in ddMMyyyy format");
-                }
-
-                if (!string.IsNullOrEmpty(row.Trn) && !Regex.IsMatch(row.Trn, @"^\d{7}$"))
-                {
-                    errors.Add($"{UserImportRow.TrnHeader} field must be empty or a 7 digit number");
                 }
             }
 
@@ -151,9 +197,13 @@ public class UserImportProcessor : IUserImportProcessor
             }
             else
             {
+                firstName = dqtTeacher != null ? dqtTeacher.FirstName : row!.FirstName!;
+                middleName = dqtTeacher != null ? dqtTeacher.MiddleName : row!.MiddleName;
+                lastName = dqtTeacher != null ? dqtTeacher.LastName : row!.LastName!;
+
                 var dateOfBirth = DateOnly.ParseExact(row!.DateOfBirth!, "ddMMyyyy", CultureInfo.InvariantCulture);
                 // Validate for potential duplicates
-                var existingUsers = await _userSearchService.FindUsers(row!.FirstName!, row.LastName!, dateOfBirth);
+                var existingUsers = await _userSearchService.FindUsers(firstName, lastName, dateOfBirth);
                 if (existingUsers.Any(u => u.EmailAddress != row.EmailAddress!))
                 {
                     errors.Add("Potential duplicate user");
@@ -166,9 +216,10 @@ public class UserImportProcessor : IUserImportProcessor
                     {
                         UserId = Guid.NewGuid(),
                         EmailAddress = row.EmailAddress!,
-                        FirstName = row.FirstName!,
-                        MiddleName = null,
-                        LastName = row.LastName!,
+                        FirstName = firstName,
+                        MiddleName = middleName,
+                        LastName = lastName,
+                        PreferredName = row.PreferredName,
                         Created = _clock.UtcNow,
                         Updated = _clock.UtcNow,
                         DateOfBirth = dateOfBirth,
@@ -227,7 +278,7 @@ public class UserImportProcessor : IUserImportProcessor
 
                     if (ex.IsUniqueIndexViolation(User.EmailAddressUniqueIndexName))
                     {
-                        await HandleEmailAddressUniqueIndexViolation(row, userImportJobRow, userImportJob);
+                        await HandleEmailAddressUniqueIndexViolation(row, userImportJobRow, userImportJob, dqtTeacher);
                         return;
                     }
 
@@ -253,7 +304,8 @@ public class UserImportProcessor : IUserImportProcessor
     private async Task HandleEmailAddressUniqueIndexViolation(
         UserImportRow? row,
         UserImportJobRow userImportJobRow,
-        UserImportJob? userImportJob)
+        UserImportJob? userImportJob,
+        TeacherInfo? dqtTeacher)
     {
         User existingUser = await _dbContext.Users.SingleAsync(u => u.EmailAddress == row!.EmailAddress);
 
@@ -271,12 +323,21 @@ public class UserImportProcessor : IUserImportProcessor
                 }
                 else
                 {
+                    var changes = UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus |
+                        (existingUser.FirstName != dqtTeacher!.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
+                        (existingUser.MiddleName != dqtTeacher!.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
+                        (existingUser.LastName != dqtTeacher.LastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
+
                     existingUser.Trn = row.Trn;
                     existingUser.TrnAssociationSource = TrnAssociationSource.UserImport;
                     existingUser.TrnLookupStatus = TrnLookupStatus.Found;
+                    existingUser.FirstName = dqtTeacher.FirstName;
+                    existingUser.MiddleName = dqtTeacher.MiddleName;
+                    existingUser.LastName = dqtTeacher.LastName;
+
                     userImportJobRow.UserId = existingUser.UserId;
                     userImportJobRow.UserImportRowResult = UserImportRowResult.UserUpdated;
-                    userImportJobRow.Notes = new List<string> { "Updated TRN for existing user" };
+                    userImportJobRow.Notes = new List<string> { "Updated TRN and name for existing user" };
 
                     _dbContext.AddEvent(new UserUpdatedEvent()
                     {
@@ -285,7 +346,7 @@ public class UserImportProcessor : IUserImportProcessor
                         UpdatedByUserId = userImportJob!.UploadedByUserId,
                         CreatedUtc = _clock.UtcNow,
                         User = Events.User.FromModel(existingUser),
-                        Changes = UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus
+                        Changes = changes
                     });
                 }
             }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserImport;
 using TeacherIdentity.AuthServer.Services.UserSearch;
 using User = TeacherIdentity.AuthServer.Models.User;
@@ -27,6 +28,30 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
         var uniqueSuffixTest23 = Guid.NewGuid().ToString();
         var uniqueSuffixTest24 = Guid.NewGuid().ToString();
 
+        var getTeacherByTrnResultTest20 = new TeacherInfo()
+        {
+            Trn = "1234567",
+            FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.Middle(),
+            LastName = Faker.Name.Last(),
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            NationalInsuranceNumber = null,
+            PendingNameChange = false,
+            PendingDateOfBirthChange = false
+        };
+
+        var getTeacherByTrnResultTest23 = new TeacherInfo()
+        {
+            Trn = "9999999",
+            FirstName = Faker.Name.First(),
+            MiddleName = Faker.Name.Middle(),
+            LastName = Faker.Name.Last(),
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            NationalInsuranceNumber = null,
+            PendingNameChange = false,
+            PendingDateOfBirthChange = false
+        };
+
         return new TheoryData<UserImportTestScenarioData>()
         {
             // 1. All valid row data
@@ -36,13 +61,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests1", // ID
                 EmailAddress = "UserImportProcessorTests1@email.com", // EMAIL_ADDRESS
                 FirstName = Faker.Name.First(), // FIRST_NAME
+                MiddleName = Faker.Name.Middle(), // MIDDLE_NAME
                 LastName = Faker.Name.Last(), // LAST_NAME
+                PreferredName = Faker.Name.FullName(), // PREFERRED_NAME
                 DateOfBirth = "05021970", // DATE_OF_BIRTH
                 Trn = string.Empty, // TRN
                 FullRowDataOverride = string.Empty, // Full row data override
+                GetTeacherByTrnResult = null, // Result returned from call to GetTeacherByTrn on the DQT API
                 UseMockUserSearchService = true, // Use mock search service to check for potential duplicate users
                 ExpectUserToBeInserted = true, // We expect a User record to be inserted
                 ExpectUserImportedEventToBeInserted = true, // We expect a UserImportedEvent Event record to be inserted
+                ExpectExistingUserToBeUpdated = false, // We don't expect an existing user to be updated
                 ExpectedNotes = null, // Expected errors
                 ExpectedUserImportRowResult = UserImportRowResult.UserAdded
             },
@@ -53,13 +82,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = string.Empty,
                 EmailAddress = string.Empty,
                 FirstName = string.Empty,
+                MiddleName = string.Empty,
                 LastName = string.Empty,
+                PreferredName = string.Empty,
                 DateOfBirth = string.Empty,
                 Trn = string.Empty,
                 FullRowDataOverride = "UserImportProcessorTests2,UserImportProcessorTests2@email.com,joe,bloggs",
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"Exactly {UserImportRow.ColumnCount} fields expected (this row has less)" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -70,13 +103,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = string.Empty,
                 EmailAddress = string.Empty,
                 FirstName = string.Empty,
+                MiddleName = string.Empty,
                 LastName = string.Empty,
+                PreferredName = string.Empty,
                 DateOfBirth = string.Empty,
                 Trn = string.Empty,
-                FullRowDataOverride = "UserImportProcessorTests3,UserImportProcessorTests3@email.com,joe,bloggs,05021970,1234567,extra,data",
+                FullRowDataOverride = "UserImportProcessorTests3,UserImportProcessorTests3@email.com,joe,bob,bloggs,joe bloggs,05021970,1234567,extra,data",
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"Exactly {UserImportRow.ColumnCount} fields expected (this row has more)" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -87,13 +124,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = string.Empty,
                 EmailAddress = "UserImportProcessorTests4@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.IdHeader} field is empty" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -104,13 +145,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = new string('a', UserImportJobRow.IdMaxLength + 1),
                 EmailAddress = "UserImportProcessorTests5@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.IdHeader} field should have a maximum of {UserImportJobRow.IdMaxLength} characters" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -121,13 +166,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests6",
                 EmailAddress = string.Empty,
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.EmailAddressHeader} field is empty" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -138,13 +187,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests7",
                 EmailAddress = $"{new string('a', EmailAddress.EmailAddressMaxLength + 1)}@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.EmailAddressHeader} field should have a maximum of {EmailAddress.EmailAddressMaxLength} characters" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -155,81 +208,101 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests8",
                 EmailAddress = "UserImportProcessorTests8.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.EmailAddressHeader} field should be in a valid email address format" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
-            // 9. Empty FIRST_NAME field
+            // 9. Empty FIRST_NAME field (when TRN not supplied)
             new UserImportTestScenarioData
             {
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests9",
                 EmailAddress = "UserImportProcessorTests9@email.com",
                 FirstName = string.Empty,
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.FirstNameHeader} field is empty" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
-            // 10. Oversized FIRST_NAME field
+            // 10. Oversized FIRST_NAME field (when TRN not supplied)
             new UserImportTestScenarioData
             {
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests10",
                 EmailAddress = "UserImportProcessorTests10@email.com",
                 FirstName = new string('a', User.FirstNameMaxLength + 1),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.FirstNameHeader} field should have a maximum of {User.FirstNameMaxLength} characters" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
-            // 11. Empty LAST_NAME field
+            // 11. Empty LAST_NAME field (when TRN not supplied)
             new UserImportTestScenarioData
             {
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests11",
                 EmailAddress = "UserImportProcessorTests11@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = string.Empty,
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.LastNameHeader} field is empty" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
-            // 12. Oversized LAST_NAME field
+            // 12. Oversized LAST_NAME field (when TRN not supplied)
             new UserImportTestScenarioData
             {
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests12",
                 EmailAddress = "UserImportProcessorTests12@email.com",
-                FirstName = string.Empty,
+                FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = new string('a', User.LastNameMaxLength + 1),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.LastNameHeader} field should have a maximum of {User.LastNameMaxLength} characters" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -240,13 +313,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests13",
                 EmailAddress = "UserImportProcessorTests13@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = string.Empty,
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.DateOfBirthHeader} field is empty" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -257,13 +334,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests14",
                 EmailAddress = "UserImportProcessorTests14@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "12345678",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.DateOfBirthHeader} field should be a valid date in ddMMyyyy format" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -287,13 +368,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests15",
                 EmailAddress = "UserImportProcessorTests15@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { "A user already exists with the specified email address" },
                 ExpectedUserImportRowResult = UserImportRowResult.None
             },
@@ -304,13 +389,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = string.Empty,
                 EmailAddress = "UserImportProcessorTests16@email.com",
                 FirstName = string.Empty,
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "12345678",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new []
                 {
                     $"{UserImportRow.IdHeader} field is empty",
@@ -339,13 +428,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests17",
                 EmailAddress = "UserImportProcessorTests17@email.com",
                 FirstName = "Josephine",
+                MiddleName = Faker.Name.Middle(),
                 LastName = $"Smith{uniqueSuffixTest17}",
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = false,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { "Potential duplicate user" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -369,13 +462,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests18",
                 EmailAddress = "UserImportProcessorTests18@email.com",
                 FirstName = "Jo",
+                MiddleName = Faker.Name.Middle(),
                 LastName = $"Smith{uniqueSuffixTest18}",
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = string.Empty,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = false,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { "Potential duplicate user" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -385,14 +482,18 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests19",
                 EmailAddress = "UserImportProcessorTests19@email.com",
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
+                FirstName = string.Empty,
+                MiddleName = string.Empty,
+                LastName = string.Empty,
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = "e456",
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { $"{UserImportRow.TrnHeader} field must be empty or a 7 digit number" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -402,14 +503,18 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 ExistingUsers = null,
                 Id = "UserImportProcessorTests20",
                 EmailAddress = "UserImportProcessorTests20@email.com",
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last(),
+                FirstName = string.Empty,
+                MiddleName = string.Empty,
+                LastName = string.Empty,
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
-                Trn = "1234567",
+                Trn = getTeacherByTrnResultTest20.Trn,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = getTeacherByTrnResultTest20,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = true,
                 ExpectUserImportedEventToBeInserted = true,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = null,
                 ExpectedUserImportRowResult = UserImportRowResult.UserAdded
             },
@@ -436,13 +541,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests21",
                 EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest21}@email.com",
                 FirstName = "Josephine",
+                MiddleName = Faker.Name.Middle(),
                 LastName = $"Smith{uniqueSuffixTest21}",
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = "9999999",
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { "A user already exists with the specified email address but a different TRN" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -469,13 +578,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests22",
                 EmailAddress = $"UserImportProcessorTest{Guid.NewGuid()}@email.com",
                 FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
                 LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = "1111111",
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { "A user already exists with the specified TRN" },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             },
@@ -489,6 +602,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                         UserId = Guid.NewGuid(),
                         EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest23}@email.com",
                         FirstName = "Josephine",
+                        MiddleName = Faker.Name.Middle(),
                         LastName = $"Smith{uniqueSuffixTest23}",
                         Created = clock.UtcNow,
                         Updated = clock.UtcNow,
@@ -500,15 +614,19 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 },
                 Id = "UserImportProcessorTests23",
                 EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest23}@email.com",
-                FirstName = "Josephine",
-                LastName = $"Smith{uniqueSuffixTest23}",
+                FirstName = string.Empty,
+                MiddleName = string.Empty,
+                LastName = string.Empty,
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
-                Trn = "9999999",
+                Trn = getTeacherByTrnResultTest23.Trn,
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = getTeacherByTrnResultTest23,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
-                ExpectedNotes = new [] { "Updated TRN for existing user" },
+                ExpectExistingUserToBeUpdated = true,
+                ExpectedNotes = new [] { "Updated TRN and name for existing user" },
                 ExpectedUserImportRowResult = UserImportRowResult.UserUpdated
             },
             new UserImportTestScenarioData
@@ -545,14 +663,44 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 Id = "UserImportProcessorTests24",
                 EmailAddress = $"UserImportProcessorTest{uniqueSuffixTest24}@email.com",
                 FirstName = "Josephine",
+                MiddleName = Faker.Name.Middle(),
                 LastName = $"Smith{uniqueSuffixTest24}",
+                PreferredName = Faker.Name.FullName(),
                 DateOfBirth = "05021970",
                 Trn = "5555555",
                 FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
                 UseMockUserSearchService = true,
                 ExpectUserToBeInserted = false,
                 ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
                 ExpectedNotes = new [] { "A user already exists with the specified TRN but a different email address" },
+                ExpectedUserImportRowResult = UserImportRowResult.Invalid
+            },
+            new UserImportTestScenarioData
+            // 25. TRN supplied means first name and last name should be empty (as they will be derived from DQT record)
+            {
+                ExistingUsers = null,
+                Id = "UserImportProcessorTests25",
+                EmailAddress = "UserImportProcessorTests25@email.com",
+                FirstName = Faker.Name.First(),
+                MiddleName = Faker.Name.Middle(),
+                LastName = Faker.Name.Last(),
+                PreferredName = Faker.Name.FullName(),
+                DateOfBirth = "05021970",
+                Trn = "1234567",
+                FullRowDataOverride = string.Empty,
+                GetTeacherByTrnResult = null,
+                UseMockUserSearchService = true,
+                ExpectUserToBeInserted = false,
+                ExpectUserImportedEventToBeInserted = false,
+                ExpectExistingUserToBeUpdated = false,
+                ExpectedNotes = new []
+                {
+                    $"{UserImportRow.FirstNameHeader} field must be empty when {UserImportRow.TrnHeader} field is specified",
+                    $"{UserImportRow.MiddleNameHeader} field must be empty when {UserImportRow.TrnHeader} field is specified",
+                    $"{UserImportRow.LastNameHeader} field must be empty when {UserImportRow.TrnHeader} field is specified"
+                },
                 ExpectedUserImportRowResult = UserImportRowResult.Invalid
             }
         };
@@ -578,19 +726,24 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             userSearchService = new UserSearchService(dbContext, new NameSynonymsService());
         }
 
+        var dqtApiClient = Mock.Of<IDqtApiClient>();
+        Mock.Get(dqtApiClient)
+            .Setup(d => d.GetTeacherByTrn(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(testScenarioData.GetTeacherByTrnResult);
+
         var clock = new TestClock();
         var logger = Mock.Of<ILogger<UserImportProcessor>>();
         var userImportJobId = Guid.NewGuid();
         var storedFilename = $"{userImportJobId}.csv";
         var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
+        csvContent.AppendLine("ID,EMAIL_ADDRESS,TRN,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PREFERRED_NAME,DATE_OF_BIRTH");
         if (!string.IsNullOrEmpty(testScenarioData.FullRowDataOverride))
         {
             csvContent.AppendLine(testScenarioData.FullRowDataOverride);
         }
         else
         {
-            csvContent.AppendLine($"{testScenarioData.Id},{testScenarioData.EmailAddress},{testScenarioData.FirstName},{testScenarioData.LastName},{testScenarioData.DateOfBirth},{testScenarioData.Trn}");
+            csvContent.AppendLine($"{testScenarioData.Id},{testScenarioData.EmailAddress},{testScenarioData.Trn},{testScenarioData.FirstName},{testScenarioData.MiddleName},{testScenarioData.LastName},{testScenarioData.PreferredName},{testScenarioData.DateOfBirth}");
         }
         using var csvStream = new MemoryStream(Encoding.UTF8.GetBytes(csvContent.ToString()));
 
@@ -625,6 +778,7 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             dbContext,
             userImportStorageService,
             userSearchService,
+            dqtApiClient,
             clock,
             logger);
         await userImportProcessor.Process(userImportJobId);
@@ -645,9 +799,9 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
                 }
             }
 
-            var events = await dbContext.Events
+            var userImportedEvents = await dbContext.Events
                                 .Where(e => e.EventName == "UserImportedEvent").ToListAsync();
-            var userImportedEvent = events
+            var userImportedEvent = userImportedEvents
                 .Select(e => JsonSerializer.Deserialize<UserImportedEvent>(e.Payload))
                 .Where(i => i!.UserImportJobId == userImportJobId)
                 .SingleOrDefault();
@@ -655,10 +809,44 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             if (testScenarioData.ExpectUserImportedEventToBeInserted)
             {
                 Assert.NotNull(userImportedEvent);
+                if (testScenarioData.GetTeacherByTrnResult is not null)
+                {
+                    Assert.Equal(testScenarioData.GetTeacherByTrnResult.FirstName, userImportedEvent.User.FirstName);
+                    Assert.Equal(testScenarioData.GetTeacherByTrnResult.MiddleName, userImportedEvent.User.MiddleName);
+                    Assert.Equal(testScenarioData.GetTeacherByTrnResult.LastName, userImportedEvent.User.LastName);
+                }
+                else
+                {
+                    Assert.Equal(testScenarioData.FirstName, userImportedEvent.User.FirstName);
+                    Assert.Equal(testScenarioData.MiddleName, userImportedEvent.User.MiddleName);
+                    Assert.Equal(testScenarioData.LastName, userImportedEvent.User.LastName);
+                }
+
+                Assert.Equal(testScenarioData.EmailAddress, userImportedEvent.User.EmailAddress);
+                Assert.Equal(testScenarioData.PreferredName, userImportedEvent.User.PreferredName);
             }
             else
             {
                 Assert.Null(userImportedEvent);
+            }
+
+            var userUpdatedEvents = await dbContext.Events
+                    .Where(e => e.EventName == "UserUpdatedEvent").ToListAsync();
+            var userUpdatedEvent = userUpdatedEvents
+                .Select(e => JsonSerializer.Deserialize<UserUpdatedEvent>(e.Payload))
+                .Where(u => u!.User.Trn == testScenarioData.Trn)
+                .SingleOrDefault();
+
+            if (testScenarioData.ExpectExistingUserToBeUpdated)
+            {
+                Assert.NotNull(userUpdatedEvent);
+                Assert.Equal(testScenarioData.GetTeacherByTrnResult!.FirstName, userUpdatedEvent.User.FirstName);
+                Assert.Equal(testScenarioData.GetTeacherByTrnResult.MiddleName, userUpdatedEvent.User.MiddleName);
+                Assert.Equal(testScenarioData.GetTeacherByTrnResult.LastName, userUpdatedEvent.User.LastName);
+            }
+            else
+            {
+                Assert.Null(userUpdatedEvent);
             }
 
             var userImportJobRow = await dbContext.UserImportJobRows.SingleOrDefaultAsync(r => r.UserImportJobId == userImportJobId);
@@ -686,13 +874,17 @@ public class UserImportTestScenarioData
     public required string Id { get; set; }
     public required string EmailAddress { get; set; }
     public required string FirstName { get; set; }
+    public required string MiddleName { get; set; }
     public required string LastName { get; set; }
+    public required string PreferredName { get; set; }
     public required string DateOfBirth { get; set; }
     public required string Trn { get; set; }
     public required string FullRowDataOverride { get; set; }
+    public required TeacherInfo? GetTeacherByTrnResult { get; set; }
     public required bool UseMockUserSearchService { get; set; }
     public required bool ExpectUserToBeInserted { get; set; }
     public required bool ExpectUserImportedEventToBeInserted { get; set; }
+    public required bool ExpectExistingUserToBeUpdated { get; set; }
     public required string[]? ExpectedNotes { get; set; }
     public required UserImportRowResult ExpectedUserImportRowResult { get; set; }
 }
