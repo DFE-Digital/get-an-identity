@@ -293,19 +293,16 @@ public class UserImportProcessor : IUserImportProcessor
                     if (ex.IsUniqueIndexViolation("pk_user_import_job_rows"))
                     {
                         _logger.LogInformation("Ignoring previously processed row");
-                        return;
                     }
 
                     if (ex.IsUniqueIndexViolation(User.EmailAddressUniqueIndexName))
                     {
                         await HandleEmailAddressUniqueIndexViolation(row, userImportJobRow, userImportJob, dqtTeacher);
-                        return;
                     }
 
                     if (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
                     {
                         await HandleTrnUniqueIndexViolation(row, userImportJobRow, userImportJob);
-                        return;
                     }
                 }
             }
