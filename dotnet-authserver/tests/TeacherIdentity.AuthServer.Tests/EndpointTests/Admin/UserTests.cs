@@ -95,7 +95,8 @@ public class UserTests : TestBase
                 NationalInsuranceNumber = dqtNino,
                 Trn = user.Trn!,
                 PendingNameChange = false,
-                PendingDateOfBirthChange = false
+                PendingDateOfBirthChange = false,
+                Email = null
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");

@@ -63,9 +63,12 @@ public static class AngleSharpExtensions
         return count;
     }
 
-    public static IElement? GetSummaryListRowForKey(this IHtmlDocument doc, string key)
+    public static IElement? GetSummaryListRowForKey(this IDocument doc, string key) =>
+        doc.Body?.GetSummaryListRowForKey(key);
+
+    public static IElement? GetSummaryListRowForKey(this IElement element, string key)
     {
-        var allRows = doc.QuerySelectorAll(".govuk-summary-list__row");
+        var allRows = element.QuerySelectorAll(".govuk-summary-list__row");
 
         foreach (var row in allRows)
         {
@@ -80,9 +83,12 @@ public static class AngleSharpExtensions
         return null;
     }
 
-    public static string? GetSummaryListValueForKey(this IHtmlDocument doc, string key)
+    public static string? GetSummaryListValueForKey(this IDocument doc, string key) =>
+        doc.Body?.GetSummaryListValueForKey(key);
+
+    public static string? GetSummaryListValueForKey(this IElement element, string key)
     {
-        var row = GetSummaryListRowForKey(doc, key);
+        var row = GetSummaryListRowForKey(element, key);
         var rowValue = row?.QuerySelector(".govuk-summary-list__value");
         return rowValue.GetCleansedTextContent();
     }

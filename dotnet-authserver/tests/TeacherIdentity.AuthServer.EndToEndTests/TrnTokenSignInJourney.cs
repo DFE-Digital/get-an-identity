@@ -41,7 +41,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 Trn = trn,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -89,7 +90,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 Trn = trn,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -641,7 +643,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 Trn = trn,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
 
         var invalidEmailSuffix = "invalid.sch.uk";
@@ -797,7 +800,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 Trn = trn,
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
 
         return await _hostFixture.TestData.GenerateTrnToken(trn, email: email);

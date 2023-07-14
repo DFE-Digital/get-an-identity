@@ -10,4 +10,5 @@ public record TeacherInfo
     public required string? NationalInsuranceNumber { get; init; }
     public required bool PendingNameChange { get; init; }
     public required bool PendingDateOfBirthChange { get; init; }
+    public required string? Email { get; init; }
 }

@@ -37,7 +37,8 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             NationalInsuranceNumber = null,
             PendingNameChange = false,
-            PendingDateOfBirthChange = false
+            PendingDateOfBirthChange = false,
+            Email = null
         };
 
         var getTeacherByTrnResultTest23 = new TeacherInfo()
@@ -49,7 +50,8 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
             DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
             NationalInsuranceNumber = null,
             PendingNameChange = false,
-            PendingDateOfBirthChange = false
+            PendingDateOfBirthChange = false,
+            Email = null
         };
 
         return new TheoryData<UserImportTestScenarioData>()

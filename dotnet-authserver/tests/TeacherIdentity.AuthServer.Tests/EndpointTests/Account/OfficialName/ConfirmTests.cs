@@ -108,7 +108,7 @@ public class ConfirmTests : TestBase
     private void MockDqtApiResponse(User user, bool hasPendingNameChange)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            .ReturnsAsync(new TeacherInfo()
             {
                 DateOfBirth = user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
@@ -117,7 +117,8 @@ public class ConfirmTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = false,
-                PendingNameChange = hasPendingNameChange
+                PendingNameChange = hasPendingNameChange,
+                Email = null
             });
     }
 }

@@ -178,7 +178,8 @@ public class EvidenceTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = hasPendingDateOfBirthChange,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
     }
 

@@ -11,20 +11,25 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 namespace TeacherIdentity.AuthServer.Pages.Admin.AssignTrn;
 
 [Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
-public class TrnModel : PageModel
+public class IndexModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
 
-    public TrnModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient)
+    public IndexModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient)
     {
         _dbContext = dbContext;
         _dqtApiClient = dqtApiClient;
     }
 
-    [BindProperty]
+    [BindProperty(SupportsGet = true)]
+    [Display(Name = "Does the user have a TRN?")]
+    [Required(ErrorMessage = "Tell us if the user has a TRN")]
+    public bool? HasTrn { get; set; }
+
+    [BindProperty(SupportsGet = true)]
     [Display(Name = "What is their teacher reference number (TRN)?")]
-    [Required(ErrorMessage = "Enter a TRN")]
+    [RequiredIfTrue(nameof(HasTrn), ErrorMessage = "Enter a TRN")]
     [RegularExpression(@"^\d{7}$", ErrorMessage = "TRN must be 7 digits")]
     public string? Trn { get; set; }
 
@@ -33,6 +38,12 @@ public class TrnModel : PageModel
 
     public void OnGet()
     {
+        ModelState.Clear();
+
+        if (Trn is not null)
+        {
+            HasTrn = true;
+        }
     }
 
     public async Task<IActionResult> OnPost()
@@ -42,23 +53,26 @@ public class TrnModel : PageModel
             return this.PageWithErrors();
         }
 
-        var dqtTeacher = await _dqtApiClient.GetTeacherByTrn(Trn!);
-
-        if (dqtTeacher is null)
+        if (HasTrn == true)
         {
-            ModelState.AddModelError(nameof(Trn), "TRN does not exist");
-            return this.PageWithErrors();
+            var dqtTeacher = await _dqtApiClient.GetTeacherByTrn(Trn!);
+
+            if (dqtTeacher is null)
+            {
+                ModelState.AddModelError(nameof(Trn), "TRN does not exist");
+                return this.PageWithErrors();
+            }
+
+            var otherUserWithTrn = await _dbContext.Users.SingleOrDefaultAsync(u => u.Trn == Trn);
+
+            if (otherUserWithTrn is not null)
+            {
+                ModelState.AddModelError(nameof(Trn), "TRN is assigned to another user");
+                return this.PageWithErrors();
+            }
         }
 
-        var otherOtherWithTrn = await _dbContext.Users.SingleOrDefaultAsync(u => u.Trn == Trn);
-
-        if (otherOtherWithTrn is not null)
-        {
-            ModelState.AddModelError(nameof(Trn), "TRN is assigned to another user");
-            return this.PageWithErrors();
-        }
-
-        return RedirectToPage("Confirm", new { UserId, Trn });
+        return RedirectToPage("Confirm", new { UserId, trn = HasTrn == true ? Trn : null });
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)

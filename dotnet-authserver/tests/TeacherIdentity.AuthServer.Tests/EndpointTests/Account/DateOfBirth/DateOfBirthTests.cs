@@ -188,7 +188,8 @@ public class DateOfBirthTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingNameChange = false,
-                PendingDateOfBirthChange = hasPendingDobChange
+                PendingDateOfBirthChange = hasPendingDobChange,
+                Email = null
             });
     }
 }

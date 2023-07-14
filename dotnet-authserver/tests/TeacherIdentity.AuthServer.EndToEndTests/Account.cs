@@ -67,7 +67,8 @@ public class Account : IClassFixture<HostFixture>
             NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Email = null
         };
 
         ConfigureDqtApiGetTeacherResponse(user.Trn!, dqtTeacherInfo);
@@ -155,7 +156,8 @@ public class Account : IClassFixture<HostFixture>
             NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Email = null
         };
 
         ConfigureDqtApiGetTeacherResponse(user.Trn!, dqtTeacherInfo);

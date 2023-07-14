@@ -109,7 +109,7 @@ public class ConfirmTests : TestBase
     private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDateOfBirthChange)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            .ReturnsAsync(new TeacherInfo()
             {
                 DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
@@ -118,7 +118,8 @@ public class ConfirmTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = hasPendingDateOfBirthChange,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
     }
 

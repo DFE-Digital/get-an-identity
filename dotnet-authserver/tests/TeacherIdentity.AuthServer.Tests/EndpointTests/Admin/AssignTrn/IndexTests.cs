@@ -2,9 +2,9 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin.AssignTrn;
 
-public class TrnTests : TestBase
+public class IndexTests : TestBase
 {
-    public TrnTests(HostFixture hostFixture)
+    public IndexTests(HostFixture hostFixture)
         : base(hostFixture)
     {
     }
@@ -112,28 +112,39 @@ public class TrnTests : TestBase
     }
 
     [Fact]
-    public async Task Post_TrnNotEntered_ReturnsError()
+    public async Task Post_HasTrnNotAnswered_ReturnsError()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: Models.UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
+        ConfigureDqtApiMock(trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
         {
             Content = new FormUrlEncodedContentBuilder()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "HasTrn", "Tell us if the user has a TRN");
+    }
+
+    [Fact]
+    public async Task Post_HasTrnButNoTrnNoEntered_ReturnsError()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasTrn", bool.TrueString }
+            }
         };
 
         // Act
@@ -152,23 +163,11 @@ public class TrnTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(userType: Models.UserType.Default, hasTrn: false);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
+                { "HasTrn", bool.TrueString },
                 { "Trn", trn }
             }
         };
@@ -194,6 +193,7 @@ public class TrnTests : TestBase
         {
             Content = new FormUrlEncodedContentBuilder()
             {
+                { "HasTrn", bool.TrueString },
                 { "Trn", trn }
             }
         };
@@ -212,24 +212,13 @@ public class TrnTests : TestBase
         var user = await TestData.CreateUser(userType: Models.UserType.Default, hasTrn: false);
         var anotherUser = await TestData.CreateUser(hasTrn: true);
         var trn = anotherUser.Trn!;
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
+        ConfigureDqtApiMock(trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
+                { "HasTrn", bool.TrueString },
                 { "Trn", trn }
             }
         };
@@ -242,29 +231,18 @@ public class TrnTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidRequest_RedirectsToConfirmPage()
+    public async Task Post_ValidRequestWithTrn_RedirectsToConfirmPage()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: Models.UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
+        ConfigureDqtApiMock(trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
+                { "HasTrn", bool.TrueString },
                 { "Trn", trn }
             }
         };
@@ -274,6 +252,54 @@ public class TrnTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal($"/admin/users/{user.UserId}/assign-trn/{trn}", response.Headers.Location?.OriginalString);
+        Assert.Equal($"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task Post_ValidRequestWithNoTrn_RedirectsToConfirmPage()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: Models.UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "HasTrn", bool.FalseString }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal($"/admin/users/{user.UserId}/assign-trn/confirm", response.Headers.Location?.OriginalString);
+    }
+
+    private void ConfigureDqtApiMock(
+        string trn,
+        DateOnly? dateOfBirth = null,
+        string? firstName = null,
+        string? middleName = null,
+        string? lastName = null,
+        string? nino = null,
+        string? email = null)
+    {
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                FirstName = firstName ?? Faker.Name.First(),
+                MiddleName = middleName ?? Faker.Name.Middle(),
+                LastName = lastName ?? Faker.Name.Last(),
+                NationalInsuranceNumber = nino ?? Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = trn,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false,
+                Email = email ?? Faker.Internet.Email()
+            });
     }
 }
