@@ -27,7 +27,7 @@ public class DqtApiClient : IDqtApiClient
             .SetQueryParam("trn", request.Trn);
 
         var response = await _client.GetAsync(url, cancellationToken);
-        response.EnsureSuccessStatusCodeWithRateLimiting();
+        response.HandleErrorResponse();
         return (await response.Content.ReadFromJsonAsync<FindTeachersResponse>(cancellationToken: cancellationToken))!;
     }
 
@@ -40,14 +40,14 @@ public class DqtApiClient : IDqtApiClient
             return null;
         }
 
-        response.EnsureSuccessStatusCodeWithRateLimiting();
+        response.HandleErrorResponse();
         return await response.Content.ReadFromJsonAsync<TeacherInfo>(cancellationToken: cancellationToken);
     }
 
     public async Task<GetIttProvidersResponse> GetIttProviders(CancellationToken cancellationToken)
     {
         var response = await _client.GetAsync($"/v2/itt-providers", cancellationToken);
-        response.EnsureSuccessStatusCodeWithRateLimiting();
+        response.HandleErrorResponse();
         return (await response.Content.ReadFromJsonAsync<GetIttProvidersResponse>(cancellationToken: cancellationToken))!;
     }
 
@@ -55,7 +55,7 @@ public class DqtApiClient : IDqtApiClient
     {
         HttpContent content = JsonContent.Create(request);
         var response = await _client.PostAsync("/v3/teachers/name-changes", content, cancellationToken);
-        response.EnsureSuccessStatusCodeWithRateLimiting();
+        response.HandleErrorResponse();
     }
 
     public async Task PostTeacherDateOfBirthChange(TeacherDateOfBirthChangeRequest request,
@@ -63,6 +63,6 @@ public class DqtApiClient : IDqtApiClient
     {
         HttpContent content = JsonContent.Create(request);
         var response = await _client.PostAsync("/v3/teachers/date-of-birth-changes", content, cancellationToken);
-        response.EnsureSuccessStatusCodeWithRateLimiting();
+        response.HandleErrorResponse();
     }
 }

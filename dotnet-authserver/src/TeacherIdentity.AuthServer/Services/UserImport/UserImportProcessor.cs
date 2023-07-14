@@ -122,12 +122,12 @@ public class UserImportProcessor : IUserImportProcessor
                     else
                     {
                         dqtTeacher = await Policy
-                            .Handle<HttpRateLimitingException>()
+                            .Handle<TooManyRequestsException>()
                             .WaitAndRetryAsync(
                                 DqtApiRetryCount,
                                 sleepDurationProvider: (retryCount, exception, context) =>
                                 {
-                                    var rateLimitingException = exception as HttpRateLimitingException;
+                                    var rateLimitingException = exception as TooManyRequestsException;
                                     return rateLimitingException!.RetryAfter ?? DqtApiDefaultRetryAfter;
                                 },
                                 onRetryAsync: (exception, delay, retryCount, context) =>
