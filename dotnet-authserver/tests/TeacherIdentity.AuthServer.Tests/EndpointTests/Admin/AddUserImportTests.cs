@@ -104,7 +104,7 @@ public class AddUserImportTests : TestBase
     public async Task Post_FileWithExtraHeadersUploaded_RendersError()
     {
         // Arrange
-        var csvContent = new StringBuilder().AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN,EXTRA_COLUMN");
+        var csvContent = new StringBuilder().AppendLine("ID,EMAIL_ADDRESS,TRN,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PREFERRED_NAME,DATE_OF_BIRTH,TRN,EXTRA_COLUMN");
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
         request.Content = BuildCsvUploadFormContent("test-user-import.csv", csvContent);
@@ -120,7 +120,7 @@ public class AddUserImportTests : TestBase
     public async Task Post_FileWithValidHeadersButNoDataRowsUploaded_RendersError()
     {
         // Arrange
-        var csvContent = new StringBuilder().AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
+        var csvContent = new StringBuilder().AppendLine("ID,EMAIL_ADDRESS,TRN,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PREFERRED_NAME,DATE_OF_BIRTH");
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/user-imports/new");
         request.Content = BuildCsvUploadFormContent("test-user-import.csv", csvContent);
@@ -170,8 +170,8 @@ public class AddUserImportTests : TestBase
     private StringBuilder BuildCsvContent()
     {
         var csvContent = new StringBuilder();
-        csvContent.AppendLine("ID,EMAIL_ADDRESS,FIRST_NAME,LAST_NAME,DATE_OF_BIRTH,TRN");
-        csvContent.AppendLine("1234567890,test@email.com,joe,bloggs,05021970,1234765");
+        csvContent.AppendLine("ID,EMAIL_ADDRESS,TRN,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PREFERRED_NAME,DATE_OF_BIRTH");
+        csvContent.AppendLine("1234567890,test@email.com,1234765,joe,orlando,bloggs,joe bloggs,05021970");
         return csvContent;
     }
 
