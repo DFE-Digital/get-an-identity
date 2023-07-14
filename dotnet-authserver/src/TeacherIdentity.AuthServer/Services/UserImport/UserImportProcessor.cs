@@ -5,7 +5,9 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using EntityFramework.Exceptions.Common;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Infrastructure.Http;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserSearch;
@@ -15,6 +17,9 @@ namespace TeacherIdentity.AuthServer.Services.UserImport;
 
 public class UserImportProcessor : IUserImportProcessor
 {
+    private const int DqtApiRetryCount = 3;
+
+    private readonly TimeSpan DqtApiDefaultRetryAfter = TimeSpan.FromSeconds(30);
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserImportStorageService _userImportStorageService;
     private readonly IUserSearchService _userSearchService;
@@ -116,7 +121,22 @@ public class UserImportProcessor : IUserImportProcessor
                     }
                     else
                     {
-                        dqtTeacher = await _dqtApiClient.GetTeacherByTrn(row.Trn);
+                        dqtTeacher = await Policy
+                            .Handle<HttpRateLimitingException>()
+                            .WaitAndRetryAsync(
+                                DqtApiRetryCount,
+                                sleepDurationProvider: (retryCount, exception, context) =>
+                                {
+                                    var rateLimitingException = exception as HttpRateLimitingException;
+                                    return rateLimitingException!.RetryAfter ?? DqtApiDefaultRetryAfter;
+                                },
+                                onRetryAsync: (exception, delay, retryCount, context) =>
+                                {
+                                    _logger.LogInformation($"Executing retry number {retryCount} for rate-limited call to DQT API");
+                                    return Task.CompletedTask;
+                                })
+                            .ExecuteAsync(() => _dqtApiClient.GetTeacherByTrn(row.Trn));
+
                         if (dqtTeacher is null)
                         {
                             errors.Add($"{UserImportRow.TrnHeader} field must match a record in DQT");
