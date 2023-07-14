@@ -201,13 +201,11 @@ public class UsersTests : TestBase, IAsyncLifetime
 
         if (hasTrn)
         {
-            Assert.DoesNotContain("Add a DQT record", userRow.InnerHtml);
-            Assert.DoesNotContain("Mark as non DQT", userRow.InnerHtml);
+            Assert.DoesNotContain("Assign TRN", userRow.InnerHtml);
         }
         else
         {
-            Assert.Contains("Add a DQT record", userRow.InnerHtml);
-            Assert.Contains("Mark as non DQT", userRow.InnerHtml);
+            Assert.Contains("Assign TRN", userRow.InnerHtml);
         }
     }
 

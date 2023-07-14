@@ -158,7 +158,8 @@ public class IndexTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingNameChange = false,
-                PendingDateOfBirthChange = false
+                PendingDateOfBirthChange = false,
+                Email = null
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -210,7 +211,8 @@ public class IndexTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingNameChange = false,
-                PendingDateOfBirthChange = false
+                PendingDateOfBirthChange = false,
+                Email = null
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -249,6 +251,7 @@ public class IndexTests : TestBase
                 Trn = user.Trn!,
                 PendingNameChange = false,
                 PendingDateOfBirthChange = hasPendingReview,
+                Email = null
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -279,7 +282,8 @@ public class IndexTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingNameChange = true,
-                PendingDateOfBirthChange = false
+                PendingDateOfBirthChange = false,
+                Email = null
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");

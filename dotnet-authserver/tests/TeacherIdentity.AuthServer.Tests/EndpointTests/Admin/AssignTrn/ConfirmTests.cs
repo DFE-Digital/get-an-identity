@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
@@ -17,21 +18,9 @@ public class ConfirmTests : TestBase
     {
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
+        await UnauthenticatedUser_RedirectsToSignIn(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
     }
 
     [Fact]
@@ -39,21 +28,9 @@ public class ConfirmTests : TestBase
     {
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
     }
 
     [Fact]
@@ -62,21 +39,9 @@ public class ConfirmTests : TestBase
         // Arrange
         var userId = Guid.NewGuid();
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{userId}/assign-trn/{trn}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{userId}/assign-trn/confirm?trn={trn}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -91,21 +56,9 @@ public class ConfirmTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: true);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -124,7 +77,7 @@ public class ConfirmTests : TestBase
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
             .ReturnsAsync((TeacherInfo?)null);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{userId}/assign-trn/{trn}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{userId}/assign-trn/confirm?trn={trn}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -141,24 +94,15 @@ public class ConfirmTests : TestBase
         var trn = TestData.GenerateTrn();
 
         var dqtFirstName = Faker.Name.First();
+        var dqtMiddleName = Faker.Name.Middle();
         var dqtLastName = Faker.Name.Last();
         var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
+        var dqtEmail = Faker.Internet.Email();
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = dqtDateOfBirth,
-                FirstName = dqtFirstName,
-                MiddleName = "",
-                LastName = dqtLastName,
-                NationalInsuranceNumber = dqtNino,
-                Trn = trn,
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
+        ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/{trn}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -167,12 +111,79 @@ public class ConfirmTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal($"{user.FirstName} {user.LastName}", doc.GetSummaryListValueForKey("Preferred name"));
-        Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
-        Assert.Equal($"{dqtFirstName} {dqtLastName}", doc.GetSummaryListValueForKey("DQT name"));
-        Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
-        Assert.Equal("Provided", doc.GetSummaryListValueForKey("National insurance number"));
-        Assert.Equal(trn, doc.GetSummaryListValueForKey("TRN"));
+        var idSection = doc.GetElementByTestId("IdSection");
+        Assert.Equal(user.EmailAddress, idSection?.GetSummaryListValueForKey("Email address"));
+        Assert.Equal($"{user.FirstName} {user.LastName}", idSection?.GetSummaryListValueForKey("Name"));
+        Assert.Equal(user.DateOfBirth!.Value.ToString("d MMMM yyyy"), idSection?.GetSummaryListValueForKey("Date of birth"));
+        var dqtSection = doc.GetElementByTestId("DqtSection");
+        Assert.Equal(trn, dqtSection?.GetSummaryListValueForKey("TRN"));
+        Assert.Equal(dqtEmail, dqtSection?.GetSummaryListValueForKey("Email address"));
+        Assert.Equal($"{dqtFirstName} {dqtLastName}", dqtSection?.GetSummaryListValueForKey("Name"));
+        Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), dqtSection?.GetSummaryListValueForKey("Date of birth"));
+    }
+
+    [Fact]
+    public async Task Get_DqtEmailDifferentToIdEmail_ShowsWarning()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+
+        var dqtEmail = Faker.Internet.Email();
+        Debug.Assert(dqtEmail != user.EmailAddress);
+
+        ConfigureDqtApiMock(trn, email: dqtEmail);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.NotNull(doc.GetElementByTestId("EmailOverwriteWarning"));
+    }
+
+    [Fact]
+    public async Task Get_DqtEmailSameAsIdEmail_DoesNotShowWarning()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn, email: user.EmailAddress);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetElementByTestId("EmailOverwriteWarning"));
+    }
+
+    [Fact]
+    public async Task Get_DqtEmailEmpty_DoesNotShowWarning()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn, email: "");
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetElementByTestId("EmailOverwriteWarning"));
     }
 
     [Fact]
@@ -180,26 +191,14 @@ public class ConfirmTests : TestBase
     {
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
+        ConfigureDqtApiMock(trn);
 
         await UnauthenticatedUser_RedirectsToSignIn(
             HttpMethod.Post,
-            $"/admin/users/{user.UserId}/assign-trn/{trn}",
+            $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}",
             new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
             });
     }
 
@@ -208,26 +207,14 @@ public class ConfirmTests : TestBase
     {
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
+        ConfigureDqtApiMock(trn);
 
         await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(
             HttpMethod.Post,
-            $"/admin/users/{user.UserId}/assign-trn/{trn}",
+            $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}",
             new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
             });
     }
 
@@ -237,25 +224,13 @@ public class ConfirmTests : TestBase
         // Arrange
         var userId = Guid.NewGuid();
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{userId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{userId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
             }
         };
 
@@ -267,30 +242,41 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_UserAlreadyHasTrnAssigned_ReturnsBadRequest()
+    public async Task Post_WithTrnAndUserAlreadyHasTrnAssigned_ReturnsBadRequest()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: true);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                Trn = trn,
-                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_WithoutTrnAndUserAlreadyHasTrnAssigned_ReturnsBadRequest()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: true);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "ConfirmNoTrn", bool.TrueString }
             }
         };
 
@@ -311,11 +297,11 @@ public class ConfirmTests : TestBase
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
             .ReturnsAsync((TeacherInfo?)null);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{userId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{userId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
             }
         };
 
@@ -327,31 +313,14 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_NoOptionSelected_ReturnsError()
+    public async Task Post_WithTrnAndNoOptionSelected_ReturnsError()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        var dqtFirstName = Faker.Name.First();
-        var dqtLastName = Faker.Name.Last();
-        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = dqtDateOfBirth,
-                FirstName = dqtFirstName,
-                MiddleName = "",
-                LastName = dqtLastName,
-                NationalInsuranceNumber = dqtNino,
-                Trn = trn,
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
         };
@@ -360,39 +329,22 @@ public class ConfirmTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "AddRecord", "Select yes if this is the right DQT record");
+        await AssertEx.HtmlResponseHasError(response, "AssignTrn", "Tell us if you want to assign this TRN");
     }
 
     [Fact]
-    public async Task Post_WithAddRecordNotConfirmed_RedirectsAndDoesNotAssignTrn()
+    public async Task Post_WithTrnAndAddRecordNotConfirmed_RedirectsAndDoesNotAssignTrn()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        var dqtFirstName = Faker.Name.First();
-        var dqtLastName = Faker.Name.Last();
-        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = dqtDateOfBirth,
-                FirstName = dqtFirstName,
-                MiddleName = "",
-                LastName = dqtLastName,
-                NationalInsuranceNumber = dqtNino,
-                Trn = trn,
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.FalseString }
+                { "AssignTrn", bool.FalseString }
             }
         };
 
@@ -401,7 +353,7 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal($"/admin/users/{user.UserId}", response.Headers.Location?.OriginalString);
+        Assert.Equal($"/admin/users/{user.UserId}/assign-trn?hasTrn=True", response.Headers.Location?.OriginalString);
 
         await TestData.WithDbContext(async dbContext =>
         {
@@ -414,35 +366,18 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_WithAddRecordConfirmed_AssignsTrnToUserEmitsEventAndRedirects()
+    public async Task Post_WithTrnAndAddRecordConfirmed_AssignsTrnToUserEmitsEventAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
         var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
 
-        var dqtFirstName = Faker.Name.First();
-        var dqtLastName = Faker.Name.Last();
-        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
-
-        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = dqtDateOfBirth,
-                FirstName = dqtFirstName,
-                MiddleName = "",
-                LastName = dqtLastName,
-                NationalInsuranceNumber = dqtNino,
-                Trn = trn,
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
             }
         };
 
@@ -470,6 +405,93 @@ public class ConfirmTests : TestBase
                 Assert.Equal(UserUpdatedEventSource.SupportUi, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            });
+    }
+
+    [Fact]
+    public async Task Post_WithoutTrnAndNotConfirmed_ReturnsError()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "ConfirmNoTrn", "Confirm the user does not have a TRN");
+    }
+
+    [Fact]
+    public async Task Post_WithoutTrnAndConfirmed_UpdatesTrnLookupStausEmitsEventAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
+        var trn = TestData.GenerateTrn();
+        ConfigureDqtApiMock(trn);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "ConfirmNoTrn", bool.TrueString }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal($"/admin/users/{user.UserId}", response.Headers.Location?.OriginalString);
+
+        await TestData.WithDbContext(async dbContext =>
+        {
+            user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
+            Assert.Null(user.Trn);
+            Assert.Equal(TrnAssociationSource.SupportUi, user.TrnAssociationSource);
+            Assert.Equal(TrnLookupStatus.Failed, user.TrnLookupStatus);
+            Assert.Equal(Clock.UtcNow, user.Updated);
+        });
+
+        EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                Assert.Equal(UserUpdatedEventSource.SupportUi, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            });
+    }
+
+    private void ConfigureDqtApiMock(
+        string trn,
+        DateOnly? dateOfBirth = null,
+        string? firstName = null,
+        string? middleName = null,
+        string? lastName = null,
+        string? nino = null,
+        string? email = null)
+    {
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                FirstName = firstName ?? Faker.Name.First(),
+                MiddleName = middleName ?? Faker.Name.Middle(),
+                LastName = lastName ?? Faker.Name.Last(),
+                NationalInsuranceNumber = nino ?? Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = trn,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false,
+                Email = email ?? Faker.Internet.Email()
             });
     }
 }

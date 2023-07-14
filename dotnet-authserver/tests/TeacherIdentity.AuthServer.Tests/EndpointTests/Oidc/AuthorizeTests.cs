@@ -461,7 +461,8 @@ public class AuthorizeTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = trn,
                 PendingDateOfBirthChange = false,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Email = null
             });
     }
 }

@@ -27,23 +27,28 @@ public class ConfirmModel : PageModel
     [FromRoute]
     public Guid UserId { get; set; }
 
-    [FromRoute]
-    public string Trn { get; set; } = default!;
+    [FromQuery(Name = "trn")]
+    public string? Trn { get; set; }
 
     public string? EmailAddress { get; set; }
 
     public string? Name { get; set; }
 
+    public DateOnly? DateOfBirth { get; set; }
+
     public string? DqtName { get; set; }
 
     public DateOnly? DqtDateOfBirth { get; set; }
 
-    public string? DqtNationalInsuranceNumber { get; set; }
+    public string? DqtEmailAddress { get; set; }
 
     [BindProperty]
-    [Display(Name = "Do you want to add this DQT record?")]
-    [Required(ErrorMessage = "Select yes if this is the right DQT record")]
-    public bool? AddRecord { get; set; }
+    [Display(Name = "Do you want to assign this TRN?")]
+    public bool? AssignTrn { get; set; }
+
+    [BindProperty]
+    [Display(Name = "User does not have a TRN")]
+    public bool ConfirmNoTrn { get; set; }
 
     public IActionResult OnGet()
     {
@@ -52,24 +57,35 @@ public class ConfirmModel : PageModel
 
     public async Task<IActionResult> OnPost()
     {
+        if (Trn is not null && AssignTrn is null)
+        {
+            ModelState.AddModelError(nameof(AssignTrn), "Tell us if you want to assign this TRN");
+        }
+
+        if (Trn is null && !ConfirmNoTrn)
+        {
+            ModelState.AddModelError(nameof(ConfirmNoTrn), "Confirm the user does not have a TRN");
+        }
+
         if (!ModelState.IsValid)
         {
             return this.PageWithErrors();
         }
 
-        if (AddRecord == false)
+        if (AssignTrn == false)
         {
-            return RedirectToPage("/Admin/User", new { UserId });
+            return RedirectToPage("/Admin/AssignTrn/Index", new { UserId, hasTrn = true });
         }
 
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == UserId);
 
         user.Trn = Trn;
-        user.TrnLookupStatus = TrnLookupStatus.Found;
+        user.TrnLookupStatus = Trn is not null ? TrnLookupStatus.Found : TrnLookupStatus.Failed;
         user.TrnAssociationSource = TrnAssociationSource.SupportUi;
         user.Updated = _clock.UtcNow;
 
-        var changes = Events.UserUpdatedEventChanges.Trn | Events.UserUpdatedEventChanges.TrnLookupStatus;
+        var changes = (Trn is not null ? Events.UserUpdatedEventChanges.Trn : Events.UserUpdatedEventChanges.None) |
+            Events.UserUpdatedEventChanges.TrnLookupStatus;
 
         _dbContext.AddEvent(new Events.UserUpdatedEvent()
         {
@@ -83,7 +99,7 @@ public class ConfirmModel : PageModel
 
         await _dbContext.SaveChangesAsync();
 
-        TempData.SetFlashSuccess("DQT record added");
+        TempData.SetFlashSuccess("TRN assigned");
         return RedirectToPage("/Admin/User", new { UserId });
     }
 
@@ -103,19 +119,24 @@ public class ConfirmModel : PageModel
             return;
         }
 
-        var dqtTeacher = await _dqtApiClient.GetTeacherByTrn(Trn);
-
-        if (dqtTeacher is null)
-        {
-            context.Result = NotFound();
-            return;
-        }
-
         EmailAddress = user.EmailAddress;
         Name = $"{user.FirstName} {user.LastName}";
-        DqtName = $"{dqtTeacher.FirstName} {dqtTeacher.LastName}";
-        DqtDateOfBirth = dqtTeacher.DateOfBirth;
-        DqtNationalInsuranceNumber = dqtTeacher.NationalInsuranceNumber;
+        DateOfBirth = user.DateOfBirth;
+
+        if (Trn is not null)
+        {
+            var dqtTeacher = await _dqtApiClient.GetTeacherByTrn(Trn);
+
+            if (dqtTeacher is null)
+            {
+                context.Result = NotFound();
+                return;
+            }
+
+            DqtName = $"{dqtTeacher.FirstName} {dqtTeacher.LastName}";
+            DqtDateOfBirth = dqtTeacher.DateOfBirth;
+            DqtEmailAddress = dqtTeacher.Email;
+        }
 
         await next();
     }

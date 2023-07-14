@@ -23,7 +23,7 @@
     <div class="x-govuk-summary-card__body">
         <govuk-summary-list>
             <govuk-summary-list-row>
-                <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
+                <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>
                     <p data-testid="Name">@Model.Name</p>
 
@@ -53,7 +53,7 @@
                 @if (Model.CanChangeDqtRecord)
                 {
                     <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action asp-page="AssignTrn/Trn" asp-route-userId="@Model.UserId">Change record</govuk-summary-list-row-action>
+                        <govuk-summary-list-row-action asp-page="AssignTrn/Index" asp-route-userId="@Model.UserId">Assign TRN</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 }
             </govuk-summary-list-row>
