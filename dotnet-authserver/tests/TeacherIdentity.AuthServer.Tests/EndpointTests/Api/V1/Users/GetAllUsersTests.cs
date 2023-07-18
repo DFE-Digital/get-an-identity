@@ -43,9 +43,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var user1 = await TestData.CreateUser(hasTrn: true);
         var user2 = await TestData.CreateUser(hasTrn: true);
         var user3 = await TestData.CreateUser(hasTrn: false);
-        var user4 = await TestData.CreateUser(hasTrn: false);
-        var user5 = await TestData.CreateUser(hasTrn: false);
-        var allUsers = new[] { user1, user2, user3, user4, user5 }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
+        var allUsers = new[] { user1, user2, user3, TestUsers.DefaultUser, TestUsers.DefaultUserWithTrn }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         // Act
         var response = await httpClient.GetAsync("/api/v1/users");
@@ -137,9 +135,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var user5 = await TestData.CreateUser(hasTrn: false);
         var user6 = await TestData.CreateUser(hasTrn: false);
         var user7 = await TestData.CreateUser(hasTrn: false);
-        var user8 = await TestData.CreateUser(hasTrn: false);
-        var user9 = await TestData.CreateUser(hasTrn: false);
-        var sortedUsers = new[] { user1, user2, user3, user4, user5, user6, user7, user8, user9 }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
+        var sortedUsers = new[] { user1, user2, user3, user4, user5, user6, user7, TestUsers.DefaultUser, TestUsers.DefaultUserWithTrn }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         var pagedUsers = sortedUsers.Skip(skip).Take(pageSize).ToArray();
 
