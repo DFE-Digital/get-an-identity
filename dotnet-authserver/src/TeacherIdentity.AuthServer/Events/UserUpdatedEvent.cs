@@ -32,4 +32,5 @@ public enum UserUpdatedEventSource
     SupportUi = 3,
     UserImport = 4,
     TrnToken = 5,
+    DqtSynchronization = 6
 }
