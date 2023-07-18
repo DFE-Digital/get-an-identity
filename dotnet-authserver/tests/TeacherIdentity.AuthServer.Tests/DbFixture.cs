@@ -40,13 +40,22 @@ public class DbFixture : IAsyncLifetime
     private IServiceProvider GetServices()
     {
         var services = new ServiceCollection();
-
+        var preventChangesToEntitiesInterceptor = new PreventChangesToEntitiesInterceptor<User, Guid>(TestUsers.All.Select(u => u.UserId), (user) => user.UserId);
+        services.AddSingleton(preventChangesToEntitiesInterceptor);
         services.AddDbContext<TeacherIdentityServerDbContext>(
-            options => TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString),
+            options =>
+            {
+                options.AddInterceptors(preventChangesToEntitiesInterceptor);
+                TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString);
+            },
             contextLifetime: ServiceLifetime.Transient);
 
         services.AddDbContextFactory<TeacherIdentityServerDbContext>(
-            options => TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString));
+             options =>
+             {
+                 options.AddInterceptors(preventChangesToEntitiesInterceptor);
+                 TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString);
+             });
 
         services.AddSingleton<TestData>();
         services.AddSingleton<IClock, TestClock>();
