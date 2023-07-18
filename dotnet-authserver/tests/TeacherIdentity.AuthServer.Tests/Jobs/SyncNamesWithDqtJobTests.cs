@@ -8,7 +8,8 @@ using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.Jobs;
 
-public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>
+[Collection(nameof(DisableParallelization))]
+public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
 {
     private readonly DbFixture _dbFixture;
 
@@ -16,6 +17,13 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>
     {
         _dbFixture = dbFixture;
     }
+
+    public async Task InitializeAsync()
+    {
+        await ClearNonTestUsers();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task Execute_WhenDqtNamesAreDifferentToIdentity_UpdatesUserAndInsertsEvent()
@@ -165,6 +173,14 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>
                 .Where(u => u!.User.Trn == trn)
                 .SingleOrDefault();
             Assert.Null(userUpdatedEvent);
+        });
+    }
+
+    private async Task ClearNonTestUsers()
+    {
+        await _dbFixture.TestData.WithDbContext(async dbContext =>
+        {
+            await TestUsers.DeleteNonTestUsers(dbContext);
         });
     }
 }
