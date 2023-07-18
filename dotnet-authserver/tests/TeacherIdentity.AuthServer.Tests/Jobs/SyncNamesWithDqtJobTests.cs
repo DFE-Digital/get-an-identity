@@ -68,7 +68,7 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
 
         var dqtApiClient = Mock.Of<IDqtApiClient>();
         Mock.Get(dqtApiClient)
-            .Setup(d => d.GetTeacherByTrn(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(d => d.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dqtTeacher);
 
         // Act
@@ -150,7 +150,7 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
 
         var dqtApiClient = Mock.Of<IDqtApiClient>();
         Mock.Get(dqtApiClient)
-            .Setup(d => d.GetTeacherByTrn(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(d => d.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dqtTeacher);
 
         // Act
