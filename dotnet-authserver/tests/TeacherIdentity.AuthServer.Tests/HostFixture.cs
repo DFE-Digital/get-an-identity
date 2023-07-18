@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -138,14 +139,20 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // Add Pages defined in this test project
             services.AddRazorPages().AddApplicationPart(typeof(HostFixture).Assembly);
 
-            // Publish events synchronously
+            // Publish events synchronously + prevent tests from updating "fixed" default users
             services.AddSingleton<PublishEventsDbCommandInterceptor>();
+            var preventChangesToEntitiesInterceptor = new PreventChangesToEntitiesInterceptor<User, Guid>(TestUsers.All.Select(u => u.UserId), (user) => user.UserId);
+            services.AddSingleton(preventChangesToEntitiesInterceptor);
             services.Decorate<DbContextOptions<TeacherIdentityServerDbContext>>((inner, sp) =>
             {
                 var coreOptionsExtension = inner.GetExtension<CoreOptionsExtension>();
 
                 return (DbContextOptions<TeacherIdentityServerDbContext>)inner.WithExtension(
-                    coreOptionsExtension.WithInterceptors(new[] { sp.GetRequiredService<PublishEventsDbCommandInterceptor>() }));
+                    coreOptionsExtension.WithInterceptors(new IInterceptor[]
+                    {
+                        sp.GetRequiredService<PublishEventsDbCommandInterceptor>(),
+                        sp.GetRequiredService<PreventChangesToEntitiesInterceptor<User, Guid>>(),
+                    }));
             });
 
             services.AddSingleton<IAuthenticationStateProvider, TestAuthenticationStateProvider>();
