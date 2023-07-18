@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using TeacherIdentity.AuthServer.EventProcessing;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
@@ -40,22 +41,25 @@ public class DbFixture : IAsyncLifetime
     private IServiceProvider GetServices()
     {
         var services = new ServiceCollection();
-        var preventChangesToEntitiesInterceptor = new PreventChangesToEntitiesInterceptor<User, Guid>(TestUsers.All.Select(u => u.UserId), (user) => user.UserId);
-        services.AddSingleton(preventChangesToEntitiesInterceptor);
+
         services.AddDbContext<TeacherIdentityServerDbContext>(
-            options =>
-            {
-                options.AddInterceptors(preventChangesToEntitiesInterceptor);
-                TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString);
-            },
+            options => TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString),
             contextLifetime: ServiceLifetime.Transient);
 
         services.AddDbContextFactory<TeacherIdentityServerDbContext>(
-             options =>
-             {
-                 options.AddInterceptors(preventChangesToEntitiesInterceptor);
-                 TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString);
-             });
+             options => TeacherIdentityServerDbContext.ConfigureOptions(options, ConnectionString));
+
+        var preventChangesToEntitiesInterceptor = new PreventChangesToEntitiesInterceptor<User, Guid>(TestUsers.All.Select(u => u.UserId), (user) => user.UserId);
+        services.AddSingleton(preventChangesToEntitiesInterceptor);
+        services.Decorate<DbContextOptions<TeacherIdentityServerDbContext>>((inner, sp) =>
+        {
+            var coreOptionsExtension = inner.GetExtension<CoreOptionsExtension>();
+            return (DbContextOptions<TeacherIdentityServerDbContext>)inner.WithExtension(
+                coreOptionsExtension.WithInterceptors(new[]
+                {
+                    sp.GetRequiredService<PreventChangesToEntitiesInterceptor<User, Guid>>(),
+                }));
+        });
 
         services.AddSingleton<TestData>();
         services.AddSingleton<IClock, TestClock>();
