@@ -54,7 +54,7 @@ public class SyncNamesWithDqtJob : IDisposable
 
             var changes = UserUpdatedEventChanges.None |
                         (userWithTrn.FirstName != dqtTeacher!.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
-                        (userWithTrn.MiddleName != dqtTeacher!.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
+                        ((userWithTrn.MiddleName ?? string.Empty) != dqtTeacher!.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
                         (userWithTrn.LastName != dqtTeacher!.LastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
 
             if (changes == UserUpdatedEventChanges.None)
