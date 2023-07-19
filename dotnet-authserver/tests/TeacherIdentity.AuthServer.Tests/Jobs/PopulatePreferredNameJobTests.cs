@@ -174,9 +174,4 @@ public class PopulatePreferredNameJobTests : IClassFixture<DbFixture>, IAsyncLif
             Assert.Null(userUpdatedEvent);
         });
     }
-
-    private async Task ClearNonTestUsers()
-    {
-
-    }
 }
