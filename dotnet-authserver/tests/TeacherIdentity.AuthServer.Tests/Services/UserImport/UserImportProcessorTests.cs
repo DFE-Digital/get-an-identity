@@ -22,7 +22,11 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await ClearNonTestUsers();
+        await _dbFixture.TestData.WithDbContext(async dbContext =>
+        {
+            await TestUsers.DeleteNonTestUsers(dbContext);
+            await dbContext.Database.ExecuteSqlAsync($"truncate table events");
+        });
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -874,14 +878,6 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>, IAsyncLifetime
 
                 Assert.Collection(userImportJobRow!.Notes, elementInspectors.ToArray());
             }
-        });
-    }
-
-    private async Task ClearNonTestUsers()
-    {
-        await _dbFixture.TestData.WithDbContext(async dbContext =>
-        {
-            await TestUsers.DeleteNonTestUsers(dbContext);
         });
     }
 }
