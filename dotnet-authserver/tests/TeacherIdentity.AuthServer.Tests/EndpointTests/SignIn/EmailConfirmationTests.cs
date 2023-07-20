@@ -477,6 +477,7 @@ public class EmailConfirmationTests : TestBase
             .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
             {
                 DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                Email = Faker.Internet.Email(),
                 FirstName = dqtFirstName,
                 MiddleName = dqtMiddleName,
                 LastName = dqtLastName,

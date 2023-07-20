@@ -35,6 +35,8 @@ public class ConfirmModel : PageModel
 
     public string? Name { get; set; }
 
+    public DateOnly? DateOfBirth { get; set; }
+
     public string? DqtFirstName { get; set; }
 
     public string? DqtMiddleName { get; set; }
@@ -82,19 +84,26 @@ public class ConfirmModel : PageModel
 
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == UserId);
 
-        var changes = (Trn is not null ? Events.UserUpdatedEventChanges.Trn : Events.UserUpdatedEventChanges.None) |
-                      Events.UserUpdatedEventChanges.TrnLookupStatus |
-                      (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : 0) |
-                      (user.MiddleName != DqtMiddleName ? Events.UserUpdatedEventChanges.MiddleName : 0) |
-                      (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : 0);
-
+        var changes = Events.UserUpdatedEventChanges.TrnLookupStatus;
         user.Trn = Trn;
-        user.TrnLookupStatus = Trn is not null ? TrnLookupStatus.Found : TrnLookupStatus.Failed;
         user.TrnAssociationSource = TrnAssociationSource.SupportUi;
-        user.FirstName = DqtFirstName!;
-        user.MiddleName = DqtMiddleName;
-        user.LastName = DqtLastName!;
         user.Updated = _clock.UtcNow;
+
+        if (Trn is not null)
+        {
+            changes = changes | Events.UserUpdatedEventChanges.Trn |
+                (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
+                ((user.MiddleName ?? string.Empty) != (DqtMiddleName ?? string.Empty) ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
+                (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
+            user.FirstName = DqtFirstName!;
+            user.MiddleName = DqtMiddleName;
+            user.LastName = DqtLastName!;
+            user.TrnLookupStatus = TrnLookupStatus.Found;
+        }
+        else
+        {
+            user.TrnLookupStatus = TrnLookupStatus.Failed;
+        }
 
         _dbContext.AddEvent(new Events.UserUpdatedEvent()
         {
@@ -141,12 +150,10 @@ public class ConfirmModel : PageModel
                 context.Result = NotFound();
                 return;
             }
-        
+
             DqtFirstName = dqtTeacher.FirstName;
             DqtMiddleName = dqtTeacher.MiddleName;
             DqtLastName = dqtTeacher.LastName;
-            DqtDateOfBirth = dqtTeacher.DateOfBirth;
-            DqtNationalInsuranceNumber = dqtTeacher.NationalInsuranceNumber;
             DqtDateOfBirth = dqtTeacher.DateOfBirth;
             DqtEmailAddress = dqtTeacher.Email;
         }

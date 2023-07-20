@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
@@ -114,12 +113,12 @@ public class ConfirmTests : TestBase
         var doc = await response.GetDocument();
         var idSection = doc.GetElementByTestId("IdSection");
         Assert.Equal(user.EmailAddress, idSection?.GetSummaryListValueForKey("Email address"));
-        Assert.Equal($"{user.FirstName} {user.LastName}", idSection?.GetSummaryListValueForKey("Name"));
+        Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", idSection?.GetSummaryListValueForKey("Name"));
         Assert.Equal(user.DateOfBirth!.Value.ToString("d MMMM yyyy"), idSection?.GetSummaryListValueForKey("Date of birth"));
         var dqtSection = doc.GetElementByTestId("DqtSection");
         Assert.Equal(trn, dqtSection?.GetSummaryListValueForKey("TRN"));
         Assert.Equal(dqtEmail, dqtSection?.GetSummaryListValueForKey("Email address"));
-        Assert.Equal($"{dqtFirstName} {dqtLastName}", dqtSection?.GetSummaryListValueForKey("Name"));
+        Assert.Equal($"{dqtFirstName} {dqtMiddleName} {dqtLastName}", dqtSection?.GetSummaryListValueForKey("Name"));
         Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), dqtSection?.GetSummaryListValueForKey("Date of birth"));
     }
 
@@ -367,7 +366,7 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_WithAddRecordConfirmedWithDifferentDqtName_UpdatesUserNameAndTrnEmitsEventAndRedirects()
+    public async Task Post_WithTrnAndAddRecordConfirmedAndDifferentDqtName_UpdatesUserNameAndTrnAndEmitsEventAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
@@ -382,11 +381,11 @@ public class ConfirmTests : TestBase
 
         ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/{trn}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "AddRecord", bool.TrueString }
+                { "AssignTrn", bool.TrueString }
             }
         };
 
@@ -421,7 +420,7 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_WithTrnAndAddRecordConfirmedAndDqtNameMatch_AssignsTrnToUserEmitsEventAndRedirects()
+    public async Task Post_WithTrnAndAddRecordConfirmedAndDqtNameMatch_AssignsTrnToUserAndEmitsEventAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
@@ -491,7 +490,7 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_WithoutTrnAndConfirmed_UpdatesTrnLookupStausEmitsEventAndRedirects()
+    public async Task Post_WithoutTrnAndConfirmed_UpdatesTrnLookupStatusEmitsEventAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
