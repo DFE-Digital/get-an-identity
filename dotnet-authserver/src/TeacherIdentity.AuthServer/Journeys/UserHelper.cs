@@ -260,9 +260,9 @@ public class UserHelper
     {
         var existingUser = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var changes = (existingUser.FirstName != dqtUser.FirstName ? Events.UserUpdatedEventChanges.FirstName : 0) |
-                      (existingUser.MiddleName != dqtUser.MiddleName ? Events.UserUpdatedEventChanges.MiddleName : 0) |
-                      (existingUser.LastName != dqtUser.LastName ? Events.UserUpdatedEventChanges.LastName : 0);
+        var changes = (existingUser.FirstName != dqtUser.FirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
+                      ((existingUser.MiddleName ?? string.Empty) != dqtUser.MiddleName ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
+                      (existingUser.LastName != dqtUser.LastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
 
         existingUser.FirstName = dqtUser.FirstName;
         existingUser.MiddleName = dqtUser.MiddleName;
@@ -270,7 +270,7 @@ public class UserHelper
 
         _dbContext.AddEvent(new Events.UserUpdatedEvent()
         {
-            Source = Events.UserUpdatedEventSource.TrnMatchedToExistingUser,
+            Source = Events.UserUpdatedEventSource.DqtSynchronization,
             CreatedUtc = _clock.UtcNow,
             Changes = changes,
             User = Events.User.FromModel(existingUser),

@@ -9,6 +9,6 @@ public static class NameHelper
             return null;
         }
 
-        return middleName is null ? $"{firstName} {lastName}" : $"{firstName} {middleName} {lastName}";
+        return string.IsNullOrEmpty(middleName) ? $"{firstName} {lastName}" : $"{firstName} {middleName} {lastName}";
     }
 }
