@@ -516,7 +516,7 @@ public class EmailConfirmationTests : TestBase
             {
                 var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
-                Assert.Equal(UserUpdatedEventSource.TrnMatchedToExistingUser, userUpdatedEvent.Source);
+                Assert.Equal(UserUpdatedEventSource.DqtSynchronization, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
                 Assert.Equal(dqtFirstName, userUpdatedEvent.User.FirstName);
