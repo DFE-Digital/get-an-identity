@@ -11,9 +11,6 @@ namespace TeacherIdentity.AuthServer.Pages.Admin.MergeUser;
 [Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
 public class Confirm : PageModel
 {
-    public static string ChosenTrnKey = "ChosenTrn";
-    public string? ChosenTrn;
-
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
 
@@ -33,6 +30,9 @@ public class Confirm : PageModel
 
     public User? UserToMerge { get; set; }
 
+    [FromQuery(Name = "trn")]
+    public string? ChosenTrn { get; set; }
+
     public void OnGet()
     {
     }
@@ -48,8 +48,6 @@ public class Confirm : PageModel
         UpdateMergedUser(User!);
 
         await _dbContext.SaveChangesAsync();
-
-        HttpContext.Session.Remove(ChosenTrnKey);
 
         TempData.SetFlashSuccess("User merged");
 
@@ -67,7 +65,7 @@ public class Confirm : PageModel
             return;
         }
 
-        if (!TryGetValidChosenTrn(out ChosenTrn))
+        if (!ValidateChosenTrn())
         {
             context.Result = BadRequest();
             return;
@@ -122,11 +120,9 @@ public class Confirm : PageModel
         });
     }
 
-    private bool TryGetValidChosenTrn(out string? trn)
+    private bool ValidateChosenTrn()
     {
-        trn = HttpContext.Session.GetString(ChosenTrnKey);
-        trn = trn == "None" ? null : trn ?? User!.Trn;
-
-        return trn == User!.Trn || trn == UserToMerge!.Trn;
+        ChosenTrn = ChosenTrn == "None" ? null : ChosenTrn ?? User!.Trn;
+        return ChosenTrn == User!.Trn || ChosenTrn == UserToMerge!.Trn;
     }
 }
