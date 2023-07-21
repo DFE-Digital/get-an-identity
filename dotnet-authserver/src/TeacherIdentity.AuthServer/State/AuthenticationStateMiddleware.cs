@@ -5,17 +5,15 @@ public class AuthenticationStateMiddleware
     public const string IdQueryParameterName = "asid";
 
     private readonly RequestDelegate _next;
-    private readonly IAuthenticationStateProvider _authenticationStateProvider;
 
-    public AuthenticationStateMiddleware(RequestDelegate next, IAuthenticationStateProvider authenticationStateProvider)
+    public AuthenticationStateMiddleware(RequestDelegate next)
     {
         _next = next;
-        _authenticationStateProvider = authenticationStateProvider;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IAuthenticationStateProvider authenticationStateProvider)
     {
-        var authenticationState = _authenticationStateProvider.GetAuthenticationState(context);
+        var authenticationState = await authenticationStateProvider.GetAuthenticationState(context);
 
         if (authenticationState is not null)
         {
@@ -33,7 +31,7 @@ public class AuthenticationStateMiddleware
                 throw new InvalidOperationException($"{nameof(AuthenticationState)} must have {nameof(AuthenticationState.JourneyId)} set.");
             }
 
-            _authenticationStateProvider.SetAuthenticationState(context, authenticationStateFeature.AuthenticationState);
+            await authenticationStateProvider.SetAuthenticationState(context, authenticationStateFeature.AuthenticationState);
         }
     }
 }

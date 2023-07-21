@@ -27,6 +27,7 @@ public class AuthorizationController : Controller
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
     private readonly TrnTokenHelper _trnTokenHelper;
+
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,

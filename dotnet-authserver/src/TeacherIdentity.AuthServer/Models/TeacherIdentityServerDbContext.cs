@@ -53,6 +53,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<TrnTokenModel> TrnTokens => Set<TrnTokenModel>();
 
+    public DbSet<AuthenticationState> AuthenticationStates => Set<AuthenticationState>();
+
     public void AddEvent(EventBase @event)
     {
         Events.Add(Event.FromEventBase(@event));

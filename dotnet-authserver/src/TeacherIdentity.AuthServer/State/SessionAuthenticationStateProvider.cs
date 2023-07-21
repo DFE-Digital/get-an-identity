@@ -9,17 +9,7 @@ public class SessionAuthenticationStateProvider : IAuthenticationStateProvider
         _logger = logger;
     }
 
-    public void ClearAuthenticationState(HttpContext httpContext)
-    {
-        if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asidStr) &&
-            Guid.TryParse(asidStr, out var asid))
-        {
-            var sessionKey = GetSessionKey(asid);
-            httpContext.Session.Remove(sessionKey);
-        }
-    }
-
-    public AuthenticationState? GetAuthenticationState(HttpContext httpContext)
+    public Task<AuthenticationState?> GetAuthenticationState(HttpContext httpContext)
     {
         if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asidStr) &&
             Guid.TryParse(asidStr, out var asid))
@@ -32,7 +22,7 @@ public class SessionAuthenticationStateProvider : IAuthenticationStateProvider
                 try
                 {
                     var authenticationState = AuthenticationState.Deserialize(serializedAuthenticationState);
-                    return authenticationState;
+                    return Task.FromResult((AuthenticationState?)authenticationState);
                 }
                 catch (Exception ex)
                 {
@@ -41,14 +31,15 @@ public class SessionAuthenticationStateProvider : IAuthenticationStateProvider
             }
         }
 
-        return null;
+        return Task.FromResult(default(AuthenticationState?));
     }
 
-    public void SetAuthenticationState(HttpContext httpContext, AuthenticationState authenticationState)
+    public Task SetAuthenticationState(HttpContext httpContext, AuthenticationState authenticationState)
     {
         var sessionKey = GetSessionKey(authenticationState.JourneyId);
         var serializedAuthenticationState = authenticationState.Serialize();
         httpContext.Session.SetString(sessionKey, serializedAuthenticationState);
+        return Task.CompletedTask;
     }
 
     private static string GetSessionKey(Guid asid) => $"auth-state:{asid:N}";
