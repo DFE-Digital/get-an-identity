@@ -28,7 +28,7 @@ public class AuthenticationStateCurrentClientProvider : ICurrentClientProvider
             return null;
         }
 
-        var clientId = _authenticationStateProvider.GetAuthenticationState(_httpContextAccessor.HttpContext)?.OAuthState?.ClientId ??
+        var clientId = (await _authenticationStateProvider.GetAuthenticationState(_httpContextAccessor.HttpContext))?.OAuthState?.ClientId ??
             _httpContextAccessor.HttpContext.GetOpenIddictServerRequest()?.ClientId;
 
         if (clientId is null)

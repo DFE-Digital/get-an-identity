@@ -480,7 +480,9 @@ public class Program
 
         builder.Services
             .AddSingleton<IClock, SystemClock>()
-            .AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>()
+            .AddScoped<IAuthenticationStateProvider, DbWithSessionFallbackAuthenticationStateProvider>()
+            .AddSingleton<SessionAuthenticationStateProvider>()
+            .AddTransient<DbAuthenticationStateProvider>()
             .AddTransient<IRequestClientIpProvider, RequestClientIpProvider>()
             .AddSingleton<IdentityLinkGenerator, MvcIdentityLinkGenerator>()
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
