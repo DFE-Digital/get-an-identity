@@ -560,7 +560,9 @@ public class Program
 
         app.UseStaticFiles();
 
-        app.UseSession();
+        app.UseWhen(
+            ctx => !ctx.Request.Path.StartsWithSegments("/api") && ctx.Request.Path != "/health" && ctx.Request.Path != "/status" && ctx.Request.Path != "/_sha",
+            x => x.UseSession());
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
         app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/account"), x => x.UseMiddleware<Infrastructure.Middleware.ClientRedirectInfoMiddleware>());
