@@ -145,7 +145,7 @@ public abstract class SignInJourney
 
         if (!CanAccessStep(nextStep))
         {
-            throw new InvalidOperationException($"Next step is not accessible (step: '{nextStep}').");
+            throw new InvalidOperationException($"Next step is not accessible (step: '{nextStep}', EmailAddressVerified: {AuthenticationState.EmailAddressVerified}, MobileNumberVerified: {AuthenticationState.MobileNumberVerified}).");
         }
 
         return GetStepUrl(nextStep);
