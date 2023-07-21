@@ -17,6 +17,7 @@ public class UserHelper
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
     private readonly TrnTokenHelper _trnTokenHelper;
     private readonly IDqtApiClient _dqtApiClient;
+    private readonly IConfiguration _configuration;
 
     public UserHelper(
         TeacherIdentityServerDbContext dbContext,
@@ -24,7 +25,8 @@ public class UserHelper
         IClock clock,
         IZendeskApiWrapper zendeskApiWrapper,
         TrnTokenHelper trnTokenHelper,
-        IDqtApiClient dqtApiClient)
+        IDqtApiClient dqtApiClient,
+        IConfiguration configuration)
     {
         _dbContext = dbContext;
         _userVerificationService = userVerificationService;
@@ -32,6 +34,7 @@ public class UserHelper
         _zendeskApiWrapper = zendeskApiWrapper;
         _trnTokenHelper = trnTokenHelper;
         _dqtApiClient = dqtApiClient;
+        _configuration = configuration;
     }
 
     public async Task<User> CreateUser(AuthenticationState authenticationState)
@@ -245,14 +248,17 @@ public class UserHelper
 
     public async Task EnsureDqtUserNameMatch(User user, AuthenticationState authenticationState)
     {
-        var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!);
-
-        if (dqtUser is not null &&
-            NameHelper.GetFullName(user.FirstName, user.MiddleName, user.LastName) !=
-            NameHelper.GetFullName(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName))
+        if (_configuration.GetValue("DqtSynchronizationEnabled", false))
         {
-            await AssignDqtUserName(user.UserId, dqtUser);
-            authenticationState.OnNameSet(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName);
+            var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!);
+
+            if (dqtUser is not null &&
+                NameHelper.GetFullName(user.FirstName, user.MiddleName, user.LastName) !=
+                NameHelper.GetFullName(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName))
+            {
+                await AssignDqtUserName(user.UserId, dqtUser);
+                authenticationState.OnNameSet(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName);
+            }
         }
     }
 

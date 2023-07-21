@@ -6,6 +6,7 @@ using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin.AssignTrn;
 
+[Collection(nameof(DisableParallelization))]
 public class ConfirmTests : TestBase
 {
     public ConfirmTests(HostFixture hostFixture)
@@ -380,6 +381,7 @@ public class ConfirmTests : TestBase
         var dqtEmail = Faker.Internet.Email();
 
         ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
+        HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
@@ -417,6 +419,9 @@ public class ConfirmTests : TestBase
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             });
+
+        // Reset config
+        HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
     }
 
     [Fact]

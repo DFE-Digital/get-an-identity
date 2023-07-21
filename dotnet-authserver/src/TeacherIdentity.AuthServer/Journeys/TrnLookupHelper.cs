@@ -8,13 +8,16 @@ public class TrnLookupHelper
 
     private readonly IDqtApiClient _dqtApiClient;
     private readonly ILogger<TrnLookupHelper> _logger;
+    private readonly bool _dqtSynchronizationEnabled;
 
     public TrnLookupHelper(
         IDqtApiClient dqtApiClient,
+        IConfiguration configuration,
         ILogger<TrnLookupHelper> logger)
     {
         _dqtApiClient = dqtApiClient;
         _logger = logger;
+        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     public async Task<string?> LookupTrn(AuthenticationState authenticationState)
@@ -55,7 +58,7 @@ public class TrnLookupHelper
 
             TrnLookupStatus trnLookupStatus;
             (findTeachersResult, trnLookupStatus) = ResolveTrn(findTeachersResults, authenticationState);
-            authenticationState.OnTrnLookupCompleted(findTeachersResult, trnLookupStatus);
+            authenticationState.OnTrnLookupCompleted(findTeachersResult, trnLookupStatus, _dqtSynchronizationEnabled);
         }
 
         return findTeachersResult?.Trn;

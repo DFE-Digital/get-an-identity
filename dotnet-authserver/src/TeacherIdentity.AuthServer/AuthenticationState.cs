@@ -650,7 +650,7 @@ public class AuthenticationState
         return NameHelper.GetFullName(FirstName, includeMiddleName ? MiddleName : null, LastName);
     }
 
-    public void OnTrnLookupCompleted(FindTeachersResponseResult? findTeachersResult, TrnLookupStatus trnLookupStatus)
+    public void OnTrnLookupCompleted(FindTeachersResponseResult? findTeachersResult, TrnLookupStatus trnLookupStatus, bool dqtSynchronizationEnabled = false)
     {
         var trn = findTeachersResult?.Trn;
 
@@ -667,7 +667,7 @@ public class AuthenticationState
         Trn = trn;
         TrnLookupStatus = trnLookupStatus;
 
-        if (findTeachersResult is not null)
+        if (dqtSynchronizationEnabled && findTeachersResult is not null)
         {
             FirstName = findTeachersResult.FirstName;
             MiddleName = findTeachersResult.MiddleName;

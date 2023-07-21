@@ -7,6 +7,7 @@ using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
 
+[Collection(nameof(DisableParallelization))]
 public class EmailConfirmationTests : TestBase
 {
     public EmailConfirmationTests(HostFixture hostFixture)
@@ -487,6 +488,7 @@ public class EmailConfirmationTests : TestBase
                 PendingNameChange = false
             });
 
+        HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
         {
@@ -523,5 +525,8 @@ public class EmailConfirmationTests : TestBase
                 Assert.Equal(dqtMiddleName, userUpdatedEvent.User.MiddleName);
                 Assert.Equal(dqtLastName, userUpdatedEvent.User.LastName);
             });
+
+        // Reset config
+        HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
     }
 }

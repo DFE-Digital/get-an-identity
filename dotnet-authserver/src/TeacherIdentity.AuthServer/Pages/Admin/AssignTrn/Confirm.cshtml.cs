@@ -17,12 +17,18 @@ public class ConfirmModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
     private readonly IClock _clock;
+    private readonly bool _dqtSynchronizationEnabled;
 
-    public ConfirmModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient, IClock clock)
+    public ConfirmModel(
+        TeacherIdentityServerDbContext dbContext,
+        IDqtApiClient dqtApiClient,
+        IConfiguration configuration,
+        IClock clock)
     {
         _dbContext = dbContext;
         _dqtApiClient = dqtApiClient;
         _clock = clock;
+        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     [FromRoute]
@@ -91,14 +97,19 @@ public class ConfirmModel : PageModel
 
         if (Trn is not null)
         {
-            changes = changes | Events.UserUpdatedEventChanges.Trn |
-                (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
-                ((user.MiddleName ?? string.Empty) != (DqtMiddleName ?? string.Empty) ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
-                (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
-            user.FirstName = DqtFirstName!;
-            user.MiddleName = DqtMiddleName;
-            user.LastName = DqtLastName!;
+            changes = changes | Events.UserUpdatedEventChanges.Trn;
             user.TrnLookupStatus = TrnLookupStatus.Found;
+
+            if (_dqtSynchronizationEnabled)
+            {
+                changes = changes |
+                    (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
+                    ((user.MiddleName ?? string.Empty) != (DqtMiddleName ?? string.Empty) ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
+                    (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
+                user.FirstName = DqtFirstName!;
+                user.MiddleName = DqtMiddleName;
+                user.LastName = DqtLastName!;
+            }
         }
         else
         {

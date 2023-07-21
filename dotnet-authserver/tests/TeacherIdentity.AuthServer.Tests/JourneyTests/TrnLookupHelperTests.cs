@@ -1,11 +1,19 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.JourneyTests;
 
 public class TrnLookupHelperTests
 {
+    private readonly IConfiguration _configuration;
+
+    public TrnLookupHelperTests(TestConfiguration testConfiguration)
+    {
+        _configuration = testConfiguration.Configuration;
+    }
+
     [Fact]
     public async Task LookupTrn_IsCancelled_ReturnsNullAndSetsNullResultOnAuthenticationState()
     {
@@ -22,7 +30,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -53,7 +61,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -110,7 +118,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -152,9 +160,10 @@ public class TrnLookupHelperTests
                 }
             });
 
+
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -182,7 +191,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         await helper.LookupTrn(authenticationState);
@@ -209,7 +218,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         await helper.LookupTrn(authenticationState);
@@ -235,7 +244,7 @@ public class TrnLookupHelperTests
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -259,7 +268,7 @@ public class TrnLookupHelperTests
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -281,7 +290,7 @@ public class TrnLookupHelperTests
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -303,7 +312,7 @@ public class TrnLookupHelperTests
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -323,7 +332,7 @@ public class TrnLookupHelperTests
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);

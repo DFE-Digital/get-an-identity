@@ -136,18 +136,21 @@ public class TrnTokenHelper
 
     private async Task<User> UpdateUserFromToken(User user, string trn)
     {
-        var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn);
         var changes = UserUpdatedEventChanges.None;
 
-        if (dqtUser is not null)
+        if (_configuration.GetValue("DqtSynchronizationEnabled", false))
         {
-            changes |= (user.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : 0) |
-                       (user.MiddleName != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : 0) |
-                       (user.LastName != dqtUser.LastName ? UserUpdatedEventChanges.LastName : 0);
+            var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn);
+            if (dqtUser is not null)
+            {
+                changes |= (user.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
+                           (user.MiddleName != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
+                           (user.LastName != dqtUser.LastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
 
-            user.FirstName = dqtUser.FirstName;
-            user.MiddleName = dqtUser.MiddleName;
-            user.LastName = dqtUser.LastName;
+                user.FirstName = dqtUser.FirstName;
+                user.MiddleName = dqtUser.MiddleName;
+                user.LastName = dqtUser.LastName;
+            }
         }
 
         if (user.Trn is null)
