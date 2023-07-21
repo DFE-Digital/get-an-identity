@@ -106,6 +106,8 @@ public class TrnTokenSignInJourney : SignInJourney
             (Steps.Landing, { ExistingAccountFound: true }) => CoreSignInJourney.Steps.AccountExists,
             (Steps.Landing, { ExistingAccountFound: false }) => CoreSignInJourney.Steps.Phone,
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.EmailExists,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.Phone,
             (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.PhoneExists,
             (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.PreferredName,
