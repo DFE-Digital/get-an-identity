@@ -14,9 +14,7 @@ public class Merge : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
 
-    public Merge(
-        TeacherIdentityServerDbContext dbContext,
-        IClock clock)
+    public Merge(TeacherIdentityServerDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -47,8 +45,6 @@ public class Merge : PageModel
             ModelState.AddModelError(nameof(UserIdToMerge), "You must select a user ID from the given list");
             return this.PageWithErrors();
         }
-
-        HttpContext.Session.Remove(Confirm.ChosenTrnKey);
 
         return RedirectToPage("Confirm", new { UserId, UserIdToMerge });
     }
