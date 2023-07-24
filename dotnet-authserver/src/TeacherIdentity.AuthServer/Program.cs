@@ -512,9 +512,6 @@ public class Program
             await MigrateDatabase();
         }
 
-        app.UseSerilogRequestLogging();
-        app.UseMiddleware<Infrastructure.Middleware.RequestLogContextMiddleware>();
-
         app.UseWhen(
             context => context.Request.Path == new PathString("/.well-known/openid-configuration") && context.Request.Method == HttpMethods.Get,
             a => a.UseCors(options =>
