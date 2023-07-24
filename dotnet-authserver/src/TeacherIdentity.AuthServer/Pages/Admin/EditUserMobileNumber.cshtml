@@ -1,0 +1,22 @@
+@page "/admin/users/{userId}/phone"
+@model TeacherIdentity.AuthServer.Pages.Admin.EditUserMobileNumber
+
+@{
+    ViewBag.Title = Html.DisplayNameFor(m => m.MobileNumber);
+}
+
+@section BeforeContent {
+    <govuk-back-link asp-page="User" asp-route-userId="@Model.UserId" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <form asp-page="EditUserMobileNumber" asp-route-userId="@Model.UserId">
+            <govuk-input asp-for="MobileNumber" type="tel" autocomplete="off">
+                <govuk-input-label class="govuk-label--l" />
+            </govuk-input>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>

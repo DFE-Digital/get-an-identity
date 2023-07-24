@@ -24,6 +24,8 @@ public class UserModel : PageModel
 
     public string? EmailAddress { get; set; }
 
+    public string? MobileNumber { get; set; }
+
     public string? Name { get; set; }
 
     public string? RegistrationClientDisplayName { get; set; }
@@ -55,6 +57,7 @@ public class UserModel : PageModel
             {
                 u.UserId,
                 u.EmailAddress,
+                u.MobileNumber,
                 u.FirstName,
                 u.LastName,
                 u.DateOfBirth,
@@ -78,6 +81,7 @@ public class UserModel : PageModel
 
         Created = user.Created;
         EmailAddress = user.EmailAddress;
+        MobileNumber = user.MobileNumber;
         Name = $"{user.FirstName} {user.LastName}";
         RegistrationClientDisplayName = user.RegisteredWithClientDisplayName;
         Trn = user.Trn;

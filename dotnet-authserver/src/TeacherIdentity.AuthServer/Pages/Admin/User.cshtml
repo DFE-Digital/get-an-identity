@@ -6,7 +6,7 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link asp-page="Users" />
+    <govuk-back-link asp-page="Users"/>
 }
 
 <h1 class="govuk-heading-l">
@@ -48,8 +48,15 @@
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Mobile number</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value class="empty-hyphens">@Model.MobileNumber</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action asp-page="EditUserMobileNumber" asp-route-userId="@Model.UserId" visually-hidden-text="mobile number">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
                 <govuk-summary-list-row-key>DQT record</govuk-summary-list-row-key>
-                <govuk-summary-list-row-value>@(Model.HaveDqtRecord ? "Yes": "No")</govuk-summary-list-row-value>
+                <govuk-summary-list-row-value>@(Model.HaveDqtRecord ? "Yes" : "No")</govuk-summary-list-row-value>
                 @if (Model.CanChangeDqtRecord)
                 {
                     <govuk-summary-list-row-actions>
