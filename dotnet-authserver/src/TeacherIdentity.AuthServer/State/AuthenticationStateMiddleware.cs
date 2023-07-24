@@ -17,6 +17,11 @@ public class AuthenticationStateMiddleware
 
         if (authenticationState is not null)
         {
+            if (context.Items.TryAdd(typeof(HaveAddedUrlToVisitedMarker), HaveAddedUrlToVisitedMarker.Instance))
+            {
+                authenticationState.Visited.Add($"{context.Request.Method} {context.Request.Path}");
+            }
+
             context.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
 
@@ -33,5 +38,12 @@ public class AuthenticationStateMiddleware
 
             await authenticationStateProvider.SetAuthenticationState(context, authenticationStateFeature.AuthenticationState);
         }
+    }
+
+    private sealed class HaveAddedUrlToVisitedMarker
+    {
+        private HaveAddedUrlToVisitedMarker() { }
+
+        public static HaveAddedUrlToVisitedMarker Instance { get; } = new();
     }
 }
