@@ -166,7 +166,7 @@ public class AuthorizationController : Controller
             authenticationState.Reset(_clock.UtcNow);
         }
 
-        if (cookiesPrincipal is null || !authenticationState.IsComplete)
+        if (!authenticationState.IsComplete)
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -193,6 +193,11 @@ public class AuthorizationController : Controller
         }
 
         Debug.Assert(authenticationState.IsComplete);
+
+        // It's possible that the user doesn't have a 'signed in' cookie but the sign in journey is completed
+        // (if, say, the user retried the page that sent the response cookie and they never got it).
+        // Make sure the user is signed in if the journey is done.
+        cookiesPrincipal ??= await authenticationState.SignIn(HttpContext);
 
         // If it's a Staff user verify their permissions
         if (cookiesPrincipal.GetUserType() == UserType.Staff &&
