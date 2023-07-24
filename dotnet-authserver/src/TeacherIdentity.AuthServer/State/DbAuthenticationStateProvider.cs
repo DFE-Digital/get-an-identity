@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
+using Polly;
+using Polly.Retry;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.State;
@@ -12,6 +14,10 @@ namespace TeacherIdentity.AuthServer.State;
 public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider, IAsyncDisposable
 {
     private const string JourneyIdsCookieName = "tis-session2";
+
+    private static readonly AsyncRetryPolicy _retryReadPolicy = Policy
+        .Handle<InvalidOperationException>(ex => ex.InnerException is PostgresException pex && pex.SqlState == PostgresErrorCodes.SerializationFailure)
+        .RetryAsync(3);
 
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
@@ -41,21 +47,26 @@ public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider
             Guid.TryParse(asidStr, out var journeyId) &&
             userJourneyIds.Contains(journeyId))
         {
-            var dbAuthState = await _dbContext.AuthenticationStates.FromSqlInterpolated(
-                    $"select * from authentication_states where journey_id = {journeyId} for update")
-                .SingleOrDefaultAsync();
-
-            if (dbAuthState is not null)
+            return await _retryReadPolicy.ExecuteAsync(async () =>
             {
-                try
+                var dbAuthState = await _dbContext.AuthenticationStates.FromSqlInterpolated(
+                        $"select * from authentication_states where journey_id = {journeyId} for update")
+                    .SingleOrDefaultAsync();
+
+                if (dbAuthState is not null)
                 {
-                    return AuthenticationState.Deserialize(dbAuthState.Payload);
+                    try
+                    {
+                        return AuthenticationState.Deserialize(dbAuthState.Payload);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Failed deserializing {nameof(AuthenticationState)}.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Failed deserializing {nameof(AuthenticationState)}.");
-                }
-            }
+
+                return null;
+            });
         }
 
         return null;
