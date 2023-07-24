@@ -55,6 +55,8 @@ public class TeacherIdentityServerDbContext : DbContext
 
     public DbSet<AuthenticationState> AuthenticationStates => Set<AuthenticationState>();
 
+    public DbSet<AuthenticationStateSnapshot> AuthenticationStateSnapshots => Set<AuthenticationStateSnapshot>();
+
     public void AddEvent(EventBase @event)
     {
         Events.Add(Event.FromEventBase(@event));
