@@ -315,15 +315,6 @@ public class Program
                 });
         });
 
-        builder.Services.AddSession(options =>
-        {
-            options.Cookie.Name = "tis-session";
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-            options.IdleTimeout = TimeSpan.FromDays(5);
-        });
-
         var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
             throw new Exception("Connection string DefaultConnection is missing.");
 
@@ -440,7 +431,7 @@ public class Program
                     options.ReplaceModelBinderProvider<SimpleTypeModelBinderProvider>(new SimpleTypeModelBinderProviderWrapper(simpleTypeModelBinderProvider));
                 }
             })
-            .AddSessionStateTempDataProvider();
+            .AddCookieTempDataProvider();
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
@@ -480,9 +471,7 @@ public class Program
 
         builder.Services
             .AddSingleton<IClock, SystemClock>()
-            .AddScoped<IAuthenticationStateProvider, DbWithSessionFallbackAuthenticationStateProvider>()
-            .AddSingleton<SessionAuthenticationStateProvider>()
-            .AddTransient<DbAuthenticationStateProvider>()
+            .AddScoped<IAuthenticationStateProvider, DbAuthenticationStateProvider>()
             .AddTransient<IRequestClientIpProvider, RequestClientIpProvider>()
             .AddSingleton<IdentityLinkGenerator, MvcIdentityLinkGenerator>()
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
@@ -561,10 +550,6 @@ public class Program
         }
 
         app.UseStaticFiles();
-
-        app.UseWhen(
-            ctx => !ctx.Request.Path.StartsWithSegments("/api") && ctx.Request.Path != "/health" && ctx.Request.Path != "/status" && ctx.Request.Path != "/_sha",
-            x => x.UseSession());
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
         app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/account"), x => x.UseMiddleware<Infrastructure.Middleware.ClientRedirectInfoMiddleware>());
