@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Extensions;
 using Sentry;
 using TeacherIdentity.AuthServer.Models;
 
@@ -22,7 +23,7 @@ public class AuthenticationStateMiddleware
         {
             if (context.Items.TryAdd(typeof(HaveAddedUrlToVisitedMarker), HaveAddedUrlToVisitedMarker.Instance))
             {
-                authenticationState.Visited.Add($"{context.Request.Method} {context.Request.Path}");
+                authenticationState.Visited.Add($"{context.Request.Method} {context.Request.GetEncodedPathAndQuery()}");
             }
 
             context.Features.Set(new AuthenticationStateFeature(authenticationState));
