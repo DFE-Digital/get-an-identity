@@ -1,4 +1,3 @@
-using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 
@@ -23,7 +22,6 @@ public class TeacherIdentityServerDbContext : DbContext
         }
 
         optionsBuilder
-            .UseExceptionProcessor()
             .UseSnakeCaseNamingConvention()
             .UseOpenIddict<Application, Authorization, Scope, Token, string>();
     }

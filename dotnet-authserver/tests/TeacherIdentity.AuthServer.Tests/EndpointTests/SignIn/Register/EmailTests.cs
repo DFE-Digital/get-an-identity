@@ -164,7 +164,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "invalid.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
         var email = $"principal@{invalidEmailSuffix}";
 

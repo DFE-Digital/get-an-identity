@@ -184,7 +184,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidSuffix);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/account/email")
         {

@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using CsvHelper;
 using CsvHelper.Configuration;
-using EntityFramework.Exceptions.Common;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using TeacherIdentity.AuthServer.Events;
@@ -283,7 +282,7 @@ public class UserImportProcessor : IUserImportProcessor
                     await _dbContext.SaveChangesAsync();
                     await txn.CommitAsync();
                 }
-                catch (UniqueConstraintException ex)
+                catch (DbUpdateException ex)
                 {
                     await txn.RollbackAsync();
                     _dbContext.ChangeTracker.Clear();

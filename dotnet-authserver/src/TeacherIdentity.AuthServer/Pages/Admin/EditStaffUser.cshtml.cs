@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -100,11 +99,12 @@ public class EditStaffUserModel : PageModel
                 Changes = changes
             });
 
+            using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(Models.User.EmailAddressUniqueIndexName));
             try
             {
                 await _dbContext.SaveChangesAsync();
             }
-            catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(Models.User.EmailAddressUniqueIndexName))
+            catch (Exception ex) when (suppressUniqueIndexViolationScope.IsExceptionSuppressed(ex))
             {
                 ModelState.AddModelError(nameof(Email), "Another user has the specified email address");
                 return this.PageWithErrors();

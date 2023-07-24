@@ -1,5 +1,5 @@
-using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using User = TeacherIdentity.AuthServer.Models.User;
@@ -28,6 +28,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 
     public override async Task<IActionResult> CreateUser(string currentStep)
     {
+        using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(User.TrnUniqueIndexName));
         try
         {
             var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState);
@@ -61,7 +62,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                 }
             }
         }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
+        catch (Exception ex) when (suppressUniqueIndexViolationScope.IsExceptionSuppressed(ex))
         {
             return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
         }
