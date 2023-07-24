@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;
@@ -24,6 +24,7 @@ public class LegacyTrnJourney : SignInJourney
 
     public override async Task<IActionResult> CreateUser(string currentStep)
     {
+        using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(User.TrnUniqueIndexName));
         try
         {
             var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState);
@@ -31,7 +32,7 @@ public class LegacyTrnJourney : SignInJourney
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
         }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
+        catch (Exception ex) when (suppressUniqueIndexViolationScope.IsExceptionSuppressed(ex))
         {
             // TRN is already linked to an existing account
             return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
