@@ -46,6 +46,8 @@ public class AuthenticationState
     [JsonInclude]
     public DateTime StartedAt { get; private set; }
     [JsonInclude]
+    public List<string> Visited { get; private set; } = new();
+    [JsonInclude]
     public Guid? UserId { get; private set; }
     [JsonInclude]
     public bool? FirstTimeSignInForEmail { get; private set; }
