@@ -1,3 +1,6 @@
+using Sentry;
+using TeacherIdentity.AuthServer.Models;
+
 namespace TeacherIdentity.AuthServer.State;
 
 public class AuthenticationStateMiddleware
@@ -25,7 +28,36 @@ public class AuthenticationStateMiddleware
             context.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
 
-        await _next(context);
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception) when (authenticationState is not null)
+        {
+            // Snapshot the AuthenticationState and stash it in the DB for subsequent debugging
+
+            var snapshotId = Guid.NewGuid();
+            var clock = context.RequestServices.GetRequiredService<IClock>();
+
+            using (var dbContext = context.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>())
+            {
+                var payload = authenticationState.Serialize();
+
+                dbContext.AuthenticationStateSnapshots.Add(new()
+                {
+                    Created = clock.UtcNow,
+                    JourneyId = authenticationState.JourneyId,
+                    SnapshotId = snapshotId,
+                    Payload = payload
+                });
+
+                await dbContext.SaveChangesAsync();
+            }
+
+            SentrySdk.ConfigureScope(scope => scope.SetTag("authentication_state_snapshot.id", snapshotId.ToString()));
+
+            throw;
+        }
 
         var authenticationStateFeature = context.Features.Get<AuthenticationStateFeature>();
 

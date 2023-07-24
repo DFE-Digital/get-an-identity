@@ -80,7 +80,7 @@ public class Program
                 .PersistKeysToAzureBlobStorage(
                     connectionString: builder.Configuration.GetConnectionString("DataProtectionBlobStorage"),
                     containerName: builder.Configuration["DataProtectionKeysContainerName"],
-            blobName: "keys");
+                    blobName: "keys");
         }
 
         builder.Services.AddAntiforgery(options =>
