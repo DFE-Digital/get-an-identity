@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 using Polly;
-using Polly.Retry;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.State;
@@ -14,10 +13,6 @@ namespace TeacherIdentity.AuthServer.State;
 public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider, IAsyncDisposable
 {
     private const string JourneyIdsCookieName = "tis-session2";
-
-    private static readonly AsyncRetryPolicy _retryReadPolicy = Policy
-        .Handle<InvalidOperationException>(IsPostgresSerializationError)
-        .RetryAsync(3);
 
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
@@ -41,13 +36,24 @@ public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider
     {
         var userJourneyIds = GetUserJourneyIdsFromCookie(httpContext);
 
-        _transaction ??= await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead);
+        _transaction ??= await CreateTransaction();
+
+        var retryPolicy = Policy
+            .Handle<InvalidOperationException>(IsPostgresSerializationError)
+            .RetryAsync(
+                3,
+                onRetryAsync: async (ex, retryCount) =>
+                {
+                    // Transaction will be aborted at this point - create a new one
+                    await _transaction.DisposeAsync();
+                    _transaction = await CreateTransaction();
+                });
 
         if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asidStr) &&
             Guid.TryParse(asidStr, out var journeyId) &&
             userJourneyIds.Contains(journeyId))
         {
-            return await _retryReadPolicy.ExecuteAsync(async () =>
+            return await retryPolicy.ExecuteAsync(async () =>
             {
                 using var suppressScope = SentryErrors.Suppress(IsPostgresSerializationError);
 
@@ -72,6 +78,12 @@ public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider
         }
 
         return null;
+
+        static bool IsPostgresSerializationError(Exception ex) =>
+            ex.InnerException is PostgresException pex && pex.SqlState == PostgresErrorCodes.SerializationFailure;
+
+        Task<IDbContextTransaction> CreateTransaction() =>
+            _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead);
     }
 
     public async Task SetAuthenticationState(HttpContext httpContext, AuthenticationState authenticationState)
@@ -99,9 +111,6 @@ public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider
 
         EnsureUserJourneyIdInCookie(httpContext, journeyId);
     }
-
-    private static bool IsPostgresSerializationError(Exception ex) =>
-        ex.InnerException is PostgresException pex && pex.SqlState == PostgresErrorCodes.SerializationFailure;
 
     private IEnumerable<Guid> GetUserJourneyIdsFromCookie(HttpContext httpContext)
     {
