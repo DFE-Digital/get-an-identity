@@ -42,6 +42,7 @@ public static class TestUsers
         FirstName = Faker.Name.First(),
         MiddleName = Faker.Name.Middle(),
         LastName = Faker.Name.Last(),
+        PreferredName = Faker.Name.FullName(),
         Updated = DateTime.UtcNow,
         UserType = UserType.Default,
         StaffRoles = StaffRoles.None
@@ -56,6 +57,7 @@ public static class TestUsers
         FirstName = Faker.Name.First(),
         MiddleName = Faker.Name.Middle(),
         LastName = Faker.Name.Last(),
+        PreferredName = Faker.Name.FullName(),
         Updated = DateTime.UtcNow,
         UserType = UserType.Default,
         StaffRoles = StaffRoles.None,

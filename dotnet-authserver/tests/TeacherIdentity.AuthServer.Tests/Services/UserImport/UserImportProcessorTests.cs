@@ -10,7 +10,8 @@ using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.Services;
 
-public class UserImportProcessorTests : IClassFixture<DbFixture>
+[Collection(nameof(DisableParallelization))]
+public class UserImportProcessorTests : IClassFixture<DbFixture>, IAsyncLifetime
 {
     private readonly DbFixture _dbFixture;
 
@@ -18,6 +19,17 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>
     {
         _dbFixture = dbFixture;
     }
+
+    public async Task InitializeAsync()
+    {
+        await _dbFixture.TestData.WithDbContext(async dbContext =>
+        {
+            await TestUsers.DeleteNonTestUsers(dbContext);
+            await dbContext.Database.ExecuteSqlAsync($"truncate table events");
+        });
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     public static TheoryData<UserImportTestScenarioData> GetProcessImportData()
     {

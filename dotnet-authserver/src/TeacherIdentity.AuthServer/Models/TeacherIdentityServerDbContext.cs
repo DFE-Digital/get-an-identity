@@ -1,4 +1,3 @@
-using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 
@@ -23,7 +22,6 @@ public class TeacherIdentityServerDbContext : DbContext
         }
 
         optionsBuilder
-            .UseExceptionProcessor()
             .UseSnakeCaseNamingConvention()
             .UseOpenIddict<Application, Authorization, Scope, Token, string>();
     }
@@ -52,6 +50,10 @@ public class TeacherIdentityServerDbContext : DbContext
     public DbSet<EstablishmentDomain> EstablishmentDomains => Set<EstablishmentDomain>();
 
     public DbSet<TrnTokenModel> TrnTokens => Set<TrnTokenModel>();
+
+    public DbSet<AuthenticationState> AuthenticationStates => Set<AuthenticationState>();
+
+    public DbSet<AuthenticationStateSnapshot> AuthenticationStateSnapshots => Set<AuthenticationStateSnapshot>();
 
     public void AddEvent(EventBase @event)
     {

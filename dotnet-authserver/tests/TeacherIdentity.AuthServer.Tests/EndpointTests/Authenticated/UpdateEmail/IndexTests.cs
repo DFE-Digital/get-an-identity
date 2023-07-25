@@ -175,7 +175,7 @@ public class IndexTests : TestBase
     {
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidSuffix);
 
         var returnUrl = "/_tests/empty";
 

@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Http.Extensions;
+using Sentry;
+using TeacherIdentity.AuthServer.Models;
+
 namespace TeacherIdentity.AuthServer.State;
 
 public class AuthenticationStateMiddleware
@@ -5,24 +9,56 @@ public class AuthenticationStateMiddleware
     public const string IdQueryParameterName = "asid";
 
     private readonly RequestDelegate _next;
-    private readonly IAuthenticationStateProvider _authenticationStateProvider;
 
-    public AuthenticationStateMiddleware(RequestDelegate next, IAuthenticationStateProvider authenticationStateProvider)
+    public AuthenticationStateMiddleware(RequestDelegate next)
     {
         _next = next;
-        _authenticationStateProvider = authenticationStateProvider;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IAuthenticationStateProvider authenticationStateProvider)
     {
-        var authenticationState = _authenticationStateProvider.GetAuthenticationState(context);
+        var authenticationState = await authenticationStateProvider.GetAuthenticationState(context);
 
         if (authenticationState is not null)
         {
+            if (context.Items.TryAdd(typeof(HaveAddedUrlToVisitedMarker), HaveAddedUrlToVisitedMarker.Instance))
+            {
+                authenticationState.Visited.Add($"{context.Request.Method} {context.Request.GetEncodedPathAndQuery()}");
+            }
+
             context.Features.Set(new AuthenticationStateFeature(authenticationState));
         }
 
-        await _next(context);
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception) when (authenticationState is not null)
+        {
+            // Snapshot the AuthenticationState and stash it in the DB for subsequent debugging
+
+            var snapshotId = Guid.NewGuid();
+            var clock = context.RequestServices.GetRequiredService<IClock>();
+
+            using (var dbContext = context.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>())
+            {
+                var payload = authenticationState.Serialize();
+
+                dbContext.AuthenticationStateSnapshots.Add(new()
+                {
+                    Created = clock.UtcNow,
+                    JourneyId = authenticationState.JourneyId,
+                    SnapshotId = snapshotId,
+                    Payload = payload
+                });
+
+                await dbContext.SaveChangesAsync();
+            }
+
+            SentrySdk.ConfigureScope(scope => scope.SetTag("authentication_state_snapshot.id", snapshotId.ToString()));
+
+            throw;
+        }
 
         var authenticationStateFeature = context.Features.Get<AuthenticationStateFeature>();
 
@@ -33,7 +69,14 @@ public class AuthenticationStateMiddleware
                 throw new InvalidOperationException($"{nameof(AuthenticationState)} must have {nameof(AuthenticationState.JourneyId)} set.");
             }
 
-            _authenticationStateProvider.SetAuthenticationState(context, authenticationStateFeature.AuthenticationState);
+            await authenticationStateProvider.SetAuthenticationState(context, authenticationStateFeature.AuthenticationState);
         }
+    }
+
+    private sealed class HaveAddedUrlToVisitedMarker
+    {
+        private HaveAddedUrlToVisitedMarker() { }
+
+        public static HaveAddedUrlToVisitedMarker Instance { get; } = new();
     }
 }

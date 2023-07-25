@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services;
 using TeacherIdentity.AuthServer.Services.UserVerification;
@@ -44,14 +45,17 @@ public class TrnInUseTests : TestBase
             "/sign-in/trn/different-email");
     }
 
-    [Fact]
-    public async Task Get_TrnNotFound_Redirects()
+    [Theory]
+    [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
+    public async Task Get_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
-            trnRequirementType: null);
+            trnRequirementType);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}");
 
@@ -60,7 +64,7 @@ public class TrnInUseTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -161,8 +165,11 @@ public class TrnInUseTests : TestBase
             "/sign-in/trn/different-email");
     }
 
-    [Fact]
-    public async Task Post_TrnNotFound_Redirects()
+    [Theory]
+    [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
+    public async Task Post_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var pin = "12345";
@@ -170,7 +177,7 @@ public class TrnInUseTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
-            trnRequirementType: null);
+            trnRequirementType);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
         {
@@ -185,7 +192,7 @@ public class TrnInUseTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
     }
 
     [Fact]

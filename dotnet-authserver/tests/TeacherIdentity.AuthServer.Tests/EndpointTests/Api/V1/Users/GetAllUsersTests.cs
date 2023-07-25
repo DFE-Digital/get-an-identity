@@ -43,10 +43,7 @@ public class GetAllUsersTests : TestBase, IAsyncLifetime
         var user1 = await TestData.CreateUser(hasTrn: true);
         var user2 = await TestData.CreateUser(hasTrn: true);
         var user3 = await TestData.CreateUser(hasTrn: false);
-        var allUsers = new[] { user1, user2, user3 }
-            .Append(TestUsers.DefaultUser)
-            .Append(TestUsers.DefaultUserWithTrn)
-            .OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
+        var allUsers = new[] { user1, user2, user3, TestUsers.DefaultUser, TestUsers.DefaultUserWithTrn }.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToArray();
 
         // Act
         var response = await httpClient.GetAsync("/api/v1/users");

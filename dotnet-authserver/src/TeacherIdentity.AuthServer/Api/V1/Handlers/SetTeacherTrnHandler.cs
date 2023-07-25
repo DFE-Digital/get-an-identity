@@ -1,4 +1,3 @@
-using EntityFramework.Exceptions.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
@@ -78,11 +77,12 @@ public class SetTeacherTrnHandler : IRequestHandler<SetTeacherTrnRequest>
             UpdatedByUserId = _currentUserProvider.CurrentUserId
         });
 
+        using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(User.TrnUniqueIndexName));
         try
         {
             await _dbContext.SaveChangesAsync();
         }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
+        catch (Exception ex) when (suppressUniqueIndexViolationScope.IsExceptionSuppressed(ex))
         {
             throw new ErrorException(ErrorRegistry.TrnIsAssignedToAnotherUser());
         }

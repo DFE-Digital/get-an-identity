@@ -205,7 +205,7 @@ public class InstitutionEmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "invalid.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
         var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
         var email = "admin@invalid.sch.uk";
