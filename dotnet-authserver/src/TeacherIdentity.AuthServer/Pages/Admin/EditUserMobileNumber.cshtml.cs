@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
@@ -44,12 +45,6 @@ public class EditUserMobileNumber : PageModel
 
         var user = await _dbContext.Users.Where(u => u.UserType == UserType.Default && u.UserId == UserId).SingleAsync();
 
-        if (!string.IsNullOrWhiteSpace(MobileNumber) && user.MobileNumber == MobileNumber)
-        {
-            ModelState.AddModelError(nameof(MobileNumber), "This phone number is already in use - Enter a different phone number.");
-            return this.PageWithErrors();
-        }
-
         var changes = user.MobileNumber != MobileNumber ? UserUpdatedEventChanges.MobileNumber : UserUpdatedEventChanges.None;
 
         if (changes == UserUpdatedEventChanges.None)
@@ -58,6 +53,8 @@ public class EditUserMobileNumber : PageModel
         }
 
         user.MobileNumber = MobileNumber;
+        user.NormalizedMobileNumber = !string.IsNullOrWhiteSpace(MobileNumber) ? Models.MobileNumber.Parse(MobileNumber) : null;
+        user.Updated = _clock.UtcNow;
 
         _dbContext.AddEvent(new UserUpdatedEvent
         {
@@ -82,5 +79,18 @@ public class EditUserMobileNumber : PageModel
         TempData.SetFlashSuccess("Phone number changed successfully");
 
         return RedirectToPage("User", new { UserId });
+    }
+
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        var user = await _dbContext.Users.Where(u => u.UserType == UserType.Default && u.UserId == UserId).SingleOrDefaultAsync();
+
+        if (user is null)
+        {
+            context.Result = NotFound();
+            return;
+        }
+
+        await next();
     }
 }
