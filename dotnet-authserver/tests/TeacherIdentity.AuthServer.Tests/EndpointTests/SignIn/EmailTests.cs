@@ -174,7 +174,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "myschool3211.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null);
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email?{authStateHelper.ToQueryParam()}")
@@ -197,7 +197,7 @@ public class EmailTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "myschool3212.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
         var user = await TestData.CreateUser(email: $"john.doe22@{invalidEmailSuffix}");
 

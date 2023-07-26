@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeacherIdentity.AuthServer.Models;
@@ -12,9 +13,11 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Migrations
 {
     [DbContext(typeof(TeacherIdentityServerDbContext))]
-    partial class TeacherIdentityServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230721130100_AuthenticationStates")]
+    partial class AuthenticationStates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -138,37 +141,6 @@ namespace TeacherIdentity.AuthServer.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Payload"), "gin");
 
                     b.ToTable("authentication_states", (string)null);
-                });
-
-            modelBuilder.Entity("TeacherIdentity.AuthServer.Models.AuthenticationStateSnapshot", b =>
-                {
-                    b.Property<Guid>("SnapshotId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("snapshot_id");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created");
-
-                    b.Property<Guid>("JourneyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("journey_id");
-
-                    b.Property<string>("Payload")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("payload");
-
-                    b.HasKey("SnapshotId")
-                        .HasName("pk_authentication_state_snapshots");
-
-                    b.HasIndex("Payload")
-                        .HasDatabaseName("ix_authentication_state_snapshots_payload");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Payload"), "gin");
-
-                    b.ToTable("authentication_state_snapshots", (string)null);
                 });
 
             modelBuilder.Entity("TeacherIdentity.AuthServer.Models.Authorization", b =>

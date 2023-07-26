@@ -225,7 +225,7 @@ public class ResendEmailConfirmationTests : TestBase
     {
         // Arrange
         var invalidEmailSuffix = "invalid.sch.uk";
-        await TestData.AddEstablishmentDomain(invalidEmailSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
         var email = $"headteacher@{invalidEmailSuffix}";
 

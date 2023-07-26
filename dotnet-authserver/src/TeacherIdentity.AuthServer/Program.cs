@@ -63,7 +63,18 @@ public class Program
 
         if (builder.Environment.IsProduction())
         {
-            builder.WebHost.UseSentry();
+            builder.WebHost.UseSentry(options =>
+            {
+                options.SetBeforeSend((Sentry.SentryEvent e) =>
+                {
+                    if (e.Exception is not null && !SentryErrors.ShouldReport(e.Exception))
+                    {
+                        return null;
+                    }
+
+                    return e;
+                });
+            });
 
             builder.Services.Configure<SentryAspNetCoreOptions>(options =>
             {
@@ -80,7 +91,7 @@ public class Program
                 .PersistKeysToAzureBlobStorage(
                     connectionString: builder.Configuration.GetConnectionString("DataProtectionBlobStorage"),
                     containerName: builder.Configuration["DataProtectionKeysContainerName"],
-            blobName: "keys");
+                    blobName: "keys");
         }
 
         builder.Services.AddAntiforgery(options =>
@@ -315,15 +326,6 @@ public class Program
                 });
         });
 
-        builder.Services.AddSession(options =>
-        {
-            options.Cookie.Name = "tis-session";
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-            options.IdleTimeout = TimeSpan.FromDays(5);
-        });
-
         var pgConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
             throw new Exception("Connection string DefaultConnection is missing.");
 
@@ -440,7 +442,7 @@ public class Program
                     options.ReplaceModelBinderProvider<SimpleTypeModelBinderProvider>(new SimpleTypeModelBinderProviderWrapper(simpleTypeModelBinderProvider));
                 }
             })
-            .AddSessionStateTempDataProvider();
+            .AddCookieTempDataProvider();
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
@@ -480,7 +482,7 @@ public class Program
 
         builder.Services
             .AddSingleton<IClock, SystemClock>()
-            .AddSingleton<IAuthenticationStateProvider, SessionAuthenticationStateProvider>()
+            .AddScoped<IAuthenticationStateProvider, DbAuthenticationStateProvider>()
             .AddTransient<IRequestClientIpProvider, RequestClientIpProvider>()
             .AddSingleton<IdentityLinkGenerator, MvcIdentityLinkGenerator>()
             .AddSingleton<IApiClientRepository, ConfigurationApiClientRepository>()
@@ -521,9 +523,6 @@ public class Program
             await MigrateDatabase();
         }
 
-        app.UseSerilogRequestLogging();
-        app.UseMiddleware<Infrastructure.Middleware.RequestLogContextMiddleware>();
-
         app.UseWhen(
             context => context.Request.Path == new PathString("/.well-known/openid-configuration") && context.Request.Method == HttpMethods.Get,
             a => a.UseCors(options =>
@@ -559,8 +558,6 @@ public class Program
         }
 
         app.UseStaticFiles();
-
-        app.UseSession();
 
         app.UseMiddleware<AuthenticationStateMiddleware>();
         app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/account"), x => x.UseMiddleware<Infrastructure.Middleware.ClientRedirectInfoMiddleware>());

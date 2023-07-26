@@ -1,5 +1,4 @@
 using TeacherIdentity.AuthServer.Models;
-using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
@@ -9,7 +8,7 @@ public class SignInJourneyProvider
     {
         if (authenticationState.TryGetOAuthState(out var oAuthState) && authenticationState.UserRequirements.RequiresTrnLookup())
         {
-            if (oAuthState.TrnRequirementType == TrnRequirementType.Legacy || oAuthState.HasScope(CustomScopes.Trn))
+            if (oAuthState.TrnRequirementType == TrnRequirementType.Legacy)
             {
                 return ActivatorUtilities.CreateInstance<LegacyTrnJourney>(httpContext.RequestServices, httpContext);
             }

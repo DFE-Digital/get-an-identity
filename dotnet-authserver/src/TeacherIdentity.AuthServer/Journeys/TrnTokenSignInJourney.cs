@@ -1,4 +1,3 @@
-using EntityFramework.Exceptions.Common;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Models;
 
@@ -19,18 +18,10 @@ public class TrnTokenSignInJourney : SignInJourney
 
     public override async Task<IActionResult> CreateUser(string currentStep)
     {
-        try
-        {
-            var user = await CreateUserHelper.CreateUserWithTrnToken(AuthenticationState);
+        var user = await CreateUserHelper.CreateUserWithTrnToken(AuthenticationState);
 
-            AuthenticationState.OnUserRegistered(user);
-            await AuthenticationState.SignIn(HttpContext);
-        }
-        catch (UniqueConstraintException ex) when (ex.IsUniqueIndexViolation(User.TrnUniqueIndexName))
-        {
-            // We currently do not handle trn index violations for the trn token sign in journey
-            throw;
-        }
+        AuthenticationState.OnUserRegistered(user);
+        await AuthenticationState.SignIn(HttpContext);
 
         return new RedirectResult(GetNextStepUrl(currentStep));
     }
@@ -106,6 +97,8 @@ public class TrnTokenSignInJourney : SignInJourney
             (Steps.Landing, { ExistingAccountFound: true }) => CoreSignInJourney.Steps.AccountExists,
             (Steps.Landing, { ExistingAccountFound: false }) => CoreSignInJourney.Steps.Phone,
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.EmailExists,
+            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.Phone,
             (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
             (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.PhoneExists,
             (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.PreferredName,

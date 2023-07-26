@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn;
@@ -43,14 +44,17 @@ public class TrnInUseChooseEmailTests : TestBase
             "/sign-in/trn/choose-email");
     }
 
-    [Fact]
-    public async Task Get_TrnNotFound_Redirects()
+    [Theory]
+    [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
+    public async Task Get_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
-            trnRequirementType: null);
+            trnRequirementType);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}");
 
@@ -59,7 +63,7 @@ public class TrnInUseChooseEmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
     }
 
     [Fact]
@@ -160,8 +164,11 @@ public class TrnInUseChooseEmailTests : TestBase
             "/sign-in/trn/choose-email");
     }
 
-    [Fact]
-    public async Task Post_TrnNotFound_Redirects()
+    [Theory]
+    [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
+    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
+    public async Task Post_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var email = Faker.Internet.Email();
@@ -169,7 +176,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
-            trnRequirementType: null);
+            trnRequirementType);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -184,7 +191,7 @@ public class TrnInUseChooseEmailTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith("/sign-in/trn", response.Headers.Location?.OriginalString);
+        Assert.StartsWith(expectedRedirectLocation, response.Headers.Location?.OriginalString);
     }
 
     [Fact]

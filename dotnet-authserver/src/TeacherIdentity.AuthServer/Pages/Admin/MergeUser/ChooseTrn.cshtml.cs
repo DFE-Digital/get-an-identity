@@ -45,9 +45,7 @@ public class ChooseTrn : PageModel
             return this.PageWithErrors();
         }
 
-        HttpContext.Session.SetString(Confirm.ChosenTrnKey, Trn!);
-
-        return RedirectToPage("Confirm", new { UserId, UserIdToMerge });
+        return RedirectToPage("Confirm", new { UserId, UserIdToMerge, trn = Trn! });
     }
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)

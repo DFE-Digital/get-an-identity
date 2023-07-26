@@ -198,7 +198,7 @@ public class ResendTests : TestBase
         // Arrange
         var invalidSuffix = "myschool1231.sch.uk";
         var email = Faker.Internet.Email();
-        await TestData.AddEstablishmentDomain(invalidSuffix);
+        await TestData.EnsureEstablishmentDomain(invalidSuffix);
 
         var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/email/resend?email={email}"))
         {
