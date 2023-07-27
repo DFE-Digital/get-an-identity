@@ -105,6 +105,7 @@ public class TrnTokenSignInJourney : SignInJourney
             (CoreSignInJourney.Steps.Email, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.EmailConfirmation, { IsInstitutionEmail: false }) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.EmailConfirmation, { IsInstitutionEmail: true }) => CoreSignInJourney.Steps.InstitutionEmail,
+            (CoreSignInJourney.Steps.ResendEmailConfirmation, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.InstitutionEmail, { InstitutionEmailChosen: true }) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.InstitutionEmail, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.PreferredName, _) => Steps.CheckAnswers,
