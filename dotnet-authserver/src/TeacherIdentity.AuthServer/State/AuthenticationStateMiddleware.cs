@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Extensions;
 using Sentry;
 using TeacherIdentity.AuthServer.Models;
@@ -17,6 +18,13 @@ public class AuthenticationStateMiddleware
 
     public async Task InvokeAsync(HttpContext context, IAuthenticationStateProvider authenticationStateProvider)
     {
+        // If we're re-executing because of an error, don't reload state
+        if (context.Features.Get<IStatusCodeReExecuteFeature>() is not null)
+        {
+            await _next(context);
+            return;
+        }
+
         var authenticationState = await authenticationStateProvider.GetAuthenticationState(context);
 
         if (authenticationState is not null)
