@@ -185,7 +185,8 @@ public partial class TestData
     {
         // https://www.ofcom.org.uk/phones-telecoms-and-internet/information-for-industry/numbering/numbers-for-drama
 
-        return new ConcurrentBag<string>(GenerateNumberRange("07700 ", 900000, 900999));
+        return new ConcurrentBag<string>(GenerateNumberRange("07700 ", 900000, 900999)
+            .Concat(GenerateNumberRange("0113 496 ", 0000, 0999)));
 
         static IEnumerable<string> GenerateNumberRange(string prefix, int from, int to)
         {
