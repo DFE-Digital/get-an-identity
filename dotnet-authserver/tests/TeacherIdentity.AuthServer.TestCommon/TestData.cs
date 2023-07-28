@@ -12,10 +12,15 @@ public partial class TestData
     private readonly IServiceProvider _serviceProvider;
     private readonly IClock _clock;
     private static readonly Random _random = new();
-    private static readonly ConcurrentBag<string> _trns = new();
-    private static readonly ConcurrentBag<string> _emails = new();
-    private static readonly ConcurrentBag<string> _mobileNumbers = new();
-    private static readonly ConcurrentBag<string> _trnTokens = new();
+    private static readonly ConcurrentBag<string> _usedTrns = new();
+    private static readonly ConcurrentBag<string> _usedEmails = new();
+    private static readonly ConcurrentBag<string> _mobileNumbers;
+    private static readonly ConcurrentBag<string> _usedTrnTokens = new();
+
+    static TestData()
+    {
+        _mobileNumbers = GeneratePhoneNumbers();
+    }
 
     public TestData(IServiceProvider serviceProvider)
     {
@@ -45,9 +50,9 @@ public partial class TestData
             {
                 trn = _random.Next(minValue: 1000000, maxValue: 1999999).ToString();
             }
-            while (_trns.Contains(trn));
+            while (_usedTrns.Contains(trn));
 
-            _trns.Add(trn);
+            _usedTrns.Add(trn);
             return trn;
         }
     }
@@ -72,28 +77,20 @@ public partial class TestData
                 email = email.Substring(0, 1 + email.IndexOf("@", StringComparison.Ordinal)) + suffix;
             }
 
-        } while (_emails.Contains(email));
+        } while (_usedEmails.Contains(email));
 
-        _emails.Add(email);
+        _usedEmails.Add(email);
         return email;
     }
 
     public string GenerateUniqueMobileNumber()
     {
-        lock (_random)
+        if (!_mobileNumbers.TryTake(out var mobileNumber))
         {
-            string mobileNumber;
-
-            do
-            {
-                // See https://www.ofcom.org.uk/phones-telecoms-and-internet/information-for-industry/numbering/numbers-for-drama
-                mobileNumber = $"07700 {_random.NextInt64(900000, 900999)}";
-            }
-            while (_mobileNumbers.Contains(mobileNumber));
-
-            _mobileNumbers.Add(mobileNumber);
-            return mobileNumber;
+            throw new Exception("Exhausted mobile numbers.");
         }
+
+        return mobileNumber;
     }
 
     public async Task<TrnTokenModel?> GetTrnToken(string trnToken)
@@ -143,9 +140,9 @@ public partial class TestData
             var buffer = new byte[64];
             RandomNumberGenerator.Fill(buffer);
             trnToken = Convert.ToHexString(buffer);
-        } while (_trnTokens.Contains(trnToken));
+        } while (_usedTrnTokens.Contains(trnToken));
 
-        _trnTokens.Add(trnToken);
+        _usedTrnTokens.Add(trnToken);
         return trnToken;
     }
 
@@ -183,4 +180,19 @@ public partial class TestData
             await action(dbContext);
             return 0;
         });
+
+    private static ConcurrentBag<string> GeneratePhoneNumbers()
+    {
+        // https://www.ofcom.org.uk/phones-telecoms-and-internet/information-for-industry/numbering/numbers-for-drama
+
+        return new ConcurrentBag<string>(GenerateNumberRange("07700 ", 900000, 900999));
+
+        static IEnumerable<string> GenerateNumberRange(string prefix, int from, int to)
+        {
+            for (var i = from; i <= to; i++)
+            {
+                yield return $"{prefix} {i}";
+            }
+        }
+    }
 }
