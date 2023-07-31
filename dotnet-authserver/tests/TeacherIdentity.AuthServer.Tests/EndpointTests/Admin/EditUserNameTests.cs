@@ -171,7 +171,7 @@ public class EditUserNameTests : TestBase
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "NewFirstName", newFirstName },
-                { "MiddleName", newMiddleName },
+                { "MiddleName", newMiddleName! },
                 { "NewLastName", newLastName },
             }
         };
