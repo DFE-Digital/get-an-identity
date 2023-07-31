@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
-using TeacherIdentity.AuthServer.Migrations;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
