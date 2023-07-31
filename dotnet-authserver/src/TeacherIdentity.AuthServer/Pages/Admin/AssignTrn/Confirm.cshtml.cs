@@ -102,10 +102,9 @@ public class ConfirmModel : PageModel
 
             if (_dqtSynchronizationEnabled)
             {
-                changes = changes |
-                    (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
-                    ((user.MiddleName ?? string.Empty) != (DqtMiddleName ?? string.Empty) ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
-                    (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
+                changes |= (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
+                           ((user.MiddleName ?? string.Empty) != (DqtMiddleName ?? string.Empty) ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
+                           (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
                 user.FirstName = DqtFirstName!;
                 user.MiddleName = DqtMiddleName;
                 user.LastName = DqtLastName!;
