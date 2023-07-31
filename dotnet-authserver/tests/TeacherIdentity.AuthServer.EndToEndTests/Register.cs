@@ -243,7 +243,7 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task NewUser_WithTrnLookup_TrnFoundDifferentName_UpdatesNameAndCanRegister()
+    public async Task NewUser_WithTrnLookup_TrnFoundDifferentNameAndDqtSynchronizationEnabled_UpdatesNameAndCanRegister()
     {
         var email = Faker.Internet.Email();
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
@@ -255,6 +255,8 @@ public class Register : IClassFixture<HostFixture>
         var dqtFirstName = Faker.Name.First();
         var dqtMiddleName = Faker.Name.Middle();
         var dqtLastName = Faker.Name.Last();
+
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
 
         ConfigureDqtApiFindTeachersRequest(result: new()
         {
@@ -308,6 +310,85 @@ public class Register : IClassFixture<HostFixture>
                 Assert.Equal(dqtFirstName, userRegisteredEvent.User.FirstName);
                 Assert.Equal(dqtMiddleName, userRegisteredEvent.User.MiddleName);
                 Assert.Equal(dqtLastName, userRegisteredEvent.User.LastName);
+                Assert.Equal(dateOfBirth, userRegisteredEvent.User.DateOfBirth);
+
+                createdUserId = userRegisteredEvent.User.UserId;
+            },
+            e =>
+            {
+                var userSignedInEvent = Assert.IsType<UserSignedInEvent>(e);
+                Assert.Equal(createdUserId, userSignedInEvent.User.UserId);
+            });
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
+    public async Task NewUser_WithTrnLookup_TrnFoundDifferentNameAndDqtSynchronizationNotEnabled_CanRegister()
+    {
+        var email = Faker.Internet.Email();
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = _hostFixture.TestData.GenerateTrn();
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtMiddleName = Faker.Name.Middle();
+        var dqtLastName = Faker.Name.Last();
+
+        ConfigureDqtApiFindTeachersRequest(result: new()
+        {
+            DateOfBirth = dateOfBirth,
+            FirstName = dqtFirstName,
+            MiddleName = dqtMiddleName,
+            LastName = dqtLastName,
+            EmailAddresses = new[] { email },
+            HasActiveSanctions = false,
+            NationalInsuranceNumber = null,
+            Trn = trn,
+            Uid = Guid.NewGuid().ToString()
+        });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, TrnRequirementType.Required);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitRegisterPreferredNamePage();
+
+        await page.SubmitDateOfBirthPage(dateOfBirth);
+
+        await page.SubmitCheckAnswersPage();
+
+        await page.SubmitCompletePageForNewUser();
+
+        await page.AssertSignedInOnTestClient(email, trn, firstName, lastName);
+
+        Guid createdUserId = default;
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userRegisteredEvent = Assert.IsType<UserRegisteredEvent>(e);
+                Assert.Equal(_hostFixture.TestClientId, userRegisteredEvent.ClientId);
+                Assert.Equal(email, userRegisteredEvent.User.EmailAddress);
+                Assert.Equal(mobileNumber, userRegisteredEvent.User.MobileNumber);
+                Assert.Equal(firstName, userRegisteredEvent.User.FirstName);
+                Assert.Equal(lastName, userRegisteredEvent.User.LastName);
                 Assert.Equal(dateOfBirth, userRegisteredEvent.User.DateOfBirth);
 
                 createdUserId = userRegisteredEvent.User.UserId;

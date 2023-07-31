@@ -462,7 +462,7 @@ public class EmailConfirmationTests : TestBase
     }
 
     [Fact]
-    public async Task Post_ValidPinForKnownUserWithTrnAndDifferentDqtName_UpdatesUserSignsInAndRedirects()
+    public async Task Post_ValidPinForKnownUserWithTrnAndDifferentDqtNameAndDqtSynchronizationEnabled_UpdatesUserSignsInAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(hasTrn: true);
@@ -528,5 +528,59 @@ public class EmailConfirmationTests : TestBase
 
         // Reset config
         HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
+    public async Task Post_ValidPinForKnownUserWithTrnAndDifferentDqtNameAndDqtSynchronizationNotEnabled_SignsInAndRedirects()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+
+        var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
+        var pinResult = await userVerificationService.GenerateEmailPin(user.EmailAddress);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtMiddleName = Faker.Name.Middle();
+        var dqtLastName = Faker.Name.Last();
+
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                Email = Faker.Internet.Email(),
+                FirstName = dqtFirstName,
+                MiddleName = dqtMiddleName,
+                LastName = dqtLastName,
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!,
+                PendingDateOfBirthChange = false,
+                PendingNameChange = false
+            });
+
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: null);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/email-confirmation?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "Code", pinResult.Pin! }
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.Equal(authStateHelper.AuthenticationState.PostSignInUrl, response.Headers.Location?.OriginalString);
+
+        Assert.True(authStateHelper.AuthenticationState.EmailAddressVerified);
+        Assert.NotNull(authStateHelper.AuthenticationState.UserId);
+        Assert.False(authStateHelper.AuthenticationState.FirstTimeSignInForEmail);
+        Assert.Equal(user.Trn, authStateHelper.AuthenticationState.Trn);
+        Assert.Equal(user.FirstName, authStateHelper.AuthenticationState.FirstName);
+        Assert.Equal(user.MiddleName, authStateHelper.AuthenticationState.MiddleName);
+        Assert.Equal(user.LastName, authStateHelper.AuthenticationState.LastName);
+
+        EventObserver.AssertEventsSaved();
     }
 }

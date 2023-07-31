@@ -36,6 +36,8 @@ public class HostFixture : IAsyncLifetime
 
     public IServiceProvider AuthServerServices { get; private set; } = null!;
 
+    public IConfiguration Configuration => AuthServerServices.GetRequiredService<IConfiguration>();
+
     public IBrowser Browser { get; private set; } = null!;
 
     public IReadOnlyCollection<string> CapturedAccessTokens => _capturedAccessTokens.AsReadOnly();

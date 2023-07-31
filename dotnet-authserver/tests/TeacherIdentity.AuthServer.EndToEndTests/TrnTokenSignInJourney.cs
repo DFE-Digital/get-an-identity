@@ -289,7 +289,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task ExistingUserNoTrn_ValidTrnTokenMatchingEmailNotMatchingName_SignsInUserUpdatesTrnAndNameInvalidatesToken()
+    public async Task ExistingUserNoTrn_ValidTrnTokenMatchingEmailNotMatchingNameAndDqtSynchronizationEnabled_SignsInUserUpdatesTrnAndNameInvalidatesToken()
     {
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -298,6 +298,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var dqtFirstName = Faker.Name.First();
         var dqtLastName = Faker.Name.Last();
+
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
 
         var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: dqtFirstName, lastName: dqtLastName);
 
@@ -315,6 +317,42 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
             {
                 var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
+    public async Task ExistingUserNoTrn_ValidTrnTokenMatchingEmailNotMatchingNameAndDqtSynchronizationNotEnabled_SignsInUserUpdatesTrnInvalidatesToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+
+        var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: dqtFirstName, lastName: dqtLastName);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
                 Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             },
@@ -399,7 +437,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
     }
 
     [Fact]
-    public async Task ExistingUserSignsInNoTrn_ValidTrnTokenDifferentName_AssignsTokenUpdatesName()
+    public async Task ExistingUserSignsInNoTrn_ValidTrnTokenDifferentNameAndDqtSynchronizationEnabled_AssignsTokenUpdatesName()
     {
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -409,6 +447,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var dqtFirstName = Faker.Name.First();
         var dqtLastName = Faker.Name.Last();
+
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
 
         var trnToken = await CreateValidTrnToken(email: differentEmail, firstName: dqtFirstName, lastName: dqtLastName);
 
@@ -432,6 +472,49 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
             {
                 var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
+    public async Task ExistingUserSignsInNoTrn_ValidTrnTokenDifferentNameAndDqtSynchronizationNotEnabled_AssignsToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+        var differentEmail = _hostFixture.TestData.GenerateUniqueEmail();
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+
+        var trnToken = await CreateValidTrnToken(email: differentEmail, firstName: dqtFirstName, lastName: dqtLastName);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.SignInFromTrnTokenLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
                 Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             },
