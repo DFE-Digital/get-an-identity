@@ -1,11 +1,11 @@
 @page "/admin/users/{userId}/name"
 @model TeacherIdentity.AuthServer.Pages.Admin.EditUserNameModel
 @{
-    ViewBag.Title = "Change their preferred name";
+    ViewBag.Title = "Change their name";
 }
 
 @section BeforeContent {
-    <govuk-back-link asp-page="User" asp-route-userId="@Model.UserId" />
+    <govuk-back-link asp-page="User" asp-route-userId="@Model.UserId"/>
 }
 
 <div class="govuk-grid-row">
@@ -13,15 +13,13 @@
         <form asp-page="EditUserName" asp-route-userId="@Model.UserId">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
-            <p>Changes to a preferred name will not update DQT.</p>
-
             <h2 class="govuk-heading-m">Current names</h2>
 
             <section class="x-govuk-summary-card govuk-!-margin-bottom-6 ">
                 <div class="x-govuk-summary-card__body">
                     <govuk-summary-list>
                         <govuk-summary-list-row>
-                            <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                             <govuk-summary-list-row-value>@Model.CurrentName</govuk-summary-list-row-value>
                         </govuk-summary-list-row>
                     </govuk-summary-list>
@@ -29,14 +27,18 @@
             </section>
 
 
-            <h2 class="govuk-heading-m">New preferred name</h2>
+            <h2 class="govuk-heading-m">New name</h2>
 
             <govuk-input asp-for="NewFirstName">
-                <govuk-input-label class="govuk-label--s" />
+                <govuk-input-label class="govuk-label--s"/>
+            </govuk-input>
+
+            <govuk-input asp-for="MiddleName">
+                <govuk-input-label class="govuk-label--s"/>
             </govuk-input>
 
             <govuk-input asp-for="NewLastName">
-                <govuk-input-label class="govuk-label--s" />
+                <govuk-input-label class="govuk-label--s"/>
             </govuk-input>
 
             <govuk-button type="submit">Continue</govuk-button>

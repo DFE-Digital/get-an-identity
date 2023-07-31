@@ -39,6 +39,11 @@ public class EditUserNameModel : PageModel
     [MaxLength(Models.User.LastNameMaxLength, ErrorMessage = "Last name must be 200 characters or less")]
     public string? NewLastName { get; set; }
 
+    [BindProperty]
+    [Display(Name = "Middle name")]
+    [MaxLength(Models.User.MiddleNameMaxLength, ErrorMessage = "Middle name must be 200 characters or less")]
+    public string? MiddleName { get; set; }
+
     public void OnGet()
     {
     }
@@ -54,10 +59,12 @@ public class EditUserNameModel : PageModel
 
         var changes = UserUpdatedEventChanges.None |
             (user.FirstName != NewFirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
-            (user.LastName != NewLastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
+            (user.LastName != NewLastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None) |
+            (user.MiddleName != MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None);
 
         user.FirstName = NewFirstName!;
         user.LastName = NewLastName!;
+        user.MiddleName = MiddleName;
 
         if (changes != UserUpdatedEventChanges.None)
         {
@@ -89,7 +96,7 @@ public class EditUserNameModel : PageModel
             return;
         }
 
-        CurrentName = $"{user.FirstName} {user.LastName}";
+        CurrentName = string.IsNullOrWhiteSpace(user.MiddleName) ? $"{user.FirstName} {user.LastName}" : $"{user.FirstName} {user.MiddleName} {user.LastName}";
 
         await next();
     }

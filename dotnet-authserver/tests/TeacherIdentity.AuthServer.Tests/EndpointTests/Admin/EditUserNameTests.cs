@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Migrations;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
@@ -23,7 +24,8 @@ public class EditUserNameTests : TestBase
     {
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
-        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get, $"/admin/users/{user.UserId}/name");
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Get,
+            $"/admin/users/{user.UserId}/name");
     }
 
     [Fact]
@@ -68,7 +70,7 @@ public class EditUserNameTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal($"{user.FirstName} {user.LastName}", doc.GetSummaryListValueForKey("Preferred name"));
+        Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
     }
 
     [Fact]
@@ -84,7 +86,8 @@ public class EditUserNameTests : TestBase
     {
         var user = await TestData.CreateUser(userType: Models.UserType.Default);
 
-        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post, $"/admin/users/{user.UserId}/name");
+        await AuthenticatedUserDoesNotHavePermission_ReturnsForbidden(HttpMethod.Post,
+            $"/admin/users/{user.UserId}/name");
     }
 
     [Fact]
@@ -119,6 +122,7 @@ public class EditUserNameTests : TestBase
     [MemberData(nameof(InvalidNamesData))]
     public async Task Post_InvalidName_RendersError(
         string newFirstName,
+        string middleName,
         string newLastName,
         string expectedErrorField,
         string expectedErrorMessage)
@@ -131,6 +135,7 @@ public class EditUserNameTests : TestBase
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "NewFirstName", newFirstName },
+                { "MiddleName", middleName },
                 { "NewLastName", newLastName },
             }
         };
@@ -143,12 +148,14 @@ public class EditUserNameTests : TestBase
     }
 
     [Theory]
-    [InlineData(false, false, false, UserUpdatedEventChanges.None)]
-    [InlineData(true, false, true, UserUpdatedEventChanges.FirstName)]
-    [InlineData(false, true, true, UserUpdatedEventChanges.LastName)]
-    [InlineData(true, true, true, UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.LastName)]
+    [InlineData(false, false, false, false, UserUpdatedEventChanges.None)]
+    [InlineData(true, false, false, true, UserUpdatedEventChanges.FirstName)]
+    [InlineData(false, false, true, true, UserUpdatedEventChanges.LastName)]
+    [InlineData(false, true, false, true, UserUpdatedEventChanges.MiddleName)]
+    [InlineData(true, true, true, true, UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName)]
     public async Task Post_ValidRequest_SetsUserNameEmitsEventAndRedirects(
         bool changeFirstName,
+        bool changeMiddleName,
         bool changeLastName,
         bool expectEvent,
         UserUpdatedEventChanges expectedChanges)
@@ -158,12 +165,14 @@ public class EditUserNameTests : TestBase
 
         var newFirstName = changeFirstName ? Faker.Name.First() : user.FirstName;
         var newLastName = changeLastName ? Faker.Name.Last() : user.LastName;
+        var newMiddleName = changeMiddleName ? Faker.Name.Middle() : user.MiddleName;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/name")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
                 { "NewFirstName", newFirstName },
+                { "MiddleName", newMiddleName },
                 { "NewLastName", newLastName },
             }
         };
@@ -179,6 +188,7 @@ public class EditUserNameTests : TestBase
         {
             user = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
             Assert.Equal(newFirstName, user.FirstName);
+            Assert.Equal(newMiddleName, user.MiddleName);
             Assert.Equal(newLastName, user.LastName);
         });
 
@@ -201,11 +211,12 @@ public class EditUserNameTests : TestBase
         }
     }
 
-    public static TheoryData<string, string, string, string> InvalidNamesData { get; } = new()
+    public static TheoryData<string, string, string, string, string> InvalidNamesData { get; } = new()
     {
-        { "", "Bloggs", "NewFirstName", "Enter a first name" },
-        { "Joe", "", "NewLastName", "Enter a last name" },
-        { new string('x', 201), "Bloggs", "NewFirstName", "First name must be 200 characters or less" },
-        { "Joe", new string('x', 201), "NewLastName", "Last name must be 200 characters or less" },
+        { "", "", "Bloggs", "NewFirstName", "Enter a first name" },
+        { "Joe", "", "", "NewLastName", "Enter a last name" },
+        { new string('x', 201), "", "Bloggs", "NewFirstName", "First name must be 200 characters or less" },
+        { "Joe", "", new string('x', 201), "NewLastName", "Last name must be 200 characters or less" },
+        { "Joe", new string('x', 201), "Blogs", "MiddleName", "Middle name must be 200 characters or less" },
     };
 }
