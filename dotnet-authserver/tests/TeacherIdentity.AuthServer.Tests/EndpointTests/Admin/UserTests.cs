@@ -66,7 +66,7 @@ public class UserTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var doc = await response.GetDocument();
-        Assert.Equal($"{user.FirstName} {user.LastName}", doc.GetElementByTestId("Name")?.TextContent);
+        Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetElementByTestId("Name")?.TextContent);
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
         Assert.Equal("No", doc.GetSummaryListValueForKey("DQT record"));
         Assert.Equal("None", doc.GetSummaryListValueForKey("Merged user IDs"));

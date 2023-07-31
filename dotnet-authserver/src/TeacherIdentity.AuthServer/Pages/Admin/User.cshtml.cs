@@ -59,6 +59,7 @@ public class UserModel : PageModel
                 u.EmailAddress,
                 u.MobileNumber,
                 u.FirstName,
+                u.MiddleName,
                 u.LastName,
                 u.DateOfBirth,
                 u.Trn,
@@ -82,7 +83,7 @@ public class UserModel : PageModel
         Created = user.Created;
         EmailAddress = user.EmailAddress;
         MobileNumber = user.MobileNumber;
-        Name = $"{user.FirstName} {user.LastName}";
+        Name = string.IsNullOrWhiteSpace(user.MiddleName) ? $"{user.FirstName} {user.LastName}" : $"{user.FirstName} {user.MiddleName} {user.LastName}";
         RegistrationClientDisplayName = user.RegisteredWithClientDisplayName;
         Trn = user.Trn;
         HaveDqtRecord = user.Trn is not null;
