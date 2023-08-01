@@ -214,6 +214,7 @@ public class AuthenticationState
 
     public void Reset(DateTime utcNow)
     {
+        // Reset all state except Visited which is used for debugging
         StartedAt = utcNow;
         UserId = default;
         FirstTimeSignInForEmail = default;
@@ -222,6 +223,7 @@ public class AuthenticationState
         FirstName = default;
         MiddleName = default;
         LastName = default;
+        HasName = default;
         OfficialFirstName = default;
         OfficialLastName = default;
         PreviousOfficialFirstName = default;
@@ -238,10 +240,21 @@ public class AuthenticationState
         NationalInsuranceNumber = default;
         AwardedQts = default;
         HasIttProvider = default;
+        IttProviderName = default;
         HasTrn = default;
         StatedTrn = default;
         HasPreviousName = default;
+        MobileNumber = default;
+        MobileNumberVerified = default;
+        ExistingAccountUserId = default;
+        ExistingAccountEmail = default;
+        ExistingAccountMobileNumber = default;
+        ExistingAccountChosen = default;
         TrnToken = default;
+        IsInstitutionEmail = default;
+        InstitutionEmailChosen = default;
+        PreferredName = default;
+        HaveResumedCompletedJourney = default;
     }
 
     public void OnEmailSet(string email, bool isInstitutionEmail = false)
