@@ -1,32 +1,40 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using ZendeskApi.Client.Models;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
-public class CreateUserHelper
+public class UserHelper
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserVerificationService _userVerificationService;
     private readonly IClock _clock;
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
     private readonly TrnTokenHelper _trnTokenHelper;
+    private readonly IDqtApiClient _dqtApiClient;
+    private readonly IConfiguration _configuration;
 
-    public CreateUserHelper(
+    public UserHelper(
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
         IClock clock,
         IZendeskApiWrapper zendeskApiWrapper,
-        TrnTokenHelper trnTokenHelper)
+        TrnTokenHelper trnTokenHelper,
+        IDqtApiClient dqtApiClient,
+        IConfiguration configuration)
     {
         _dbContext = dbContext;
         _userVerificationService = userVerificationService;
         _clock = clock;
         _zendeskApiWrapper = zendeskApiWrapper;
         _trnTokenHelper = trnTokenHelper;
+        _dqtApiClient = dqtApiClient;
+        _configuration = configuration;
     }
 
     public async Task<User> CreateUser(AuthenticationState authenticationState)
@@ -233,6 +241,47 @@ public class CreateUserHelper
             TicketComment = ticketComment,
             UserId = user.UserId,
             CreatedUtc = _clock.UtcNow,
+        });
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EnsureDqtUserNameMatch(User user, AuthenticationState authenticationState)
+    {
+        if (_configuration.GetValue("DqtSynchronizationEnabled", false))
+        {
+            var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!);
+
+            if (dqtUser is not null &&
+                NameHelper.GetFullName(user.FirstName, user.MiddleName, user.LastName) !=
+                NameHelper.GetFullName(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName))
+            {
+                await AssignDqtUserName(user.UserId, dqtUser);
+                authenticationState.OnNameSet(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName);
+            }
+        }
+    }
+
+    private async Task AssignDqtUserName(Guid userId, TeacherInfo dqtUser)
+    {
+        var existingUser = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
+
+        var changes = (existingUser.FirstName != dqtUser.FirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
+                      ((existingUser.MiddleName ?? string.Empty) != dqtUser.MiddleName ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
+                      (existingUser.LastName != dqtUser.LastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
+
+        existingUser.FirstName = dqtUser.FirstName;
+        existingUser.MiddleName = dqtUser.MiddleName;
+        existingUser.LastName = dqtUser.LastName;
+
+        _dbContext.AddEvent(new Events.UserUpdatedEvent()
+        {
+            Source = Events.UserUpdatedEventSource.DqtSynchronization,
+            CreatedUtc = _clock.UtcNow,
+            Changes = changes,
+            User = Events.User.FromModel(existingUser),
+            UpdatedByUserId = null,
+            UpdatedByClientId = null
         });
 
         await _dbContext.SaveChangesAsync();

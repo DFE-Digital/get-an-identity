@@ -1,11 +1,19 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Services.DqtApi;
+using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
 namespace TeacherIdentity.AuthServer.Tests.JourneyTests;
 
 public class TrnLookupHelperTests
 {
+    private readonly IConfiguration _configuration;
+
+    public TrnLookupHelperTests(TestConfiguration testConfiguration)
+    {
+        _configuration = testConfiguration.Configuration;
+    }
+
     [Fact]
     public async Task LookupTrn_IsCancelled_ReturnsNullAndSetsNullResultOnAuthenticationState()
     {
@@ -13,7 +21,7 @@ public class TrnLookupHelperTests
         var authenticationState = CreateAuthenticationState();
 
         // Set an existing result on AuthenticationState so we can be sure it's being cleared out
-        authenticationState.OnTrnLookupCompleted(trn: "1234567", TrnLookupStatus.Found);
+        authenticationState.OnTrnLookupCompleted(findTeachersResult: GetTeachersResponseResult("1234567"), TrnLookupStatus.Found);
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         dqtApiClientMock
@@ -22,7 +30,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -41,7 +49,7 @@ public class TrnLookupHelperTests
         var authenticationState = CreateAuthenticationState();
 
         // Set an existing result on AuthenticationState so we can be sure it's being cleared out
-        authenticationState.OnTrnLookupCompleted(trn: "1234567", TrnLookupStatus.Found);
+        authenticationState.OnTrnLookupCompleted(findTeachersResult: GetTeachersResponseResult("1234567"), TrnLookupStatus.Found);
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         dqtApiClientMock
@@ -53,7 +61,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -72,7 +80,7 @@ public class TrnLookupHelperTests
         var authenticationState = CreateAuthenticationState();
 
         // Set an existing result on AuthenticationState so we can be sure it's being cleared out
-        authenticationState.OnTrnLookupCompleted(trn: "1234567", TrnLookupStatus.Found);
+        authenticationState.OnTrnLookupCompleted(findTeachersResult: GetTeachersResponseResult("1234567"), TrnLookupStatus.Found);
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         dqtApiClientMock
@@ -86,6 +94,7 @@ public class TrnLookupHelperTests
                         DateOfBirth = authenticationState.DateOfBirth,
                         EmailAddresses = new[] { authenticationState.EmailAddress! },
                         FirstName = authenticationState.FirstName!,
+                        MiddleName = authenticationState.MiddleName!,
                         LastName = authenticationState.LastName!,
                         HasActiveSanctions = false,
                         NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
@@ -97,6 +106,7 @@ public class TrnLookupHelperTests
                         DateOfBirth = authenticationState.DateOfBirth,
                         EmailAddresses = new[] { authenticationState.EmailAddress! },
                         FirstName = authenticationState.FirstName!,
+                        MiddleName = authenticationState.MiddleName!,
                         LastName = authenticationState.LastName!,
                         HasActiveSanctions = false,
                         NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
@@ -108,7 +118,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -140,6 +150,7 @@ public class TrnLookupHelperTests
                         DateOfBirth = authenticationState.DateOfBirth,
                         EmailAddresses = new[] { authenticationState.EmailAddress! },
                         FirstName = authenticationState.FirstName!,
+                        MiddleName = authenticationState.MiddleName!,
                         LastName = authenticationState.LastName!,
                         HasActiveSanctions = false,
                         NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
@@ -149,9 +160,10 @@ public class TrnLookupHelperTests
                 }
             });
 
+
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var result = await helper.LookupTrn(authenticationState);
@@ -179,7 +191,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         await helper.LookupTrn(authenticationState);
@@ -206,7 +218,7 @@ public class TrnLookupHelperTests
 
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         await helper.LookupTrn(authenticationState);
@@ -227,12 +239,12 @@ public class TrnLookupHelperTests
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn, awardedQts);
-        var trnLookupResults = new[] { "2345678" };
+        var trnLookupResults = new[] { GetTeachersResponseResult("2345678") };
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -251,12 +263,12 @@ public class TrnLookupHelperTests
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn, awardedQts);
-        var trnLookupResults = new[] { "2345678", "3456789" };
+        var trnLookupResults = new[] { GetTeachersResponseResult("2345678"), GetTeachersResponseResult("3456789") };
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -273,12 +285,12 @@ public class TrnLookupHelperTests
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn: "1234567", awardedQts);
-        var trnLookupResults = Array.Empty<string>();
+        var trnLookupResults = Array.Empty<FindTeachersResponseResult>();
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -295,12 +307,12 @@ public class TrnLookupHelperTests
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn, awardedQts: true);
-        var trnLookupResults = Array.Empty<string>();
+        var trnLookupResults = Array.Empty<FindTeachersResponseResult>();
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -315,12 +327,12 @@ public class TrnLookupHelperTests
     {
         // Arrange
         var authenticationState = CreateAuthenticationState(statedTrn: null, awardedQts: false);
-        var trnLookupResults = Array.Empty<string>();
+        var trnLookupResults = Array.Empty<FindTeachersResponseResult>();
 
         var dqtApiClientMock = new Mock<IDqtApiClient>();
         var logger = new NullLogger<TrnLookupHelper>();
 
-        var helper = new TrnLookupHelper(dqtApiClientMock.Object, logger);
+        var helper = new TrnLookupHelper(dqtApiClientMock.Object, _configuration, logger);
 
         // Act
         var (trn, trnLookupStatus) = helper.ResolveTrn(trnLookupResults, authenticationState);
@@ -351,5 +363,25 @@ public class TrnLookupHelperTests
         authState.OnAwardedQtsSet(awardedQts);
 
         return authState;
+    }
+
+    private FindTeachersResponseResult GetTeachersResponseResult(
+        string trn,
+        string? firstName = null,
+        string? middleName = null,
+        string? lastName = null)
+    {
+        return new FindTeachersResponseResult()
+        {
+            Trn = trn,
+            EmailAddresses = new[] { Faker.Internet.Email() },
+            FirstName = firstName ?? Faker.Name.First(),
+            MiddleName = middleName ?? Faker.Name.Middle(),
+            LastName = lastName ?? Faker.Name.Last(),
+            DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+            NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+            Uid = "",
+            HasActiveSanctions = false,
+        };
     }
 }

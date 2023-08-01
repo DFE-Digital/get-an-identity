@@ -10,11 +10,11 @@ public class LegacyTrnJourney : SignInJourney
     private readonly TrnLookupHelper _trnLookupHelper;
 
     public LegacyTrnJourney(
-        CreateUserHelper createUserHelper,
+        UserHelper userHelper,
         TrnLookupHelper trnLookupHelper,
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator)
-        : base(httpContext, linkGenerator, createUserHelper)
+        : base(httpContext, linkGenerator, userHelper)
     {
         Debug.Assert((AuthenticationState.UserRequirements & (UserRequirements.TrnHolder | UserRequirements.DefaultUserType)) != 0);
         _trnLookupHelper = trnLookupHelper;
@@ -27,7 +27,7 @@ public class LegacyTrnJourney : SignInJourney
         using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(User.TrnUniqueIndexName));
         try
         {
-            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState);
+            var user = await UserHelper.CreateUserWithTrnLookup(AuthenticationState);
 
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
@@ -35,7 +35,7 @@ public class LegacyTrnJourney : SignInJourney
         catch (Exception ex) when (suppressUniqueIndexViolationScope.IsExceptionSuppressed(ex))
         {
             // TRN is already linked to an existing account
-            return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
+            return await UserHelper.GeneratePinForExistingUserAccount(this, currentStep);
         }
 
         return new RedirectResult(GetNextStepUrl(currentStep));

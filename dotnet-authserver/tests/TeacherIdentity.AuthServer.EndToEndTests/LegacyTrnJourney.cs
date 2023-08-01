@@ -157,6 +157,7 @@ public class LegacyTrnJourney : IClassFixture<HostFixture>
         {
             DateOfBirth = dateOfBirth,
             FirstName = officialFirstName,
+            MiddleName = null,
             LastName = officialLastName,
             EmailAddresses = new[] { email },
             HasActiveSanctions = false,
@@ -230,6 +231,7 @@ public class LegacyTrnJourney : IClassFixture<HostFixture>
         {
             DateOfBirth = dateOfBirth,
             FirstName = officialFirstName,
+            MiddleName = null,
             LastName = officialLastName,
             EmailAddresses = new[] { email },
             HasActiveSanctions = false,

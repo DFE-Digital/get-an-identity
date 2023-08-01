@@ -132,7 +132,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await SignInUser(user, page, context);
 
-        var trnToken = await CreateValidTrnToken(trn: user.Trn, email: user.EmailAddress);
+        var trnToken = await CreateValidTrnToken(trn: user.Trn, email: user.EmailAddress, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -154,7 +154,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await SignInUser(user, page, context);
 
-        var trnToken = await CreateValidTrnToken(email: user.EmailAddress);
+        var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -244,7 +244,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
 
-        var trnToken = await CreateValidTrnToken(trn: user.Trn, email: user.EmailAddress);
+        var trnToken = await CreateValidTrnToken(trn: user.Trn, email: user.EmailAddress, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -266,7 +266,78 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
-        var trnToken = await CreateValidTrnToken(email: user.EmailAddress);
+        var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+    }
+
+    [Fact]
+    public async Task ExistingUserNoTrn_ValidTrnTokenMatchingEmailNotMatchingNameAndDqtSynchronizationEnabled_SignsInUserUpdatesTrnAndNameInvalidatesToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
+
+        var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: dqtFirstName, lastName: dqtLastName);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, dqtFirstName, dqtLastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
+    public async Task ExistingUserNoTrn_ValidTrnTokenMatchingEmailNotMatchingNameAndDqtSynchronizationNotEnabled_SignsInUserUpdatesTrnInvalidatesToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+
+        var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: dqtFirstName, lastName: dqtLastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -337,7 +408,92 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
         var differentEmail = _hostFixture.TestData.GenerateUniqueEmail();
 
-        var trnToken = await CreateValidTrnToken(email: differentEmail);
+        var trnToken = await CreateValidTrnToken(email: differentEmail, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.SignInFromTrnTokenLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, user.FirstName, user.LastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+    }
+
+    [Fact]
+    public async Task ExistingUserSignsInNoTrn_ValidTrnTokenDifferentNameAndDqtSynchronizationEnabled_AssignsTokenUpdatesName()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+        var differentEmail = _hostFixture.TestData.GenerateUniqueEmail();
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
+
+        var trnToken = await CreateValidTrnToken(email: differentEmail, firstName: dqtFirstName, lastName: dqtLastName);
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.SignInFromTrnTokenLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user.EmailAddress, trnToken.Trn, dqtFirstName, dqtLastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.Equal(user.UserId, trnTokenModel?.UserId);
+
+        _hostFixture.EventObserver.AssertEventsSaved(
+            e =>
+            {
+                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
+                Assert.Equal(trnTokenModel?.Trn, userUpdatedEvent.User.Trn);
+                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+            },
+            e => Assert.IsType<UserSignedInEvent>(e));
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
+    public async Task ExistingUserSignsInNoTrn_ValidTrnTokenDifferentNameAndDqtSynchronizationNotEnabled_AssignsToken()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
+        var differentEmail = _hostFixture.TestData.GenerateUniqueEmail();
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+
+        var trnToken = await CreateValidTrnToken(email: differentEmail, firstName: dqtFirstName, lastName: dqtLastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -404,7 +560,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var differentEmail = _hostFixture.TestData.GenerateUniqueEmail();
 
-        var trnToken = await CreateValidTrnToken(trn: user.Trn, email: differentEmail);
+        var trnToken = await CreateValidTrnToken(trn: user.Trn, email: differentEmail, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -430,7 +586,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
-        var trnToken = await CreateValidTrnToken(firstName: user.FirstName, lastName: user.LastName, dateOfBirth: user.DateOfBirth);
+        var trnToken = await CreateValidTrnToken(dateOfBirth: user.DateOfBirth, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -528,7 +684,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default);
 
-        var trnToken = await CreateValidTrnToken();
+        var trnToken = await CreateValidTrnToken(firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -566,7 +722,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
 
-        var trnToken = await CreateValidTrnToken(trn: user.Trn);
+        var trnToken = await CreateValidTrnToken(trn: user.Trn, firstName: user.FirstName, middleName: user.MiddleName, lastName: user.LastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
 
@@ -725,6 +881,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         {
             DateOfBirth = dateOfBirth,
             FirstName = firstName,
+            MiddleName = null,
             LastName = lastName,
             EmailAddresses = new[] { email },
             HasActiveSanctions = false,
@@ -779,13 +936,14 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
     private async Task<TrnTokenModel> CreateValidTrnToken(
         string? firstName = null,
+        string? middleName = null,
         string? lastName = null,
         DateOnly? dateOfBirth = null,
         string? trn = null,
         string? email = null)
     {
         firstName ??= Faker.Name.First();
-        var middleName = Faker.Name.Middle();
+        middleName ??= Faker.Name.Middle();
         lastName ??= Faker.Name.Last();
         dateOfBirth ??= DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         trn ??= _hostFixture.TestData.GenerateTrn();

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
@@ -16,12 +17,18 @@ public class ConfirmModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
     private readonly IClock _clock;
+    private readonly bool _dqtSynchronizationEnabled;
 
-    public ConfirmModel(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient, IClock clock)
+    public ConfirmModel(
+        TeacherIdentityServerDbContext dbContext,
+        IDqtApiClient dqtApiClient,
+        IConfiguration configuration,
+        IClock clock)
     {
         _dbContext = dbContext;
         _dqtApiClient = dqtApiClient;
         _clock = clock;
+        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     [FromRoute]
@@ -36,7 +43,11 @@ public class ConfirmModel : PageModel
 
     public DateOnly? DateOfBirth { get; set; }
 
-    public string? DqtName { get; set; }
+    public string? DqtFirstName { get; set; }
+
+    public string? DqtMiddleName { get; set; }
+
+    public string? DqtLastName { get; set; }
 
     public DateOnly? DqtDateOfBirth { get; set; }
 
@@ -79,13 +90,30 @@ public class ConfirmModel : PageModel
 
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == UserId);
 
+        var changes = Events.UserUpdatedEventChanges.TrnLookupStatus;
         user.Trn = Trn;
-        user.TrnLookupStatus = Trn is not null ? TrnLookupStatus.Found : TrnLookupStatus.Failed;
         user.TrnAssociationSource = TrnAssociationSource.SupportUi;
         user.Updated = _clock.UtcNow;
 
-        var changes = (Trn is not null ? Events.UserUpdatedEventChanges.Trn : Events.UserUpdatedEventChanges.None) |
-            Events.UserUpdatedEventChanges.TrnLookupStatus;
+        if (Trn is not null)
+        {
+            changes = changes | Events.UserUpdatedEventChanges.Trn;
+            user.TrnLookupStatus = TrnLookupStatus.Found;
+
+            if (_dqtSynchronizationEnabled)
+            {
+                changes |= (user.FirstName != DqtFirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
+                           ((user.MiddleName ?? string.Empty) != (DqtMiddleName ?? string.Empty) ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
+                           (user.LastName != DqtLastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
+                user.FirstName = DqtFirstName!;
+                user.MiddleName = DqtMiddleName;
+                user.LastName = DqtLastName!;
+            }
+        }
+        else
+        {
+            user.TrnLookupStatus = TrnLookupStatus.Failed;
+        }
 
         _dbContext.AddEvent(new Events.UserUpdatedEvent()
         {
@@ -120,7 +148,7 @@ public class ConfirmModel : PageModel
         }
 
         EmailAddress = user.EmailAddress;
-        Name = $"{user.FirstName} {user.LastName}";
+        Name = NameHelper.GetFullName(user.FirstName, user.MiddleName, user.LastName);
         DateOfBirth = user.DateOfBirth;
 
         if (Trn is not null)
@@ -133,7 +161,9 @@ public class ConfirmModel : PageModel
                 return;
             }
 
-            DqtName = $"{dqtTeacher.FirstName} {dqtTeacher.LastName}";
+            DqtFirstName = dqtTeacher.FirstName;
+            DqtMiddleName = dqtTeacher.MiddleName;
+            DqtLastName = dqtTeacher.LastName;
             DqtDateOfBirth = dqtTeacher.DateOfBirth;
             DqtEmailAddress = dqtTeacher.Email;
         }

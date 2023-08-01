@@ -1,4 +1,6 @@
 @page "/admin/users/{userId}/assign-trn/confirm"
+@using TeacherIdentity.AuthServer.Helpers
+@using GovUk.Frontend.AspNetCore.TagHelpers
 @model TeacherIdentity.AuthServer.Pages.Admin.AssignTrn.ConfirmModel
 @{
     ViewBag.Title = Model.Trn is not null ?
@@ -67,7 +69,7 @@
                                 </govuk-summary-list-row>
                                 <govuk-summary-list-row>
                                     <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
-                                    <govuk-summary-list-row-value>@Model.DqtName</govuk-summary-list-row-value>
+                                    <govuk-summary-list-row-value>@NameHelper.GetFullName(Model.DqtFirstName, Model.DqtMiddleName, Model.DqtLastName)</govuk-summary-list-row-value>
                                 </govuk-summary-list-row>
                                 <govuk-summary-list-row>
                                     <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
@@ -82,7 +84,7 @@
                 {
                     <govuk-warning-text icon-fallback-text="Warning" data-testid="EmailOverwriteWarning">
                         The DQT email address will be overwritten with
-                        <span class="empty-hyphens">@Html.ShyEmail(Model.DqtEmailAddress))</span>
+                        <span class="empty-hyphens">@Html.ShyEmail(Model.EmailAddress!))</span>
                         when the TRN is assigned.
                     </govuk-warning-text>
                 }

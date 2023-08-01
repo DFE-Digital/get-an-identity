@@ -8,13 +8,16 @@ public class TrnLookupHelper
 
     private readonly IDqtApiClient _dqtApiClient;
     private readonly ILogger<TrnLookupHelper> _logger;
+    private readonly bool _dqtSynchronizationEnabled;
 
     public TrnLookupHelper(
         IDqtApiClient dqtApiClient,
+        IConfiguration configuration,
         ILogger<TrnLookupHelper> logger)
     {
         _dqtApiClient = dqtApiClient;
         _logger = logger;
+        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     public async Task<string?> LookupTrn(AuthenticationState authenticationState)
@@ -22,8 +25,8 @@ public class TrnLookupHelper
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(_trnLookupTimeout);
 
-        string? trn = null;
-        string[] findTeachersResultTrns = Array.Empty<string>();
+        FindTeachersResponseResult? findTeachersResult;
+        FindTeachersResponseResult[] findTeachersResults = Array.Empty<FindTeachersResponseResult>();
 
         try
         {
@@ -42,7 +45,7 @@ public class TrnLookupHelper
                 },
                 cts.Token);
 
-            findTeachersResultTrns = lookupResponse.Results.Select(r => r.Trn).ToArray();
+            findTeachersResults = lookupResponse.Results.ToArray();
         }
         catch (OperationCanceledException ex)
         {
@@ -54,17 +57,19 @@ public class TrnLookupHelper
             // previously-found TRN that may now be invalid.
 
             TrnLookupStatus trnLookupStatus;
-            (trn, trnLookupStatus) = ResolveTrn(findTeachersResultTrns, authenticationState);
-            authenticationState.OnTrnLookupCompleted(trn, trnLookupStatus);
+            (findTeachersResult, trnLookupStatus) = ResolveTrn(findTeachersResults, authenticationState);
+            authenticationState.OnTrnLookupCompleted(findTeachersResult, trnLookupStatus, _dqtSynchronizationEnabled);
         }
 
-        return trn;
+        return findTeachersResult?.Trn;
     }
 
-    public (string? Trn, TrnLookupStatus TrnLookupStatus) ResolveTrn(string[] findTeachersResultTrns, AuthenticationState authenticationState) =>
-        (findTeachersResultTrns, authenticationState) switch
+    public (FindTeachersResponseResult? Trn, TrnLookupStatus TrnLookupStatus) ResolveTrn(
+        FindTeachersResponseResult[] findTeachersResults,
+        AuthenticationState authenticationState) =>
+        (findTeachersResults, authenticationState) switch
         {
-            ({ Length: 1 }, _) => (findTeachersResultTrns.Single(), TrnLookupStatus.Found),
+            ({ Length: 1 }, _) => (findTeachersResults.Single(), TrnLookupStatus.Found),
             ({ Length: > 1 }, _) => (null, TrnLookupStatus.Pending),
             (_, { StatedTrn: not null } or { AwardedQts: true }) => (null, TrnLookupStatus.Pending),
             _ => (null, TrnLookupStatus.None)

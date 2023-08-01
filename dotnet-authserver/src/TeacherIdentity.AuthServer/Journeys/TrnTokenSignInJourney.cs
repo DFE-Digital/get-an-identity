@@ -10,15 +10,15 @@ public class TrnTokenSignInJourney : SignInJourney
     public TrnTokenSignInJourney(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper, TrnTokenHelper trnTokenHelper)
-        : base(httpContext, linkGenerator, createUserHelper)
+        UserHelper userHelper, TrnTokenHelper trnTokenHelper)
+        : base(httpContext, linkGenerator, userHelper)
     {
         _trnTokenHelper = trnTokenHelper;
     }
 
     public override async Task<IActionResult> CreateUser(string currentStep)
     {
-        var user = await CreateUserHelper.CreateUserWithTrnToken(AuthenticationState);
+        var user = await UserHelper.CreateUserWithTrnToken(AuthenticationState);
 
         AuthenticationState.OnUserRegistered(user);
         await AuthenticationState.SignIn(HttpContext);

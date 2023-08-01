@@ -15,11 +15,11 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
     public CoreSignInJourneyWithTrnLookup(
         HttpContext httpContext,
         IdentityLinkGenerator linkGenerator,
-        CreateUserHelper createUserHelper,
+        UserHelper userHelper,
         TrnLookupHelper trnLookupHelper,
         TeacherIdentityApplicationManager applicationManager,
         IBackgroundJobScheduler backgroundJobScheduler)
-        : base(httpContext, linkGenerator, createUserHelper)
+        : base(httpContext, linkGenerator, userHelper)
     {
         _trnLookupHelper = trnLookupHelper;
         _applicationManager = applicationManager;
@@ -31,7 +31,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(User.TrnUniqueIndexName));
         try
         {
-            var user = await CreateUserHelper.CreateUserWithTrnLookup(AuthenticationState);
+            var user = await UserHelper.CreateUserWithTrnLookup(AuthenticationState);
 
             AuthenticationState.OnTrnLookupCompletedAndUserRegistered(user);
             await AuthenticationState.SignIn(HttpContext);
@@ -46,7 +46,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 
                 if (client!.RaiseTrnResolutionSupportTickets)
                 {
-                    await _backgroundJobScheduler.Enqueue<CreateUserHelper>(
+                    await _backgroundJobScheduler.Enqueue<UserHelper>(
                         u => u.CreateTrnResolutionZendeskTicket(
                             user.UserId,
                             AuthenticationState.GetOfficialName(),
@@ -64,7 +64,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         }
         catch (Exception ex) when (suppressUniqueIndexViolationScope.IsExceptionSuppressed(ex))
         {
-            return await CreateUserHelper.GeneratePinForExistingUserAccount(this, currentStep);
+            return await UserHelper.GeneratePinForExistingUserAccount(this, currentStep);
         }
 
         return new RedirectResult(GetNextStepUrl(currentStep));
