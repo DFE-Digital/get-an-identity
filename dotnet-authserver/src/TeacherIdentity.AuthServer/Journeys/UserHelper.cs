@@ -17,7 +17,7 @@ public class UserHelper
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
     private readonly TrnTokenHelper _trnTokenHelper;
     private readonly IDqtApiClient _dqtApiClient;
-    private readonly IConfiguration _configuration;
+    private readonly bool _dqtSynchronizationEnabled;
 
     public UserHelper(
         TeacherIdentityServerDbContext dbContext,
@@ -34,7 +34,7 @@ public class UserHelper
         _zendeskApiWrapper = zendeskApiWrapper;
         _trnTokenHelper = trnTokenHelper;
         _dqtApiClient = dqtApiClient;
-        _configuration = configuration;
+        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     public async Task<User> CreateUser(AuthenticationState authenticationState)
@@ -83,10 +83,10 @@ public class UserHelper
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
             MobileNumber = authenticationState.MobileNumber,
-            FirstName = authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
-            MiddleName = authenticationState.MiddleName,
-            LastName = authenticationState.LastName ?? authenticationState.OfficialLastName!,
-            PreferredName = authenticationState.PreferredName ?? authenticationState.GetOfficialName(),
+            FirstName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtFirstName! : authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
+            MiddleName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtMiddleName : authenticationState.MiddleName,
+            LastName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtLastName! : authenticationState.LastName ?? authenticationState.OfficialLastName!,
+            PreferredName = authenticationState.PreferredName,
             Updated = _clock.UtcNow,
             UserId = userId,
             UserType = UserType.Default,
@@ -127,8 +127,9 @@ public class UserHelper
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
             MobileNumber = authenticationState.MobileNumber,
-            FirstName = authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
-            LastName = authenticationState.LastName ?? authenticationState.OfficialLastName!,
+            FirstName = authenticationState.FirstName!,
+            MiddleName = authenticationState.MiddleName,
+            LastName = authenticationState.LastName!,
             PreferredName = authenticationState.PreferredName,
             Updated = _clock.UtcNow,
             UserId = userId,
@@ -248,7 +249,7 @@ public class UserHelper
 
     public async Task EnsureDqtUserNameMatch(User user, AuthenticationState authenticationState)
     {
-        if (_configuration.GetValue("DqtSynchronizationEnabled", false))
+        if (_dqtSynchronizationEnabled)
         {
             var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!);
 
