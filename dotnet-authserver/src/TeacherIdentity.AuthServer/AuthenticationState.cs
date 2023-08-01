@@ -74,6 +74,12 @@ public class AuthenticationState
     [JsonInclude]
     public string? PreviousOfficialLastName { get; private set; }
     [JsonInclude]
+    public string? DqtFirstName { get; private set; }
+    [JsonInclude]
+    public string? DqtMiddleName { get; private set; }
+    [JsonInclude]
+    public string? DqtLastName { get; private set; }
+    [JsonInclude]
     public DateOnly? DateOfBirth { get; private set; }
     [JsonInclude]
     public string? Trn { get; private set; }
@@ -682,9 +688,9 @@ public class AuthenticationState
 
         if (dqtSynchronizationEnabled && findTeachersResult is not null)
         {
-            FirstName = findTeachersResult.FirstName;
-            MiddleName = findTeachersResult.MiddleName;
-            LastName = findTeachersResult.LastName;
+            DqtFirstName = findTeachersResult.FirstName;
+            DqtMiddleName = findTeachersResult.MiddleName;
+            DqtLastName = findTeachersResult.LastName;
         }
     }
 
