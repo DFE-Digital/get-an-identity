@@ -49,7 +49,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                     await _backgroundJobScheduler.Enqueue<UserHelper>(
                         u => u.CreateTrnResolutionZendeskTicket(
                             user.UserId,
-                            AuthenticationState.GetOfficialName(),
+                            AuthenticationState.GetName(/*includeMiddleName:*/ true),
                             preferredName,
                             AuthenticationState.EmailAddress,
                             AuthenticationState.GetPreviousOfficialName(),
