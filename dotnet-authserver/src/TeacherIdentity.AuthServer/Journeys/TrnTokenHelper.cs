@@ -114,7 +114,9 @@ public class TrnTokenHelper
 
         var teacher = await _dqtApiClient.GetTeacherByTrn(trnToken.Trn);
 
-        if (teacher is null)
+        // Our journey assumes that the DQT record has a DateOfBirth but it some rare circumstances it does not;
+        // for now, fall back to standard registration flow if we don't have a DOB.
+        if (teacher is null || teacher.DateOfBirth is null)
         {
             return null;
         }
@@ -130,7 +132,7 @@ public class TrnTokenHelper
             FirstName = teacher.FirstName,
             MiddleName = teacher.MiddleName,
             LastName = teacher.LastName,
-            DateOfBirth = teacher.DateOfBirth,
+            DateOfBirth = teacher.DateOfBirth!.Value
         };
     }
 
