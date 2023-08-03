@@ -22,10 +22,6 @@ public static class ServiceCollectionExtensions
             .AddTransient<UserHelper>()
             .AddTransient<TrnTokenHelper>();
 
-        services.AddTransient<LegacyTrnJourney>(
-            sp => sp.GetRequiredService<SignInJourney>() as LegacyTrnJourney ??
-                throw new InvalidOperationException($"Current journey is not a {nameof(LegacyTrnJourney)}."));
-
         return services;
     }
 }

@@ -298,13 +298,6 @@ public class Program
                 });
 
             options.Conventions.AddFolderApplicationModelConvention(
-                "/SignIn/Trn",
-                model =>
-                {
-                    model.Filters.Add(new CheckJourneyTypeAttribute(typeof(LegacyTrnJourney)));
-                });
-
-            options.Conventions.AddFolderApplicationModelConvention(
                 "/Admin",
                 model =>
                 {

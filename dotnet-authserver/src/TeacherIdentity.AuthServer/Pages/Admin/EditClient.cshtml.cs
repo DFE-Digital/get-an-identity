@@ -41,8 +41,8 @@ public class EditClientModel : PageModel
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
 
-    [Display(Name = "TRN required")]
-    public TrnRequirementType? TrnRequired { get; set; }
+    [Display(Name = "TRN required", Description = "Whether the client requires a TRN")]
+    public bool? TrnRequired { get; set; }
 
     [Display(Name = "Raise TRN resolution support tickets")]
     public bool RaiseTrnResolutionSupportTickets { get; set; }
@@ -71,7 +71,7 @@ public class EditClientModel : PageModel
 
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
-        TrnRequired = client.TrnRequirementType;
+        TrnRequired = client.TrnRequirementType == TrnRequirementType.Required;
         RaiseTrnResolutionSupportTickets = client.RaiseTrnResolutionSupportTickets;
         EnableAuthorizationCodeFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         EnableClientCredentialsFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
@@ -162,10 +162,11 @@ public class EditClientModel : PageModel
         await _applicationStore.SetPermissionsAsync(client, permissions, CancellationToken.None);
         await _applicationStore.SetRaiseTrnResolutionSupportTicketsAsync(client, RaiseTrnResolutionSupportTickets);
 
-        if (TrnRequired is not null && TrnRequired != client.TrnRequirementType)
+        var trnRequirementType = TrnRequired == true ? TrnRequirementType.Required : TrnRequirementType.Optional;
+        if (trnRequirementType != client.TrnRequirementType)
         {
             changes |= ClientUpdatedEventChanges.TrnRequirementType;
-            await _applicationStore.SetTrnRequirementTypeAsync(client, (TrnRequirementType)TrnRequired);
+            await _applicationStore.SetTrnRequirementTypeAsync(client, trnRequirementType);
         }
 
         if (!string.IsNullOrEmpty(ClientSecret))

@@ -119,7 +119,7 @@ public class EditClientTests : TestBase
                 { "ClientSecret", newClientSecret },
                 { "DisplayName", newDisplayName },
                 { "ServiceUrl", newServiceUrl },
-                { "TrnRequired", newTrnRequirementType },
+                { "TrnRequired", newTrnRequirementType == TrnRequirementType.Required },
                 { "RaiseTrnResolutionSupportTickets", newRaiseTrnResolutionSupportTickets.ToString() },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { newRedirectUri1, newRedirectUri2 }) },

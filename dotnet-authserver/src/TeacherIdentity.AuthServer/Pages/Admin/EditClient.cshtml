@@ -23,14 +23,12 @@
         </govuk-checkboxes-item>
     </govuk-checkboxes>
 
-    <govuk-radios asp-for="TrnRequired">
-        <govuk-radios-fieldset>
-            <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m"/>
-            <govuk-radios-item value="@TrnRequirementType.Required">Yes, client requires a TRN</govuk-radios-item>
-            <govuk-radios-item value="@TrnRequirementType.Optional">No, client does not require a TRN</govuk-radios-item>
-            <govuk-radios-item value="@TrnRequirementType.Legacy">Use legacy TRN requirement</govuk-radios-item>
-        </govuk-radios-fieldset>
-    </govuk-radios>
+    <govuk-checkboxes asp-for="TrnRequired">
+        <govuk-checkboxes-fieldset>
+            <govuk-checkboxes-fieldset-legend class="govuk-fieldset__legend--m">TRN</govuk-checkboxes-fieldset-legend>
+            <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.TrnRequired)</govuk-checkboxes-item>
+        </govuk-checkboxes-fieldset>
+    </govuk-checkboxes>
 
     <govuk-checkboxes asp-for="RaiseTrnResolutionSupportTickets">
         <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.RaiseTrnResolutionSupportTickets)</govuk-checkboxes-item>

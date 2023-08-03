@@ -11,7 +11,7 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
 
     public string? ServiceUrl { get; set; }
 
-    [DefaultValue(TrnRequirementType.Legacy)]
+    [DefaultValue(TrnRequirementType.Required)]
     public TrnRequirementType TrnRequirementType { get; set; }
 
     [DefaultValue(false)]

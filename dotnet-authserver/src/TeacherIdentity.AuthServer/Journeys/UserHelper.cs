@@ -83,9 +83,9 @@ public class UserHelper
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
             MobileNumber = authenticationState.MobileNumber,
-            FirstName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtFirstName! : authenticationState.FirstName ?? authenticationState.OfficialFirstName!,
+            FirstName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtFirstName! : authenticationState.FirstName!,
             MiddleName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtMiddleName : authenticationState.MiddleName,
-            LastName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtLastName! : authenticationState.LastName ?? authenticationState.OfficialLastName!,
+            LastName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtLastName! : authenticationState.LastName!,
             PreferredName = authenticationState.PreferredName,
             Updated = _clock.UtcNow,
             UserId = userId,
@@ -190,7 +190,6 @@ public class UserHelper
         string? officialName,
         string? preferredName,
         string? emailAddress,
-        string? previousOfficialName,
         DateOnly? dateOfBirth,
         string? nationalInsuranceNumber,
         string? ittProviderName,
@@ -203,7 +202,6 @@ public class UserHelper
                 A user has submitted a request to find their TRN. Their information is:
                 Name: {officialName}
                 Email: {emailAddress}
-                Previous name: {previousOfficialName ?? "None"}
                 Date of birth: {dateOfBirth:dd/MM/yyyy}
                 NI number: {nationalInsuranceNumber ?? "Not provided"}
                 ITT provider: {ittProviderName ?? "Not provided"}

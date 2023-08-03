@@ -34,7 +34,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null,
             HttpMethod.Get,
@@ -49,7 +49,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/trn/resend-email-confirmation?{authStateHelper.ToQueryParam()}");
@@ -86,7 +86,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null,
             HttpMethod.Post,
@@ -101,7 +101,7 @@ public class ResendTrnOwnerEmailConfirmationTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/resend-email-confirmation?{authStateHelper.ToQueryParam()}");

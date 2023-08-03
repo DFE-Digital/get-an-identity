@@ -353,12 +353,10 @@ public class TrnLookupHelperTests
         authState.OnEmailSet(Faker.Internet.Email());
         authState.OnEmailVerified();
         authState.OnTrnSet(statedTrn);
-        authState.OnOfficialNameSet(
+        authState.OnNameSet(
             Faker.Name.First(),
-            Faker.Name.Last(),
-            AuthenticationState.HasPreviousNameOption.No,
-            previousOfficialFirstName: null,
-            previousOfficialLastName: null);
+            Faker.Name.Middle(),
+            Faker.Name.Last());
         authState.OnDateOfBirthSet(DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
         authState.OnAwardedQtsSet(awardedQts);
 

@@ -267,7 +267,6 @@ public class EmailConfirmationTests : TestBase
     [Theory]
     [InlineData(null, null, "/sign-in/register/no-account")]
     [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional, "/sign-in/register/no-account")]
-    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Legacy, "/sign-in/trn")]
     public async Task Post_ValidPinForNewUser_UpdatesAuthenticationStateAndRedirects(string? scope, TrnRequirementType? trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange

@@ -14,32 +14,9 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
         <form action="@LinkGenerator.Email()" method="post" asp-antiforgery="true">
-            @if (Model.JourneyType == typeof(TeacherIdentity.AuthServer.Journeys.LegacyTrnJourney))
-            {
-                <h1 class="govuk-heading-l">Your email address</h1>
-
-                <p>We use your email address to find your details in our records.</p>
-
-                <p>If we do not recognise your email, we’ll ask you for a few details instead.</p>
-
-                <p>You’ll receive a code by email to confirm your email address.</p>
-
-                <govuk-input asp-for="Email" type="email" autocomplete="email">
-                    <govuk-input-label class="govuk-label--s">
-                        Enter your email address
-                    </govuk-input-label>
-                    <govuk-input-hint>
-                        Use your personal email address. This is so you can keep these sign in details should you change jobs.
-                    </govuk-input-hint>
-                </govuk-input>
-            }
-            else
-            {
-                <govuk-input asp-for="Email" type="email" autocomplete="email">
-                    <govuk-input-label class="govuk-label--l" />
-                </govuk-input>
-            }
-
+            <govuk-input asp-for="Email" type="email" autocomplete="email">
+                <govuk-input-label class="govuk-label--l" />
+            </govuk-input>
             <govuk-button type="submit">Continue</govuk-button>
         </form>
     </div>

@@ -8,10 +8,12 @@ public class SignInJourneyProvider
     {
         if (authenticationState.TryGetOAuthState(out var oAuthState) && authenticationState.UserRequirements.RequiresTrnLookup())
         {
+#pragma warning disable CS0612 // Type or member is obsolete
             if (oAuthState.TrnRequirementType == TrnRequirementType.Legacy)
             {
-                return ActivatorUtilities.CreateInstance<LegacyTrnJourney>(httpContext.RequestServices, httpContext);
+                throw new NotSupportedException("The Legacy sign in journey is no longer supported.");
             }
+#pragma warning restore CS0612 // Type or member is obsolete
 
             return authenticationState.HasTrnToken ?
                 ActivatorUtilities.CreateInstance<TrnTokenSignInJourney>(httpContext.RequestServices, httpContext) :

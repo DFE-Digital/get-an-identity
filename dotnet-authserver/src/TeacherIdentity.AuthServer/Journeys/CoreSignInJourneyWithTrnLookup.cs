@@ -52,7 +52,6 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                             AuthenticationState.GetName(/*includeMiddleName:*/ true),
                             preferredName,
                             AuthenticationState.EmailAddress,
-                            AuthenticationState.GetPreviousOfficialName(),
                             AuthenticationState.DateOfBirth,
                             AuthenticationState.NationalInsuranceNumber,
                             AuthenticationState.IttProviderName,
@@ -154,7 +153,6 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         (CoreSignInJourney.Steps.CheckAnswers, { HasNationalInsuranceNumber: true }) => Steps.NiNumber,
         (CoreSignInJourney.Steps.CheckAnswers, { HasNationalInsuranceNumber: false }) => Steps.HasNiNumber,
         (CoreSignInJourney.Steps.CheckAnswers, { DateOfBirthSet: true }) => CoreSignInJourney.Steps.DateOfBirth,
-        (CoreSignInJourney.Steps.CheckAnswers, { OfficialNameSet: true }) => CoreSignInJourney.Steps.Name,
         (SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation, _) => SignInJourney.Steps.TrnInUse,
         _ => base.GetPreviousStep(currentStep)
     };
