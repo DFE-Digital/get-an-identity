@@ -55,7 +55,11 @@ public class HostFixture : IAsyncLifetime
     public TestData TestData => AuthServerServices.GetRequiredService<TestData>();
 
     public Task<IBrowserContext> CreateBrowserContext() =>
-        Browser!.NewContextAsync(new BrowserNewContextOptions() { BaseURL = ClientBaseUrl });
+        Browser!.NewContextAsync(new()
+        {
+            BaseURL = ClientBaseUrl,
+            ViewportSize = ViewportSize.NoViewport
+        });
 
     public async Task DisposeAsync()
     {
@@ -106,7 +110,8 @@ public class HostFixture : IAsyncLifetime
 
         var browserOptions = new BrowserTypeLaunchOptions()
         {
-            Timeout = 10000
+            Timeout = 10000,
+            Args = new[] { "--start-maximized" }
         };
 
         if (Debugger.IsAttached)
