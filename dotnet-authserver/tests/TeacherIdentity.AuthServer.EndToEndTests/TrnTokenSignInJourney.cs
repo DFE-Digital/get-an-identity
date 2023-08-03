@@ -69,6 +69,58 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
     }
 
     [Fact]
+    public async Task NewTeacherUser_WithTrnTokenForDqtRecordWithMissingDateOfBirth_CreatesUserAndCompletesFlow()
+    {
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var middleName = Faker.Name.Middle();
+        var lastName = Faker.Name.Last();
+        var preferredName = Faker.Name.FullName();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = _hostFixture.TestData.GenerateTrn();
+
+        var trnToken = await _hostFixture.TestData.GenerateTrnToken(trn);
+
+        _hostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = null,
+                FirstName = firstName,
+                MiddleName = middleName,
+                LastName = lastName,
+                Trn = trn,
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                PendingDateOfBirthChange = false,
+                PendingNameChange = false,
+                Email = null
+            });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
+
+        await page.RegisterFromTrnTokenLandingPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterPreferredNamePage();
+
+        await page.SubmitDateOfBirthPage(dateOfBirth);
+
+        await page.SubmitTrnTokenCheckAnswersPage();
+
+        await page.SubmitCompletePageForNewUser();
+
+        await page.AssertSignedInOnTestClient(trnToken.Email, trn, firstName, lastName);
+
+        var trnTokenModel = await _hostFixture.TestData.GetTrnToken(trnToken.TrnToken);
+        Assert.NotNull(trnTokenModel?.UserId);
+    }
+
+    [Fact]
     public async Task NewTeacherUser_WithTrnTokenChangesEmail_CreatesUserAndCompletesFlow()
     {
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();

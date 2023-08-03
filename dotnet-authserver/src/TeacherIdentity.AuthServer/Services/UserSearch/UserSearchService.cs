@@ -17,7 +17,7 @@ public class UserSearchService : IUserSearchService
         _namesSynonymService = namesSynonymService;
     }
 
-    public async Task<User[]> FindUsers(string firstName, string lastName, DateOnly dateOfBirth, bool includeSynonyms = true)
+    public async Task<User[]> FindUsers(string firstName, string lastName, DateOnly? dateOfBirth, bool includeSynonyms = true)
     {
         var searchPredicate = PredicateBuilder.New<UserSearchAttribute>(false);
 
@@ -33,7 +33,11 @@ public class UserSearchService : IUserSearchService
         }
 
         searchPredicate.Or(a => a.AttributeType == "last_name" && a.AttributeValue == lastName);
-        searchPredicate.Or(a => a.AttributeType == "date_of_birth" && a.AttributeValue == dateOfBirth.ToString("yyyy-MM-dd"));
+
+        if (dateOfBirth is not null)
+        {
+            searchPredicate.Or(a => a.AttributeType == "date_of_birth" && a.AttributeValue == dateOfBirth!.Value.ToString("yyyy-MM-dd"));
+        }
 
         var results = await _dbContext.UserSearchAttributes
             .Where(searchPredicate)

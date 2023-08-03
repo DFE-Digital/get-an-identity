@@ -49,7 +49,7 @@ public class Landing : PageModel
         var users = await _userSearchService.FindUsers(
             authenticationState.FirstName!,
             authenticationState.LastName!,
-            authenticationState.DateOfBirth!.Value);
+            authenticationState.DateOfBirth);
 
         authenticationState.OnExistingAccountSearch(users.Length == 0 ? null : users[0]);
 
