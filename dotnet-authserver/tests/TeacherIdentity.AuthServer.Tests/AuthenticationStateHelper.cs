@@ -86,10 +86,7 @@ public sealed class AuthenticationStateHelper
             HostFixture = hostFixture;
             TestData = hostFixture.Services.GetRequiredService<TestData>();
             Clock = hostFixture.Services.GetRequiredService<IClock>();
-            Trn = new(this);
         }
-
-        public ConfigureTrn Trn { get; }
 
         public HostFixture HostFixture { get; }
 
@@ -238,6 +235,7 @@ public sealed class AuthenticationStateHelper
             };
 
         public Func<AuthenticationState, Task> RegisterTrnSet(
+            string? statedTrn = null,
             DateOnly? dateOfBirth = null,
             string? preferredName = null,
             string? firstName = null,
@@ -249,10 +247,11 @@ public sealed class AuthenticationStateHelper
             async s =>
             {
                 await RegisterHasTrnSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
-                s.OnTrnSet(TestData.GenerateTrn());
+                s.OnTrnSet(statedTrn ?? TestData.GenerateTrn());
             };
 
         public Func<AuthenticationState, Task> RegisterHasQtsSet(
+            string? statedTrn = null,
             DateOnly? dateOfBirth = null,
             string? preferredName = null,
             string? firstName = null,
@@ -264,11 +263,12 @@ public sealed class AuthenticationStateHelper
             bool? awardedQts = null) =>
             async s =>
             {
-                await RegisterTrnSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
+                await RegisterTrnSet(statedTrn, dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user)(s);
                 s.OnAwardedQtsSet(awardedQts == true);
             };
 
         public Func<AuthenticationState, Task> RegisterIttProviderSet(
+            string? statedTrn = null,
             DateOnly? dateOfBirth = null,
             string? preferredName = null,
             string? firstName = null,
@@ -281,7 +281,7 @@ public sealed class AuthenticationStateHelper
             string? ittProviderName = "provider") =>
             async s =>
             {
-                await RegisterHasQtsSet(dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user, awardedQts)(s);
+                await RegisterHasQtsSet(statedTrn, dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, user, awardedQts)(s);
                 s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
             };
 
@@ -315,267 +315,19 @@ public sealed class AuthenticationStateHelper
                 s.OnExistingAccountChosen(true);
             };
 
-        public Func<AuthenticationState, Task> Completed(User user, bool firstTimeSignIn = false, bool haveResumedCompletedJourney = false) =>
-            async s =>
-            {
-                if (firstTimeSignIn && user.UserType == UserType.Staff)
-                {
-                    throw new NotSupportedException("Staff user registration is not implemented.");
-                }
-
-                if (firstTimeSignIn)
-                {
-                    Debug.Assert(user.UserType == UserType.Default);
-                    await Trn.TrnLookupCompletedForNewTrn(user)(s);
-                }
-                else
-                {
-                    await EmailVerified(user: user)(s);
-                }
-
-                Debug.Assert(s.FirstTimeSignInForEmail == firstTimeSignIn);
-
-                s.EnsureOAuthState();
-                s.OAuthState.SetAuthorizationResponse(
-                    new[]
-                    {
-                        new KeyValuePair<string, string>("code", "abc"),
-                        new KeyValuePair<string, string>("state", "syz")
-                    },
-                    responseMode: "form_post");
-
-                if (haveResumedCompletedJourney)
-                {
-                    s.OnHaveResumedCompletedJourney();
-                }
-            };
-    }
-
-    public class ConfigureTrn
-    {
-        private readonly Configure _configure;
-
-        public ConfigureTrn(Configure configure)
-        {
-            _configure = configure;
-        }
-
-        public Func<AuthenticationState, Task> HasTrnSet(
-            string? email = null,
-            string? statedTrn = null) =>
-            async s =>
-            {
-                await _configure.EmailVerified(email)(s);
-                s.OnTrnSet(statedTrn);
-            };
-
-        public Func<AuthenticationState, Task> OfficialNameSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null) =>
-            async s =>
-            {
-                await HasTrnSet(email, statedTrn)(s);
-                s.OnOfficialNameSet(
-                    officialFirstName ?? Faker.Name.First(),
-                    officialLastName ?? Faker.Name.Last(),
-                    previousOfficialFirstName is not null ? AuthenticationState.HasPreviousNameOption.Yes : AuthenticationState.HasPreviousNameOption.No,
-                    previousOfficialFirstName,
-                    previousOfficialLastName);
-            };
-
-        public Func<AuthenticationState, Task> PreferredNameSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null) =>
-            async s =>
-            {
-                await OfficialNameSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName)(s);
-                s.OnNameSet(preferredFirstName, null, preferredLastName);
-            };
-
-        public Func<AuthenticationState, Task> DateOfBirthSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
-            DateOnly? dateOfBirth = null) =>
-            async s =>
-            {
-                await PreferredNameSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName)(s);
-                s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
-            };
-
-        public Func<AuthenticationState, Task> HasNationalInsuranceNumberSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
-            DateOnly? dateOfBirth = null,
-            bool hasNationalInsuranceNumber = true) =>
-            async s =>
-            {
-                await DateOfBirthSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    dateOfBirth)(s);
-                s.OnHasNationalInsuranceNumberSet(hasNationalInsuranceNumber);
-            };
-
-        public Func<AuthenticationState, Task> NationalInsuranceNumberSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
-            DateOnly? dateOfBirth = null,
-            string? nationalInsuranceNumber = null) =>
-            async s =>
-            {
-                await HasNationalInsuranceNumberSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    dateOfBirth,
-                    hasNationalInsuranceNumber: true)(s);
-                s.OnNationalInsuranceNumberSet(nationalInsuranceNumber ?? Faker.Identification.UkNationalInsuranceNumber());
-            };
-
-        public Func<AuthenticationState, Task> AwardedQtsSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
-            DateOnly? dateOfBirth = null,
-            string? nationalInsuranceNumber = null,
-            bool awardedQts = true) =>
-            async s =>
-            {
-                var haveNationalInsuranceNumber = nationalInsuranceNumber is not null;
-
-                await HasNationalInsuranceNumberSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    dateOfBirth,
-                    hasNationalInsuranceNumber: haveNationalInsuranceNumber)(s);
-
-                if (haveNationalInsuranceNumber)
-                {
-                    s.OnNationalInsuranceNumberSet(nationalInsuranceNumber!);
-                }
-
-                s.OnAwardedQtsSet(awardedQts);
-            };
-
-        public Func<AuthenticationState, Task> IttProviderSet(
-            string? email = null,
-            string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
-            DateOnly? dateOfBirth = null,
-            string? nationalInsuranceNumber = null,
-            string? ittProviderName = null) =>
-            async s =>
-            {
-                await AwardedQtsSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    dateOfBirth,
-                    nationalInsuranceNumber,
-                    awardedQts: true)(s);
-
-                s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
-            };
-
         public Func<AuthenticationState, Task> TrnLookupCompletedForNewTrn(
             User user,
             string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
-            string? nationalInsuranceNumber = null,
+            string? preferredName = null,
+            string? firstName = null,
+            string? middleName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            bool? awardedQts = false,
             string? ittProviderName = null) =>
             async s =>
             {
-                await IttProviderSet(
-                    user.EmailAddress,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    user.DateOfBirth,
-                    nationalInsuranceNumber,
-                    ittProviderName)(s);
+                await RegisterIttProviderSet(statedTrn, user.DateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, user.EmailAddress, null, awardedQts, ittProviderName)(s);
                 s.OnTrnLookupCompletedAndUserRegistered(user);
             };
 
@@ -583,31 +335,19 @@ public sealed class AuthenticationStateHelper
             User trnOwner,
             string? email = null,
             string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
             DateOnly? dateOfBirth = null,
-            string? nationalInsuranceNumber = null,
+            string? preferredName = null,
+            string? firstName = null,
+            string? middleName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            bool? awardedQts = false,
             string? ittProviderName = null) =>
             async s =>
             {
                 Debug.Assert(trnOwner.EmailAddress != email);
 
-                await IttProviderSet(
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    dateOfBirth,
-                    nationalInsuranceNumber,
-                    ittProviderName)(s);
+                await RegisterIttProviderSet(statedTrn, dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, email, null, awardedQts, ittProviderName)(s);
                 s.OnTrnLookupCompletedForTrnAlreadyInUse(trnOwner.EmailAddress);
             };
 
@@ -615,30 +355,17 @@ public sealed class AuthenticationStateHelper
             User trnOwner,
             string? email = null,
             string? statedTrn = null,
-            string? officialFirstName = null,
-            string? officialLastName = null,
-            string? previousOfficialFirstName = null,
-            string? previousOfficialLastName = null,
-            string? preferredFirstName = null,
-            string? preferredLastName = null,
             DateOnly? dateOfBirth = null,
-            string? nationalInsuranceNumber = null,
+            string? preferredName = null,
+            string? firstName = null,
+            string? middleName = null,
+            string? lastName = null,
+            string? mobileNumber = null,
+            bool? awardedQts = false,
             string? ittProviderName = null) =>
             async s =>
             {
-                await TrnLookupCompletedForExistingTrn(
-                    trnOwner,
-                    email,
-                    statedTrn,
-                    officialFirstName,
-                    officialLastName,
-                    previousOfficialFirstName,
-                    previousOfficialLastName,
-                    preferredFirstName,
-                    preferredLastName,
-                    dateOfBirth,
-                    nationalInsuranceNumber,
-                    ittProviderName)(s);
+                await TrnLookupCompletedForExistingTrn(trnOwner, email, statedTrn, dateOfBirth, preferredName, firstName, middleName, lastName, mobileNumber, awardedQts, ittProviderName)(s);
                 s.OnEmailVerifiedOfExistingAccountForTrn();
             };
 
@@ -647,7 +374,7 @@ public sealed class AuthenticationStateHelper
             {
                 if (state == AuthenticationState.TrnLookupState.None)
                 {
-                    await _configure.EmailVerified()(s);
+                    await EmailVerified()(s);
                     return;
                 }
 
@@ -673,5 +400,364 @@ public sealed class AuthenticationStateHelper
                     throw new NotImplementedException($"Unrecognised {nameof(AuthenticationState.TrnLookupState)}: '{state}'.");
                 }
             };
+
+        public Func<AuthenticationState, Task> Completed(User user, bool firstTimeSignIn = false, bool haveResumedCompletedJourney = false) =>
+            async s =>
+            {
+                if (firstTimeSignIn && user.UserType == UserType.Staff)
+                {
+                    throw new NotSupportedException("Staff user registration is not implemented.");
+                }
+
+                if (firstTimeSignIn)
+                {
+                    Debug.Assert(user.UserType == UserType.Default);
+                    await TrnLookupCompletedForNewTrn(user)(s);
+                }
+                else
+                {
+                    await EmailVerified(user: user)(s);
+                }
+
+                Debug.Assert(s.FirstTimeSignInForEmail == firstTimeSignIn);
+
+                s.EnsureOAuthState();
+                s.OAuthState.SetAuthorizationResponse(
+                    new[]
+                    {
+                        new KeyValuePair<string, string>("code", "abc"),
+                        new KeyValuePair<string, string>("state", "syz")
+                    },
+                    responseMode: "form_post");
+
+                if (haveResumedCompletedJourney)
+                {
+                    s.OnHaveResumedCompletedJourney();
+                }
+            };
     }
+
+    ////public class ConfigureTrn
+    ////{
+    ////    private readonly Configure _configure;
+
+    ////    public ConfigureTrn(Configure configure)
+    ////    {
+    ////        _configure = configure;
+    ////    }
+
+    ////    public Func<AuthenticationState, Task> HasTrnSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null) =>
+    ////        async s =>
+    ////        {
+    ////            await _configure.EmailVerified(email)(s);
+    ////            s.OnTrnSet(statedTrn);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> OfficialNameSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null) =>
+    ////        async s =>
+    ////        {
+    ////            await HasTrnSet(email, statedTrn)(s);
+    ////            s.OnOfficialNameSet(
+    ////                officialFirstName ?? Faker.Name.First(),
+    ////                officialLastName ?? Faker.Name.Last(),
+    ////                previousOfficialFirstName is not null ? AuthenticationState.HasPreviousNameOption.Yes : AuthenticationState.HasPreviousNameOption.No,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> PreferredNameSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null) =>
+    ////        async s =>
+    ////        {
+    ////            await OfficialNameSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName)(s);
+    ////            s.OnNameSet(preferredFirstName, null, preferredLastName);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> DateOfBirthSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null) =>
+    ////        async s =>
+    ////        {
+    ////            await PreferredNameSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName)(s);
+    ////            s.OnDateOfBirthSet(dateOfBirth ?? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()));
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> HasNationalInsuranceNumberSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null,
+    ////        bool hasNationalInsuranceNumber = true) =>
+    ////        async s =>
+    ////        {
+    ////            await DateOfBirthSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                dateOfBirth)(s);
+    ////            s.OnHasNationalInsuranceNumberSet(hasNationalInsuranceNumber);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> NationalInsuranceNumberSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null,
+    ////        string? nationalInsuranceNumber = null) =>
+    ////        async s =>
+    ////        {
+    ////            await HasNationalInsuranceNumberSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                dateOfBirth,
+    ////                hasNationalInsuranceNumber: true)(s);
+    ////            s.OnNationalInsuranceNumberSet(nationalInsuranceNumber ?? Faker.Identification.UkNationalInsuranceNumber());
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> AwardedQtsSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null,
+    ////        string? nationalInsuranceNumber = null,
+    ////        bool awardedQts = true) =>
+    ////        async s =>
+    ////        {
+    ////            var haveNationalInsuranceNumber = nationalInsuranceNumber is not null;
+
+    ////            await HasNationalInsuranceNumberSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                dateOfBirth,
+    ////                hasNationalInsuranceNumber: haveNationalInsuranceNumber)(s);
+
+    ////            if (haveNationalInsuranceNumber)
+    ////            {
+    ////                s.OnNationalInsuranceNumberSet(nationalInsuranceNumber!);
+    ////            }
+
+    ////            s.OnAwardedQtsSet(awardedQts);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> IttProviderSet(
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null,
+    ////        string? nationalInsuranceNumber = null,
+    ////        string? ittProviderName = null) =>
+    ////        async s =>
+    ////        {
+    ////            await AwardedQtsSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                dateOfBirth,
+    ////                nationalInsuranceNumber,
+    ////                awardedQts: true)(s);
+
+    ////            s.OnHasIttProviderSet(hasIttProvider: ittProviderName is not null, ittProviderName);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> TrnLookupCompletedForNewTrn(
+    ////        User user,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        string? nationalInsuranceNumber = null,
+    ////        string? ittProviderName = null) =>
+    ////        async s =>
+    ////        {
+    ////            await IttProviderSet(
+    ////                user.EmailAddress,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                user.DateOfBirth,
+    ////                nationalInsuranceNumber,
+    ////                ittProviderName)(s);
+    ////            s.OnTrnLookupCompletedAndUserRegistered(user);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> TrnLookupCompletedForExistingTrn(
+    ////        User trnOwner,
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null,
+    ////        string? nationalInsuranceNumber = null,
+    ////        string? ittProviderName = null) =>
+    ////        async s =>
+    ////        {
+    ////            Debug.Assert(trnOwner.EmailAddress != email);
+
+    ////            await IttProviderSet(
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                dateOfBirth,
+    ////                nationalInsuranceNumber,
+    ////                ittProviderName)(s);
+    ////            s.OnTrnLookupCompletedForTrnAlreadyInUse(trnOwner.EmailAddress);
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(
+    ////        User trnOwner,
+    ////        string? email = null,
+    ////        string? statedTrn = null,
+    ////        string? officialFirstName = null,
+    ////        string? officialLastName = null,
+    ////        string? previousOfficialFirstName = null,
+    ////        string? previousOfficialLastName = null,
+    ////        string? preferredFirstName = null,
+    ////        string? preferredLastName = null,
+    ////        DateOnly? dateOfBirth = null,
+    ////        string? nationalInsuranceNumber = null,
+    ////        string? ittProviderName = null) =>
+    ////        async s =>
+    ////        {
+    ////            await TrnLookupCompletedForExistingTrn(
+    ////                trnOwner,
+    ////                email,
+    ////                statedTrn,
+    ////                officialFirstName,
+    ////                officialLastName,
+    ////                previousOfficialFirstName,
+    ////                previousOfficialLastName,
+    ////                preferredFirstName,
+    ////                preferredLastName,
+    ////                dateOfBirth,
+    ////                nationalInsuranceNumber,
+    ////                ittProviderName)(s);
+    ////            s.OnEmailVerifiedOfExistingAccountForTrn();
+    ////        };
+
+    ////    public Func<AuthenticationState, Task> TrnLookup(AuthenticationState.TrnLookupState state, User? user) =>
+    ////        async s =>
+    ////        {
+    ////            if (state == AuthenticationState.TrnLookupState.None)
+    ////            {
+    ////                await _configure.EmailVerified()(s);
+    ////                return;
+    ////            }
+
+    ////            if (user is null)
+    ////            {
+    ////                throw new ArgumentNullException(nameof(user));
+    ////            }
+
+    ////            if (state == AuthenticationState.TrnLookupState.Complete)
+    ////            {
+    ////                await TrnLookupCompletedForNewTrn(user)(s);
+    ////            }
+    ////            else if (state == AuthenticationState.TrnLookupState.ExistingTrnFound)
+    ////            {
+    ////                await TrnLookupCompletedForExistingTrn(user, email: Faker.Internet.Email())(s);
+    ////            }
+    ////            else if (state == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified)
+    ////            {
+    ////                await TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(user, email: Faker.Internet.Email())(s);
+    ////            }
+    ////            else
+    ////            {
+    ////                throw new NotImplementedException($"Unrecognised {nameof(AuthenticationState.TrnLookupState)}: '{state}'.");
+    ////            }
+    ////        };
+    ////}
 }

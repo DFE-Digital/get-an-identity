@@ -37,7 +37,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null,
             HttpMethod.Get,
@@ -47,12 +47,11 @@ public class TrnInUseChooseEmailTests : TestBase
     [Theory]
     [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
     [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
-    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
     public async Task Get_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
             trnRequirementType);
 
@@ -73,7 +72,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var user = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -94,7 +93,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingUser = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.ExistingTrnFound, existingUser),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.ExistingTrnFound, existingUser),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -116,7 +115,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -157,7 +156,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null,
             HttpMethod.Post,
@@ -167,14 +166,13 @@ public class TrnInUseChooseEmailTests : TestBase
     [Theory]
     [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
     [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
-    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
     public async Task Post_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var email = Faker.Internet.Email();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
             trnRequirementType);
 
@@ -202,7 +200,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var user = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -230,7 +228,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingUser = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.ExistingTrnFound, existingUser),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.ExistingTrnFound, existingUser),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -258,7 +256,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -283,7 +281,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var submittedEmail = Faker.Internet.Email();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -313,7 +311,7 @@ public class TrnInUseChooseEmailTests : TestBase
         var chosenEmail = newEmailChosen ? email : existingTrnOwner.EmailAddress;
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 

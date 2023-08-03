@@ -52,8 +52,6 @@ public abstract class IdentityLinkGenerator
 
     public string ResendTrnOwnerEmailConfirmation() => Page("/SignIn/ResendTrnOwnerEmailConfirmation");
 
-    public string Trn() => Page("/SignIn/Trn");
-
     public string TrnInUse() => Page("/SignIn/TrnInUse");
 
     public string TrnInUseChooseEmail() => Page("/SignIn/TrnInUseChooseEmail");
@@ -61,26 +59,6 @@ public abstract class IdentityLinkGenerator
     public string TrnInUseCannotAccessEmail() => Page("/SignIn/TrnInUseCannotAccessEmail");
 
     public string TrnCallback() => Page("/SignIn/TrnCallback");
-
-    public string TrnHasTrn() => Page("/SignIn/Trn/HasTrnPage");
-
-    public string TrnOfficialName() => Page("/SignIn/Trn/OfficialName");
-
-    public string TrnPreferredName() => Page("/SignIn/Trn/PreferredName");
-
-    public string TrnDateOfBirth() => Page("/SignIn/Trn/DateOfBirthPage");
-
-    public string TrnHasNiNumber() => Page("/SignIn/Trn/HasNiNumberPage");
-
-    public string TrnNiNumber() => Page("/SignIn/Trn/NiNumberPage");
-
-    public string TrnAwardedQts() => Page("/SignIn/Trn/AwardedQtsPage");
-
-    public string TrnIttProvider() => Page("/SignIn/Trn/IttProvider");
-
-    public string TrnCheckAnswers() => Page("/SignIn/Trn/CheckAnswers");
-
-    public string TrnNoMatch() => Page("/SignIn/Trn/NoMatch");
 
     public string Landing() => Page("/SignIn/Landing");
 

@@ -1,5 +1,3 @@
-using TeacherIdentity.AuthServer.Models;
-
 namespace TeacherIdentity.AuthServer.Journeys;
 
 public class SignInJourneyProvider
@@ -8,11 +6,6 @@ public class SignInJourneyProvider
     {
         if (authenticationState.TryGetOAuthState(out var oAuthState) && authenticationState.UserRequirements.RequiresTrnLookup())
         {
-            if (oAuthState.TrnRequirementType == TrnRequirementType.Legacy)
-            {
-                return ActivatorUtilities.CreateInstance<LegacyTrnJourney>(httpContext.RequestServices, httpContext);
-            }
-
             return authenticationState.HasTrnToken ?
                 ActivatorUtilities.CreateInstance<TrnTokenSignInJourney>(httpContext.RequestServices, httpContext) :
                 ActivatorUtilities.CreateInstance<CoreSignInJourneyWithTrnLookup>(httpContext.RequestServices, httpContext);

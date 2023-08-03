@@ -23,11 +23,6 @@ public class RenderSignInCompleteViewComponent : ViewComponent
             return View("~/Pages/SignIn/_SignIn.Complete.Core.NoTrnLookup.cshtml");
         }
 
-        if (trnRequirementType == TrnRequirementType.Legacy)
-        {
-            return View("~/Pages/SignIn/_SignIn.Complete.LegacyTRN.Content.cshtml");
-        }
-
         if (trnRequirementType == TrnRequirementType.Required && trnLookupStatus == TrnLookupStatus.Pending && trnLookupSupportTicketCreated)
         {
             return View("~/Pages/SignIn/_SignIn.Complete.Core.TRNSupportTicketPending.Content.cshtml");

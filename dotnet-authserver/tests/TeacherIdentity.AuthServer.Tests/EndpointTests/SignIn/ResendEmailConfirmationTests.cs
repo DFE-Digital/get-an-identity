@@ -53,7 +53,6 @@ public class ResendEmailConfirmationTests : TestBase
     [Theory]
     [InlineData(null, null, "/sign-in/register/phone")]
     [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional, "/sign-in/register/phone")]
-    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Legacy, "/sign-in/trn/has-trn")]
     public async Task Get_EmailAlreadyVerified_RedirectsToNextPage(string? scope, TrnRequirementType? trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
@@ -136,7 +135,6 @@ public class ResendEmailConfirmationTests : TestBase
     [Theory]
     [InlineData(null, null, "/sign-in/register/phone")]
     [InlineData(CustomScopes.DqtRead, TrnRequirementType.Optional, "/sign-in/register/phone")]
-    [InlineData(CustomScopes.DqtRead, TrnRequirementType.Legacy, "/sign-in/trn/has-trn")]
     public async Task Post_EmailAlreadyVerified_RedirectsToNextPage(string? scope, TrnRequirementType? trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange

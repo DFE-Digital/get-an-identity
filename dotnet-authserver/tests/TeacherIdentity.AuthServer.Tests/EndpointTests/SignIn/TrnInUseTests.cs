@@ -38,7 +38,7 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null,
             HttpMethod.Get,
@@ -48,12 +48,11 @@ public class TrnInUseTests : TestBase
     [Theory]
     [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
     [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
-    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
     public async Task Get_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
             trnRequirementType);
 
@@ -74,7 +73,7 @@ public class TrnInUseTests : TestBase
         var user = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -95,7 +94,7 @@ public class TrnInUseTests : TestBase
         var existingUser = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, existingUser),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, existingUser),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -117,7 +116,7 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -158,7 +157,7 @@ public class TrnInUseTests : TestBase
         var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
 
         await JourneyHasExpired_RendersErrorPage(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null,
             HttpMethod.Post,
@@ -168,14 +167,13 @@ public class TrnInUseTests : TestBase
     [Theory]
     [InlineData(TrnRequirementType.Optional, "/sign-in/register/")]
     [InlineData(TrnRequirementType.Required, "/sign-in/register/")]
-    [InlineData(TrnRequirementType.Legacy, "/sign-in/trn")]
     public async Task Post_TrnNotFound_Redirects(TrnRequirementType trnRequirementType, string expectedRedirectLocation)
     {
         // Arrange
         var pin = "12345";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.None, user: null),
             CustomScopes.Trn,
             trnRequirementType);
 
@@ -205,7 +203,7 @@ public class TrnInUseTests : TestBase
         var pin = await userVerificationService.GenerateEmailPin(user.EmailAddress);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.Complete, user),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -235,7 +233,7 @@ public class TrnInUseTests : TestBase
         var pin = await userVerificationService.GenerateEmailPin(existingUser.EmailAddress);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookup(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, existingUser),
+            c => c.TrnLookup(AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified, existingUser),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -266,7 +264,7 @@ public class TrnInUseTests : TestBase
         var pin = "01234";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -294,7 +292,7 @@ public class TrnInUseTests : TestBase
         var pin = "0";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn,
             trnRequirementType: null);
 
@@ -322,7 +320,7 @@ public class TrnInUseTests : TestBase
         var pin = "0123345678";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
@@ -349,7 +347,7 @@ public class TrnInUseTests : TestBase
         var pin = "abc";
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
@@ -379,7 +377,7 @@ public class TrnInUseTests : TestBase
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
@@ -413,7 +411,7 @@ public class TrnInUseTests : TestBase
         SpyRegistry.Get<IUserVerificationService>().Reset();
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")
@@ -443,7 +441,7 @@ public class TrnInUseTests : TestBase
         var pinResult = await userVerificationService.GenerateEmailPin(existingTrnOwner.EmailAddress);
 
         var authStateHelper = await CreateAuthenticationStateHelper(
-            c => c.Trn.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
+            c => c.TrnLookupCompletedForExistingTrn(existingTrnOwner, email),
             CustomScopes.Trn);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/different-email?{authStateHelper.ToQueryParam()}")

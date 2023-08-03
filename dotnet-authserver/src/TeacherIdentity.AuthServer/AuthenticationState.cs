@@ -66,14 +66,6 @@ public class AuthenticationState
     [JsonInclude]
     public bool? HasName { get; private set; }
     [JsonInclude]
-    public string? OfficialFirstName { get; private set; }
-    [JsonInclude]
-    public string? OfficialLastName { get; private set; }
-    [JsonInclude]
-    public string? PreviousOfficialFirstName { get; private set; }
-    [JsonInclude]
-    public string? PreviousOfficialLastName { get; private set; }
-    [JsonInclude]
     public string? DqtFirstName { get; private set; }
     [JsonInclude]
     public string? DqtMiddleName { get; private set; }
@@ -146,8 +138,6 @@ public class AuthenticationState
     public bool HasTrnSet => HasTrn.HasValue;
     [JsonIgnore]
     public bool NameSet => HasName.HasValue;
-    [JsonIgnore]
-    public bool OfficialNameSet => OfficialFirstName is not null && OfficialLastName is not null;
     [JsonIgnore]
     public bool DateOfBirthSet => DateOfBirth.HasValue;
     [JsonIgnore]
@@ -230,10 +220,6 @@ public class AuthenticationState
         MiddleName = default;
         LastName = default;
         HasName = default;
-        OfficialFirstName = default;
-        OfficialLastName = default;
-        PreviousOfficialFirstName = default;
-        PreviousOfficialLastName = default;
         DateOfBirth = default;
         Trn = default;
         UserType = default;
@@ -509,20 +495,6 @@ public class AuthenticationState
         LastName = lastName;
     }
 
-    public void OnOfficialNameSet(
-        string officialFirstName,
-        string officialLastName,
-        HasPreviousNameOption hasPreviousName,
-        string? previousOfficialFirstName,
-        string? previousOfficialLastName)
-    {
-        OfficialFirstName = officialFirstName;
-        OfficialLastName = officialLastName;
-        HasPreviousName = hasPreviousName;
-        PreviousOfficialFirstName = previousOfficialFirstName;
-        PreviousOfficialLastName = previousOfficialLastName;
-    }
-
     public void OnPreferredNameSet(string preferredName)
     {
         PreferredName = preferredName;
@@ -652,16 +624,6 @@ public class AuthenticationState
         DateOfBirth ??= trnToken.DateOfBirth;
         EmailAddress = trnToken.Email;
         EmailAddressVerified = true;
-    }
-
-    public string? GetOfficialName()
-    {
-        return NameHelper.GetFullName(OfficialFirstName, null, OfficialLastName);
-    }
-
-    public string? GetPreviousOfficialName()
-    {
-        return NameHelper.GetFullName(PreviousOfficialFirstName, null, PreviousOfficialLastName);
     }
 
     public string? GetName(bool includeMiddleName = true)

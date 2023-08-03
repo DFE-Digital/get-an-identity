@@ -127,13 +127,6 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
-    public static async Task SubmitCompletePageForNewUserInLegacyTrnJourney(this IPage page)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/complete");
-        Assert.Equal(1, await page.Locator("data-testid=legacy-first-time-user-content").CountAsync());
-        await page.ClickContinueButton();
-    }
-
     public static async Task SignOutFromTestClient(this IPage page)
     {
         await page.ClickAsync("a:text-is('Sign out')");
@@ -185,94 +178,6 @@ public static class PageExtensions
         await page.ClickAsync("a:text-is('Back to Development test client')");
 
         await page.AssertOnTestClient();
-    }
-
-    public static async Task SubmitTrnBookendPage(this IPage page)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn");
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnHasTrnPageWithoutTrn(this IPage page)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/has-trn");
-        await page.ClickAsync("label:text-is('No, I need to continue without my TRN')");
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnHasTrnPageWithTrn(this IPage page, string trn)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/has-trn");
-        await page.ClickAsync("label:text-is('Yes, I know my TRN')");
-        await page.FillAsync("text=What is your TRN?", trn);
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnOfficialNamePage(this IPage page, string officialFirstName, string officialLastName)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/official-name");
-        await page.FillAsync("text=First name", officialFirstName);
-        await page.FillAsync("text=Last name", officialLastName);
-        await page.ClickAsync("label:text-is('No')");  // Have you ever changed your name?
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnPreferredNamePageWithoutPreferredName(this IPage page)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/preferred-name");
-        await page.ClickAsync("label:text-is('Yes')");  // Is x y your preferred name?
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnDateOfBirthPage(this IPage page, DateOnly dateOfBirth)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/date-of-birth");
-        await page.FillDateInput(dateOfBirth);
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnHasNinoPage(this IPage page, bool hasNino)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/has-nino");
-        await page.ClickAsync($"label:text-is('{(hasNino ? "Yes" : "No")}')");  // Do you have a National Insurance number?
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnNiNumberPage(this IPage page, string nationalInsuranceNumber)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/ni-number");
-        await page.FillAsync("text='What is your National Insurance number?'", nationalInsuranceNumber);
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnAwardedQtsPage(this IPage page, bool awardedQts)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/awarded-qts");
-        await page.ClickAsync($"label:text-is('{(awardedQts ? "Yes" : "No")}')");  // Have you been awarded qualified teacher status (QTS)?
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnIttProviderPageWithIttProvider(this IPage page, string ittProviderName)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/itt-provider");
-        await page.ClickAsync("label:text-is('Yes')");  // Did a university, SCITT or school award your QTS?
-        await page.FillAsync("label:text-is('Where did you get your QTS?')", ittProviderName);
-        await page.FocusAsync("button:text-is('Continue')");  // Un-focus accessible autocomplete
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnCheckAnswersPage(this IPage page)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/check-answers");
-        await page.WaitForSelectorAsync("h1:text-is('Check your answers')");
-        await page.ClickContinueButton();
-    }
-
-    public static async Task SubmitTrnNoMatchPage(this IPage page)
-    {
-        await page.WaitForUrlPathAsync("/sign-in/trn/no-match");
-        await page.ClickAsync("label:text-is('No, use these details, they are correct')");
-        await page.ClickContinueButton();
     }
 
     public static async Task SubmitTrnTrnInUsePage(this IPage page)
