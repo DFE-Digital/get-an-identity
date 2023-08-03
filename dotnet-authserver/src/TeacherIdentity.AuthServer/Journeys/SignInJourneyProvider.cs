@@ -11,7 +11,7 @@ public class SignInJourneyProvider
 #pragma warning disable CS0612 // Type or member is obsolete
             if (oAuthState.TrnRequirementType == TrnRequirementType.Legacy)
             {
-                throw new NotSupportedException("The Legacy journey is no longer supported.");
+                throw new NotSupportedException("The Legacy sign in journey is no longer supported.");
             }
 #pragma warning restore CS0612 // Type or member is obsolete
 
