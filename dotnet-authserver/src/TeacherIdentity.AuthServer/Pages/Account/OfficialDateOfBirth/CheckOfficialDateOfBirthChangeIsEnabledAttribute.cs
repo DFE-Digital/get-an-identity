@@ -45,6 +45,6 @@ public class CheckOfficialDateOfBirthChangeIsEnabledAttribute : Attribute, IAsyn
                       throw new Exception($"User with TRN '{trn}' cannot be found in DQT.");
 
         httpContext.Items["DqtUser"] = dqtUser;
-        return !dqtUser.PendingDateOfBirthChange && !dqtUser.DateOfBirth.Equals(identityUserDateOfBirth!.Value);
+        return !dqtUser.PendingDateOfBirthChange && dqtUser.DateOfBirth?.Equals(identityUserDateOfBirth!.Value) == false;
     }
 }
