@@ -122,30 +122,6 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterNoAccount() => Page("/SignIn/Register/NoAccount");
 
-    public string UpdateEmail(string? returnUrl, string? cancelUrl) =>
-        Page("/Authenticated/UpdateEmail/Index", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
-
-    public string UpdateEmailConfirmation(string email, string? returnUrl, string? cancelUrl) =>
-        Page("/Authenticated/UpdateEmail/Confirmation", authenticationJourneyRequired: false)
-            .SetQueryParam("email", email)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl)
-            .AppendQueryStringSignature(QueryStringSignatureHelper);
-
-    public string ResendUpdateEmailConfirmation(string email, string? returnUrl, string? cancelUrl) =>
-        Page("/Authenticated/UpdateEmail/ResendConfirmation", authenticationJourneyRequired: false)
-            .SetQueryParam("email", email)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl)
-            .AppendQueryStringSignature(QueryStringSignatureHelper);
-
-    public string UpdateName(string? returnUrl, string? cancelUrl) =>
-        Page("/Authenticated/UpdateName", authenticationJourneyRequired: false)
-            .SetQueryParam("returnUrl", returnUrl)
-            .SetQueryParam("cancelUrl", cancelUrl);
-
     public string Account(ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);
