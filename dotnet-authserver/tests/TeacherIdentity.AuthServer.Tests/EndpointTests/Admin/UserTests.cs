@@ -56,7 +56,7 @@ public class UserTests : TestBase
     public async Task Get_ValidRequestForUserWithoutTrn_RendersExpectedContent()
     {
         // Arrange
-        var user = await TestData.CreateUser(hasTrn: false, userType: Models.UserType.Default);
+        var user = await TestData.CreateUser(hasTrn: false, userType: Models.UserType.Default, hasPreferredName: true);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
 
         // Act
@@ -67,6 +67,7 @@ public class UserTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetElementByTestId("Name")?.TextContent);
+        Assert.Equal($"{user.PreferredName}", doc.GetSummaryListValueForKey("Preferred name"));
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
         Assert.Equal("No", doc.GetSummaryListValueForKey("DQT record"));
         Assert.Equal("None", doc.GetSummaryListValueForKey("Merged user IDs"));
