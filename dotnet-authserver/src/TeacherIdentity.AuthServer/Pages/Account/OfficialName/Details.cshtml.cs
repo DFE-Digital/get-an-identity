@@ -43,6 +43,9 @@ public class Details : PageModel
     [FromQuery(Name = "fileId")]
     public string? FileId { get; set; }
 
+    [FromQuery(Name = "preferredName")]
+    public string? PreferredName { get; set; }
+
     [FromQuery(Name = "fromConfirmPage")]
     public bool FromConfirmPage { get; set; }
 
@@ -75,7 +78,7 @@ public class Details : PageModel
         }
 
         return Redirect(FromConfirmPage && FileName is not null && FileId is not null ?
-            _linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName, LastName!, FileName, FileId, ClientRedirectInfo) :
+            _linkGenerator.AccountOfficialNamePreferredName(FirstName!, MiddleName, LastName!, FileName, FileId, PreferredName, ClientRedirectInfo) :
             _linkGenerator.AccountOfficialNameEvidence(FirstName!, MiddleName, LastName!, ClientRedirectInfo));
     }
 

@@ -45,7 +45,7 @@ public class Evidence : BaseEvidencePage
         var fileId = GenerateFileId();
 
         return await TryUploadEvidence(fileId) ?
-            Redirect(_linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName, LastName!, fileName, fileId, ClientRedirectInfo)) :
+            Redirect(_linkGenerator.AccountOfficialNamePreferredName(FirstName!, MiddleName, LastName!, fileName, fileId, null, ClientRedirectInfo)) :
             this.PageWithErrors();
     }
 

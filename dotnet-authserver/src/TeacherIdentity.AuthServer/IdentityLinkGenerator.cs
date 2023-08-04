@@ -224,13 +224,25 @@ public abstract class IdentityLinkGenerator
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
-    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileName, string fileId, ClientRedirectInfo? clientRedirectInfo) =>
+    public string AccountOfficialNamePreferredName(string firstName, string? middleName, string lastName, string? fileName, string? fileId, string? preferredName, ClientRedirectInfo? clientRedirectInfo) =>
+        Page("/Account/OfficialName/PreferredName", authenticationJourneyRequired: false)
+        .SetQueryParam("firstName", firstName)
+        .SetQueryParam("middleName", middleName)
+        .SetQueryParam("lastName", lastName)
+        .SetQueryParam("fileName", fileName)
+        .SetQueryParam("fileId", fileId)
+        .SetQueryParam("preferredName", preferredName)
+        .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
+        .AppendQueryStringSignature(QueryStringSignatureHelper);
+
+    public string AccountOfficialNameConfirm(string firstName, string? middleName, string lastName, string fileName, string fileId, string preferredName, ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/OfficialName/Confirm", authenticationJourneyRequired: false)
             .SetQueryParam("firstName", firstName)
             .SetQueryParam("middleName", middleName)
             .SetQueryParam("lastName", lastName)
             .SetQueryParam("fileName", fileName)
             .SetQueryParam("fileId", fileId)
+            .SetQueryParam("preferredName", preferredName)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo)
             .AppendQueryStringSignature(QueryStringSignatureHelper);
 
