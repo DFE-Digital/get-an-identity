@@ -26,6 +26,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.RegisteredWithClientId).HasMaxLength(100);
         builder.Property(u => u.IsDeleted).IsRequired().HasDefaultValue(false);
         builder.Property(u => u.TrnLookupStatus);
+        builder.Property(u => u.TrnVerificationLevel);
         builder.Property(u => u.MergedWithUserId);
         builder.Property(u => u.MobileNumber).HasMaxLength(100);
         builder.Property(u => u.NormalizedMobileNumber).HasMaxLength(15);

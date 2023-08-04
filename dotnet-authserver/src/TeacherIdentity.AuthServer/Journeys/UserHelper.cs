@@ -94,7 +94,8 @@ public class UserHelper
             TrnAssociationSource = authenticationState.Trn is null ? null : TrnAssociationSource.Lookup,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-            TrnLookupStatus = authenticationState.TrnLookupStatus
+            TrnLookupStatus = authenticationState.TrnLookupStatus,
+            TrnVerificationLevel = TrnVerificationLevel.Low
         };
 
         _dbContext.Users.Add(user);
@@ -139,6 +140,7 @@ public class UserHelper
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus,
+            TrnVerificationLevel = TrnVerificationLevel.Low
         };
 
         _dbContext.Users.Add(user);

@@ -36,4 +36,6 @@ public class User
     public string? MobileNumber { get; set; }
     public MobileNumber? NormalizedMobileNumber { get; set; }
     public bool TrnLookupSupportTicketCreated { get; set; }
+
+    public TrnVerificationLevel? TrnVerificationLevel { get; set; }
 }
