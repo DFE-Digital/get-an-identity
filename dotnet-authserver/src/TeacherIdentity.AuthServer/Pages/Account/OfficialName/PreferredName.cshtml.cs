@@ -70,13 +70,12 @@ public class PreferredNameModel : PageModel
             preferredName = PreferredName;
         }
 
-        var middleName = User.GetMiddleName();
         if (preferredName == ExistingPreferredName)
         {
             PreferredNameChoice = PreferredNameOption.ExistingPreferredName;
             PreferredName = null;
         }
-        else if (!string.IsNullOrEmpty(middleName) && preferredName == ExistingName(includeMiddleName: true))
+        else if (!string.IsNullOrEmpty(MiddleName) && preferredName == ExistingName(includeMiddleName: true))
         {
             PreferredNameChoice = PreferredNameOption.ExistingFullName;
             PreferredName = null;
@@ -126,10 +125,6 @@ public class PreferredNameModel : PageModel
 
     public string ExistingName(bool includeMiddleName)
     {
-        var firstName = User.GetFirstName();
-        var middleName = User.GetMiddleName();
-        var lastName = User.GetLastName();
-
-        return !includeMiddleName || string.IsNullOrEmpty(middleName) ? $"{firstName} {lastName}" : $"{firstName} {middleName} {lastName}";
+        return !includeMiddleName || string.IsNullOrEmpty(MiddleName) ? $"{FirstName} {LastName}" : $"{FirstName} {MiddleName} {LastName}";
     }
 }
