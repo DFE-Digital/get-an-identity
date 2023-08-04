@@ -139,8 +139,7 @@ public class UserHelper
             TrnAssociationSource = TrnAssociationSource.TrnToken,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-            TrnLookupStatus = authenticationState.TrnLookupStatus,
-            TrnVerificationLevel = TrnVerificationLevel.Low
+            TrnLookupStatus = authenticationState.TrnLookupStatus
         };
 
         _dbContext.Users.Add(user);
