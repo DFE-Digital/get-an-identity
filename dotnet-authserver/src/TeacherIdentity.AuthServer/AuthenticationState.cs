@@ -326,11 +326,6 @@ public class AuthenticationState
             throw new InvalidOperationException($"Email has not been verified.");
         }
 
-        if (TrnLookup != TrnLookupState.None)
-        {
-            throw new InvalidOperationException($"TRN lookup is invalid: '{TrnLookup}', expected {TrnLookupState.None}.");
-        }
-
         HaveCompletedTrnLookup = true;
         TrnLookup = TrnLookupState.ExistingTrnFound;
         TrnOwnerEmailAddress = existingTrnOwnerEmail;
