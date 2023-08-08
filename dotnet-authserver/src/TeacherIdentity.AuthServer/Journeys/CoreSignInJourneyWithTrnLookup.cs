@@ -99,7 +99,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 
     public override bool CanAccessStep(string step) => step switch
     {
-        CoreSignInJourney.Steps.CheckAnswers => AreAllQuestionsAnswered() || FoundATrn,
+        CoreSignInJourney.Steps.CheckAnswers => (AreAllQuestionsAnswered() || FoundATrn) && AuthenticationState.ContactDetailsVerified,
         Steps.HasNiNumber => AuthenticationState is { DateOfBirthSet: true, ContactDetailsVerified: true },
         Steps.NiNumber => AuthenticationState is { HasNationalInsuranceNumber: true, ContactDetailsVerified: true },
         Steps.HasTrn => (AuthenticationState is ({ NationalInsuranceNumberSet: true } or { HasNationalInsuranceNumberSet: true, HasNationalInsuranceNumber: false }) and { ContactDetailsVerified: true }),
