@@ -128,15 +128,17 @@ public class DetailsTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "FirstName", "The name entered matches your official name");
     }
 
-    [Fact]
-    public async Task Post_ValidForm_RedirectsToEvidencePage()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Post_ValidForm_RedirectsToAppropriatePage(bool fromConfirmPage)
     {
         // Arrange
         var clientRedirectInfo = CreateClientRedirectInfo();
 
         var request = new HttpRequestMessage(
             HttpMethod.Post,
-            AppendQueryParameterSignature($"/account/official-name/details?{clientRedirectInfo.ToQueryParam()}"))
+            AppendQueryParameterSignature($"/account/official-name/details?{clientRedirectInfo.ToQueryParam()}&fileName=myfile&fileId=12345&fromConfirmPage={fromConfirmPage}"))
         {
             Content = new FormUrlEncodedContentBuilder()
             {
@@ -151,7 +153,15 @@ public class DetailsTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith($"/account/official-name/evidence", response.Headers.Location?.OriginalString);
+        if (fromConfirmPage)
+        {
+            Assert.StartsWith($"/account/official-name/confirm", response.Headers.Location?.OriginalString);
+        }
+        else
+        {
+            Assert.StartsWith($"/account/official-name/evidence", response.Headers.Location?.OriginalString);
+        }
+
         Assert.Contains(clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
     }
 
