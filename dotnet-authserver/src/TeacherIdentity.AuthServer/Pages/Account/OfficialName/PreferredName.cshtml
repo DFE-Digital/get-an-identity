@@ -6,7 +6,7 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link href="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.ClientRedirectInfo)" />
+    <govuk-back-link href="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.PreferredName, fromConfirmPage: false, Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">

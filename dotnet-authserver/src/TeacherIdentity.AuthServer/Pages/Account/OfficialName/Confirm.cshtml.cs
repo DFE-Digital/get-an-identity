@@ -55,12 +55,8 @@ public class Confirm : PageModel
     [FromQuery(Name = "preferredName")]
     public string? PreferredName { get; set; }
 
-    public bool HasPreferreredNameChanged { get; set; }
-
-    public async Task OnGet()
+    public void OnGet()
     {
-        var user = await _dbContext.Users.SingleAsync(u => u.UserId == User.GetUserId());
-        HasPreferreredNameChanged = user.PreferredName != PreferredName;
     }
 
     public async Task<IActionResult> OnPost()

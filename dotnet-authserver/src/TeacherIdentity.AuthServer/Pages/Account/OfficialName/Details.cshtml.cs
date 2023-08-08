@@ -78,8 +78,8 @@ public class Details : PageModel
         }
 
         return Redirect(FromConfirmPage && FileName is not null && FileId is not null ?
-            _linkGenerator.AccountOfficialNamePreferredName(FirstName!, MiddleName, LastName!, FileName, FileId, PreferredName, ClientRedirectInfo) :
-            _linkGenerator.AccountOfficialNameEvidence(FirstName!, MiddleName, LastName!, ClientRedirectInfo));
+            _linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName, LastName!, FileName, FileId, PreferredName!, ClientRedirectInfo) :
+            _linkGenerator.AccountOfficialNameEvidence(FirstName!, MiddleName, LastName!, PreferredName, fromConfirmPage: false, ClientRedirectInfo));
     }
 
     public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)

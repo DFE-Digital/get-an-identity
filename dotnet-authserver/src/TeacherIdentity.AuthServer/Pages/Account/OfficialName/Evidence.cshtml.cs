@@ -30,6 +30,12 @@ public class Evidence : BaseEvidencePage
     [FromQuery(Name = "lastName")]
     public string? LastName { get; set; }
 
+    [FromQuery(Name = "preferredName")]
+    public string? PreferredName { get; set; }
+
+    [FromQuery(Name = "fromConfirmPage")]
+    public bool FromConfirmPage { get; set; }
+
     public void OnGet()
     {
     }
@@ -45,7 +51,9 @@ public class Evidence : BaseEvidencePage
         var fileId = GenerateFileId();
 
         return await TryUploadEvidence(fileId) ?
-            Redirect(_linkGenerator.AccountOfficialNamePreferredName(FirstName!, MiddleName, LastName!, fileName, fileId, null, ClientRedirectInfo)) :
+            Redirect(FromConfirmPage ?
+                _linkGenerator.AccountOfficialNameConfirm(FirstName!, MiddleName, LastName!, fileName, fileId, PreferredName!, ClientRedirectInfo) :
+                _linkGenerator.AccountOfficialNamePreferredName(FirstName!, MiddleName, LastName!, fileName, fileId, PreferredName, ClientRedirectInfo)) :
             this.PageWithErrors();
     }
 

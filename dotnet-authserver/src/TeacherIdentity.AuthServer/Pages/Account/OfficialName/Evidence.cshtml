@@ -7,12 +7,12 @@
 
 @section BeforeContent
 {
-    <govuk-back-link href="@LinkGenerator.AccountOfficialNameDetails(Model.FirstName, Model.MiddleName, Model.LastName, fileName: null, fileId: null, fromConfirmPage: false, Model.ClientRedirectInfo)" />
+    <govuk-back-link href="@LinkGenerator.AccountOfficialNameDetails(Model.FirstName, Model.MiddleName, Model.LastName, fileName: null, fileId: null, Model.PreferredName, fromConfirmPage: false, Model.ClientRedirectInfo)" />
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <form action="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName ?? String.Empty, Model.LastName!, Model.ClientRedirectInfo)" method="post" enctype="multipart/form-data" asp-antiforgery="true">
+        <form action="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName ?? String.Empty, Model.LastName!, Model.PreferredName, Model.FromConfirmPage, Model.ClientRedirectInfo)" method="post" enctype="multipart/form-data" asp-antiforgery="true">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
             <p>Your evidence must be a photo or scan of one of the following:</p>
