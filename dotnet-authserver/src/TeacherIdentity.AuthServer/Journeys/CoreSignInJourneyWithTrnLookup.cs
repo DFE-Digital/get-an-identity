@@ -83,7 +83,8 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
 
     private bool ShouldPerformTrnLookup(string step)
     {
-        return step == CoreSignInJourney.Steps.DateOfBirth ||
+        return (step == CoreSignInJourney.Steps.Email && AuthenticationState.TrnLookup != AuthenticationState.TrnLookupState.None) ||
+               step == CoreSignInJourney.Steps.DateOfBirth ||
                step == Steps.HasNiNumber && AuthenticationState.HasNationalInsuranceNumber == false ||
                step == Steps.NiNumber ||
                step == Steps.HasTrn && AuthenticationState.HasTrn == false ||
