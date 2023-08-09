@@ -95,7 +95,7 @@ public class Confirm : PageModel
 
             await _dbContext.SaveChangesAsync();
 
-            preferredNameMessage = "<br/><br/>Your preferred name has been updated.";
+            preferredNameMessage = $"{Environment.NewLine}{Environment.NewLine}Your preferred name has been updated.";
         }
 
         TempData.SetFlashSuccess(

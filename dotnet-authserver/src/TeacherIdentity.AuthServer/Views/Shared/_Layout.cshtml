@@ -61,7 +61,10 @@
         <p class="govuk-notification-banner__heading">@flashSuccess.Value.heading</p>
         @if (flashSuccess.Value.message is not null)
         {
-            <p>@flashSuccess.Value.message</p>
+            @foreach (var line in flashSuccess.Value.message.Split(Environment.NewLine))
+            {
+                <span>@line</span><br/>
+            }            
         }
     </govuk-notification-banner>
 }
