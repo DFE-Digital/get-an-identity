@@ -38,7 +38,8 @@ public static class TestClients
         {
             Requirements.Features.ProofKeyForCodeExchange
         },
-        TrnRequirementType = TrnRequirementType.Optional
+        TrnRequirementType = TrnRequirementType.Optional,
+        TrnMatchPolicy = TrnMatchPolicy.Default
     };
 
     public static TeacherIdentityApplicationDescriptor ApplyForQts { get; } = new TeacherIdentityApplicationDescriptor()
@@ -116,6 +117,7 @@ public static class TestClients
         {
             Requirements.Features.ProofKeyForCodeExchange
         },
-        TrnRequirementType = TrnRequirementType.Optional
+        TrnRequirementType = TrnRequirementType.Optional,
+        TrnMatchPolicy = TrnMatchPolicy.Default
     };
 }

@@ -61,6 +61,11 @@ public class EditClientModel : PageModel
 
     public string[]? Scopes { get; set; }
 
+    [BindProperty]
+    [Display(Name = "TRN match policy")]
+    [Required(ErrorMessage = "Select a TRN match policy")]
+    public TrnMatchPolicy TrnMatchPolicy { get; set; }
+
     public async Task<IActionResult> OnGet()
     {
         var client = await _applicationStore.FindByClientIdAsync(ClientId, CancellationToken.None);
@@ -72,6 +77,7 @@ public class EditClientModel : PageModel
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
         TrnRequired = client.TrnRequirementType == TrnRequirementType.Required;
+        TrnMatchPolicy = client.TrnMatchPolicy;
         RaiseTrnResolutionSupportTickets = client.RaiseTrnResolutionSupportTickets;
         EnableAuthorizationCodeFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         EnableClientCredentialsFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
@@ -167,6 +173,12 @@ public class EditClientModel : PageModel
         {
             changes |= ClientUpdatedEventChanges.TrnRequirementType;
             await _applicationStore.SetTrnRequirementTypeAsync(client, trnRequirementType);
+        }
+
+        if (TrnMatchPolicy != client.TrnMatchPolicy)
+        {
+            changes |= ClientUpdatedEventChanges.TrnMatchPolicy;
+            await _applicationStore.SetTrnMatchPolicyAsync(client, TrnMatchPolicy);
         }
 
         if (!string.IsNullOrEmpty(ClientSecret))

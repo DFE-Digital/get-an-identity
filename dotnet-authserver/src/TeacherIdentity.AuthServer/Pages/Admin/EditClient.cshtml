@@ -6,19 +6,19 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link asp-page="Clients" />
+    <govuk-back-link asp-page="Clients"/>
 }
 
 <form asp-page="EditClient" asp-route-clientId="@Model.ClientId" method="post">
     <h1 class="govuk-heading-l">@Model.ClientId</h1>
 
-    <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20" />
-    <govuk-input asp-for="ServiceUrl" type="url" />
+    <govuk-input asp-for="DisplayName" input-class="govuk-input--width-20"/>
+    <govuk-input asp-for="ServiceUrl" type="url"/>
     <govuk-checkboxes asp-for="ResetClientSecret">
         <govuk-checkboxes-item value="@true">
             @Html.DisplayNameFor(m => m.ResetClientSecret)
             <govuk-checkboxes-item-conditional>
-                <govuk-input asp-for="ClientSecret" input-class="govuk-input--width-20" />
+                <govuk-input asp-for="ClientSecret" input-class="govuk-input--width-20"/>
             </govuk-checkboxes-item-conditional>
         </govuk-checkboxes-item>
     </govuk-checkboxes>
@@ -29,6 +29,16 @@
             <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.TrnRequired)</govuk-checkboxes-item>
         </govuk-checkboxes-fieldset>
     </govuk-checkboxes>
+
+    <govuk-radios asp-for="TrnMatchPolicy">
+        <govuk-radios-fieldset>
+            <govuk-radios-fieldset-legend class="govuk-fieldset__legend--m"/>
+            @foreach (var trnMatchPolicy in Enum.GetValues(typeof(TrnMatchPolicy)))
+            {
+                <govuk-radios-item value="@trnMatchPolicy">@trnMatchPolicy</govuk-radios-item>
+            }
+        </govuk-radios-fieldset>
+    </govuk-radios>
 
     <govuk-checkboxes asp-for="RaiseTrnResolutionSupportTickets">
         <govuk-checkboxes-item value="@true">@Html.DisplayNameFor(m => m.RaiseTrnResolutionSupportTickets)</govuk-checkboxes-item>

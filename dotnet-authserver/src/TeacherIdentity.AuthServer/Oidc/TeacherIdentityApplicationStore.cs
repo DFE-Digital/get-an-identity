@@ -61,6 +61,22 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
         return default;
     }
 
+    public ValueTask<TrnMatchPolicy> GetTrnMatchPolicyAsync(Application application)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(application));
+
+        return new ValueTask<TrnMatchPolicy>(application.TrnMatchPolicy);
+    }
+
+    public ValueTask SetTrnMatchPolicyAsync(Application application, TrnMatchPolicy trnMatchPolicy)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(application));
+
+        application.TrnMatchPolicy = trnMatchPolicy;
+
+        return default;
+    }
+
     public ValueTask<bool> GetRaiseTrnResolutionSupportTicketsAsync(Application application)
     {
         if (application is null)
