@@ -27,7 +27,7 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         {
             await Store.SetServiceUrlAsync(application, teacherIdentityApplicationDescriptor.ServiceUrl);
             await Store.SetTrnRequirementTypeAsync(application, teacherIdentityApplicationDescriptor.TrnRequirementType);
-            await Store.SetTrnMatchPolicy(application, teacherIdentityApplicationDescriptor.TrnMatchPolicy);
+            await Store.SetTrnMatchPolicyAsync(application, teacherIdentityApplicationDescriptor.TrnMatchPolicy);
             await Store.SetRaiseTrnResolutionSupportTicketsAsync(application, teacherIdentityApplicationDescriptor.RaiseTrnResolutionSupportTickets);
         }
     }
@@ -40,7 +40,7 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         {
             teacherIdentityApplicationDescriptor.ServiceUrl = await Store.GetServiceUrlAsync(application);
             teacherIdentityApplicationDescriptor.TrnRequirementType = await Store.GetTrnRequirementTypeAsync(application);
-            await Store.SetTrnMatchPolicy(application, teacherIdentityApplicationDescriptor.TrnMatchPolicy);
+            teacherIdentityApplicationDescriptor.TrnMatchPolicy = await Store.GetTrnMatchPolicyAsync(application);
             teacherIdentityApplicationDescriptor.RaiseTrnResolutionSupportTickets = await Store.GetRaiseTrnResolutionSupportTicketsAsync(application);
         }
     }

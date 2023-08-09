@@ -178,7 +178,7 @@ public class EditClientModel : PageModel
         if (TrnMatchPolicy != client.TrnMatchPolicy)
         {
             changes |= ClientUpdatedEventChanges.TrnMatchPolicy;
-            await _applicationStore.SetTrnMatchPolicy(client, TrnMatchPolicy);
+            await _applicationStore.SetTrnMatchPolicyAsync(client, TrnMatchPolicy);
         }
 
         if (!string.IsNullOrEmpty(ClientSecret))
