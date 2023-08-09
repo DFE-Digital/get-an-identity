@@ -227,6 +227,59 @@ public class IndexTests : TestBase
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Get_ValidRequestForUserWithTrn_DoesNotShowChangeNameLink(bool dqtSynchronizationEnabled)
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true);
+        HostFixture.SetUserId(user.UserId);
+
+        HostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = user.DateOfBirth!.Value,
+                FirstName = Faker.Name.First(),
+                MiddleName = "",
+                LastName = Faker.Name.Last(),
+                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false,
+                Email = null
+            });
+
+        if (dqtSynchronizationEnabled)
+        {
+            HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        var doc = await response.GetDocument();
+
+        if (dqtSynchronizationEnabled)
+        {
+            Assert.Null(doc.GetElementByTestId("name-change-link"));
+        }
+        else
+        {
+            Assert.NotNull(doc.GetElementByTestId("name-change-link"));
+        }
+
+        // Reset config
+        if (dqtSynchronizationEnabled)
+        {
+            HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+        }
+    }
+
+    [Theory]
     [MemberData(nameof(DateOfBirthState))]
     public async Task Get_ValidRequestForUser_ShowsCorrectDobSummaryRowElements(
         bool hasTrn,

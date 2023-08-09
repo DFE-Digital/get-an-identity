@@ -39,9 +39,12 @@
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
-                <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="name">Change</govuk-summary-list-row-action>
-                </govuk-summary-list-row-actions>
+                @if (Model.NameChangeEnabled)
+                {
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="name" data-testid="name-change-link">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                }                
             </govuk-summary-list-row>
             @if (Model.Trn is not null)
             {
