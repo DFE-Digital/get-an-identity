@@ -64,6 +64,7 @@ public class AddClientTests : TestBase
         var postLogoutRedirectUri2 = serviceUrl + "/logout-callback2";
         var scope1 = CustomScopes.UserRead;
         var scope2 = CustomScopes.UserWrite;
+        var trnMatchPolicy = TrnMatchPolicy.Default;
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/admin/clients/new")
         {
@@ -72,6 +73,7 @@ public class AddClientTests : TestBase
                 { "ClientId", clientId },
                 { "ClientSecret", clientSecret },
                 { "DisplayName", displayName },
+                { "TrnMatchPolicy", trnMatchPolicy},
                 { "ServiceUrl", serviceUrl },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { redirectUri1, redirectUri2 }) },
@@ -97,6 +99,7 @@ public class AddClientTests : TestBase
         var displayName = Faker.Company.Name();
         var serviceUrl = $"https://{Faker.Internet.DomainName()}/";
         var trnRequirementType = TrnRequirementType.Required;
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
         var raiseTrnResolutionSupportTickets = true;
         var redirectUri1 = serviceUrl + "/callback";
         var redirectUri2 = serviceUrl + "/callback2";
@@ -114,6 +117,7 @@ public class AddClientTests : TestBase
                 { "DisplayName", displayName },
                 { "ServiceUrl", serviceUrl },
                 { "TrnRequired", trnRequirementType == TrnRequirementType.Required },
+                { "TrnMatchPolicy", trnMatchPolicy},
                 { "RaiseTrnResolutionSupportTickets", raiseTrnResolutionSupportTickets.ToString() },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { redirectUri1, redirectUri2 }) },
@@ -139,6 +143,7 @@ public class AddClientTests : TestBase
         Assert.Equal(displayName, application.DisplayName);
         Assert.Equal(serviceUrl, application.ServiceUrl);
         Assert.Equal(trnRequirementType, application.TrnRequirementType);
+        Assert.Equal(trnMatchPolicy, application.TrnMatchPolicy);
         Assert.Equal(raiseTrnResolutionSupportTickets, application.RaiseTrnResolutionSupportTickets);
         Assert.Collection(
             await applicationStore.GetRedirectUrisAsync(application, CancellationToken.None),
@@ -166,6 +171,7 @@ public class AddClientTests : TestBase
                 Assert.Equal(displayName, clientAdded.Client.DisplayName);
                 Assert.Equal(serviceUrl, clientAdded.Client.ServiceUrl);
                 Assert.Equal(trnRequirementType, clientAdded.Client.TrnRequirementType);
+                Assert.Equal(trnMatchPolicy, clientAdded.Client.TrnMatchPolicy);
                 Assert.Equal(raiseTrnResolutionSupportTickets, clientAdded.Client.RaiseTrnResolutionSupportTickets);
                 Assert.Collection(
                     clientAdded.Client.RedirectUris,

@@ -104,6 +104,7 @@ public class EditClientTests : TestBase
         var newTrnRequirementType = client.TrnRequirementType != TrnRequirementType.Required
             ? TrnRequirementType.Required
             : TrnRequirementType.Optional;
+        var newTrnMatchPolicy = TrnMatchPolicy.Strict;
         var newRaiseTrnResolutionSupportTickets = true;
         var newRedirectUri1 = newServiceUrl + "/callback";
         var newRedirectUri2 = newServiceUrl + "/callback2";
@@ -120,6 +121,7 @@ public class EditClientTests : TestBase
                 { "DisplayName", newDisplayName },
                 { "ServiceUrl", newServiceUrl },
                 { "TrnRequired", newTrnRequirementType == TrnRequirementType.Required },
+                { "TrnMatchPolicy", newTrnMatchPolicy },
                 { "RaiseTrnResolutionSupportTickets", newRaiseTrnResolutionSupportTickets.ToString() },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
                 { "RedirectUris", string.Join("\n", new[] { newRedirectUri1, newRedirectUri2 }) },
@@ -144,6 +146,7 @@ public class EditClientTests : TestBase
         Assert.Equal(newDisplayName, application.DisplayName);
         Assert.Equal(newServiceUrl, application.ServiceUrl);
         Assert.Equal(newTrnRequirementType, application.TrnRequirementType);
+        Assert.Equal(newTrnMatchPolicy, application.TrnMatchPolicy);
         Assert.Equal(newRaiseTrnResolutionSupportTickets, application.RaiseTrnResolutionSupportTickets);
         Assert.Collection(
             await applicationStore.GetRedirectUrisAsync(application, CancellationToken.None),
@@ -168,6 +171,7 @@ public class EditClientTests : TestBase
                 Assert.Equal(Clock.UtcNow, clientUpdated.CreatedUtc);
                 Assert.Equal(newDisplayName, clientUpdated.Client.DisplayName);
                 Assert.Equal(newTrnRequirementType, clientUpdated.Client.TrnRequirementType);
+                Assert.Equal(newTrnMatchPolicy, clientUpdated.Client.TrnMatchPolicy);
                 Assert.Equal(newRaiseTrnResolutionSupportTickets, clientUpdated.Client.RaiseTrnResolutionSupportTickets);
                 Assert.Collection(
                     clientUpdated.Client.RedirectUris,
@@ -188,6 +192,7 @@ public class EditClientTests : TestBase
                         ClientUpdatedEventChanges.PostLogoutRedirectUris |
                         ClientUpdatedEventChanges.Scopes |
                         ClientUpdatedEventChanges.TrnRequirementType |
+                        ClientUpdatedEventChanges.TrnMatchPolicy |
                         ClientUpdatedEventChanges.RaiseTrnResolutionSupportTickets,
                     clientUpdated.Changes);
             });
@@ -209,6 +214,7 @@ public class EditClientTests : TestBase
                 displayName,
                 serviceUrl,
                 TrnRequirementType.Required,
+                TrnMatchPolicy.Default,
                 raiseTrnResolutionSupportTickets: false,
                 enableAuthorizationCodeGrant: true,
                 enableClientCredentialsGrant: false,

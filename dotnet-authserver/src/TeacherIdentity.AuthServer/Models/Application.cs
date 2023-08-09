@@ -14,6 +14,8 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
     [DefaultValue(TrnRequirementType.Required)]
     public TrnRequirementType TrnRequirementType { get; set; }
 
+    public TrnMatchPolicy TrnMatchPolicy { get; set; }
+
     [DefaultValue(false)]
     public bool RaiseTrnResolutionSupportTickets { get; set; }
 

@@ -60,6 +60,11 @@ public class AddClientModel : PageModel
 
     public string[]? Scopes { get; set; }
 
+    [BindProperty]
+    [Display(Name = "TRN match policy")]
+    [Required(ErrorMessage = "Select a TRN match policy")]
+    public TrnMatchPolicy? TrnMatchPolicy { get; set; }
+
     public void OnGet()
     {
         RedirectUris = Array.Empty<string>();
@@ -108,6 +113,7 @@ public class AddClientModel : PageModel
             DisplayName!,
             ServiceUrl!,
             TrnRequired == true ? TrnRequirementType.Required : TrnRequirementType.Optional,
+            TrnMatchPolicy!.Value,
             RaiseTrnResolutionSupportTickets,
             EnableAuthorizationCodeFlow,
             EnableClientCredentialsFlow,
