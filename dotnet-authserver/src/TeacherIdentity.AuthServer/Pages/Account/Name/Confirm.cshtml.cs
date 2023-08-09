@@ -9,6 +9,7 @@ using TeacherIdentity.AuthServer.Models;
 namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 
 [VerifyQueryParameterSignature]
+[CheckNameChangeIsEnabled]
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;

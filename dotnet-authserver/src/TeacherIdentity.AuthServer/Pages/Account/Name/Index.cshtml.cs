@@ -6,6 +6,7 @@ using TeacherIdentity.AuthServer.Infrastructure.Filters;
 namespace TeacherIdentity.AuthServer.Pages.Account.Name;
 
 [VerifyQueryParameterSignature]
+[CheckNameChangeIsEnabled]
 public class Name : PageModel
 {
     private readonly IdentityLinkGenerator _linkGenerator;
