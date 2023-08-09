@@ -1,0 +1,46 @@
+@page "/account/official-name/preferred-name"
+@using TeacherIdentity.AuthServer.Pages.Common;
+@model TeacherIdentity.AuthServer.Pages.Account.OfficialName.PreferredNameModel
+@{
+    ViewBag.Title = "Do you want to update your preferred name?";
+}
+
+@section BeforeContent {
+    <govuk-back-link href="@LinkGenerator.AccountOfficialNameEvidence(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.PreferredName, fromConfirmPage: false, Model.ClientRedirectInfo)" />
+}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+        <form action="@LinkGenerator.AccountOfficialNamePreferredName(Model.FirstName!, Model.MiddleName, Model.LastName!, Model.FileName, Model.FileId, preferredName: null, Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
+            <govuk-radios asp-for="PreferredNameChoice">
+                <govuk-radios-fieldset>
+                    <govuk-radios-fieldset-legend>
+                        <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+                        <p>For example, Mike Smith instead of Michael Smith.</p>
+                        <p>We’ll use your preferred name in correspondence. We use official names on teaching certificates.</p>
+                    </govuk-radios-fieldset-legend>
+                    <govuk-radios-item value="@PreferredNameOption.ExistingPreferredName">
+                        Keep @Model.ExistingPreferredName
+                    </govuk-radios-item>
+                    <govuk-radios-item value="@PreferredNameOption.ExistingName">
+                        Use @Model.ExistingName(includeMiddleName: false)
+                    </govuk-radios-item>
+                    @if (Model.HasMiddleName)
+                    {
+                        <govuk-radios-item value="@PreferredNameOption.ExistingFullName">
+                            Use @Model.ExistingName(includeMiddleName: true)
+                        </govuk-radios-item>
+                    }
+                    <govuk-radios-item value="@PreferredNameOption.PreferredName">
+                        Use a different preferred name
+                        <govuk-radios-item-conditional>
+                            <govuk-input asp-for="PreferredName" spellcheck="false" />
+                        </govuk-radios-item-conditional>
+                    </govuk-radios-item>
+                </govuk-radios-fieldset>
+            </govuk-radios>
+
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </div>
+</div>

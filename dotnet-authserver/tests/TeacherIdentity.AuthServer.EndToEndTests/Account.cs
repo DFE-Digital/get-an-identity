@@ -191,6 +191,13 @@ public class Account : IClassFixture<HostFixture>
             });
         await page.ClickContinueButton();
 
+        var newPreferredName = Faker.Name.FullName();
+
+        await page.WaitForUrlPathAsync("/account/official-name/preferred-name");
+        await page.ClickAsync("label:text-is('Use a different preferred name')");
+        await page.FillAsync("label:text-is('Your preferred name')", newPreferredName);
+        await page.ClickContinueButton();
+
         await page.WaitForUrlPathAsync("/account/official-name/confirm");
         await page.ClickAsync("button:text-is('Submit change')");
 

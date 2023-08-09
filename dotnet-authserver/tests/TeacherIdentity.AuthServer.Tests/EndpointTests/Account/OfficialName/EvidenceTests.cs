@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using TeacherIdentity.AuthServer.Models;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialName;
@@ -19,7 +20,12 @@ public class EvidenceTests : TestBase
         _clientRedirectInfo = CreateClientRedirectInfo();
 
         _validRequestUrl =
-            AppendQueryParameterSignature($"/account/official-name/evidence?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}");
+            AppendQueryParameterSignature(
+                $"/account/official-name/evidence" +
+                $"?{_clientRedirectInfo.ToQueryParam()}" +
+                $"&firstName={Faker.Name.First()}" +
+                $"&middleName={Faker.Name.Middle()}" +
+                $"&lastName={Faker.Name.Last()}");
     }
 
     [Theory]
@@ -129,19 +135,32 @@ public class EvidenceTests : TestBase
     }
 
     [Theory]
-    [InlineData("pdf")]
-    [InlineData("jpg")]
-    [InlineData("jpeg")]
-    public async Task Post_ValidFileTypeUploaded_UploadsEvidenceToBlobStorageAndRedirects(string fileType)
+    [InlineData("pdf", true)]
+    [InlineData("pdf", false)]
+    [InlineData("jpg", true)]
+    [InlineData("jpg", false)]
+    [InlineData("jpeg", true)]
+    [InlineData("jpeg", false)]
+    public async Task Post_ValidFileTypeUploaded_UploadsEvidenceToBlobStorageAndRedirects(string fileType, bool fromConfirmPage)
     {
         // Arrange
-        var user = TestUsers.DefaultUserWithTrn;
+        var user = await TestData.CreateUser(
+            hasTrn: true,
+            userType: UserType.Default,
+            hasPreferredName: true);
         HostFixture.SetUserId(user.UserId);
         MockDqtApiResponse(user, hasPendingNameChange: false);
 
+        var requestUrl =
+            AppendQueryParameterSignature(
+                $"/account/official-name/evidence" +
+                $"?{_clientRedirectInfo.ToQueryParam()}" +
+                $"&firstName={Faker.Name.First()}" +
+                $"&middleName={Faker.Name.Middle()}" +
+                $"&lastName={Faker.Name.Last()}" +
+                $"&fromConfirmPage={fromConfirmPage}");
         var file = CreateFormFileUpload(fileType);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, _validRequestUrl)
+        var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
         {
             Content = file
         };
@@ -151,7 +170,14 @@ public class EvidenceTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.StartsWith($"/account/official-name/confirm", response.Headers.Location?.OriginalString);
+        if (fromConfirmPage)
+        {
+            Assert.StartsWith($"/account/official-name/confirm", response.Headers.Location?.OriginalString);
+        }
+        else
+        {
+            Assert.StartsWith($"/account/official-name/preferred-name", response.Headers.Location?.OriginalString);
+        }
 
         Assert.Contains(_clientRedirectInfo.ToQueryParam(), response.Headers.Location?.OriginalString);
         Assert.Contains("fileName=", response.Headers.Location?.OriginalString);

@@ -4,5 +4,6 @@ public enum PreferredNameOption
 {
     ExistingFullName,
     ExistingName,
-    PreferredName
+    PreferredName,
+    ExistingPreferredName
 }

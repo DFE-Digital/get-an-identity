@@ -1,4 +1,7 @@
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using User = TeacherIdentity.AuthServer.Models.User;
 
@@ -22,7 +25,14 @@ public class ConfirmTests : TestBase
 
         _validRequestUrl =
             AppendQueryParameterSignature(
-                $"/account/official-name/confirm?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}&fileId={guid}&fileName={user.UserId}/{guid}");
+                $"/account/official-name/confirm" +
+                $"?{_clientRedirectInfo.ToQueryParam()}" +
+                $"&firstName={Faker.Name.First()}" +
+                $"&middleName={Faker.Name.Middle()}" +
+                $"&lastName={Faker.Name.Last()}" +
+                $"&fileId={guid}" +
+                $"&fileName={user.UserId}/{guid}" +
+                $"&preferredName={user.PreferredName}");
     }
 
     [Theory]
@@ -41,7 +51,9 @@ public class ConfirmTests : TestBase
             HostFixture.SetUserId(TestUsers.DefaultUser.UserId);
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/account/official-name/confirm");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            _validRequestUrl);
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -55,14 +67,25 @@ public class ConfirmTests : TestBase
     [InlineData("lastName")]
     [InlineData("fileName")]
     [InlineData("fileId")]
+    [InlineData("preferredName")]
     public async Task Get_MissingQueryParameter_ReturnsBadRequest(string missingQueryParameter)
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var requestUrl = $"/account/official-name/confirm?{_clientRedirectInfo.ToQueryParam()}&firstName={Faker.Name.First()}&middleName={Faker.Name.Middle()}&lastName={Faker.Name.Last()}&fileName=1/{guid}";
-        var invalidRequestUrl = new Regex($@"[\?&]{missingQueryParameter}=[^&]*").Replace(requestUrl, "");
+        var requestUrl =
+            $"/account/official-name/confirm" +
+                $"?{_clientRedirectInfo.ToQueryParam()}" +
+                $"&firstName={Faker.Name.First()}" +
+                $"&middleName={Faker.Name.Middle()}" +
+                $"&lastName={Faker.Name.Last()}" +
+                $"&fileId={guid}" +
+                $"&fileName=MyFile" +
+                $"&preferredName={Faker.Name.FullName()}";
+        var invalidRequestUrl = new Regex($@"[\?&]{missingQueryParameter}=[^&]*").Replace(requestUrl, string.Empty);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, AppendQueryParameterSignature(invalidRequestUrl));
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature(invalidRequestUrl));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -84,11 +107,33 @@ public class ConfirmTests : TestBase
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
     }
 
-    [Fact]
-    public async Task Post_ValidForm_RedirectsToAccountPage()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Post_ValidForm_UpdatesUserAsAppropriateAndRedirectsToAccountPage(bool changedPreferredName)
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, _validRequestUrl);
+        var user = await TestData.CreateUser(
+            hasTrn: true,
+            userType: UserType.Default,
+            hasPreferredName: true);
+        HostFixture.SetUserId(user.UserId);
+        MockDqtApiResponse(user, hasPendingNameChange: false);
+
+        var guid = Guid.NewGuid();
+        var newPreferredName = changedPreferredName ? Faker.Name.FullName() : user.PreferredName;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            AppendQueryParameterSignature(
+                $"/account/official-name/confirm" +
+                $"?{_clientRedirectInfo.ToQueryParam()}" +
+                $"&firstName={Faker.Name.First()}" +
+                $"&middleName={Faker.Name.Middle()}" +
+                $"&lastName={Faker.Name.Last()}" +
+                $"&fileId={guid}" +
+                $"&fileName={user.UserId}/{guid}" +
+                $"&preferredName={newPreferredName}"));
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -96,6 +141,28 @@ public class ConfirmTests : TestBase
         // Assert
         Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
         Assert.Equal($"/account?{_clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
+
+        var updatedUser = await TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
+        if (changedPreferredName)
+        {
+            Assert.Equal(Clock.UtcNow, updatedUser.Updated);
+            Assert.Equal(newPreferredName, updatedUser.PreferredName);
+
+            EventObserver.AssertEventsSaved(
+                e =>
+                {
+                    var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
+                    Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
+                    Assert.Equal(UserUpdatedEventSource.ChangedByUser, userUpdatedEvent.Source);
+                    Assert.Equal(UserUpdatedEventChanges.PreferredName, userUpdatedEvent.Changes);
+                    Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
+                });
+        }
+        else
+        {
+            Assert.Equal(user.PreferredName, updatedUser.PreferredName);
+            EventObserver.AssertEventsSaved();
+        }
 
         HostFixture.DqtEvidenceStorageService.Verify(s => s.GetSasConnectionString(It.IsAny<string>(), It.IsAny<int>()));
         HostFixture.DqtApiClient.Verify(s => s.PostTeacherNameChange(It.IsAny<TeacherNameChangeRequest>(), It.IsAny<CancellationToken>()));
