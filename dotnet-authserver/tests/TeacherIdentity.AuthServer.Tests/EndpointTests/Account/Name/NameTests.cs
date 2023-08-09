@@ -8,6 +8,27 @@ public class NameTests : TestBase
     }
 
     [Fact]
+    public async Task Get_NameChangeDisabled_ReturnsBadRequest()
+    {
+        // Arrange
+        HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
+        HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            AppendQueryParameterSignature($"/account/name"));
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+
+        // Reset config
+        HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+    }
+
+    [Fact]
     public async Task Post_EmptyFirstName_ReturnsError()
     {
         // Arrange
