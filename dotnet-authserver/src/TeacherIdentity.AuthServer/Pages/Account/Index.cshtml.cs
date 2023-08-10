@@ -29,8 +29,12 @@ public class IndexModel : PageModel
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
     public string? ClientDisplayName { get; set; }
 
-    public string? Name { get; set; }
-    public string? OfficialName { get; set; }
+    public string? FirstName { get; set; }
+    public string? MiddleName { get; set; }
+    public string? LastName { get; set; }
+    public string? OfficialFirstName { get; set; }
+    public string? OfficialMiddleName { get; set; }
+    public string? OfficialLastName { get; set; }
     public string? PreferredName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? Email { get; set; }
@@ -61,7 +65,9 @@ public class IndexModel : PageModel
             })
             .SingleAsync();
 
-        Name = string.IsNullOrEmpty(user.MiddleName) ? $"{user.FirstName} {user.LastName}" : $"{user.FirstName} {user.MiddleName} {user.LastName}";
+        FirstName = user.FirstName;
+        MiddleName = user.MiddleName;
+        LastName = user.LastName;
         PreferredName = user.PreferredName;
         DateOfBirth = user.DateOfBirth;
         Email = user.EmailAddress;
@@ -73,10 +79,9 @@ public class IndexModel : PageModel
             var dqtUser = await _dqtApiClient.GetTeacherByTrn(Trn) ??
                 throw new Exception($"User with TRN '{Trn}' cannot be found in DQT.");
 
-            OfficialName = string.Join(' ', new[] { dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName }
-                .Select(n => n.Trim())
-                .Where(n => !string.IsNullOrEmpty(n)));
-
+            OfficialFirstName = dqtUser.FirstName;
+            OfficialMiddleName = dqtUser.MiddleName;
+            OfficialLastName = dqtUser.LastName;
             DqtDateOfBirth = dqtUser.DateOfBirth;
             PendingDqtNameChange = dqtUser.PendingNameChange;
             PendingDqtDateOfBirthChange = dqtUser.PendingDateOfBirthChange;

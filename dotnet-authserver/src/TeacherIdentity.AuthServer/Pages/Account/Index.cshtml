@@ -1,7 +1,7 @@
 @page "/account"
 @model TeacherIdentity.AuthServer.Pages.Account.IndexModel
 @{
-    ViewBag.Title = "DfE Identity account";
+    ViewBag.Title = "Confirm your details";
 
     var dateOfBirthChangeEnabled = Model.DqtDateOfBirth is null || (Model.DateOfBirthConflict && !Model.PendingDqtDateOfBirthChange);
 }
@@ -31,53 +31,92 @@
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-        <span class="govuk-caption-l">DfE Identity account</span>
-        <h1 class="govuk-heading-l">Your details</h1>
+        <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+        <p>Check the details we have for you from your DfE teaching record.</p>
+        <p>You’ll need to provide evidence for some name changes and all date of birth changes.</p>
 
-        <h3 class="govuk-heading-m">Personal details</h3>
+        <h3 class="govuk-heading-m">Teaching record</h3>
         <govuk-summary-list>
             <govuk-summary-list-row>
-                <govuk-summary-list-row-key>Name</govuk-summary-list-row-key>
-                <govuk-summary-list-row-value>@Model.Name</govuk-summary-list-row-value>
-                @if (Model.NameChangeEnabled)
+                <govuk-summary-list-row-key>First names</govuk-summary-list-row-key>
+                @if (Model.Trn is not null)
                 {
-                    <govuk-summary-list-row-actions>
-                        <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="name" data-testid="name-change-link">Change</govuk-summary-list-row-action>
-                    </govuk-summary-list-row-actions>
-                }                
-            </govuk-summary-list-row>
-            @if (Model.Trn is not null)
-            {
-                <govuk-summary-list-row>
-                    <govuk-summary-list-row-key>Official name</govuk-summary-list-row-key>
                     @if (Model.PendingDqtNameChange)
                     {
                         <govuk-summary-list-row-value>
-                            @Model.OfficialName
-                            <p class="govuk-hint govuk-!-font-size-14">Displayed on teaching certificates </p>
-                            <govuk-tag class="govuk-tag--yellow" data-testid="name-pending-review-tag">PENDING REVIEW</govuk-tag>
+                            @Model.OfficialFirstName
+                            <govuk-tag class="govuk-tag--yellow" data-testid="first-name-pending-review-tag">PENDING REVIEW</govuk-tag>
                         </govuk-summary-list-row-value>
                     }
                     else
                     {
-                        <govuk-summary-list-row-value>
-                            @Model.OfficialName
-                            <p class="govuk-hint govuk-!-font-size-14">Displayed on teaching certificates </p>
-                        </govuk-summary-list-row-value>
+                        <govuk-summary-list-row-value>@Model.OfficialFirstName</govuk-summary-list-row-value>
                         <govuk-summary-list-row-actions>
-                            <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialName(Model.ClientRedirectInfo)" visually-hidden-text="official name" data-testid="dqt-name-change-link">Change</govuk-summary-list-row-action>
+                            <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialName(Model.ClientRedirectInfo)" visually-hidden-text="first names" data-testid="dqt-first-name-change-link">Change</govuk-summary-list-row-action>
                         </govuk-summary-list-row-actions>
                     }
-                </govuk-summary-list-row>
-            }
+                }
+                else
+                {
+                    <govuk-summary-list-row-value>@Model.FirstName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="first names" data-testid="first-name-change-link">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                }
+            </govuk-summary-list-row>
             <govuk-summary-list-row>
-                <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
-                <govuk-summary-list-row-value>
-                    <span fallback-text="Not provided">@Model.PreferredName</span>
-                </govuk-summary-list-row-value>
-                <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountPreferredName(preferredName: null, Model.ClientRedirectInfo)" visually-hidden-text="preferred name" data-testid="preferred-name-change-link">Change</govuk-summary-list-row-action>
-                </govuk-summary-list-row-actions>
+                <govuk-summary-list-row-key>Middle names</govuk-summary-list-row-key>
+                @if (Model.Trn is not null)
+                {
+                    @if (Model.PendingDqtNameChange)
+                    {
+                        <govuk-summary-list-row-value>
+                            @Model.OfficialMiddleName
+                            <govuk-tag class="govuk-tag--yellow" data-testid="middle-name-pending-review-tag">PENDING REVIEW</govuk-tag>
+                        </govuk-summary-list-row-value>
+                    }
+                    else
+                    {
+                        <govuk-summary-list-row-value>@Model.OfficialMiddleName</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialName(Model.ClientRedirectInfo)" visually-hidden-text="middle names" data-testid="dqt-middle-name-change-link">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    }
+                }
+                else
+                {
+                    <govuk-summary-list-row-value>@Model.MiddleName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="middle names" data-testid="middle-name-change-link">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                }
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Last names</govuk-summary-list-row-key>
+                @if (Model.Trn is not null)
+                {
+                    @if (Model.PendingDqtNameChange)
+                    {
+                        <govuk-summary-list-row-value>
+                            @Model.OfficialLastName
+                            <govuk-tag class="govuk-tag--yellow" data-testid="last-name-pending-review-tag">PENDING REVIEW</govuk-tag>
+                        </govuk-summary-list-row-value>
+                    }
+                    else
+                    {
+                        <govuk-summary-list-row-value>@Model.OfficialLastName</govuk-summary-list-row-value>
+                        <govuk-summary-list-row-actions>
+                            <govuk-summary-list-row-action href="@LinkGenerator.AccountOfficialName(Model.ClientRedirectInfo)" visually-hidden-text="last names" data-testid="dqt-last-name-change-link">Change</govuk-summary-list-row-action>
+                        </govuk-summary-list-row-actions>
+                    }
+                }
+                else
+                {
+                    <govuk-summary-list-row-value>@Model.LastName</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-actions>
+                        <govuk-summary-list-row-action href="@LinkGenerator.AccountName(firstName: null, middleName: null, lastName: null, Model.ClientRedirectInfo)" visually-hidden-text="last names" data-testid="last-name-change-link">Change</govuk-summary-list-row-action>
+                    </govuk-summary-list-row-actions>
+                }
             </govuk-summary-list-row>
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
@@ -123,19 +162,17 @@
             }
         </govuk-summary-list>
 
-        @if (Model.Trn is not null)
-        {
-            <h3 class="govuk-heading-m">Teacher reference number (TRN)</h3>
-            <govuk-summary-list>
-                <govuk-summary-list-row>
-                    <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
-                </govuk-summary-list-row>
-            </govuk-summary-list>
-        }
-
-        <h3 class="govuk-heading-m">Sign in details</h3>
+        <h3 class="govuk-heading-m">Account details</h3>
         <govuk-summary-list>
+            <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>
+                    <span fallback-text="Not provided">@Model.PreferredName</span>
+                </govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountPreferredName(preferredName: null, Model.ClientRedirectInfo)" visually-hidden-text="preferred name" data-testid="preferred-name-change-link">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
+            </govuk-summary-list-row>
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Email</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value class="empty-hyphens">@Html.ShyEmail(Model.Email!)</govuk-summary-list-row-value>
@@ -144,10 +181,10 @@
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
-                <govuk-summary-list-row-key>Mobile number</govuk-summary-list-row-key>
+                <govuk-summary-list-row-key>Mobile phone</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.MobileNumber</govuk-summary-list-row-value>
                 <govuk-summary-list-row-actions>
-                    <govuk-summary-list-row-action href="@LinkGenerator.AccountPhone(Model.ClientRedirectInfo)" visually-hidden-text="mobile number">Change</govuk-summary-list-row-action>
+                    <govuk-summary-list-row-action href="@LinkGenerator.AccountPhone(Model.ClientRedirectInfo)" visually-hidden-text="mobile phone">Change</govuk-summary-list-row-action>
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
         </govuk-summary-list>
