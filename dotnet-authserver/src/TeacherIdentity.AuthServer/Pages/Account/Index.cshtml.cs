@@ -12,18 +12,15 @@ public class IndexModel : PageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IDqtApiClient _dqtApiClient;
     private readonly TeacherIdentityApplicationManager _applicationManager;
-    private readonly bool _dqtSynchronizationEnabled;
 
     public IndexModel(
         TeacherIdentityServerDbContext dbContext,
-        IConfiguration configuration,
         IDqtApiClient dqtApiClient,
         TeacherIdentityApplicationManager applicationManager)
     {
         _dbContext = dbContext;
         _dqtApiClient = dqtApiClient;
         _applicationManager = applicationManager;
-        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     public ClientRedirectInfo? ClientRedirectInfo => HttpContext.GetClientRedirectInfo();
@@ -44,7 +41,6 @@ public class IndexModel : PageModel
     public bool PendingDqtNameChange { get; set; }
     public bool PendingDqtDateOfBirthChange { get; set; }
     public bool DateOfBirthConflict { get; set; }
-    public bool NameChangeEnabled { get; set; }
 
     public async Task OnGet()
     {
@@ -91,15 +87,6 @@ public class IndexModel : PageModel
                 DateOfBirthConflict = true;
                 HttpContext.Features.Get<WebRequestEventFeature>()?.Event.AddTag("DateOfBirthConflict");
             }
-
-            if (!_dqtSynchronizationEnabled)
-            {
-                NameChangeEnabled = true;
-            }
-        }
-        else if (_dqtSynchronizationEnabled)
-        {
-            NameChangeEnabled = true;
         }
 
         if (ClientRedirectInfo is not null)
