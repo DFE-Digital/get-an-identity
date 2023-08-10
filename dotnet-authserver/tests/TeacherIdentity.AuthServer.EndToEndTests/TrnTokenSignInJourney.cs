@@ -389,6 +389,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var dqtFirstName = Faker.Name.First();
         var dqtLastName = Faker.Name.Last();
 
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+
         var trnToken = await CreateValidTrnToken(email: user.EmailAddress, firstName: dqtFirstName, lastName: dqtLastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
@@ -409,6 +411,9 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             },
             e => Assert.IsType<UserSignedInEvent>(e));
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
     }
 
     [Fact]
@@ -545,6 +550,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var dqtFirstName = Faker.Name.First();
         var dqtLastName = Faker.Name.Last();
 
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
+
         var trnToken = await CreateValidTrnToken(email: differentEmail, firstName: dqtFirstName, lastName: dqtLastName);
 
         await page.StartOAuthJourney(CustomScopes.DqtRead, trnToken: trnToken.TrnToken);
@@ -571,6 +578,9 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             },
             e => Assert.IsType<UserSignedInEvent>(e));
+
+        // Reset config
+        _hostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
     }
 
     [Fact]

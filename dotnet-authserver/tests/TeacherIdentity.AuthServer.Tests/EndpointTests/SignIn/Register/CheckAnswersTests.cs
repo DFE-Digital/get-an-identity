@@ -11,6 +11,7 @@ using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.SignIn.Register;
 
+[Collection(nameof(DisableParallelization))]
 public class CheckAnswersTests : TestBase
 {
     public CheckAnswersTests(HostFixture hostFixture)
