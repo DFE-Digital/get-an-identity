@@ -316,7 +316,7 @@ public class UserHelper
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(debugLog));
                 await blobClient.UploadAsync(stream);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Don't want logging issues to abort whole process
             }
