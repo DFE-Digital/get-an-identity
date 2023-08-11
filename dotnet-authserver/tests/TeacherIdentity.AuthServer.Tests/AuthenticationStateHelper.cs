@@ -28,6 +28,7 @@ public sealed class AuthenticationStateHelper
         HostFixture hostFixture,
         string? additionalScopes,
         TrnRequirementType? trnRequirementType,
+        TrnMatchPolicy? trnMatchPolicy,
         TeacherIdentityApplicationDescriptor? client)
     {
         var authenticationStateProvider = (TestAuthenticationStateProvider)hostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
@@ -57,6 +58,11 @@ public sealed class AuthenticationStateHelper
             authorizationUrl += $"&trn_requirement={trnRequirementType}";
         }
 
+        if (trnMatchPolicy is not null)
+        {
+            authorizationUrl += $"&trn_match_policy={trnMatchPolicy}";
+        }
+
         var authenticationState = new AuthenticationState(
             journeyId,
             userRequirements,
@@ -64,7 +70,8 @@ public sealed class AuthenticationStateHelper
             startedAt: hostFixture.Services.GetRequiredService<IClock>().UtcNow,
             oAuthState: new OAuthAuthorizationState(client.ClientId!, fullScope, redirectUri)
             {
-                TrnRequirementType = trnRequirementType ?? client.TrnRequirementType
+                TrnRequirementType = trnRequirementType ?? client.TrnRequirementType,
+                TrnMatchPolicy = trnMatchPolicy ?? client.TrnMatchPolicy
             });
 
         var configure = new Configure(hostFixture);

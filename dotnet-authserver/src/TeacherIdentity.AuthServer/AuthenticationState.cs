@@ -723,6 +723,7 @@ public class OAuthAuthorizationState
     public string? AuthorizationResponseMode { get; private set; }
     public string? RedirectUri { get; }
     public TrnRequirementType? TrnRequirementType { get; init; }
+    public TrnMatchPolicy? TrnMatchPolicy { get; set; }
 
     public string ResolveServiceUrl(Application application)
     {

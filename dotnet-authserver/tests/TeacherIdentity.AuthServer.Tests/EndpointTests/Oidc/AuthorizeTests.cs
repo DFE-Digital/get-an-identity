@@ -231,6 +231,51 @@ public class AuthorizeTests : TestBase
     }
 
     [Fact]
+    public async Task TrnMatchPolicyNotSpecified_SetsClientsTrnMatchPolicyOnAuthenticationState()
+    {
+        // Arrange
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read");
+
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out var journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Equal(_client.TrnMatchPolicy, authenticationState?.OAuthState?.TrnMatchPolicy);
+    }
+
+    [Fact]
+    public async Task TrnMatchPolicySpecified_OverridesClientsTrnMatchPolicyOnAuthenticationState()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var authorizeEndpoint = GetAuthorizeEndpoint(scope: "email profile openid dqt:read") +
+                                $"&trn_match_policy={trnMatchPolicy}";
+
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out var journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.Equal(trnMatchPolicy, authenticationState?.OAuthState?.TrnMatchPolicy);
+    }
+
+    [Fact]
+    public async Task TrnMatchPolicySpecifiedButInvalid_ReturnsError()
+    {
+        // Arrange
+        var authorizeEndpoint = string.Concat(GetAuthorizeEndpoint(scope: "email profile openid dqt:read"), "&trn_match_policy=invalid-trn-policy");
+
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsErrorCallback(response, "invalid_request", "Invalid trn_match_policy specified.");
+    }
+
+    [Fact]
     public async Task JourneyDoesNotRequireTrnLookup_DoesNotSetTrnRequirementTypeOnAuthenticationState()
     {
         // Arrange
@@ -263,6 +308,23 @@ public class AuthorizeTests : TestBase
         var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
         Assert.NotNull(authenticationState?.OAuthState);
         Assert.Null(authenticationState.OAuthState.TrnRequirementType);
+    }
+
+    [Fact]
+    public async Task TrnMatchPolicySpecifiedForNonTrnLookupRequiringJourney_DoesNotSetTrnMatchPolicyOnAuthenticationState()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var authorizeEndpoint = string.Concat(GetAuthorizeEndpoint(scope: "email profile openid"), $"&trn_match_policy={trnMatchPolicy}");
+
+        // Act
+        var response = await HttpClient.GetAsync(authorizeEndpoint);
+
+        // Assert
+        AssertResponseIsNotErrorCallback(response, out var journeyId);
+        var authenticationState = AuthenticationStateProvider.GetAuthenticationState(journeyId);
+        Assert.NotNull(authenticationState?.OAuthState);
+        Assert.Null(authenticationState.OAuthState.TrnMatchPolicy);
     }
 
     [Fact]

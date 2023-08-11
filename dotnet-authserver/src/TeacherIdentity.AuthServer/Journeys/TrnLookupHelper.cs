@@ -30,6 +30,8 @@ public class TrnLookupHelper
 
         try
         {
+            authenticationState.TryGetOAuthState(out var oAuthState);
+
             var lookupResponse = await _dqtApiClient.FindTeachers(
                 new FindTeachersRequest()
                 {
@@ -39,7 +41,8 @@ public class TrnLookupHelper
                     LastName = authenticationState.LastName,
                     IttProviderName = authenticationState.IttProviderName,
                     NationalInsuranceNumber = NormalizeNino(authenticationState.NationalInsuranceNumber),
-                    Trn = NormalizeTrn(authenticationState.StatedTrn)
+                    Trn = NormalizeTrn(authenticationState.StatedTrn),
+                    TrnMatchPolicy = oAuthState?.TrnMatchPolicy
                 },
                 cts.Token);
 
