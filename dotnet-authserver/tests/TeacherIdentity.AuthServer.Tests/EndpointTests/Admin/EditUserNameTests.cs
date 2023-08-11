@@ -123,6 +123,7 @@ public class EditUserNameTests : TestBase
         string newFirstName,
         string middleName,
         string newLastName,
+        string preferredName,
         string expectedErrorField,
         string expectedErrorMessage)
     {
@@ -136,6 +137,7 @@ public class EditUserNameTests : TestBase
                 { "NewFirstName", newFirstName },
                 { "MiddleName", middleName },
                 { "NewLastName", newLastName },
+                { "PreferredName", preferredName }
             }
         };
 
@@ -147,24 +149,29 @@ public class EditUserNameTests : TestBase
     }
 
     [Theory]
-    [InlineData(false, false, false, false, UserUpdatedEventChanges.None)]
-    [InlineData(true, false, false, true, UserUpdatedEventChanges.FirstName)]
-    [InlineData(false, false, true, true, UserUpdatedEventChanges.LastName)]
-    [InlineData(false, true, false, true, UserUpdatedEventChanges.MiddleName)]
-    [InlineData(true, true, true, true, UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName)]
+    [InlineData(false, false, false, false, false, UserUpdatedEventChanges.None)]
+    [InlineData(true, false, false, false, true, UserUpdatedEventChanges.FirstName)]
+    [InlineData(false, false, true, false, true, UserUpdatedEventChanges.LastName)]
+    [InlineData(false, true, false, false, true, UserUpdatedEventChanges.MiddleName)]
+    [InlineData(false, false, false, true, true, UserUpdatedEventChanges.PreferredName)]
+    [InlineData(true, true, true, true, true,
+        UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName |
+        UserUpdatedEventChanges.PreferredName)]
     public async Task Post_ValidRequest_SetsUserNameEmitsEventAndRedirects(
         bool changeFirstName,
         bool changeMiddleName,
         bool changeLastName,
+        bool changePreferredName,
         bool expectEvent,
         UserUpdatedEventChanges expectedChanges)
     {
         // Arrange
-        var user = await TestData.CreateUser(userType: Models.UserType.Default);
+        var user = await TestData.CreateUser(userType: Models.UserType.Default, hasPreferredName: true);
 
         var newFirstName = changeFirstName ? Faker.Name.First() : user.FirstName;
         var newLastName = changeLastName ? Faker.Name.Last() : user.LastName;
         var newMiddleName = changeMiddleName ? Faker.Name.Middle() : user.MiddleName;
+        var newPreferredName = changePreferredName ? Faker.Name.FullName() : user.PreferredName;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/name")
         {
@@ -173,6 +180,7 @@ public class EditUserNameTests : TestBase
                 { "NewFirstName", newFirstName },
                 { "MiddleName", newMiddleName! },
                 { "NewLastName", newLastName },
+                { "PreferredName", newPreferredName! }
             }
         };
 
@@ -189,6 +197,7 @@ public class EditUserNameTests : TestBase
             Assert.Equal(newFirstName, user.FirstName);
             Assert.Equal(newMiddleName, user.MiddleName);
             Assert.Equal(newLastName, user.LastName);
+            Assert.Equal(newPreferredName, user.PreferredName);
         });
 
         if (expectEvent)
@@ -210,12 +219,15 @@ public class EditUserNameTests : TestBase
         }
     }
 
-    public static TheoryData<string, string, string, string, string> InvalidNamesData { get; } = new()
+    public static TheoryData<string, string, string, string, string, string> InvalidNamesData { get; } = new()
     {
-        { "", "", "Bloggs", "NewFirstName", "Enter a first name" },
-        { "Joe", "", "", "NewLastName", "Enter a last name" },
-        { new string('x', 201), "", "Bloggs", "NewFirstName", "First name must be 200 characters or less" },
-        { "Joe", "", new string('x', 201), "NewLastName", "Last name must be 200 characters or less" },
-        { "Joe", new string('x', 201), "Blogs", "MiddleName", "Middle name must be 200 characters or less" },
+        { "", "", "Bloggs", "", "NewFirstName", "Enter a first name" },
+        { "Joe", "", "", "", "NewLastName", "Enter a last name" },
+        { MaxCharacterLength, "", "Bloggs", "", "NewFirstName", "First name must be 200 characters or less" },
+        { "Joe", "", MaxCharacterLength, "", "NewLastName", "Last name must be 200 characters or less" },
+        { "Joe", MaxCharacterLength, "Blogs", "", "MiddleName", "Middle name must be 200 characters or less" },
+        { "Joe", "", "Blogs", MaxCharacterLength, "PreferredName", "Preferred name must be 200 characters or less" }
     };
+
+    private static string MaxCharacterLength => new('x', 201);
 }

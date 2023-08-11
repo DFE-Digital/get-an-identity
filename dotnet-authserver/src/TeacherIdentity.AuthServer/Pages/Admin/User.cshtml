@@ -43,6 +43,9 @@
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Preferred name</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@Model.PreferredName</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action asp-page="EditUserName" asp-route-userId="@Model.UserId" visually-hidden-text="preferred name">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Email address</govuk-summary-list-row-key>
