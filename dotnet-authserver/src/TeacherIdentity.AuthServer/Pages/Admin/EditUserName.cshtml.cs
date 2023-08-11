@@ -44,6 +44,11 @@ public class EditUserNameModel : PageModel
     [MaxLength(Models.User.MiddleNameMaxLength, ErrorMessage = "Middle name must be 200 characters or less")]
     public string? MiddleName { get; set; }
 
+    [BindProperty]
+    [Display(Name = "Preferred name")]
+    [MaxLength(Models.User.PreferredNameMaxLength, ErrorMessage = "Preferred name must be 200 characters or less")]
+    public string? PreferredName { get; set; }
+
     public void OnGet()
     {
     }
@@ -60,11 +65,13 @@ public class EditUserNameModel : PageModel
         var changes = UserUpdatedEventChanges.None |
             (user.FirstName != NewFirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
             (user.LastName != NewLastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None) |
-            (user.MiddleName != MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None);
+            (user.MiddleName != MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
+            (user.PreferredName != PreferredName ? UserUpdatedEventChanges.PreferredName : UserUpdatedEventChanges.None);
 
         user.FirstName = NewFirstName!;
         user.LastName = NewLastName!;
         user.MiddleName = MiddleName;
+        user.PreferredName = PreferredName;
 
         if (changes != UserUpdatedEventChanges.None)
         {
