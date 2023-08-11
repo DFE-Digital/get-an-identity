@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -159,6 +160,7 @@ public class HostFixture : IAsyncLifetime
                     services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient.Object);
                     services.AddSingleton<IDqtEvidenceStorageService>(DqtEvidenceStorageService.Object);
+                    services.AddSingleton(new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
 
