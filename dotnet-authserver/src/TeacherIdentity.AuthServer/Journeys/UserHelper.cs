@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.Json;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Helpers;
@@ -11,12 +14,15 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class UserHelper
 {
+    private const string DebugLogsContainerName = "debug-logs";
+
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IUserVerificationService _userVerificationService;
     private readonly IClock _clock;
     private readonly IZendeskApiWrapper _zendeskApiWrapper;
     private readonly TrnTokenHelper _trnTokenHelper;
     private readonly IDqtApiClient _dqtApiClient;
+    private readonly BlobServiceClient _blobServiceClient;
     private readonly bool _dqtSynchronizationEnabled;
 
     public UserHelper(
@@ -26,7 +32,8 @@ public class UserHelper
         IZendeskApiWrapper zendeskApiWrapper,
         TrnTokenHelper trnTokenHelper,
         IDqtApiClient dqtApiClient,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        BlobServiceClient blobServiceClient)
     {
         _dbContext = dbContext;
         _userVerificationService = userVerificationService;
@@ -34,6 +41,7 @@ public class UserHelper
         _zendeskApiWrapper = zendeskApiWrapper;
         _trnTokenHelper = trnTokenHelper;
         _dqtApiClient = dqtApiClient;
+        _blobServiceClient = blobServiceClient;
         _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
@@ -75,6 +83,10 @@ public class UserHelper
     public async Task<User> CreateUserWithTrnLookup(AuthenticationState authenticationState)
     {
         var userId = Guid.NewGuid();
+        var useDqtRecordForNames = _dqtSynchronizationEnabled
+            && authenticationState.Trn is not null
+            && !string.IsNullOrEmpty(authenticationState.DqtFirstName)
+            && !string.IsNullOrEmpty(authenticationState.DqtLastName);
 
         var user = new User()
         {
@@ -83,9 +95,9 @@ public class UserHelper
             DateOfBirth = authenticationState.DateOfBirth,
             EmailAddress = authenticationState.EmailAddress!,
             MobileNumber = authenticationState.MobileNumber,
-            FirstName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtFirstName! : authenticationState.FirstName!,
-            MiddleName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtMiddleName : authenticationState.MiddleName,
-            LastName = (_dqtSynchronizationEnabled && authenticationState.Trn is not null) ? authenticationState.DqtLastName! : authenticationState.LastName!,
+            FirstName = useDqtRecordForNames ? authenticationState.DqtFirstName! : authenticationState.FirstName!,
+            MiddleName = useDqtRecordForNames ? authenticationState.DqtMiddleName : authenticationState.MiddleName,
+            LastName = useDqtRecordForNames ? authenticationState.DqtLastName! : authenticationState.LastName!,
             PreferredName = authenticationState.PreferredName,
             Updated = _clock.UtcNow,
             UserId = userId,
@@ -252,9 +264,9 @@ public class UserHelper
         {
             var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!);
 
-            if (dqtUser is not null &&
+            if (await CheckDqtTeacherRecordIsValid(dqtUser) &&
                 NameHelper.GetFullName(user.FirstName, user.MiddleName, user.LastName) !=
-                NameHelper.GetFullName(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName))
+                NameHelper.GetFullName(dqtUser!.FirstName, dqtUser.MiddleName, dqtUser.LastName))
             {
                 await AssignDqtUserName(user.UserId, dqtUser);
                 authenticationState.OnNameSet(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName);
@@ -285,5 +297,46 @@ public class UserHelper
         });
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    private async Task<bool> CheckDqtTeacherRecordIsValid(TeacherInfo? teacher)
+    {
+        if (teacher is null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(teacher.FirstName) || string.IsNullOrEmpty(teacher.LastName))
+        {
+            try
+            {
+                var blobName = $"{nameof(UserHelper)}-{_clock.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid()}.json";
+                var blobClient = await GetBlobClient(blobName);
+                var debugLog = JsonSerializer.Serialize(teacher);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(debugLog));
+                await blobClient.UploadAsync(stream);
+            }
+            catch (Exception ex)
+            {
+                // Don't want logging issues to abort whole process
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<BlobClient> GetBlobClient(string blobName)
+    {
+        var blobContainerClient = await GetBlobContainerClient();
+        return blobContainerClient.GetBlobClient(blobName);
+    }
+
+    private async Task<BlobContainerClient> GetBlobContainerClient()
+    {
+        var blobContainerClient = _blobServiceClient.GetBlobContainerClient(DebugLogsContainerName);
+        await blobContainerClient.CreateIfNotExistsAsync();
+        return blobContainerClient;
     }
 }
