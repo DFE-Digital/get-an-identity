@@ -51,7 +51,7 @@ public class CompleteTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(hasTrn: trnLookupStatus == TrnLookupStatus.Found, trnLookupStatus: trnLookupStatus, trnLookupSupportTicketCreated: trnLookupSupportTicketCreated);
 
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: isFirstTimeSignIn), additionalScopes, trnRequirementType, client);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Completed(user, firstTimeSignIn: isFirstTimeSignIn), additionalScopes, trnRequirementType, trnMatchPolicy: null, client);
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/complete?{authStateHelper.ToQueryParam()}");
 

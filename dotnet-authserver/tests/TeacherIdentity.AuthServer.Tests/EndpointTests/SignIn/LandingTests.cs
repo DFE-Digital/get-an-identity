@@ -40,7 +40,7 @@ public class LandingTests : TestBase
     [Fact]
     public async Task Get_ValidRequestApplyForQTSClient_RendersClientScopedPartialContent()
     {
-        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null, trnRequirementType: null, TestClients.ApplyForQts);
+        var authStateHelper = await CreateAuthenticationStateHelper(c => c.Start(), additionalScopes: null, trnRequirementType: null, trnMatchPolicy: null, TestClients.ApplyForQts);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/sign-in/landing?{authStateHelper.ToQueryParam()}");
 
         // Act

@@ -1,3 +1,5 @@
+using TeacherIdentity.AuthServer.Models;
+
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public record FindTeachersRequest
@@ -12,4 +14,5 @@ public record FindTeachersRequest
     public string? IttProviderUkprn { get; init; }
     public string? EmailAddress { get; init; }
     public string? Trn { get; init; }
+    public TrnMatchPolicy? TrnMatchPolicy { get; set; }
 }

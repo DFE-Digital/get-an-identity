@@ -90,10 +90,12 @@ public class AuthorizationController : Controller
             var journeyId = Guid.NewGuid();
 
             TrnRequirementType? trnRequirementType = null;
+            TrnMatchPolicy? trnMatchPolicy = null;
 
             if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
                 trnRequirementType = await GetTrnRequirementType(request);
+                trnMatchPolicy = await GetTrnMatchPolicy(request);
 
                 if (trnRequirementType is null)
                 {
@@ -104,6 +106,18 @@ public class AuthorizationController : Controller
                             [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
                             [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
                                 "Invalid trn_requirement specified."
+                        }));
+                }
+
+                if (trnMatchPolicy is null)
+                {
+                    return Forbid(
+                        authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                        properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                        {
+                            [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                "Invalid trn_match_policy specified."
                         }));
                 }
             }
@@ -118,7 +132,8 @@ public class AuthorizationController : Controller
                 sessionId,
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri)
                 {
-                    TrnRequirementType = trnRequirementType
+                    TrnRequirementType = trnRequirementType,
+                    TrnMatchPolicy = trnMatchPolicy
                 },
                 authenticateResult.Succeeded != true);
 
@@ -485,6 +500,24 @@ public class AuthorizationController : Controller
 
         var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
         return client.TrnRequirementType;
+    }
+
+    private async Task<TrnMatchPolicy?> GetTrnMatchPolicy(OpenIddictRequest request)
+    {
+        var trnMatchPolicy = request["trn_match_policy"];
+
+        if (trnMatchPolicy.HasValue)
+        {
+            if (!Enum.TryParse<TrnMatchPolicy>(trnMatchPolicy?.Value as string, out var parsedTrnMatchPolicy))
+            {
+                return null;
+            }
+
+            return parsedTrnMatchPolicy;
+        }
+
+        var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
+        return client.TrnMatchPolicy;
     }
 
     private async Task<ClaimsPrincipal?> InitializeAuthenticationState(User? signedInUser, EnhancedTrnToken? trnToken,

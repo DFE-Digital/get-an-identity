@@ -36,8 +36,9 @@ public abstract partial class TestBase
         AuthenticationStateConfiguration configure,
         string? additionalScopes,
         TrnRequirementType? trnRequirementType = null,
+        TrnMatchPolicy? trnMatchPolicy = null,
         TeacherIdentityApplicationDescriptor? client = null) =>
-        AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes, trnRequirementType, client);
+        AuthenticationStateHelper.Create(configure, HostFixture, additionalScopes, trnRequirementType, trnMatchPolicy, client);
 
     public void ConfigureDqtApiClientToReturnSingleMatch(AuthenticationStateHelper authStateHelper)
     {
