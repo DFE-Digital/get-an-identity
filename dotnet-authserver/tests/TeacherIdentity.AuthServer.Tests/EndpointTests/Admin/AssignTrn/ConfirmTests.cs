@@ -367,7 +367,7 @@ public class ConfirmTests : TestBase
     }
 
     [Fact]
-    public async Task Post_WithTrnAndAssignTrnConfirmedAndDifferentDqtNameAndDqtSynchronizationEnabled_UpdatesUserNameAndTrnAndEmitsEventAndRedirects()
+    public async Task Post_WithTrnAndAssignTrnConfirmedAndDifferentDqtName_UpdatesUserNameAndTrnAndEmitsEventAndRedirects()
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
@@ -381,7 +381,6 @@ public class ConfirmTests : TestBase
         var dqtEmail = Faker.Internet.Email();
 
         ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
-        HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
         {
@@ -417,63 +416,6 @@ public class ConfirmTests : TestBase
                 Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                 Assert.Equal(UserUpdatedEventSource.SupportUi, userUpdatedEvent.Source);
                 Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus | UserUpdatedEventChanges.FirstName | UserUpdatedEventChanges.MiddleName | UserUpdatedEventChanges.LastName, userUpdatedEvent.Changes);
-                Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
-            });
-
-        // Reset config
-        HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
-    }
-
-    [Fact]
-    public async Task Post_WithTrnAndAssignTrnConfirmedAndDifferentDqtNameAndDqtSynchronizationNotEnabled_UpdatesTrnOnlyAndEmitsEventAndRedirects()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
-        var trn = TestData.GenerateTrn();
-
-        var dqtFirstName = Faker.Name.First();
-        var dqtMiddleName = Faker.Name.Middle();
-        var dqtLastName = Faker.Name.Last();
-        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
-        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
-        var dqtEmail = Faker.Internet.Email();
-
-        ConfigureDqtApiMock(trn, dqtDateOfBirth, dqtFirstName, dqtMiddleName, dqtLastName, dqtNino, dqtEmail);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/assign-trn/confirm?trn={trn}")
-        {
-            Content = new FormUrlEncodedContentBuilder()
-            {
-                { "AssignTrn", bool.TrueString }
-            }
-        };
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
-        Assert.Equal($"/admin/users/{user.UserId}", response.Headers.Location?.OriginalString);
-
-        await TestData.WithDbContext(async dbContext =>
-        {
-            var updatedUser = await dbContext.Users.SingleAsync(u => u.UserId == user.UserId);
-            Assert.Equal(trn, updatedUser.Trn);
-            Assert.Equal(user.FirstName, updatedUser.FirstName);
-            Assert.Equal(user.MiddleName, updatedUser.MiddleName);
-            Assert.Equal(user.LastName, updatedUser.LastName);
-            Assert.Equal(TrnAssociationSource.SupportUi, updatedUser.TrnAssociationSource);
-            Assert.Equal(TrnLookupStatus.Found, updatedUser.TrnLookupStatus);
-            Assert.Equal(Clock.UtcNow, updatedUser.Updated);
-        });
-
-        EventObserver.AssertEventsSaved(
-            e =>
-            {
-                var userUpdatedEvent = Assert.IsType<UserUpdatedEvent>(e);
-                Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
-                Assert.Equal(UserUpdatedEventSource.SupportUi, userUpdatedEvent.Source);
-                Assert.Equal(UserUpdatedEventChanges.Trn | UserUpdatedEventChanges.TrnLookupStatus, userUpdatedEvent.Changes);
                 Assert.Equal(user.UserId, userUpdatedEvent.User.UserId);
             });
     }
