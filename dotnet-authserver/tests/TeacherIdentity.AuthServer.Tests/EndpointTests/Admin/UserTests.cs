@@ -58,6 +58,7 @@ public class UserTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(hasTrn: false, userType: Models.UserType.Default, hasPreferredName: true);
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
+        var formattedDateOfBirth = user.DateOfBirth?.ToString("d MMMM yyyy");
 
         // Act
         var response = await HttpClient.SendAsync(request);
@@ -69,6 +70,7 @@ public class UserTests : TestBase
         Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetElementByTestId("Name")?.TextContent);
         Assert.Equal($"{user.PreferredName}", doc.GetSummaryListValueForKey("Preferred name"));
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email address"));
+        Assert.Equal(formattedDateOfBirth, doc.GetSummaryListValueForKey("Date of birth"));
         Assert.Equal("No", doc.GetSummaryListValueForKey("DQT record"));
         Assert.Equal("None", doc.GetSummaryListValueForKey("Merged user IDs"));
         Assert.NotEmpty(doc.GetSummaryListActionsForKey("DQT record"));
@@ -112,7 +114,7 @@ public class UserTests : TestBase
         Assert.Empty(doc.GetSummaryListActionsForKey("DQT record"));
         Assert.NotNull(doc.GetElementByTestId("DqtSection"));
         Assert.Equal($"{dqtFirstName} {dqtLastName}", doc.GetSummaryListValueForKey("DQT name"));
-        Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), doc.GetSummaryListValueForKey("Date of birth"));
+        Assert.Equal(dqtDateOfBirth.ToString("d MMMM yyyy"), doc.GetElementByTestId("DqtSection")?.GetSummaryListValueForKey("Date of birth"));
         Assert.Equal("Provided", doc.GetSummaryListValueForKey("National insurance number"));
         Assert.Equal(user.Trn, doc.GetSummaryListValueForKey("TRN"));
     }
