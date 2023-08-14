@@ -97,7 +97,7 @@ public class Details : PageModel
     private bool NamesUnchanged()
     {
         return FirstName == DqtUser!.FirstName &&
-               MiddleName == DqtUser.MiddleName &&
+               (MiddleName ?? string.Empty) == DqtUser.MiddleName &&
                LastName == DqtUser.LastName;
     }
 }

@@ -5,6 +5,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.Name;
 
+[Collection(nameof(DisableParallelization))]
 public class ConfirmTests : TestBase
 {
     public ConfirmTests(HostFixture hostFixture)

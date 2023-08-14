@@ -74,11 +74,13 @@ public class IndexTests : TestBase
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
-    [Fact]
-    public async Task Get_ValidRequest_ReturnsUserDetails()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Get_ValidRequestForUserWithoutTrn_ShowsIdentityNames(bool hasPreferredName)
     {
         // Arrange
-        var user = await TestData.CreateUser(hasPreferredName: true);
+        var user = await TestData.CreateUser(hasPreferredName: hasPreferredName);
         HostFixture.SetUserId(user.UserId);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -89,58 +91,30 @@ public class IndexTests : TestBase
         // Assert
         var doc = await response.GetDocument();
 
-        Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
-        Assert.Equal(user.PreferredName, doc.GetSummaryListValueForKey("Preferred name"));
+        Assert.Equal(user.FirstName, doc.GetSummaryListValueForKey("First names"));
+        Assert.Equal(user.MiddleName, doc.GetSummaryListValueForKey("Middle names"));
+        Assert.Equal(user.LastName, doc.GetSummaryListValueForKey("Last names"));
+        if (hasPreferredName)
+        {
+            Assert.Equal(user.PreferredName, doc.GetSummaryListValueForKey("Preferred name"));
+        }
+        else
+        {
+            Assert.Equal("Not provided", doc.GetSummaryListValueForKey("Preferred name"));
+        }
+
         Assert.Equal($"{user.DateOfBirth?.ToString(Constants.DateFormat)}", doc.GetSummaryListValueForKey("Date of birth"));
         Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email"));
-        Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile number"));
+        Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile phone"));
     }
 
-    [Fact]
-    public async Task Get_ValidRequestForUserWithoutPreferredName_ReturnsUserDetailsWithPlaceholderForPreferredName()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Get_ValidRequestForUserWithTrn_ShowsOfficialNames(bool hasPreferredName)
     {
         // Arrange
-        var user = await TestData.CreateUser(hasPreferredName: false);
-        HostFixture.SetUserId(user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        Assert.Equal($"{user.FirstName} {user.MiddleName} {user.LastName}", doc.GetSummaryListValueForKey("Name"));
-        Assert.Equal("Not provided", doc.GetSummaryListValueForKey("Preferred name"));
-        Assert.Equal($"{user.DateOfBirth?.ToString(Constants.DateFormat)}", doc.GetSummaryListValueForKey("Date of birth"));
-        Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email"));
-        Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile number"));
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestForUserWithoutTrn_DoesNotShowOfficialNameRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: false);
-        HostFixture.SetUserId(user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        Assert.Null(doc.GetSummaryListRowForKey("Official name"));
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestForUserWithTrn_DoesShowOfficialNameRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
+        var user = await TestData.CreateUser(hasTrn: true, hasPreferredName: hasPreferredName);
         HostFixture.SetUserId(user.UserId);
 
         var officialFirstName = Faker.Name.First();
@@ -170,113 +144,21 @@ public class IndexTests : TestBase
         // Assert
         var doc = await response.GetDocument();
 
-        Assert.Equal(
-            $"{officialFirstName} {officialMiddleName} {officialLastName}",
-            doc.GetSummaryListValueForKey("Official name")?.Replace("Displayed on teaching certificates", "").Trim());
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestForUserWithoutTrn_DoesNotShowTRNRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: false);
-        HostFixture.SetUserId(user.UserId);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        Assert.Null(doc.GetSummaryListRowForKey("TRN"));
-    }
-
-    [Fact]
-    public async Task Get_ValidRequestForUserWithTrn_DoesShowTRNRow()
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
-        HostFixture.SetUserId(user.UserId);
-
-        HostFixture.DqtApiClient
-            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = user.DateOfBirth!.Value,
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!,
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false,
-                Email = null
-            });
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        Assert.Equal(user.Trn, doc.GetSummaryListValueForKey("TRN"));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Get_ValidRequestForUserWithTrn_DoesNotShowChangeNameLink(bool dqtSynchronizationEnabled)
-    {
-        // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
-        HostFixture.SetUserId(user.UserId);
-
-        HostFixture.DqtApiClient
-            .Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new TeacherInfo()
-            {
-                DateOfBirth = user.DateOfBirth!.Value,
-                FirstName = Faker.Name.First(),
-                MiddleName = "",
-                LastName = Faker.Name.Last(),
-                NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
-                Trn = user.Trn!,
-                PendingNameChange = false,
-                PendingDateOfBirthChange = false,
-                Email = null
-            });
-
-        if (dqtSynchronizationEnabled)
+        Assert.Equal(officialFirstName, doc.GetSummaryListValueForKey("First names"));
+        Assert.Equal(officialMiddleName, doc.GetSummaryListValueForKey("Middle names"));
+        Assert.Equal(officialLastName, doc.GetSummaryListValueForKey("Last names"));
+        if (hasPreferredName)
         {
-            HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
-        }
-
-        var request = new HttpRequestMessage(HttpMethod.Get, "/account");
-
-        // Act
-        var response = await HttpClient.SendAsync(request);
-
-        // Assert
-        var doc = await response.GetDocument();
-
-        if (dqtSynchronizationEnabled)
-        {
-            Assert.Null(doc.GetElementByTestId("name-change-link"));
+            Assert.Equal(user.PreferredName, doc.GetSummaryListValueForKey("Preferred name"));
         }
         else
         {
-            Assert.NotNull(doc.GetElementByTestId("name-change-link"));
+            Assert.Equal("Not provided", doc.GetSummaryListValueForKey("Preferred name"));
         }
 
-        // Reset config
-        if (dqtSynchronizationEnabled)
-        {
-            HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
-        }
+        Assert.Equal($"{user.DateOfBirth?.ToString(Constants.DateFormat)}", doc.GetSummaryListValueForKey("Date of birth"));
+        Assert.Equal(user.EmailAddress, doc.GetSummaryListValueForKey("Email"));
+        Assert.Equal(user.MobileNumber, doc.GetSummaryListValueForKey("Mobile phone"));
     }
 
     [Theory]
@@ -347,7 +229,9 @@ public class IndexTests : TestBase
         // Assert
         var doc = await response.GetDocument();
 
-        Assert.NotNull(doc.GetElementByTestId("name-pending-review-tag"));
+        Assert.NotNull(doc.GetElementByTestId("first-name-pending-review-tag"));
+        Assert.NotNull(doc.GetElementByTestId("middle-name-pending-review-tag"));
+        Assert.NotNull(doc.GetElementByTestId("last-name-pending-review-tag"));
     }
 
     [Fact]

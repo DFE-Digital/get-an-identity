@@ -167,9 +167,9 @@ public class Account : IClassFixture<HostFixture>
 
         await SignInToAccountPage(page, user);
 
-        Assert.False(await page.GetByTestId("dqt-name-pending-review-tag").IsVisibleAsync());
+        Assert.False(await page.GetByTestId("dqt-first-name-pending-review-tag").IsVisibleAsync());
 
-        await page.ClickChangeLinkForElementWithTestId("dqt-name-change-link");
+        await page.ClickChangeLinkForElementWithTestId("dqt-first-name-change-link");
 
         await page.WaitForUrlPathAsync("/account/official-name");
         await page.ClickContinueButton();

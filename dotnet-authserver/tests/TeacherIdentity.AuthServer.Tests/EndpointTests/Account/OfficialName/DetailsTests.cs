@@ -128,6 +128,31 @@ public class DetailsTests : TestBase
         await AssertEx.HtmlResponseHasError(response, "FirstName", "The name entered matches your official name");
     }
 
+    [Fact]
+    public async Task Post_MiddleNameFromEmptyToNullIsNamesUnchanged_ReturnsBadRequest()
+    {
+        // Arrange
+        var user = TestUsers.DefaultUserWithTrn;
+        var middleName = Faker.Name.Middle();
+        HostFixture.SetUserId(user.UserId);
+        MockDqtApiResponse(TestUsers.DefaultUserWithTrn, hasPendingNameChange: false, string.Empty);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, AppendQueryParameterSignature($"/account/official-name/details"))
+        {
+            Content = new FormUrlEncodedContentBuilder()
+            {
+                { "FirstName", user.FirstName },
+                { "LastName", user.LastName },
+            }
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        await AssertEx.HtmlResponseHasError(response, "FirstName", "The name entered matches your official name");
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
