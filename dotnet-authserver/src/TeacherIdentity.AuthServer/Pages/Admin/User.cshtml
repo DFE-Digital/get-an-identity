@@ -62,6 +62,10 @@
                 </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
+                <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("d MMMM yyyy") : "")</govuk-summary-list-row-value>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
                 <govuk-summary-list-row-key>DQT record</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@(Model.HaveDqtRecord ? "Yes" : "No")</govuk-summary-list-row-value>
                 @if (Model.CanChangeDqtRecord)

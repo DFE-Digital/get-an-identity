@@ -40,6 +40,8 @@ public class UserModel : PageModel
 
     public DateOnly? DqtDateOfBirth { get; set; }
 
+    public DateOnly? DateOfBirth { get; set; }
+
     public string? DqtNationalInsuranceNumber { get; set; }
 
     public string? Trn { get; set; }
@@ -93,6 +95,7 @@ public class UserModel : PageModel
         HaveDqtRecord = user.Trn is not null;
         CanChangeDqtRecord = !HaveDqtRecord;
         MergedUserIds = user.MergedUserIds;
+        DateOfBirth = user.DateOfBirth;
 
         if (user.Trn is not null)
         {
