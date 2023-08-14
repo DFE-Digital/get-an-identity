@@ -643,7 +643,7 @@ public class AuthenticationState
         Trn = trn;
         TrnLookupStatus = trnLookupStatus;
 
-        if (dqtSynchronizationEnabled && findTeachersResult is not null)
+        if (dqtSynchronizationEnabled && findTeachersResult is not null && !string.IsNullOrEmpty(findTeachersResult.FirstName) && !string.IsNullOrEmpty(findTeachersResult.LastName))
         {
             DqtFirstName = findTeachersResult.FirstName;
             DqtMiddleName = findTeachersResult.MiddleName;

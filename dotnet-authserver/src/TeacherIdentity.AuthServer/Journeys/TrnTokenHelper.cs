@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.Json;
+using Azure.Storage.Blobs;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Events;
@@ -10,24 +13,29 @@ namespace TeacherIdentity.AuthServer.Journeys;
 
 public class TrnTokenHelper
 {
+    private const string DebugLogsContainerName = "debug-logs";
+
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
     private readonly IDqtApiClient _dqtApiClient;
     private readonly IConfiguration _configuration;
     private readonly IUserSearchService _userSearchService;
+    private readonly BlobServiceClient _blobServiceClient;
 
     public TrnTokenHelper(
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         IDqtApiClient dqtApiClient,
         IConfiguration configuration,
-        IUserSearchService userSearchService)
+        IUserSearchService userSearchService,
+        BlobServiceClient blobServiceClient)
     {
         _dbContext = dbContext;
         _clock = clock;
         _dqtApiClient = dqtApiClient;
         _configuration = configuration;
         _userSearchService = userSearchService;
+        _blobServiceClient = blobServiceClient;
     }
 
     public async Task<EnhancedTrnToken?> GetValidTrnToken(OpenIddictRequest request)
@@ -119,6 +127,8 @@ public class TrnTokenHelper
             return null;
         }
 
+        await CheckDqtTeacherNames(teacher);
+
         return new EnhancedTrnToken()
         {
             TrnToken = trnToken.TrnToken,
@@ -141,7 +151,7 @@ public class TrnTokenHelper
         if (_configuration.GetValue("DqtSynchronizationEnabled", false))
         {
             var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn);
-            if (dqtUser is not null)
+            if (dqtUser is not null && await CheckDqtTeacherNames(dqtUser))
             {
                 changes |= (user.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
                            (user.MiddleName != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
@@ -180,5 +190,41 @@ public class TrnTokenHelper
         }
 
         return user;
+    }
+
+    private async Task<bool> CheckDqtTeacherNames(TeacherInfo teacher)
+    {
+        if (string.IsNullOrEmpty(teacher.FirstName) || string.IsNullOrEmpty(teacher.LastName))
+        {
+            try
+            {
+                var blobName = $"{nameof(TrnTokenHelper)}-{_clock.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid()}.json";
+                var blobClient = await GetBlobClient(blobName);
+                var debugLog = JsonSerializer.Serialize(teacher);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(debugLog));
+                await blobClient.UploadAsync(stream);
+            }
+            catch (Exception)
+            {
+                // Don't want logging issues to abort whole process
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<BlobClient> GetBlobClient(string blobName)
+    {
+        var blobContainerClient = await GetBlobContainerClient();
+        return blobContainerClient.GetBlobClient(blobName);
+    }
+
+    private async Task<BlobContainerClient> GetBlobContainerClient()
+    {
+        var blobContainerClient = _blobServiceClient.GetBlobContainerClient(DebugLogsContainerName);
+        await blobContainerClient.CreateIfNotExistsAsync();
+        return blobContainerClient;
     }
 }

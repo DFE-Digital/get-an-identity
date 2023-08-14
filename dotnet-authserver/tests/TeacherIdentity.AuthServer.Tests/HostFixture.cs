@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -167,6 +168,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             services.AddTransient(_ => ZendeskApiWrapper.Object);
             services.AddTransient(_ => UserImportCsvStorageService.Object);
             services.AddTransient(_ => DqtEvidenceStorageService.Object);
+            services.AddSingleton(new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
             ConfigureWebHooks(services);
         });
     }

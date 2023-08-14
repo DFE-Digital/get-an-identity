@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.Json;
+using Azure.Storage.Blobs;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using TeacherIdentity.AuthServer.Events;
@@ -10,22 +13,26 @@ namespace TeacherIdentity.AuthServer.Jobs;
 public class SyncNamesWithDqtJob : IDisposable
 {
     private const int DqtApiRetryCount = 3;
+    private const string DebugLogsContainerName = "debug-logs";
 
     private readonly TimeSpan DqtApiDefaultRetryAfter = TimeSpan.FromSeconds(30);
     private readonly TeacherIdentityServerDbContext _readDbContext;
     private readonly TeacherIdentityServerDbContext _writeDbContext;
     private readonly IDqtApiClient _dqtApiClient;
     private readonly IClock _clock;
+    private readonly BlobServiceClient _blobServiceClient;
 
     public SyncNamesWithDqtJob(
         IDbContextFactory<TeacherIdentityServerDbContext> dbContextFactory,
         IDqtApiClient dqtApiClient,
-        IClock clock)
+        IClock clock,
+        BlobServiceClient blobServiceClient)
     {
         _readDbContext = dbContextFactory.CreateDbContext();
         _writeDbContext = dbContextFactory.CreateDbContext();
         _dqtApiClient = dqtApiClient;
         _clock = clock;
+        _blobServiceClient = blobServiceClient;
     }
 
     public async Task Execute(CancellationToken cancellationToken)
@@ -47,7 +54,8 @@ public class SyncNamesWithDqtJob : IDisposable
                         })
                     .ExecuteAsync(() => _dqtApiClient.GetTeacherByTrn(userWithTrn.Trn!, cancellationToken));
 
-            if (dqtTeacher is null)
+
+            if (!await CheckDqtTeacherRecordIsValid(dqtTeacher))
             {
                 continue;
             }
@@ -98,5 +106,46 @@ public class SyncNamesWithDqtJob : IDisposable
     {
         ((IDisposable)_readDbContext).Dispose();
         ((IDisposable)_writeDbContext).Dispose();
+    }
+
+    private async Task<bool> CheckDqtTeacherRecordIsValid(TeacherInfo? teacher)
+    {
+        if (teacher is null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(teacher.FirstName) || string.IsNullOrEmpty(teacher.LastName))
+        {
+            try
+            {
+                var blobName = $"{nameof(SyncNamesWithDqtJob)}-{_clock.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid()}.json";
+                var blobClient = await GetBlobClient(blobName);
+                var debugLog = JsonSerializer.Serialize(teacher);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(debugLog));
+                await blobClient.UploadAsync(stream);
+            }
+            catch (Exception)
+            {
+                // Don't want logging issues to abort whole process
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<BlobClient> GetBlobClient(string blobName)
+    {
+        var blobContainerClient = await GetBlobContainerClient();
+        return blobContainerClient.GetBlobClient(blobName);
+    }
+
+    private async Task<BlobContainerClient> GetBlobContainerClient()
+    {
+        var blobContainerClient = _blobServiceClient.GetBlobContainerClient(DebugLogsContainerName);
+        await blobContainerClient.CreateIfNotExistsAsync();
+        return blobContainerClient;
     }
 }

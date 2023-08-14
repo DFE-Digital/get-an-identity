@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Azure.Storage.Blobs;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Jobs;
@@ -79,7 +80,8 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
         var job = new SyncNamesWithDqtJob(
             _dbFixture.GetDbContextFactory(),
             dqtApiClient,
-            _dbFixture.Clock);
+            _dbFixture.Clock,
+            new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
         await job.Execute(CancellationToken.None);
 
         // Assert
@@ -161,7 +163,8 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
         var job = new SyncNamesWithDqtJob(
             _dbFixture.GetDbContextFactory(),
             dqtApiClient,
-            _dbFixture.Clock);
+            _dbFixture.Clock,
+            new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
         await job.Execute(CancellationToken.None);
 
         // Assert
