@@ -148,19 +148,16 @@ public class TrnTokenHelper
     {
         var changes = UserUpdatedEventChanges.None;
 
-        if (_configuration.GetValue("DqtSynchronizationEnabled", false))
+        var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn);
+        if (dqtUser is not null && await CheckDqtTeacherNames(dqtUser))
         {
-            var dqtUser = await _dqtApiClient.GetTeacherByTrn(trn);
-            if (dqtUser is not null && await CheckDqtTeacherNames(dqtUser))
-            {
-                changes |= (user.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
-                           (user.MiddleName != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
-                           (user.LastName != dqtUser.LastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
+            changes |= (user.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
+                       ((user.MiddleName ?? string.Empty) != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
+                       (user.LastName != dqtUser.LastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
 
-                user.FirstName = dqtUser.FirstName;
-                user.MiddleName = dqtUser.MiddleName;
-                user.LastName = dqtUser.LastName;
-            }
+            user.FirstName = dqtUser.FirstName;
+            user.MiddleName = dqtUser.MiddleName;
+            user.LastName = dqtUser.LastName;
         }
 
         if (user.Trn is null)

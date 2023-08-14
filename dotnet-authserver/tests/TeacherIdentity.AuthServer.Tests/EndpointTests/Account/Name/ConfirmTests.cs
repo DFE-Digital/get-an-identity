@@ -21,7 +21,6 @@ public class ConfirmTests : TestBase
         var middleName = Faker.Name.Middle();
         var lastName = Faker.Name.Last();
 
-        HostFixture.Configuration["DqtSynchronizationEnabled"] = "true";
         HostFixture.SetUserId(TestUsers.DefaultUserWithTrn.UserId);
 
         var request = new HttpRequestMessage(
@@ -33,9 +32,6 @@ public class ConfirmTests : TestBase
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-
-        // Reset config
-        HostFixture.Configuration["DqtSynchronizationEnabled"] = "false";
     }
 
     [Fact]

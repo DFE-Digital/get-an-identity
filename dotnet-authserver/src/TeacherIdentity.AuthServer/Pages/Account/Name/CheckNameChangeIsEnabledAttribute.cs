@@ -29,19 +29,11 @@ public class CheckNameChangeIsEnabledAttribute : Attribute, IAsyncPageFilter, IO
     private async Task<bool> NameChangeEnabled(HttpContext httpContext)
     {
         var configuration = httpContext.RequestServices.GetRequiredService<IConfiguration>();
-        var dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
-        if (dqtSynchronizationEnabled)
-        {
-            var dbContext = httpContext.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>();
-            var user = await dbContext.Users
-                .Where(u => u.UserId == httpContext.User.GetUserId())
-                .SingleAsync();
+        var dbContext = httpContext.RequestServices.GetRequiredService<TeacherIdentityServerDbContext>();
+        var user = await dbContext.Users
+            .Where(u => u.UserId == httpContext.User.GetUserId())
+            .SingleAsync();
 
-            return user.Trn is null;
-        }
-        else
-        {
-            return true;
-        }
+        return user.Trn is null;
     }
 }

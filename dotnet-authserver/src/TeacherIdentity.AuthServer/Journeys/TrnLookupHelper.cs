@@ -15,11 +15,9 @@ public class TrnLookupHelper
     private readonly ILogger<TrnLookupHelper> _logger;
     private readonly BlobServiceClient _blobServiceClient;
     private readonly IClock _clock;
-    private readonly bool _dqtSynchronizationEnabled;
 
     public TrnLookupHelper(
         IDqtApiClient dqtApiClient,
-        IConfiguration configuration,
         ILogger<TrnLookupHelper> logger,
         BlobServiceClient blobServiceClient,
         IClock clock)
@@ -28,7 +26,6 @@ public class TrnLookupHelper
         _logger = logger;
         _blobServiceClient = blobServiceClient;
         _clock = clock;
-        _dqtSynchronizationEnabled = configuration.GetValue("DqtSynchronizationEnabled", false);
     }
 
     public async Task<string?> LookupTrn(AuthenticationState authenticationState)
@@ -75,7 +72,7 @@ public class TrnLookupHelper
                 await CheckDqtTeacherNames(findTeachersResult);
             }
 
-            authenticationState.OnTrnLookupCompleted(findTeachersResult, trnLookupStatus, _dqtSynchronizationEnabled);
+            authenticationState.OnTrnLookupCompleted(findTeachersResult, trnLookupStatus);
         }
 
         return findTeachersResult?.Trn;

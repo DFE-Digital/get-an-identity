@@ -33,7 +33,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -69,7 +68,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -131,7 +129,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -181,7 +178,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -214,7 +210,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -246,7 +241,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -277,7 +271,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -306,7 +299,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -333,7 +325,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -360,7 +351,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
@@ -385,7 +375,6 @@ public class TrnLookupHelperTests
 
         var helper = new TrnLookupHelper(
             dqtApiClientMock.Object,
-            _configuration,
             logger,
             new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"),
             new TestClock());
