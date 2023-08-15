@@ -5,6 +5,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Polly;
+using Polly.RateLimit;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.Http;
 using TeacherIdentity.AuthServer.Models;
@@ -16,6 +17,7 @@ namespace TeacherIdentity.AuthServer.Services.UserImport;
 
 public class UserImportProcessor : IUserImportProcessor
 {
+    private const int DqtApiRateLimitPerMinute = 500; // 1/2 of default DQT API rate limit for all clients except Register
     private const int DqtApiRetryCount = 3;
 
     private readonly TimeSpan DqtApiDefaultRetryAfter = TimeSpan.FromSeconds(30);
@@ -44,6 +46,33 @@ public class UserImportProcessor : IUserImportProcessor
 
     public async Task Process(Guid userImportJobId)
     {
+        using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>();
+
+        var dqtCallRateLimitingPolicy = Policy
+            .RateLimitAsync(DqtApiRateLimitPerMinute, TimeSpan.FromSeconds(60), DqtApiRateLimitPerMinute);
+
+        var dqtCallPolicy = Policy
+            .Handle<Exception>((exception) => exception is TooManyRequestsException || exception is RateLimitRejectedException)
+            .WaitAndRetryAsync(
+                DqtApiRetryCount,
+                sleepDurationProvider: (retryCount, exception, context) =>
+                {
+                    var tooManyRequestsException = exception as TooManyRequestsException;
+                    if (tooManyRequestsException is not null)
+                    {
+                        return tooManyRequestsException.RetryAfter ?? DqtApiDefaultRetryAfter;
+                    }
+
+                    var rateLimitRejectedException = exception as RateLimitRejectedException;
+                    return rateLimitRejectedException!.RetryAfter;
+                },
+                onRetryAsync: (exception, delay, retryCount, context) =>
+                {
+                    _logger.LogInformation($"Executing retry number {retryCount} for rate-limited call to DQT API");
+                    return Task.CompletedTask;
+                })
+            .WrapAsync(dqtCallRateLimitingPolicy);
+
         var sw = Stopwatch.StartNew();
 
         var userImportJob = await _dbContext.UserImportJobs.SingleOrDefaultAsync(j => j.UserImportJobId == userImportJobId);
@@ -69,6 +98,13 @@ public class UserImportProcessor : IUserImportProcessor
             string? firstName = null;
             string? middleName = null;
             string? lastName = null;
+
+            // Short circuit if we've already processed this row
+            var existingUserImportJobRow = await _dbContext.UserImportJobRows.SingleOrDefaultAsync(r => r.UserImportJobId == userImportJobId && r.RowNumber == rowNumber);
+            if (existingUserImportJobRow is not null)
+            {
+                continue;
+            }
 
             // Check we don't have wonky rows i.e. too few or too many fields
             if (!csv.TryGetField<string>(UserImportRow.ColumnCount - 1, out _))
@@ -120,22 +156,7 @@ public class UserImportProcessor : IUserImportProcessor
                     }
                     else
                     {
-                        dqtTeacher = await Policy
-                            .Handle<TooManyRequestsException>()
-                            .WaitAndRetryAsync(
-                                DqtApiRetryCount,
-                                sleepDurationProvider: (retryCount, exception, context) =>
-                                {
-                                    var rateLimitingException = exception as TooManyRequestsException;
-                                    return rateLimitingException!.RetryAfter ?? DqtApiDefaultRetryAfter;
-                                },
-                                onRetryAsync: (exception, delay, retryCount, context) =>
-                                {
-                                    _logger.LogInformation($"Executing retry number {retryCount} for rate-limited call to DQT API");
-                                    return Task.CompletedTask;
-                                })
-                            .ExecuteAsync(() => _dqtApiClient.GetTeacherByTrn(row.Trn));
-
+                        dqtTeacher = await dqtCallPolicy.ExecuteAsync(() => _dqtApiClient.GetTeacherByTrn(row.Trn));
                         if (dqtTeacher is null)
                         {
                             errors.Add($"{UserImportRow.TrnHeader} field must match a record in DQT");
