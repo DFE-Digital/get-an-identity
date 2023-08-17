@@ -123,6 +123,9 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         return false;
     }
 
+    public new ValueTask<string> ObfuscateClientSecretAsync(string secret, CancellationToken cancellationToken = default) =>
+        base.ObfuscateClientSecretAsync(secret, cancellationToken);
+
     [GeneratedRegex("\\/__\\.")]
     private static partial Regex WildcardPathSegmentPattern();
 }

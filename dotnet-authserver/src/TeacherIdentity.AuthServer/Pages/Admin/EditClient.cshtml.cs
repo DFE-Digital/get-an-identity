@@ -17,11 +17,16 @@ namespace TeacherIdentity.AuthServer.Pages.Admin;
 public class EditClientModel : PageModel
 {
     private readonly TeacherIdentityApplicationStore _applicationStore;
+    private readonly TeacherIdentityApplicationManager _applicationManager;
     private readonly IClock _clock;
 
-    public EditClientModel(TeacherIdentityApplicationStore applicationStore, IClock clock)
+    public EditClientModel(
+        TeacherIdentityApplicationStore applicationStore,
+        TeacherIdentityApplicationManager applicationManager,
+        IClock clock)
     {
         _applicationStore = applicationStore;
+        _applicationManager = applicationManager;
         _clock = clock;
     }
 
@@ -183,7 +188,8 @@ public class EditClientModel : PageModel
 
         if (!string.IsNullOrEmpty(ClientSecret))
         {
-            await _applicationStore.SetClientSecretAsync(client, ClientSecret, CancellationToken.None);
+            var obfuscatedSecret = await _applicationManager.ObfuscateClientSecretAsync(ClientSecret, CancellationToken.None);
+            await _applicationStore.SetClientSecretAsync(client, obfuscatedSecret, CancellationToken.None);
         }
 
         if (changes != ClientUpdatedEventChanges.None)
