@@ -36,7 +36,21 @@ The results of each file import can be downloaded in a CSV file with the followi
 | NOTES                       | Any notes e.g. errors                                        | A string with multiple notes separated by ". "         |
 | RAW_DATA                    | The raw row of data from the original uploaded CSV file      | A string                                               |
 
-This CSV can then be used by the source service to enhance its data with user IDs from Identity
+This CSV can then be used by the source service to enhance its data with user IDs from Identity i.e. specifically all rows except those marked `Invalid`.
+
+## Summary of Notes
+
+Following is a summary of potential notes/messages which may be included in the download file and any further action which might be necessary.
+
+| Note                                                                       | Explanation | Action |
+| -------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| Potential duplicate user                                                   | There is an existing record in identity with the same first name (or synonym), last name and date of birth but a different email address to the one supplied in the import file. | Manual review of records in source system (e.g. NPQ) and identity. |
+| A user already exists with the specified email address but a different TRN | There is an existing record in identity with the same email address and TRN as the one supplied in the import file. | No action necessary - the export file will contain the associated User ID from identity. |
+| A user already exists with the specified TRN | There is an existing record in identity with the same TRN but a different email address to the one supplied in the import file. | Manual review of records in source system (e.g. NPQ), identity & DQT to check if the user is the same person. Could potentially copy the User ID from identity if happy that they are the same person. |
+| Updated TRN and name for existing user | There is an existing record in identity which matches the email address in the import file but doesn't have a TRN. The TRN is updated for the identity user along with the first, middle and last names from the associated record in DQT. | No action necessary - the export file will contain the associated User ID from identity. |
+| TRN field must match a record in DQT | No record could be found in DQT which matches the TRN supplied in the import file. | Manual review of records in source system (e.g. NPQ) & DQT to see what the problem might be (e.g. could they potentialy be inactive?). |
+| DATE_OF_BIRTH field should be a valid date in ddMMyyyy format | This is most likely because of using a "null" date in Excel which exports to CSV as 00011900 i.e. an invalid date. | Currently DATE_OF_BIRTH is mandatory in the user import so these records will not get imported. |
+| A user already exists with the specified email address but a different TRN | There is an existing record in identity with the same email address but a different TRN to the one supplied in the import file. | Manual review of records in source system (e.g. NPQ), identity & DQT to check if the user is the same person. Could potentially copy the User ID from identity if happy that they are the same person. |
 
 ## User Import Processing
 
