@@ -8,6 +8,8 @@ namespace TeacherIdentity.AuthServer.Oidc;
 
 public partial class TeacherIdentityApplicationManager : OpenIddictApplicationManager<Application>
 {
+    private const string RedirectUriWildcardPlaceholder = "__";
+
     public TeacherIdentityApplicationManager(
         IOpenIddictApplicationCache<Application> cache,
         ILogger<OpenIddictApplicationManager<Application>> logger,
@@ -66,9 +68,9 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
                 return true;
             }
 
-            if (WildcardPathSegmentPattern().IsMatch(authority))
+            if (authority.Contains(RedirectUriWildcardPlaceholder))
             {
-                var pattern = $"^{Regex.Escape(authority).Replace("__", ".*")}$";
+                var pattern = $"^{Regex.Escape(authority).Replace(RedirectUriWildcardPlaceholder, ".*")}$";
 
                 if (Regex.IsMatch(addressAuthority, pattern))
                 {
@@ -96,9 +98,16 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
 
         foreach (var uri in await Store.GetRedirectUrisAsync(application, cancellationToken))
         {
-            if (WildcardPathSegmentPattern().IsMatch(uri))
+            // Note: the redirect_uri must be compared using case-sensitive "Simple String Comparison".
+            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest for more information.
+            if (string.Equals(uri, address, StringComparison.Ordinal))
             {
-                var pattern = $"^{Regex.Escape(uri).Replace("__", ".*")}$";
+                return true;
+            }
+
+            if (uri.Contains(RedirectUriWildcardPlaceholder))
+            {
+                var pattern = $"^{Regex.Escape(uri).Replace(RedirectUriWildcardPlaceholder, ".*")}$";
 
                 if (Regex.IsMatch(address, pattern))
                 {
@@ -109,13 +118,6 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
                     continue;
                 }
             }
-
-            // Note: the redirect_uri must be compared using case-sensitive "Simple String Comparison".
-            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest for more information.
-            if (string.Equals(uri, address, StringComparison.Ordinal))
-            {
-                return true;
-            }
         }
 
         Logger.LogInformation(OpenIddictResources.GetResourceString(OpenIddictResources.ID6162), address, await GetClientIdAsync(application, cancellationToken));
@@ -125,7 +127,4 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
 
     public new ValueTask<string> ObfuscateClientSecretAsync(string secret, CancellationToken cancellationToken = default) =>
         base.ObfuscateClientSecretAsync(secret, cancellationToken);
-
-    [GeneratedRegex("\\/__\\.")]
-    private static partial Regex WildcardPathSegmentPattern();
 }
