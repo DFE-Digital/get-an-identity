@@ -38,9 +38,18 @@ public class NoAccount : PageModel
 
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        var clientId = _journey.AuthenticationState.OAuthState?.ClientId;
-        var client = await _applicationManager.FindByClientIdAsync(clientId!);
-        ClientDisplayName = await _applicationManager.GetDisplayNameAsync(client!);
+        var clientId = _journey.AuthenticationState.OAuthState?.ClientId ??
+            HttpContext.GetClientRedirectInfo()?.ClientId;
+
+        if (clientId is not null)
+        {
+            var client = await _applicationManager.FindByClientIdAsync(clientId);
+            ClientDisplayName = await _applicationManager.GetDisplayNameAsync(client!);
+        }
+        else
+        {
+            ClientDisplayName ??= "DfE Identity account";
+        }
 
         await next();
     }
