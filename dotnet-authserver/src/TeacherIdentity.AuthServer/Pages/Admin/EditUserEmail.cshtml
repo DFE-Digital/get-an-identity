@@ -11,9 +11,7 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <form asp-page="EditUserEmail" asp-route-userId="@Model.UserId">
-            <govuk-input asp-for="Email" type="email" autocomplete="off">
-                <govuk-input-label class="govuk-label--l" />
-            </govuk-input>
+            <govuk-input asp-for="Email" type="email" autocomplete="off" label-class="govuk-label--l" />
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>

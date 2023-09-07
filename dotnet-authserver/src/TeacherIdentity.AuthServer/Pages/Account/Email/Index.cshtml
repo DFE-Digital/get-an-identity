@@ -13,9 +13,7 @@
         <form action="@LinkGenerator.AccountEmail(Model.ClientRedirectInfo)" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
-            <govuk-input asp-for="Email" type="email" autocomplete="email">
-                <govuk-input-label class="govuk-label--s" />
-            </govuk-input>
+            <govuk-input asp-for="Email" type="email" autocomplete="email" label-class="govuk-label--s" />
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>
