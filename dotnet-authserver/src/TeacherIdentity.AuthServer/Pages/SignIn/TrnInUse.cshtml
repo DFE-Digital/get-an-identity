@@ -21,9 +21,13 @@
             <p>We’ve sent a confirmation code to:</p>
             <govuk-inset-text data-testid="Email">@Redactor.RedactEmail(Model.Email)</govuk-inset-text>
 
-            <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
-                <govuk-input-label class="govuk-label--s" />
-            </govuk-input>
+            <govuk-input
+                asp-for="Code"
+                input-class="govuk-!-width-one-quarter govuk-input--extra-letter-spacing"
+                pattern="[0-9]*"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                label-class="govuk-label--s" />
 
             <govuk-button type="submit">Continue</govuk-button>
 

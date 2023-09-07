@@ -15,9 +15,13 @@
 
             <p>A confirmation code has been sent to <span data-testid="email">@Model.Email</span></p>
 
-            <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
-                <govuk-input-label class="govuk-label--s" />
-            </govuk-input>
+            <govuk-input
+                asp-for="Code"
+                input-class="govuk-!-width-one-quarter govuk-input--extra-letter-spacing"
+                pattern="[0-9]*"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                label-class="govuk-label--s" />
 
             <p>
                 <a href="@LinkGenerator.RegisterResendEmailConfirmation()">I have not received an email</a>

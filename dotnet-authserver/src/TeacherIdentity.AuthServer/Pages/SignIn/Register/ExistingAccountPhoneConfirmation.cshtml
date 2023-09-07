@@ -15,9 +15,13 @@
 
             <p>We’ve sent you a text message with a security code to <b data-testid="mobileNumber">@Redactor.RedactMobileNumber(Model.MobileNumber!)</b></p>
 
-            <govuk-input asp-for="Code" input-class="govuk-!-width-one-quarter" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
-                <govuk-input-label class="govuk-label--s" />
-            </govuk-input>
+            <govuk-input
+                asp-for="Code"
+                input-class="govuk-!-width-one-quarter govuk-input--extra-letter-spacing"
+                pattern="[0-9]*"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                label-class="govuk-label--s" />
 
             <p><a href="@LinkGenerator.RegisterResendExistingAccountPhone()">I have not received a text message</a></p>
             <p><a href="@LinkGenerator.RegisterChangeEmailRequest()">I cannot access this mobile number</a></p>

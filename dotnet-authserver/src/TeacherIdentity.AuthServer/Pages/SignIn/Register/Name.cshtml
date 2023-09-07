@@ -13,17 +13,11 @@
         <form action="@LinkGenerator.RegisterName()" method="post" asp-antiforgery="true">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
-            <govuk-input asp-for="FirstName" spellcheck="false" autocomplete="given-name">
-                <govuk-input-label class="govuk-label--s" />
-            </govuk-input>
+            <govuk-input asp-for="FirstName" spellcheck="false" autocomplete="given-name" label-class="govuk-label--s" />
 
-            <govuk-input asp-for="MiddleName" spellcheck="false" autocomplete="additional-name">
-                <govuk-input-label class="govuk-label--s" />
-            </govuk-input>
+            <govuk-input asp-for="MiddleName" spellcheck="false" autocomplete="additional-name" label-class="govuk-label--s" />
 
-            <govuk-input asp-for="LastName" spellcheck="false" autocomplete="family-name">
-                <govuk-input-label class="govuk-label--s"/>
-            </govuk-input>
+            <govuk-input asp-for="LastName" spellcheck="false" autocomplete="family-name" label-class="govuk-label--s" />
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>

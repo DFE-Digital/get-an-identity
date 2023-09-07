@@ -12,9 +12,12 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <form asp-page="EditUserMobileNumber" asp-route-userId="@Model.UserId">
-            <govuk-input asp-for="MobileNumber" type="tel" autocomplete="off">
-                <govuk-input-label class="govuk-label--l" />
-            </govuk-input>
+            <govuk-input
+                asp-for="MobileNumber"
+                type="tel"
+                autocomplete="off"
+                input-class="govuk-input--extra-letter-spacing"
+                label-class="govuk-label--l" />
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>
