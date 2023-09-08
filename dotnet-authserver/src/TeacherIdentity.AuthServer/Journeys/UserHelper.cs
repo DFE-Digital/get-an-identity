@@ -61,6 +61,7 @@ public class UserHelper
             UserType = UserType.Default,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
+            NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
         };
 
         _dbContext.Users.Add(user);
@@ -103,7 +104,8 @@ public class UserHelper
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus,
-            TrnVerificationLevel = TrnVerificationLevel.Low
+            TrnVerificationLevel = TrnVerificationLevel.Low,
+            NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
         };
 
         _dbContext.Users.Add(user);
@@ -147,7 +149,8 @@ public class UserHelper
             TrnAssociationSource = TrnAssociationSource.TrnToken,
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
-            TrnLookupStatus = authenticationState.TrnLookupStatus
+            TrnLookupStatus = authenticationState.TrnLookupStatus,
+            NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
         };
 
         _dbContext.Users.Add(user);
