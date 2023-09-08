@@ -38,4 +38,5 @@ public class User
     public bool TrnLookupSupportTicketCreated { get; set; }
 
     public TrnVerificationLevel? TrnVerificationLevel { get; set; }
+    public string? NationalInsuranceNumber { get; set; }
 }

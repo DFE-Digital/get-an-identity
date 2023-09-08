@@ -16,7 +16,8 @@ public partial class TestData
             string? firstName = null,
             string[]? staffRoles = null,
             bool? hasMobileNumber = null,
-            bool hasPreferredName = false) =>
+            bool hasPreferredName = false,
+            string? nationalInsuranceNumber = null) =>
         WithDbContext(async dbContext =>
         {
             if (hasTrn == true && userType != UserType.Default)
@@ -83,7 +84,8 @@ public partial class TestData
                 MergedWithUserId = mergedWithUserId,
                 IsDeleted = mergedWithUserId != null,
                 StaffRoles = userType is UserType.Staff ? staffRoles ?? StaffRoles.All : Array.Empty<string>(),
-                TrnLookupSupportTicketCreated = trnLookupSupportTicketCreated
+                TrnLookupSupportTicketCreated = trnLookupSupportTicketCreated,
+                NationalInsuranceNumber = nationalInsuranceNumber
             };
 
             dbContext.Users.Add(user);
