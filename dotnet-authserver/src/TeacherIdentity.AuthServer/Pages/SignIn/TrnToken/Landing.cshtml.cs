@@ -16,22 +16,24 @@ public class Landing : PageModel
 
     private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
-    private readonly TeacherIdentityApplicationManager _applicationManager;
+    private readonly ICurrentClientProvider _currentClientProvider;
     private readonly IUserSearchService _userSearchService;
 
     public Landing(
         SignInJourney journey,
         TeacherIdentityServerDbContext dbContext,
-        TeacherIdentityApplicationManager applicationManager,
+        ICurrentClientProvider currentClientProvider,
         IUserSearchService userSearchService)
     {
         _journey = journey;
         _dbContext = dbContext;
-        _applicationManager = applicationManager;
+        _currentClientProvider = currentClientProvider;
         _userSearchService = userSearchService;
     }
 
-    public string? ClientDisplayName;
+    public string? ClientDisplayName { get; set; }
+
+    public TrnMatchPolicy? TrnMatchPolicy { get; set; }
 
     public async Task<IActionResult> OnPost()
     {
@@ -56,12 +58,12 @@ public class Landing : PageModel
         return await _journey.Advance(CurrentStep);
     }
 
-    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    public async override Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
-        var clientId = _journey.AuthenticationState.OAuthState?.ClientId;
-        var client = await _applicationManager.FindByClientIdAsync(clientId!);
-        ClientDisplayName = await _applicationManager.GetDisplayNameAsync(client!);
+        ClientDisplayName = (await _currentClientProvider.GetCurrentClient())?.DisplayName;
 
-        await next();
+        TrnMatchPolicy = _journey.AuthenticationState.OAuthState?.TrnMatchPolicy;
+
+        await base.OnPageHandlerExecutionAsync(context, next);
     }
 }

@@ -1,4 +1,5 @@
 @page "/sign-in/landing"
+@model TeacherIdentity.AuthServer.Pages.SignIn.Landing
 @{
     ViewBag.Title = "Create a DfE Identity account";
 }
@@ -11,10 +12,23 @@
             <ul class="govuk-list govuk-list--bullet">
                 <li>email address (used for contact and account security)</li>
                 <li>mobile phone number (used for account security)</li>
-                <li>name and date of birth</li>
+                <li>name</li>
+                <li>date of birth</li>
             </ul>
 
-            <vc:client-scoped-partial view-name="_SignIn.Landing.{0}.Content" />
+            @if (Model.ClientDisplayName is not null)
+            {
+                @if (Model.TrnMatchPolicy == TrnMatchPolicy.Strict)
+                {
+                    <p>To use your DfE Identity account to @Model.ClientDisplayName, you’ll also need your:</p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>National Insurance number</li>
+                        <li>teacher reference number (TRN)</li>
+                    </ul>
+                }
+
+                <p>Once you’ve created an account, you can continue to <strong>@Model.ClientDisplayName</strong>.</p>
+            }
 
             <govuk-details>
                 <govuk-details-summary>About DfE Identity accounts</govuk-details-summary>
