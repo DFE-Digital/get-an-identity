@@ -3,6 +3,8 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Server;
+using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -29,13 +31,13 @@ public class TestBase
 
     public HttpClient ApiKeyHttpClient { get; }
 
-    public Task<HttpClient> CreateHttpClientWithToken(bool withUser, string? scope)
+    public Task<HttpClient> CreateHttpClientWithToken(bool withUser, string? scope, TrnMatchPolicy? trnMatchPolicy = null)
     {
         var scopes = !string.IsNullOrEmpty(scope) ? new[] { scope } : Array.Empty<string>();
-        return CreateHttpClientWithToken(withUser, scopes);
+        return CreateHttpClientWithToken(withUser, scopes, trnMatchPolicy);
     }
 
-    public async Task<HttpClient> CreateHttpClientWithToken(bool withUser = true, params string[] scopes)
+    public async Task<HttpClient> CreateHttpClientWithToken(bool withUser = true, IEnumerable<string>? scopes = null, TrnMatchPolicy? trnMatchPolicy = null)
     {
         using var scope = HostFixture.Services.CreateScope();
         var userClaimHelper = scope.ServiceProvider.GetRequiredService<UserClaimHelper>();
@@ -44,10 +46,15 @@ public class TestBase
         var client = TestClients.DefaultClient;
 
         var allScopes = (withUser ? new[] { "email", "profile", "openid" } : Array.Empty<string>())
-            .Concat(scopes)
+            .Concat(scopes ?? Array.Empty<string>())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var claims = (withUser ? await userClaimHelper.GetPublicClaims(userId, hasScope: allScopes.Contains) : Array.Empty<Claim>())
+        if (trnMatchPolicy is null && (allScopes.Contains(CustomScopes.Trn) || allScopes.Contains(CustomScopes.DqtRead)))
+        {
+            trnMatchPolicy = TrnMatchPolicy.Default;
+        }
+
+        var claims = (withUser ? await userClaimHelper.GetPublicClaims(userId, trnMatchPolicy) : Array.Empty<Claim>())
             .Append(new Claim("client_id", client.ClientId!))
             .Append(new Claim(Claims.Issuer, new Uri(HostFixture.Configuration["BaseAddress"]!).AbsoluteUri))
             .Append(new Claim(Claims.Scope, string.Join(" ", allScopes)));
