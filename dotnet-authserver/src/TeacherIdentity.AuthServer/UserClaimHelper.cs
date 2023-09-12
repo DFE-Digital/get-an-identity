@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer;
@@ -10,10 +11,12 @@ namespace TeacherIdentity.AuthServer;
 public class UserClaimHelper
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly IDqtApiClient _dqtApiClient;
 
-    public UserClaimHelper(TeacherIdentityServerDbContext dbContext)
+    public UserClaimHelper(TeacherIdentityServerDbContext dbContext, IDqtApiClient dqtApiClient)
     {
         _dbContext = dbContext;
+        _dqtApiClient = dqtApiClient;
     }
 
     public static IReadOnlyCollection<Claim> GetInternalClaims(AuthenticationState authenticationState)
@@ -49,7 +52,7 @@ public class UserClaimHelper
 
     public static string MapUserTypeToClaimValue(UserType userType) => userType.ToString();
 
-    public async Task<IReadOnlyCollection<Claim>> GetPublicClaims(Guid userId, Func<string, bool> hasScope)
+    public async Task<IReadOnlyCollection<Claim>> GetPublicClaims(Guid userId, TrnMatchPolicy? trnMatchPolicy)
     {
         var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.UserId == userId);
 
@@ -72,8 +75,8 @@ public class UserClaimHelper
             new Claim(Claims.FamilyName, user.LastName),
         };
 
-        AddOptionalClaim(claims, CustomClaims.PreferredName, user.PreferredName);
-        AddOptionalClaim(claims, Claims.MiddleName, user.MiddleName);
+        AddClaimIfHaveValue(claims, CustomClaims.PreferredName, user.PreferredName);
+        AddClaimIfHaveValue(claims, Claims.MiddleName, user.MiddleName);
 
         if (user.DateOfBirth is DateOnly dateOfBirth)
         {
@@ -86,14 +89,29 @@ public class UserClaimHelper
             claims.Add(new Claim(Claims.PhoneNumberVerified, bool.TrueString));
         }
 
-        if (UserRequirementsExtensions.GetUserRequirementsForScopes(hasScope).RequiresTrnLookup())
+        if (trnMatchPolicy is not null)
         {
             Debug.Assert(user.TrnLookupStatus.HasValue);
             claims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
 
-            if (user.Trn is not null)
+            var haveSufficientTrnMatch = user.Trn is not null &&
+                (trnMatchPolicy == TrnMatchPolicy.Default ||
+                user.TrnVerificationLevel == TrnVerificationLevel.Medium ||
+                user.TrnAssociationSource == TrnAssociationSource.TrnToken ||
+                user.TrnAssociationSource == TrnAssociationSource.SupportUi);
+
+            if (haveSufficientTrnMatch)
             {
-                claims.Add(new Claim(CustomClaims.Trn, user.Trn));
+                claims.Add(new Claim(CustomClaims.Trn, user.Trn!));
+
+                if (trnMatchPolicy == TrnMatchPolicy.Strict)
+                {
+                    var dqtPerson = await _dqtApiClient.GetTeacherByTrn(user.Trn!) ?? throw new Exception($"Could not find teacher with TRN: '{user.Trn}'.");
+                    var dqtRecordHasNino = !string.IsNullOrEmpty(dqtPerson.NationalInsuranceNumber);
+                    var niNumber = dqtRecordHasNino ? dqtPerson.NationalInsuranceNumber : user.NationalInsuranceNumber;
+                    AddClaimIfHaveValue(claims, CustomClaims.NiNumber, niNumber);
+                    claims.Add(new Claim(CustomClaims.TrnMatchNiNumber, dqtRecordHasNino.ToString()));
+                }
             }
         }
 
@@ -128,8 +146,8 @@ public class UserClaimHelper
             new Claim(CustomClaims.UserType, MapUserTypeToClaimValue(userType))
         };
 
-        AddOptionalClaim(claims, Claims.MiddleName, middleName);
-        AddOptionalClaim(claims, CustomClaims.Trn, trn);
+        AddClaimIfHaveValue(claims, Claims.MiddleName, middleName);
+        AddClaimIfHaveValue(claims, CustomClaims.Trn, trn);
 
         foreach (var role in staffRoles ?? Array.Empty<string>())
         {
@@ -139,7 +157,7 @@ public class UserClaimHelper
         return claims;
     }
 
-    private static void AddOptionalClaim(List<Claim> claims, string claimType, string? stringValue)
+    private static void AddClaimIfHaveValue(List<Claim> claims, string claimType, string? stringValue)
     {
         if (!string.IsNullOrEmpty(stringValue))
         {

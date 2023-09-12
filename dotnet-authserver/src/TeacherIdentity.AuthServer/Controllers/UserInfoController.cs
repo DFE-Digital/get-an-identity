@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Controllers;
@@ -21,7 +23,12 @@ public class UserInfoController : Controller
     public async Task<IActionResult> UserInfo()
     {
         var userId = User.GetUserId();
-        var claims = await _userClaimHelper.GetPublicClaims(userId, User.HasScope);
+
+        TrnMatchPolicy? trnMatchPolicy = User.GetClaim(CustomClaims.Private.TrnMatchPolicy) is string trnMatchPolicyStr ?
+            Enum.Parse<TrnMatchPolicy>(trnMatchPolicyStr) :
+            null;
+
+        var claims = await _userClaimHelper.GetPublicClaims(userId, trnMatchPolicy);
 
         if (claims.Count == 0)
         {

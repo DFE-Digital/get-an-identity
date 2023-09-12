@@ -255,7 +255,7 @@ public class AuthorizationController : Controller
             case ConsentTypes.Implicit:
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
-                var claims = await _userClaimHelper.GetPublicClaims(userId, request.HasScope);
+                var claims = await _userClaimHelper.GetPublicClaims(userId, authenticationState.OAuthState!.TrnMatchPolicy);
 
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
                 var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -284,6 +284,11 @@ public class AuthorizationController : Controller
                 foreach (var claim in principal.Claims)
                 {
                     claim.SetDestinations(GetDestinations(claim, principal));
+                }
+
+                if (authenticationState.OAuthState!.TrnMatchPolicy is TrnMatchPolicy trnMatchPolicy)
+                {
+                    principal.SetClaim(CustomClaims.Private.TrnMatchPolicy, trnMatchPolicy.ToString());
                 }
 
                 await HttpContext.SaveUserSignedInEvent(principal);
@@ -421,6 +426,7 @@ public class AuthorizationController : Controller
             case Claims.FamilyName:
             case Claims.Birthdate:
             case CustomClaims.PreferredName:
+            case CustomClaims.PreviousUserId:
                 if (principal.HasScope(Scopes.Profile))
                 {
                     yield return Destinations.IdentityToken;
@@ -448,14 +454,9 @@ public class AuthorizationController : Controller
 
             case CustomClaims.Trn:
             case CustomClaims.TrnLookupStatus:
-                if (UserRequirementsExtensions.GetUserRequirementsForScopes(principal.HasClaim).RequiresTrnLookup())
-                {
-                    yield return Destinations.IdentityToken;
-                }
-
-                yield break;
-
-            case CustomClaims.PreviousUserId:
+            case CustomClaims.NiNumber:
+            case CustomClaims.TrnMatchNiNumber:
+                // These are only added by UserClaimHelper if the scope and TrnRequirementLevel are appropriate
                 yield return Destinations.IdentityToken;
                 yield break;
 

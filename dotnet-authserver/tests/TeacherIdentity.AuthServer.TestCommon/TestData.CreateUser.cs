@@ -12,6 +12,8 @@ public partial class TestData
             string? registeredWithClientId = null,
             Guid? mergedWithUserId = null,
             TrnLookupStatus? trnLookupStatus = null,
+            TrnAssociationSource? trnAssociationSource = null,
+            TrnVerificationLevel? trnVerificationLevel = null,
             bool trnLookupSupportTicketCreated = false,
             string? firstName = null,
             string[]? staffRoles = null,
@@ -49,6 +51,11 @@ public partial class TestData
                 throw new ArgumentException($"{userType} users should not have {nameof(User.CompletedTrnLookup)} set.");
             }
 
+            if (trnAssociationSource == TrnAssociationSource.Lookup && haveCompletedTrnLookup == false)
+            {
+                throw new ArgumentException($"{nameof(trnAssociationSource)} cannot be {TrnAssociationSource.Lookup} when {nameof(haveCompletedTrnLookup)} is false.");
+            }
+
             hasMobileNumber ??= userType == UserType.Default;
 
             string? mobileNumber = default;
@@ -77,8 +84,9 @@ public partial class TestData
                 UserType = userType,
                 DateOfBirth = userType is UserType.Default ? DateOnly.FromDateTime(Faker.Identification.DateOfBirth()) : null,
                 Trn = hasTrn == true ? GenerateTrn() : null,
-                TrnAssociationSource = hasTrn == true ? (haveCompletedTrnLookup != false ? TrnAssociationSource.Lookup : TrnAssociationSource.Api) : null,
+                TrnAssociationSource = hasTrn == true ? trnAssociationSource ?? (haveCompletedTrnLookup != false ? TrnAssociationSource.Lookup : TrnAssociationSource.Api) : null,
                 TrnLookupStatus = trnLookupStatus ?? (userType == UserType.Default ? (hasTrn == true ? TrnLookupStatus.Found : TrnLookupStatus.None) : null),
+                TrnVerificationLevel = hasTrn == true ? trnVerificationLevel ?? TrnVerificationLevel.Low : null,
                 Updated = _clock.UtcNow,
                 RegisteredWithClientId = registeredWithClientId,
                 MergedWithUserId = mergedWithUserId,

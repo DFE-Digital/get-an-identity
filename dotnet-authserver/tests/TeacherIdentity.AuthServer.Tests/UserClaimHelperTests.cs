@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TeacherIdentity.AuthServer.Tests;
@@ -21,13 +22,15 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         // Arrange
         var user = await _dbFixture.TestData.CreateUser(hasTrn: haveTrnScope, hasMobileNumber: hasMobileNumber, hasPreferredName: hasPreferredName);
 
+        var dqtApiClient = Mock.Of<IDqtApiClient>();
+
         using var dbContext = _dbFixture.GetDbContext();
-        var userClaimHelper = new UserClaimHelper(dbContext);
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClient);
 
         // Act
         var result = await userClaimHelper.GetPublicClaims(
             user.UserId,
-            hasScope: scope => scope == CustomScopes.DqtRead && haveTrnScope);
+            trnMatchPolicy: haveTrnScope ? TrnMatchPolicy.Default : null);
 
         // Assert
         var expectedClaims = new List<Claim>()
@@ -82,13 +85,15 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             anotherMergedUser = await _dbFixture.TestData.CreateUser(mergedWithUserId: user.UserId);
         }
 
+        var dqtApiClient = Mock.Of<IDqtApiClient>();
+
         using var dbContext = _dbFixture.GetDbContext();
-        var userClaimHelper = new UserClaimHelper(dbContext);
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClient);
 
         // Act
         var result = await userClaimHelper.GetPublicClaims(
             user.UserId,
-            hasScope: scope => false);
+            trnMatchPolicy: null);
 
         // Assert
         if (hasMergedUsers)
@@ -107,6 +112,311 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
         {
             Assert.DoesNotContain(result, c => c.Type == CustomClaims.PreviousUserId);
         }
+    }
+
+    [Fact]
+    public async Task GetPublicClaims_TrnMatchPolicyDefaultAndUserHasTrnWithLowTrnVerificationLevel_ReturnsTrnClaimButNoNinoClaims()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Default;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: false,
+            trnAssociationSource: TrnAssociationSource.Lookup,
+            trnVerificationLevel: TrnVerificationLevel.Low);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.Trn);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.NiNumber);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.TrnMatchNiNumber);
+    }
+
+    [Fact]
+    public async Task GetPublicClaims_TrnMatchPolicyDefaultAndUserHasNoTrn_DoesNotReturnTrnClaimOrNinoClaims()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Default;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(hasTrn: false);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.Trn);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.NiNumber);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.TrnMatchNiNumber);
+    }
+
+    [Fact]
+    public async Task GetPublicClaims_TrnMatchPolicyStrictAndUserTrnAssociationSourceIsLookupWithLowTrnVerificationLevel_DoesNotReturnTrnClaimOrNinoClaims()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: true,
+            trnAssociationSource: TrnAssociationSource.Lookup,
+            trnVerificationLevel: TrnVerificationLevel.Low,
+            nationalInsuranceNumber: nino);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        });
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.Trn);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.NiNumber);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.TrnMatchNiNumber);
+    }
+
+    [Fact]
+    public async Task GetPublicClaims_TrnMatchPolicyStrictAndUserTrnAssociationSourceIsApiWithLowTrnVerificationLevel_DoesNotReturnTrnClaimOrNinoClaims()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: true,
+            trnAssociationSource: TrnAssociationSource.Api,
+            trnVerificationLevel: TrnVerificationLevel.Low,
+            nationalInsuranceNumber: nino);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        });
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.Trn);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.NiNumber);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.TrnMatchNiNumber);
+    }
+
+    [Fact]
+    public async Task GetPublicClaims_TrnMatchPolicyStrictAndUserTrnAssociationSourceIsUserImportWithLowTrnVerificationLevel_DoesNotReturnTrnClaimOrNinoClaims()
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: true,
+            trnAssociationSource: TrnAssociationSource.UserImport,
+            trnVerificationLevel: TrnVerificationLevel.Low,
+            nationalInsuranceNumber: nino);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        });
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.Trn);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.NiNumber);
+        Assert.DoesNotContain(result, c => c.Type == CustomClaims.TrnMatchNiNumber);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetPublicClaims_TrnMatchPolicyStrictAndUserTrnAssociationSourceIsTrnToken_ReturnsTrnAndNinoClaims(bool userHasNino)
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: true,
+            trnAssociationSource: TrnAssociationSource.SupportUi,
+            trnVerificationLevel: TrnVerificationLevel.Low,
+            nationalInsuranceNumber: userHasNino ? nino : null);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        });
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.Contains(result, c => c.Type == CustomClaims.Trn && c.Value == user.Trn);
+        Assert.Contains(result, c => c.Type == CustomClaims.NiNumber && c.Value == nino);
+        Assert.Contains(result, c => c.Type == CustomClaims.TrnMatchNiNumber && c.Value.Equals("true", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetPublicClaims_TrnMatchPolicyStrictAndUserTrnAssociationSourceIsSupportUi_ReturnsTrnAndNinoClaims(bool userHasNino)
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: true,
+            trnAssociationSource: TrnAssociationSource.SupportUi,
+            trnVerificationLevel: TrnVerificationLevel.Low,
+            nationalInsuranceNumber: userHasNino ? nino : null);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        });
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.Contains(result, c => c.Type == CustomClaims.Trn && c.Value == user.Trn);
+        Assert.Contains(result, c => c.Type == CustomClaims.NiNumber && c.Value == nino);
+        Assert.Contains(result, c => c.Type == CustomClaims.TrnMatchNiNumber && c.Value.Equals("true", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetPublicClaims_TrnMatchPolicyStrictAndUserTrnAssociationSourceIsLookupWithMediumTrnVerificationLevel_ReturnsTrnAndNinoClaims(bool userHasNino)
+    {
+        // Arrange
+        var trnMatchPolicy = TrnMatchPolicy.Strict;
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        var user = await _dbFixture.TestData.CreateUser(
+            hasTrn: true,
+            trnAssociationSource: TrnAssociationSource.Lookup,
+            trnVerificationLevel: TrnVerificationLevel.Medium,
+            nationalInsuranceNumber: userHasNino ? nino : null);
+
+        var dqtApiClientMock = new Mock<IDqtApiClient>();
+        dqtApiClientMock.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
+        {
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!
+        });
+
+        using var dbContext = _dbFixture.GetDbContext();
+        var userClaimHelper = new UserClaimHelper(dbContext, dqtApiClientMock.Object);
+
+        // Act
+        var result = await userClaimHelper.GetPublicClaims(
+            user.UserId,
+            trnMatchPolicy);
+
+        // Assert
+        Assert.Contains(result, c => c.Type == CustomClaims.Trn && c.Value == user.Trn);
+        Assert.Contains(result, c => c.Type == CustomClaims.NiNumber && c.Value == nino);
+        Assert.Contains(result, c => c.Type == CustomClaims.TrnMatchNiNumber && c.Value.Equals("true", StringComparison.OrdinalIgnoreCase));
     }
 
     public static IEnumerable<object[]> GetOptionalClaimsData()
