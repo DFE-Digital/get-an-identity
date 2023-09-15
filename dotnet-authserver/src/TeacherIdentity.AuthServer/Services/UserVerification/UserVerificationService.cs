@@ -88,6 +88,7 @@ public class UserVerificationService : IUserVerificationService
                 postgresException.ConstraintName == "ix_email_confirmation_pins_email_pin")
             {
                 // Duplicate PIN
+                _dbContext.ChangeTracker.Clear();
                 continue;
             }
 
@@ -184,6 +185,7 @@ public class UserVerificationService : IUserVerificationService
                 postgresException.ConstraintName == "ix_sms_confirmation_pins_mobile_number_pin")
             {
                 // Duplicate PIN
+                _dbContext.ChangeTracker.Clear();
                 continue;
             }
 
