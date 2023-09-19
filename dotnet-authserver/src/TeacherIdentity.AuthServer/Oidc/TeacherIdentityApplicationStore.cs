@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using OpenIddict.EntityFrameworkCore;
@@ -15,7 +16,32 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
     {
     }
 
-    public new TeacherIdentityServerDbContext Context => (TeacherIdentityServerDbContext)base.Context;
+    public new TeacherIdentityServerDbContext Context => base.Context;
+
+    public override IAsyncEnumerable<Application> FindByRedirectUriAsync(string address, CancellationToken cancellationToken)
+    {
+        // It appears that this is never actually used by the library;
+        // should it ever be used the base implementation will need replacing with one that supports wildcards.
+        throw new NotImplementedException();
+    }
+
+    public override async IAsyncEnumerable<Application> FindByPostLogoutRedirectUriAsync(string address, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var applications = Context.Set<Application>().AsAsyncEnumerable();
+
+        await foreach (var application in applications.WithCancellation(cancellationToken))
+        {
+            var addresses = await GetPostLogoutRedirectUrisAsync(application, cancellationToken);
+
+            foreach (var postLogoutRedirectUri in addresses)
+            {
+                if (Application.MatchUriPattern(postLogoutRedirectUri, address, ignorePath: false))
+                {
+                    yield return application;
+                }
+            }
+        }
+    }
 
     public ValueTask<string?> GetServiceUrlAsync(Application application)
     {

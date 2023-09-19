@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
@@ -8,6 +9,37 @@ namespace TeacherIdentity.AuthServer.Models;
 public class Application : OpenIddictEntityFrameworkCoreApplication<string, Authorization, Token>
 {
     private const string EmptyJsonArray = "[]";
+    private const string RedirectUriWildcardPlaceholder = "__";
+
+    public static bool MatchUriPattern(string pattern, string uri, bool ignorePath)
+    {
+        if (!Uri.TryCreate(pattern, UriKind.Absolute, out _))
+        {
+            throw new ArgumentException("A valid absolute URI must be specified.", nameof(pattern));
+        }
+
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
+        {
+            throw new ArgumentException("A valid absolute URI must be specified.", nameof(uri));
+        }
+
+        var normalizedPattern = ignorePath ? RemovePathAndQuery(pattern) : pattern;
+        var normalizedUri = ignorePath ? RemovePathAndQuery(uri) : uri;
+
+        if (normalizedPattern.Equals(normalizedUri, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (normalizedPattern.Contains(RedirectUriWildcardPlaceholder))
+        {
+            return Regex.IsMatch(normalizedUri, $"^{Regex.Escape(normalizedPattern).Replace(RedirectUriWildcardPlaceholder, ".*")}$");
+        }
+
+        return false;
+
+        static string RemovePathAndQuery(string address) => new Uri(address).GetLeftPart(UriPartial.Authority);
+    }
 
     public string? ServiceUrl { get; set; }
 

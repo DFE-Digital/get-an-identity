@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
@@ -8,8 +8,6 @@ namespace TeacherIdentity.AuthServer.Oidc;
 
 public partial class TeacherIdentityApplicationManager : OpenIddictApplicationManager<Application>
 {
-    private const string RedirectUriWildcardPlaceholder = "__";
-
     public TeacherIdentityApplicationManager(
         IOpenIddictApplicationCache<Application> cache,
         ILogger<OpenIddictApplicationManager<Application>> logger,
@@ -20,6 +18,41 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
     }
 
     public new TeacherIdentityApplicationStore Store => (TeacherIdentityApplicationStore)base.Store;
+
+    public override IAsyncEnumerable<Application> FindByPostLogoutRedirectUriAsync(string address, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(address))
+        {
+            throw new ArgumentException("The address cannot be null or empty.", nameof(address));
+        }
+
+        var applications = Options.CurrentValue.DisableEntityCaching ?
+            Store.FindByPostLogoutRedirectUriAsync(address, cancellationToken) :
+            Cache.FindByPostLogoutRedirectUriAsync(address, cancellationToken);
+
+        if (Options.CurrentValue.DisableAdditionalFiltering)
+        {
+            return applications;
+        }
+
+        return ExecuteAsync(cancellationToken);
+
+        async IAsyncEnumerable<Application> ExecuteAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var application in applications)
+            {
+                var addresses = await Store.GetPostLogoutRedirectUrisAsync(application, cancellationToken);
+
+                foreach (var pattern in addresses)
+                {
+                    if (Application.MatchUriPattern(pattern, address, ignorePath: false))
+                    {
+                        yield return application;
+                    }
+                }
+            }
+        }
+    }
 
     public override async ValueTask PopulateAsync(Application application, OpenIddictApplicationDescriptor descriptor, CancellationToken cancellationToken = default)
     {
@@ -52,30 +85,11 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
         ArgumentNullException.ThrowIfNull(application);
         ArgumentException.ThrowIfNullOrEmpty(address);
 
-        if (!Uri.TryCreate(address, UriKind.Absolute, out var addressUri))
-        {
-            return false;
-        }
-
-        var addressAuthority = addressUri.GetLeftPart(UriPartial.Authority);
-
         foreach (var uri in await Store.GetRedirectUrisAsync(application, cancellationToken))
         {
-            var authority = new Uri(uri).GetLeftPart(UriPartial.Authority);
-
-            if (authority.Equals(addressAuthority))
+            if (Application.MatchUriPattern(uri, address, ignorePath: true))
             {
                 return true;
-            }
-
-            if (authority.Contains(RedirectUriWildcardPlaceholder))
-            {
-                var pattern = $"^{Regex.Escape(authority).Replace(RedirectUriWildcardPlaceholder, ".*")}$";
-
-                if (Regex.IsMatch(addressAuthority, pattern))
-                {
-                    return true;
-                }
             }
         }
 
@@ -84,8 +98,6 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
 
     public override async ValueTask<bool> ValidateRedirectUriAsync(Application application, string address, CancellationToken cancellationToken = default)
     {
-        // This is a modified form of the standard implementation with support for a __ wildcard in a redirect URI
-
         if (application is null)
         {
             throw new ArgumentNullException(nameof(application));
@@ -98,25 +110,9 @@ public partial class TeacherIdentityApplicationManager : OpenIddictApplicationMa
 
         foreach (var uri in await Store.GetRedirectUrisAsync(application, cancellationToken))
         {
-            // Note: the redirect_uri must be compared using case-sensitive "Simple String Comparison".
-            // See http://openid.net/specs/openid-connect-core-1_0.html#AuthRequest for more information.
-            if (string.Equals(uri, address, StringComparison.Ordinal))
+            if (Application.MatchUriPattern(uri, address, ignorePath: false))
             {
                 return true;
-            }
-
-            if (uri.Contains(RedirectUriWildcardPlaceholder))
-            {
-                var pattern = $"^{Regex.Escape(uri).Replace(RedirectUriWildcardPlaceholder, ".*")}$";
-
-                if (Regex.IsMatch(address, pattern))
-                {
-                    return true;
-                }
-                else
-                {
-                    continue;
-                }
             }
         }
 
