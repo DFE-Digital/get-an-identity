@@ -91,9 +91,6 @@ public class UserClaimHelper
 
         if (trnMatchPolicy is not null)
         {
-            Debug.Assert(user.TrnLookupStatus.HasValue);
-            claims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
-
             var haveSufficientTrnMatch = user.Trn is not null &&
                 (trnMatchPolicy == TrnMatchPolicy.Default ||
                 user.TrnVerificationLevel == TrnVerificationLevel.Medium ||
@@ -102,7 +99,10 @@ public class UserClaimHelper
 
             if (haveSufficientTrnMatch)
             {
+                Debug.Assert(user.Trn is not null);
+                Debug.Assert(user.TrnLookupStatus.HasValue);
                 claims.Add(new Claim(CustomClaims.Trn, user.Trn!));
+                claims.Add(new Claim(CustomClaims.TrnLookupStatus, user.TrnLookupStatus!.Value.ToString()));
 
                 if (trnMatchPolicy == TrnMatchPolicy.Strict)
                 {
