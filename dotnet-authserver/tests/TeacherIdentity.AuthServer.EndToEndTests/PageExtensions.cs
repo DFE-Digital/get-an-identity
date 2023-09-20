@@ -38,7 +38,8 @@ public static class PageExtensions
         this IPage page,
         string? additionalScope = null,
         TrnRequirementType? trnRequirement = null,
-        string? trnToken = null)
+        string? trnToken = null,
+        TrnMatchPolicy trnMatchPolicy = TrnMatchPolicy.Default)
     {
         var allScopes = new List<string>()
         {
@@ -64,6 +65,8 @@ public static class PageExtensions
         {
             url.SetQueryParam("trn_token", trnToken);
         }
+
+        url.SetQueryParam("trn_match_policy", trnMatchPolicy.ToString());
 
         await page.GotoAsync(url);
     }
