@@ -37,11 +37,11 @@ public class CoreSignInJourney : SignInJourney
             Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             Steps.ResendEmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             Steps.InstitutionEmail => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: true, IsInstitutionEmail: true },
-            Steps.EmailExists => AuthenticationState.IsComplete,
+            Steps.EmailExists => AuthenticationState.UserId is not null,
             Steps.Phone => AuthenticationState.EmailAddressVerified,
             Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false, EmailAddressVerified: true },
             Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
-            Steps.PhoneExists => AuthenticationState.IsComplete,
+            Steps.PhoneExists => AuthenticationState.UserId is not null,
             Steps.Name => AuthenticationState.ContactDetailsVerified,
             Steps.PreferredName => AuthenticationState is { NameSet: true, ContactDetailsVerified: true },
             Steps.DateOfBirth => AuthenticationState is { PreferredNameSet: true, ContactDetailsVerified: true },
@@ -74,20 +74,20 @@ public class CoreSignInJourney : SignInJourney
         return (currentStep, AuthenticationState) switch
         {
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
-            (SignInJourney.Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
-            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.NoAccount,
+            (SignInJourney.Steps.EmailConfirmation, { UserId: not null }) => Steps.EmailExists,
+            (SignInJourney.Steps.EmailConfirmation, _) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.NoAccount,
             (Steps.NoAccount, _) => Steps.Phone,
             (Steps.Landing, _) => Steps.Email,
             (Steps.Email, _) => Steps.EmailConfirmation,
-            (Steps.EmailConfirmation, { IsComplete: true }) => Steps.EmailExists,
-            (Steps.EmailConfirmation, { IsComplete: false, IsInstitutionEmail: true }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.InstitutionEmail,
-            (Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
+            (Steps.EmailConfirmation, { UserId: not null }) => Steps.EmailExists,
+            (Steps.EmailConfirmation, { IsInstitutionEmail: true, UserId: null }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.InstitutionEmail,
+            (Steps.EmailConfirmation, _) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
             (Steps.ResendEmailConfirmation, _) => Steps.EmailConfirmation,
             (Steps.InstitutionEmail, { EmailAddressVerified: false }) => Steps.EmailConfirmation,
             (Steps.InstitutionEmail, { EmailAddressVerified: true }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Phone,
             (Steps.Phone, _) => Steps.PhoneConfirmation,
-            (Steps.PhoneConfirmation, { IsComplete: true }) => Steps.PhoneExists,
-            (Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Name,
+            (Steps.PhoneConfirmation, { UserId: not null }) => Steps.PhoneExists,
+            (Steps.PhoneConfirmation, _) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.Name,
             (Steps.ResendPhoneConfirmation, _) => Steps.PhoneConfirmation,
             (Steps.Name, { ExistingAccountFound: true }) => Steps.AccountExists,
             (Steps.Name, { ExistingAccountFound: false }) => shouldCheckAnswers ? Steps.CheckAnswers : Steps.PreferredName,
@@ -139,7 +139,7 @@ public class CoreSignInJourney : SignInJourney
 
     protected override string GetStartStep() => Steps.Landing;
 
-    protected override bool IsFinished() => AuthenticationState.IsComplete;
+    protected override bool IsFinished() => AuthenticationState.UserId.HasValue;
 
     protected override string GetStepUrl(string step) => step switch
     {

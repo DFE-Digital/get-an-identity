@@ -181,7 +181,9 @@ public class AuthorizationController : Controller
             authenticationState.Reset(_clock.UtcNow);
         }
 
-        if (!authenticationState.IsComplete)
+        var signInJourney = _signInJourneyProvider.GetSignInJourney(authenticationState, HttpContext);
+
+        if (!signInJourney.IsCompleted())
         {
             // If the client application requested promptless authentication,
             // return an error indicating that the user is not logged in.
@@ -196,7 +198,6 @@ public class AuthorizationController : Controller
                     }));
             }
 
-            var signInJourney = _signInJourneyProvider.GetSignInJourney(authenticationState, HttpContext);
             return Redirect(signInJourney.GetStartStepUrl());
         }
 
@@ -207,7 +208,7 @@ public class AuthorizationController : Controller
             await _trnTokenHelper.ApplyTrnTokenToUser(authenticationState.UserId, trnToken.TrnToken);
         }
 
-        Debug.Assert(authenticationState.IsComplete);
+        Debug.Assert(signInJourney.IsCompleted());
 
         // It's possible that the user doesn't have a 'signed in' cookie but the sign in journey is completed
         // (if, say, the user retried the page that sent the response cookie and they never got it).

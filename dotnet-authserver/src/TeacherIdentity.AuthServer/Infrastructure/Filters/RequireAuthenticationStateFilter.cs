@@ -1,32 +1,25 @@
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.State;
 
 namespace TeacherIdentity.AuthServer.Infrastructure.Filters;
 
-public class RequireAuthenticationStateFilterFactory : IFilterFactory
-{
-    public bool IsReusable => false;  // RequireAuthenticationStateFilter needs an IClock which is transient
-
-    public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
-    {
-        var filter = serviceProvider.GetRequiredService<RequireAuthenticationStateFilter>();
-        return filter;
-    }
-}
-
 public class RequireAuthenticationStateFilter : IAuthorizationFilter
 {
+    private readonly SignInJourneyProvider _signInJourneyProvider;
     private readonly IdentityLinkGenerator _linkGenerator;
     private readonly ILogger<RequireAuthenticationStateFilter> _logger;
     private readonly IClock _clock;
 
     public RequireAuthenticationStateFilter(
+        SignInJourneyProvider signInJourneyProvider,
         IdentityLinkGenerator linkGenerator,
         ILogger<RequireAuthenticationStateFilter> logger,
         IClock clock)
     {
+        _signInJourneyProvider = signInJourneyProvider;
         _linkGenerator = linkGenerator;
         _logger = logger;
         _clock = clock;
@@ -44,10 +37,11 @@ public class RequireAuthenticationStateFilter : IAuthorizationFilter
         }
 
         var authenticationState = authenticationStateFeature.AuthenticationState;
+        var signInJourney = _signInJourneyProvider.GetSignInJourney(authenticationState, context.HttpContext);
 
         // If the journey has been completed then forward to the completion page
         // (prevents going 'back' to amend submitted details)
-        if (authenticationState.IsComplete)
+        if (signInJourney.IsCompleted())
         {
             if (context.HttpContext.GetEndpoint()?.Metadata.Contains(AllowCompletedAuthenticationJourneyMarker.Instance) != true)
             {

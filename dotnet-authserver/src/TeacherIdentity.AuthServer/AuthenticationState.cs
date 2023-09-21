@@ -189,22 +189,15 @@ public class AuthenticationState
 
     public IEnumerable<Claim> GetInternalClaims()
     {
-        if (!IsComplete)
+        if (!UserId.HasValue)
         {
-            throw new InvalidOperationException("Cannot retrieve claims until authentication is complete.");
+            throw new InvalidOperationException("User is not signed in.");
         }
 
         return UserClaimHelper.GetInternalClaims(this);
     }
 
     public UserType[] GetPermittedUserTypes() => UserRequirements.GetPermittedUserTypes();
-
-    public bool IsComplete =>
-        EmailAddressVerified &&
-        (!UserRequirements.HasFlag(UserRequirements.TrnHolder) ||
-        HasTrnToken ||
-        TrnLookup == TrnLookupState.Complete) &&
-        UserId.HasValue;
 
     public bool HasExpired(DateTime utcNow) => (StartedAt + JourneyLifetime) <= utcNow;
 
@@ -655,11 +648,6 @@ public class AuthenticationState
 
     public async Task<ClaimsPrincipal> SignIn(HttpContext httpContext)
     {
-        if (!IsComplete)
-        {
-            throw new InvalidOperationException("Journey is not complete.");
-        }
-
         var claims = GetInternalClaims();
         return await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
     }

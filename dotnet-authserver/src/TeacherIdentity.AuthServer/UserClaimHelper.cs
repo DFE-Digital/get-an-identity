@@ -21,9 +21,9 @@ public class UserClaimHelper
 
     public static IReadOnlyCollection<Claim> GetInternalClaims(AuthenticationState authenticationState)
     {
-        if (!authenticationState.IsComplete)
+        if (!authenticationState.UserId.HasValue)
         {
-            throw new InvalidOperationException("Cannot retrieve claims until authentication is complete.");
+            throw new InvalidOperationException("User is not signed in.");
         }
 
         return GetInternalClaims(
@@ -37,9 +37,8 @@ public class UserClaimHelper
             authenticationState.StaffRoles);
     }
 
-    public static IReadOnlyCollection<Claim> GetInternalClaims(User user)
-    {
-        return GetInternalClaims(
+    public static IReadOnlyCollection<Claim> GetInternalClaims(User user) =>
+        GetInternalClaims(
             user.UserId,
             user.EmailAddress,
             user.FirstName,
@@ -48,7 +47,6 @@ public class UserClaimHelper
             user.Trn,
             user.UserType,
             user.StaffRoles);
-    }
 
     public static string MapUserTypeToClaimValue(UserType userType) => userType.ToString();
 
