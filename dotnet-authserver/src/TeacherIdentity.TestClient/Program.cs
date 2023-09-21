@@ -75,6 +75,12 @@ public class Program
                         ctx.ProtocolMessage.SetParameter("trn_requirement", trnRequirement);
                     }
 
+                    var trnMatchPolicy = ctx.HttpContext.Request.Query["trn_match_policy"].ToString();
+                    if (!string.IsNullOrEmpty(trnMatchPolicy))
+                    {
+                        ctx.ProtocolMessage.SetParameter("trn_match_policy", trnMatchPolicy);
+                    }
+
                     var trnToken = ctx.HttpContext.Request.Query["trn_token"].ToString();
                     if (!string.IsNullOrEmpty(trnToken))
                     {
