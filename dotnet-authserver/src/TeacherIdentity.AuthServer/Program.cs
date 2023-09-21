@@ -293,7 +293,7 @@ public class Program
                 "/SignIn",
                 model =>
                 {
-                    model.Filters.Add(new RequireAuthenticationStateFilterFactory());
+                    model.Filters.Add(new ServiceFilterAttribute(typeof(RequireAuthenticationStateFilter)));
                     model.Filters.Add(new NoCachePageFilter());
                 });
 

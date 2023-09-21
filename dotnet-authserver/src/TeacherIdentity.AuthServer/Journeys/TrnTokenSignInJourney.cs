@@ -70,7 +70,7 @@ public class TrnTokenSignInJourney : SignInJourney
             SignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             CoreSignInJourney.Steps.Phone => AuthenticationState.EmailAddressVerified,
             CoreSignInJourney.Steps.PhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false, EmailAddressVerified: true },
-            CoreSignInJourney.Steps.PhoneExists => AuthenticationState.IsComplete,
+            CoreSignInJourney.Steps.PhoneExists => AuthenticationState.UserId is not null,
             CoreSignInJourney.Steps.ResendPhoneConfirmation => AuthenticationState is { MobileNumberSet: true, MobileNumberVerified: false },
             CoreSignInJourney.Steps.Email => AuthenticationState.MobileNumberVerified,
             CoreSignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false, MobileNumberVerified: true },
@@ -97,11 +97,11 @@ public class TrnTokenSignInJourney : SignInJourney
             (Steps.Landing, { ExistingAccountFound: true }) => CoreSignInJourney.Steps.AccountExists,
             (Steps.Landing, { ExistingAccountFound: false }) => CoreSignInJourney.Steps.Phone,
             (SignInJourney.Steps.Email, _) => SignInJourney.Steps.EmailConfirmation,
-            (SignInJourney.Steps.EmailConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.EmailExists,
-            (SignInJourney.Steps.EmailConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.Phone,
+            (SignInJourney.Steps.EmailConfirmation, { UserId: not null }) => CoreSignInJourney.Steps.EmailExists,
+            (SignInJourney.Steps.EmailConfirmation, _) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.Phone,
             (CoreSignInJourney.Steps.Phone, _) => CoreSignInJourney.Steps.PhoneConfirmation,
-            (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: true }) => CoreSignInJourney.Steps.PhoneExists,
-            (CoreSignInJourney.Steps.PhoneConfirmation, { IsComplete: false }) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.PreferredName,
+            (CoreSignInJourney.Steps.PhoneConfirmation, { UserId: not null }) => CoreSignInJourney.Steps.PhoneExists,
+            (CoreSignInJourney.Steps.PhoneConfirmation, _) => shouldCheckAnswers ? Steps.CheckAnswers : CoreSignInJourney.Steps.PreferredName,
             (CoreSignInJourney.Steps.Email, _) => CoreSignInJourney.Steps.EmailConfirmation,
             (CoreSignInJourney.Steps.EmailConfirmation, { IsInstitutionEmail: false }) => Steps.CheckAnswers,
             (CoreSignInJourney.Steps.EmailConfirmation, { IsInstitutionEmail: true }) => CoreSignInJourney.Steps.InstitutionEmail,
@@ -170,7 +170,9 @@ public class TrnTokenSignInJourney : SignInJourney
 
     protected override string GetStartStep() => Steps.Landing;
 
-    protected override bool IsFinished() => AuthenticationState.IsComplete;
+    protected override bool IsFinished() =>
+        AuthenticationState.UserId.HasValue &&
+        AuthenticationState.TrnLookupStatus == TrnLookupStatus.Found;
 
     protected override string GetStepUrl(string step) => step switch
     {
