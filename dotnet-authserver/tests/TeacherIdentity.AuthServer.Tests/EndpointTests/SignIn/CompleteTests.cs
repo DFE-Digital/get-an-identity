@@ -45,7 +45,6 @@ public class CompleteTests : TestBase
         TrnLookupStatus? trnLookupStatus,
         bool expectCallbackForm,
         bool trnLookupSupportTicketCreated,
-        string expectedContentBlock,
         string[] expectedContent)
     {
         // Arrange
@@ -61,7 +60,7 @@ public class CompleteTests : TestBase
         // Act
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         var doc = await response.GetDocument();
-        var content = doc.GetElementByTestId(expectedContentBlock)?.InnerHtml;
+        var content = doc.GetElementsByClassName("govuk-panel").SingleOrDefault()?.InnerHtml;
 
         foreach (var block in expectedContent)
         {
@@ -78,7 +77,7 @@ public class CompleteTests : TestBase
         }
     }
 
-    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, TrnLookupStatus?, bool, bool, string, string[]> SignInCompleteState => new()
+    public static TheoryData<TeacherIdentityApplicationDescriptor, string?, TrnRequirementType?, bool, TrnLookupStatus?, bool, bool, string[]> SignInCompleteState => new()
     {
         {
             // Core journey, trn optional client, first time sign in, no TRN lookup
@@ -89,7 +88,6 @@ public class CompleteTests : TestBase
             (TrnLookupStatus?)null,
             true,
             false,
-            "first-time-user-content",
             new[]
             {
                 "You’ve created a DfE Identity account",
@@ -106,7 +104,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Found,
             true,
             false,
-            "first-time-user-content",
             new[]
             {
                 "You’ve created a DfE Identity account",
@@ -124,7 +121,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Failed,
             true,
             false,
-            "first-time-user-content",
             new[]
             {
                 "You’ve created a DfE Identity account",
@@ -142,7 +138,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Pending,
             true,
             false,
-            "first-time-user-content",
             new[]
             {
                 "You’ve created a DfE Identity account",
@@ -160,7 +155,6 @@ public class CompleteTests : TestBase
             (TrnLookupStatus?)null,
             true,
             false,
-            "known-user-content",
             new[]
             {
                 "You’ve signed in to your DfE Identity account",
@@ -176,7 +170,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Found,
             true,
             false,
-            "known-user-content",
             new[]
             {
                 "You’ve signed in to your DfE Identity account",
@@ -192,7 +185,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Failed,
             true,
             false,
-            "known-user-content",
             new[]
             {
                 "You’ve signed in to your DfE Identity account",
@@ -208,7 +200,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Pending,
             true,
             false,
-            "known-user-content",
             new[]
             {
                 "You’ve signed in to your DfE Identity account",
@@ -224,7 +215,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Found,
             true,
             false,
-            "first-time-user-content",
             new[]
             {
                 "You’ve created a DfE Identity account",
@@ -242,7 +232,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Failed,
             false,
             false,
-            "first-time-user-content",
             new[]
             {
                 "You cannot access this service yet",
@@ -258,8 +247,7 @@ public class CompleteTests : TestBase
             true,
             TrnLookupStatus.Pending,
             false,
-            false,
-            "first-time-user-content",
+            true,
             new[]
             {
                 "You cannot access this service yet",
@@ -277,7 +265,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Found,
             true,
             false,
-            "known-user-content",
             new[]
             {
                 "You’ve signed in to your DfE Identity account",
@@ -293,7 +280,6 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Failed,
             false,
             false,
-            "known-user-content",
             new[]
             {
                 "You cannot access this service yet",
@@ -310,13 +296,10 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Pending,
             false,
             false,
-            "known-user-content",
             new[]
             {
-                "You cannot access this service yet",
-                "We need to do some more checks to see if your details are in our records.",
-                "We’ll email you when we’ve completed those checks - we may need some more information.",
-                "You’ve signed in to your DfE Identity account"
+                "We need to find your details in our records so you can use this service.",
+                "To fix this problem, please email our support team qts.enquiries@education.gov.uk",
             }
         },
         {
@@ -328,11 +311,12 @@ public class CompleteTests : TestBase
             TrnLookupStatus.Pending,
             false,
             true,
-            "trn-support-ticket-pending-content",
             new[]
             {
-                "We need to find your details in our records so you can use this service.",
-                "To fix this problem, please email our support team qts.enquiries@education.gov.uk",
+                "You cannot access this service yet",
+                "We need to do some more checks to see if your details are in our records.",
+                "We’ll email you when we’ve completed those checks - we may need some more information.",
+                "You’ve signed in to your DfE Identity account"
             }
         }
     };

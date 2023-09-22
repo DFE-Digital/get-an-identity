@@ -48,7 +48,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(email);
 
         await page.AssertSignedInOnTestClient(email, trn: null, firstName, lastName);
 
@@ -88,25 +88,6 @@ public class Register : IClassFixture<HostFixture>
 
         ConfigureDqtApiFindTeachersRequest(result: null);
 
-        _hostFixture.DqtApiClient
-            .Setup(mock => mock.GetIttProviders(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GetIttProvidersResponse()
-            {
-                IttProviders = new[]
-                {
-                    new IttProvider()
-                    {
-                        ProviderName = "Provider 1",
-                        Ukprn = "123"
-                    },
-                    new IttProvider()
-                    {
-                        ProviderName = ittProvider,
-                        Ukprn = "234"
-                    }
-                }
-            });
-
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
@@ -134,7 +115,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(email);
 
         await page.AssertSignedInOnTestClient(email, trn: null, firstName, lastName);
 
@@ -159,8 +140,6 @@ public class Register : IClassFixture<HostFixture>
                 Assert.Equal(createdUserId, userSignedInEvent.User.UserId);
             });
     }
-
-
 
     [Fact]
     public async Task NewUser_WithTrnLookup_TrnNotFound_CanRegister()
@@ -230,7 +209,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(email);
 
         await page.AssertSignedInOnTestClient(email, trn: null, firstName, lastName);
 
@@ -304,7 +283,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(email);
 
         await page.AssertSignedInOnTestClient(email, trn, firstName, lastName);
 
@@ -380,7 +359,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(email);
 
         await page.AssertSignedInOnTestClient(email, trn, dqtFirstName, dqtLastName);
 
@@ -462,7 +441,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitTrnChooseEmailPage(trnOwnerEmailAddress);
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(trnOwnerEmailAddress);
 
         await page.AssertSignedInOnTestClient(existingTrnOwner);
 
@@ -680,7 +659,7 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(expectedEmail);
 
         await page.AssertSignedInOnTestClient(expectedEmail, trn: null, firstName, lastName);
 

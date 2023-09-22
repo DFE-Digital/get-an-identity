@@ -42,7 +42,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = null
+                Email = trnToken.Email
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -60,7 +60,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(trnToken.Email);
 
         await page.AssertSignedInOnTestClient(trnToken.Email, trn, firstName, lastName);
 
@@ -92,7 +92,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = null
+                Email = trnToken.Email
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -112,7 +112,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(trnToken.Email);
 
         await page.AssertSignedInOnTestClient(trnToken.Email, trn, firstName, lastName);
 
@@ -143,7 +143,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = null
+                Email = trnToken.Email
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -169,7 +169,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(newEmail);
 
         await page.AssertSignedInOnTestClient(newEmail, trn, firstName, lastName);
     }
@@ -280,7 +280,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(differentEmail);
 
         await page.AssertSignedInOnTestClient(differentEmail, trnToken.Trn, differentFirstName, differentLastName);
 
@@ -393,7 +393,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await CompleteCoreSignInJourneyWithTrnLookup(page, email, firstName, lastName, trn, trnToken);
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(email);
 
         await page.AssertSignedInOnTestClient(email, trn, firstName, lastName);
 
@@ -637,7 +637,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(trnToken.Email);
 
         await page.AssertSignedInOnTestClient(trnToken.Email, trnToken.Trn, user.FirstName, user.LastName);
 
@@ -769,7 +769,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = null
+                Email = trnToken.Email
             });
 
         var invalidEmailSuffix = "invalid.sch.uk";
@@ -811,7 +811,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         await page.SubmitTrnTokenCheckAnswersPage();
 
-        await page.SubmitCompletePageForNewUser();
+        await page.SubmitCompletePageForNewUser(newExpectedEmail);
 
         await page.AssertSignedInOnTestClient(newExpectedEmail, trn, firstName, lastName);
     }
@@ -916,6 +916,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         lastName ??= Faker.Name.Last();
         dateOfBirth ??= DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
         trn ??= _hostFixture.TestData.GenerateTrn();
+        email ??= _hostFixture.TestData.GenerateUniqueEmail();
 
         _hostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TeacherInfo()
@@ -928,7 +929,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = null
+                Email = email
             });
 
         return await _hostFixture.TestData.GenerateTrnToken(trn, email: email);

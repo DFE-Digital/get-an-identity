@@ -28,11 +28,7 @@ public class CompleteModel : PageModel
 
     public string? Email { get; set; }
 
-    public bool GotTrn { get; set; }
-
     public bool FirstTimeSignInForEmail { get; set; }
-
-    public string? Name { get; set; }
 
     public string? Trn { get; set; }
 
@@ -42,12 +38,6 @@ public class CompleteModel : PageModel
 
     public IEnumerable<KeyValuePair<string, string>>? ResponseParameters { get; set; }
 
-    public bool AlreadyCompleted { get; set; }
-
-    public UserType UserType { get; set; }
-
-    public string? Scope { get; set; }
-
     public TrnLookupStatus? TrnLookupStatus { get; set; }
 
     public TrnRequirementType? TrnRequirementType { get; set; }
@@ -55,6 +45,8 @@ public class CompleteModel : PageModel
     public string? ClientDisplayName { get; set; }
 
     public bool TrnLookupSupportTicketCreated { get; set; }
+
+    public bool CanAccessService { get; set; }
 
     public async Task OnGet()
     {
@@ -64,14 +56,10 @@ public class CompleteModel : PageModel
         RedirectUri = authenticationState.OAuthState.RedirectUri;
         ResponseMode = authenticationState.OAuthState.AuthorizationResponseMode!;
         ResponseParameters = authenticationState.OAuthState.AuthorizationResponseParameters!;
+        CanAccessService = authenticationState.OAuthState?.TrnRequirementType != Models.TrnRequirementType.Required || authenticationState.Trn is not null;
         Email = authenticationState.EmailAddress;
-        GotTrn = authenticationState.Trn is not null;
         FirstTimeSignInForEmail = authenticationState.FirstTimeSignInForEmail!.Value;
-        Name = $"{authenticationState.FirstName} {authenticationState.LastName}";
         Trn = authenticationState.Trn;
-        AlreadyCompleted = authenticationState.HaveResumedCompletedJourney;
-        UserType = authenticationState.UserType!.Value;
-        Scope = authenticationState.OAuthState?.Scope;
         TrnLookupStatus = authenticationState.TrnLookupStatus;
         TrnRequirementType = authenticationState.OAuthState?.TrnRequirementType;
 
