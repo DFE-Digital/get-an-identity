@@ -1,9 +1,10 @@
 @page "/sign-in/complete"
 @using static OpenIddict.Abstractions.OpenIddictConstants
+@inject IConfiguration Configuration
 @model TeacherIdentity.AuthServer.Pages.SignIn.CompleteModel
 @{
-    ViewBag.Title = Model.FirstTimeSignInForEmail ?
-        "You’ve created a DfE Identity account" :
+    ViewBag.Title = !Model.CanAccessService ? "You cannot access this service yet" :
+        Model.FirstTimeSignInForEmail ? "You’ve created a DfE Identity account" :
         "You’ve signed in to your DfE Identity account";
 
     var responseMode = Model.ResponseMode!;
@@ -21,9 +22,94 @@
         }
     }
 
-    ViewData.Add("Scope", Model.Scope);
-
     var signOutLink = LinkGenerator.SignOut();
+
+    async Task RenderContent()
+    {
+        <govuk-panel class="app-panel--interruption">
+            <govuk-panel-title>@ViewBag.Title</govuk-panel-title>
+
+            <govuk-panel-body>
+                @if (Model.TrnRequirementType == TrnRequirementType.Required)
+                {
+                    if (Model.TrnLookupStatus == TrnLookupStatus.Found)
+                    {
+                        if (Model.FirstTimeSignInForEmail)
+                        {
+                            <p>We’ve found your details in our records and linked them to your DfE Identity account.</p>
+                            <p>Next time, you can sign in just using your email @Model.Email.</p>
+                        }
+                        <p>Continue to <strong>@Model.ClientDisplayName</strong></p>
+                    }
+                    else if (Model.TrnLookupStatus == TrnLookupStatus.Pending)
+                    {
+                        if (Model.TrnLookupSupportTicketCreated)
+                        {
+                            <p>We need to do some more checks to see if your details are in our records.</p>
+                            <p>We’ll email you when we’ve completed those checks - we may need some more information.</p>
+
+                            <h2 class="govuk-heading-s">Your DfE Identity account</h2>
+                            @if (Model.FirstTimeSignInForEmail)
+                            {
+                                <p>You’ve created a DfE Identity account. To sign in to this service in the future, you’ll just need your email address @Model.Email.</p>
+                            }
+                            else
+                            {
+                                <p>You’ve signed in to your DfE Identity account</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>We need to find your details in our records so you can use this service.</p>
+                            <p>To fix this problem, please email our support team @(Configuration["SupportEmail"])</p>
+                        }
+                    }
+                    else
+                    {
+                        <p>This could be because you do not have teaching qualifications, for example, qualified teacher status (QTS).</p>
+
+                        <h2 class="govuk-heading-s">Your DfE Identity account</h2>
+                        @if (Model.FirstTimeSignInForEmail)
+                        {
+                            <p>You’ve created a DfE Identity account. When you’re eligible to use this service, you can sign in just using your email @Model.Email.</p>
+                        }
+                        else
+                        {
+                            <p>You’ve signed in to your DfE Identity account. When you’re eligible to use this service, you can sign in just using your email @Model.Email.</p>
+                        }
+                    }
+                }
+                else if (Model.TrnRequirementType == TrnRequirementType.Optional)
+                {
+                    if (Model.FirstTimeSignInForEmail)
+                    {
+                        if (Model.TrnLookupStatus == TrnLookupStatus.Found)
+                        {
+                            <p>We’ve found your details in our records and linked them to your DfE Identity account.</p>
+                        }
+                        else
+                        {
+                            <p>We could not find your details in our records. Our support staff may get in touch to ask for more information. This is so we can link your existing details to your DfE Identity account.</p>
+                        }
+                        <p>Next time, you can sign in just using your email @Model.Email.</p>
+                    }
+
+                    <p>Continue to <strong>@Model.ClientDisplayName</strong></p>
+                }
+                else
+                {
+                    if (Model.FirstTimeSignInForEmail)
+                    {
+                        <p>Next time, you can sign in just using your email @Model.Email.</p>
+                    }
+
+                    <p>Continue to <strong>@Model.ClientDisplayName</strong></p>
+                }
+
+                <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+            </govuk-panel-body>
+        </govuk-panel>
+    }
 }
 
 @section HeaderNav {
@@ -37,14 +123,7 @@
     </nav>
 }
 
-@if (Model.TrnRequirementType == TrnRequirementType.Required && Model.TrnLookupStatus != TrnLookupStatus.Found)
-{
-    <vc:sign-in-complete
-        trn-requirement-type="@Model.TrnRequirementType"
-        trn-lookup-status="@Model.TrnLookupStatus"
-        trn-lookup-support-ticket-created="@Model.TrnLookupSupportTicketCreated" />
-}
-else
+@if (Model.CanAccessService)
 {
     <form action="@action" method="@method" asp-antiforgery="false">
         @if (responseMode != ResponseModes.Fragment)
@@ -55,9 +134,10 @@ else
             }
         }
 
-        <vc:sign-in-complete
-            trn-requirement-type="@Model.TrnRequirementType"
-            trn-lookup-status="@Model.TrnLookupStatus"
-            trn-lookup-support-ticket-created="@Model.TrnLookupSupportTicketCreated" />
+        @{ await RenderContent(); }
     </form>
+}
+else
+{
+    await RenderContent();
 }

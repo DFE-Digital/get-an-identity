@@ -304,10 +304,13 @@ public static class PageExtensions
         await page.ClickChangeLinkForElementWithTestId(testId);
     }
 
-    public static async Task SubmitCompletePageForNewUser(this IPage page)
+    public static async Task SubmitCompletePageForNewUser(this IPage page, string email)
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");
-        Assert.Equal(1, await page.Locator("data-testid=first-time-user-content").CountAsync());
+
+        var expectedNewUserContent = $"Next time, you can sign in just using your email {email}.";
+        Assert.Equal(1, await page.GetByText(expectedNewUserContent).CountAsync());
+
         await page.ClickContinueButton();
     }
 
