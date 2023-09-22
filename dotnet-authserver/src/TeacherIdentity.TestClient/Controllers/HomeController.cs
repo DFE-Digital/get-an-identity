@@ -22,7 +22,8 @@ public class HomeController : Controller
             FirstName = User.FindFirstValue("given_name"),
             LastName = User.FindFirstValue("family_name"),
             PreferredName = User.FindFirstValue("preferred-name"),
-            Trn = User.FindFirstValue("trn")
+            Trn = User.FindFirstValue("trn"),
+            NiNumber = User.FindFirstValue("ni_number")
         };
 
         return View(model);

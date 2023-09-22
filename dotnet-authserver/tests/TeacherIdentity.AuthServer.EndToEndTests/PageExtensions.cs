@@ -76,10 +76,10 @@ public static class PageExtensions
         await page.WaitForURLAsync(url => url.StartsWith(HostFixture.ClientBaseUrl));
     }
 
-    public static Task AssertSignedInOnTestClient(this IPage page, User user, bool? expectTrn = null) =>
-        AssertSignedInOnTestClient(page, user.EmailAddress, expectTrn != false ? user.Trn : null, user.FirstName, user.LastName);
+    public static Task AssertSignedInOnTestClient(this IPage page, User user, bool? expectTrn = null, bool? expectNiNumber = null) =>
+        AssertSignedInOnTestClient(page, user.EmailAddress, expectTrn != false ? user.Trn : null, user.FirstName, user.LastName, expectNiNumber == true ? user.NationalInsuranceNumber : null);
 
-    public static async Task AssertSignedInOnTestClient(this IPage page, string email, string? trn, string firstName, string lastName)
+    public static async Task AssertSignedInOnTestClient(this IPage page, string email, string? trn, string firstName, string lastName, string? niNumber = null)
     {
         await page.AssertOnTestClient();
 
@@ -88,6 +88,7 @@ public static class PageExtensions
         Assert.Equal(trn ?? string.Empty, await page.InnerTextAsync("data-testid=trn"));
         Assert.Equal(firstName, await page.InnerTextAsync("data-testid=first-name"));
         Assert.Equal(lastName, await page.InnerTextAsync("data-testid=last-name"));
+        Assert.Equal(niNumber ?? string.Empty, await page.InnerTextAsync("data-testid=ni-number"));
     }
 
     public static async Task AssertSignedOutOnTestClient(this IPage page)
@@ -128,6 +129,12 @@ public static class PageExtensions
     {
         await page.WaitForUrlPathAsync("/sign-in/complete");
         await page.ClickContinueButton();
+    }
+
+    public static async Task AssertOnCompletePageWithNoContinueButton(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/complete");
+        Assert.Equal(0, await page.Locator(".govuk-button:text-is('Continue')").CountAsync());
     }
 
     public static async Task SignOutFromTestClient(this IPage page)
@@ -402,5 +409,17 @@ public static class PageExtensions
     {
         await page.WaitForUrlPathAsync("/sign-in/register/phone-exists");
         await page.ClickButton("Sign in");
+    }
+
+    public static async Task SubmitElevateLandingPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/elevate/landing");
+        await page.ClickButton("Continue");
+    }
+
+    public static async Task SubmitElevateCheckAnswersPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/elevate/check-answers");
+        await page.ClickButton("Continue");
     }
 }

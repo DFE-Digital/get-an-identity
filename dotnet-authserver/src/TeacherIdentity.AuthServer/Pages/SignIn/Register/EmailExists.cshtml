@@ -13,7 +13,7 @@
         <form action="@LinkGenerator.RegisterEmailExists()" method="post" asp-antiforgery="true">
              <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
-            <p>We’ve found a DfE Identity account for email (@Model.Email)</p>
+            <p>We’ve found a DfE Identity account for email @Model.Email</p>
 
             <govuk-button type="submit">Sign in</govuk-button>
         </form>

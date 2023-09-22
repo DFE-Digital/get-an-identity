@@ -3,7 +3,9 @@
 @inject IConfiguration Configuration
 @model TeacherIdentity.AuthServer.Pages.SignIn.CompleteModel
 @{
-    ViewBag.Title = !Model.CanAccessService ? "You cannot access this service yet" :
+    ViewBag.Title = Model.TrnVerificationElevationSuccessful == true ? "The information you gave has been verified" :
+        Model.TrnVerificationElevationSuccessful == false ? "The information you gave could not be verified" :
+        !Model.CanAccessService ? "You cannot access this service yet" :
         Model.FirstTimeSignInForEmail ? "You’ve created a DfE Identity account" :
         "You’ve signed in to your DfE Identity account";
 
@@ -30,7 +32,25 @@
             <govuk-panel-title>@ViewBag.Title</govuk-panel-title>
 
             <govuk-panel-body>
-                @if (Model.TrnRequirementType == TrnRequirementType.Required)
+                @if (Model.TrnVerificationElevationSuccessful == true)
+                {
+                    <p>You can now @Model.ClientDisplayName using your DfE Identity account.</p>
+                }
+                else if (Model.TrnVerificationElevationSuccessful == false && Model.TrnRequirementType == TrnRequirementType.Required)
+                {
+                    <p>You’ve signed in to your DfE Identity account but some of the additional information you gave could not be verified.</p>
+                    <p>Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> for help.</p>
+                }
+                else if (Model.TrnVerificationElevationSuccessful == false && Model.TrnRequirementType == TrnRequirementType.Optional)
+                {
+                    <p>You can still @Model.ClientDisplayName.</p>
+                }
+                else if (Model.TrnMatchPolicy == TrnMatchPolicy.Strict && Model.Trn is null && Model.TrnRequirementType == TrnRequirementType.Required)
+                {
+                    <p>You’ve created a DfE Identity account but some of the information you gave could not be verified.</p>
+                    <p>Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> for help.</p>
+                }
+                else if (Model.TrnRequirementType == TrnRequirementType.Required)
                 {
                     if (Model.TrnLookupStatus == TrnLookupStatus.Found)
                     {
@@ -61,7 +81,7 @@
                         else
                         {
                             <p>We need to find your details in our records so you can use this service.</p>
-                            <p>To fix this problem, please email our support team @(Configuration["SupportEmail"])</p>
+                            <p>To fix this problem, please email our support team <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a>.</p>
                         }
                     }
                     else
@@ -106,7 +126,10 @@
                     <p>Continue to <strong>@Model.ClientDisplayName</strong></p>
                 }
 
-                <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+                @if (Model.CanAccessService)
+                {
+                    <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Continue</govuk-button>
+                }
             </govuk-panel-body>
         </govuk-panel>
     }

@@ -8,4 +8,5 @@ public class ProfileModel
     public string? LastName { get; set; }
     public string? PreferredName { get; set; }
     public string? Trn { get; set; }
+    public string? NiNumber { get; set; }
 }

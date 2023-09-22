@@ -1,4 +1,3 @@
-using Microsoft.Playwright;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.EndToEndTests;
@@ -33,36 +32,13 @@ public partial class SignIn : IClassFixture<HostFixture>
 
         await page.AssertSignedInOnTestClient(user);
 
-        await ClearCookiesForTestClient();
+        await context.ClearCookiesForTestClient();
 
         await page.StartOAuthJourney(additionalScope: null);
 
         await page.SubmitCompletePageForExistingUser();
 
         await page.AssertSignedInOnTestClient(user);
-
-        async Task ClearCookiesForTestClient()
-        {
-            var cookies = await context.CookiesAsync();
-
-            await context.ClearCookiesAsync();
-
-            // All the Auth server cookies start with 'tis-'
-            await context.AddCookiesAsync(
-                cookies
-                    .Where(c => c.Name.StartsWith("tis-"))
-                    .Select(c => new Cookie()
-                    {
-                        Domain = c.Domain,
-                        Expires = c.Expires,
-                        HttpOnly = c.HttpOnly,
-                        Name = c.Name,
-                        Path = c.Path,
-                        SameSite = c.SameSite,
-                        Secure = c.Secure,
-                        Value = c.Value
-                    }));
-        }
     }
 
     [Fact]

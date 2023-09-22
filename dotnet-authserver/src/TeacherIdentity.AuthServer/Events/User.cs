@@ -17,6 +17,8 @@ public record User
     public required TrnAssociationSource? TrnAssociationSource { get; init; }
     public required string[] StaffRoles { get; init; } = Array.Empty<string>();
     public required TrnLookupStatus? TrnLookupStatus { get; init; }
+    public required TrnVerificationLevel? TrnVerificationLevel { get; init; }
+    public required string? NationalInsuranceNumber { get; init; }
 
     public static User FromModel(Models.User user) => new()
     {
@@ -29,8 +31,10 @@ public record User
         StaffRoles = user.StaffRoles,
         Trn = user.Trn,
         MobileNumber = user.MobileNumber,
+        NationalInsuranceNumber = user.NationalInsuranceNumber,
         TrnAssociationSource = user.TrnAssociationSource,
         TrnLookupStatus = user.TrnLookupStatus,
+        TrnVerificationLevel = user.TrnVerificationLevel,
         UserId = user.UserId,
         UserType = user.UserType
     };

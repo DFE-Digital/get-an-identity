@@ -130,6 +130,17 @@ public class AuthenticationState
     [JsonInclude]
     public bool HaveResumedCompletedJourney { get; private set; }
 
+    /// <summary>
+    /// Whether the signed in user requires elevating to the higher TrnVerificationLevel.
+    /// </summary>
+    /// <remarks>
+    /// This should be set when the user is signed in and remain un-changed for the duration of the journey.
+    /// The <see cref="TrnVerificationElevationSuccessful"/> property tracks whether elevation has completed, successfully or not.
+    /// </remarks>
+    [JsonInclude]
+    public bool? RequiresTrnVerificationLevelElevation { get; private set; }
+    public bool? TrnVerificationElevationSuccessful { get; set; }
+
     [JsonIgnore]
     public bool EmailAddressSet => EmailAddress is not null;
     [JsonIgnore]
@@ -240,6 +251,8 @@ public class AuthenticationState
         InstitutionEmailChosen = default;
         PreferredName = default;
         HaveResumedCompletedJourney = default;
+        RequiresTrnVerificationLevelElevation = default;
+        TrnVerificationElevationSuccessful = default;
     }
 
     public void OnEmailSet(string email, bool isInstitutionEmail = false)
@@ -359,6 +372,7 @@ public class AuthenticationState
         FirstTimeSignInForEmail = true;
         Trn = user.Trn;
         TrnLookup = TrnLookupState.Complete;
+        RequiresTrnVerificationLevelElevation = false;
         UserType = user.UserType;
         StaffRoles = user.StaffRoles;
         TrnLookupStatus = user.TrnLookupStatus;
@@ -594,6 +608,10 @@ public class AuthenticationState
         LastName = user?.LastName;
         DateOfBirth = user?.DateOfBirth;
         Trn = user?.Trn;
+        RequiresTrnVerificationLevelElevation =
+            user is not null && TryGetOAuthState(out var oAuthState) && oAuthState.TrnMatchPolicy == TrnMatchPolicy.Strict ?
+                user.EffectiveVerificationLevel != TrnVerificationLevel.Medium :
+                null;
         HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null;
         TrnLookup = user?.CompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None;
         UserType = user?.UserType;
@@ -605,6 +623,7 @@ public class AuthenticationState
     {
         TrnToken = trnToken.TrnToken;
         Trn = trnToken.Trn;
+        RequiresTrnVerificationLevelElevation = false;
         TrnLookupStatus = AuthServer.TrnLookupStatus.Found;
         FirstName ??= trnToken.FirstName;
         MiddleName ??= trnToken.MiddleName;
@@ -636,6 +655,11 @@ public class AuthenticationState
         Trn = trn;
         TrnLookupStatus = trnLookupStatus;
 
+        if (RequiresTrnVerificationLevelElevation == true)
+        {
+            TrnVerificationElevationSuccessful = Trn is not null;
+        }
+
         if (findTeachersResult is not null && !string.IsNullOrEmpty(findTeachersResult.FirstName) && !string.IsNullOrEmpty(findTeachersResult.LastName))
         {
             DqtFirstName = findTeachersResult.FirstName;
@@ -650,21 +674,6 @@ public class AuthenticationState
     {
         var claims = GetInternalClaims();
         return await httpContext.SignInCookies(claims, resetIssued: true, AuthCookieLifetime);
-    }
-
-    public enum HasPreviousNameOption
-    {
-        Yes,
-        No,
-        PreferNotToSay
-    }
-
-    public enum TrnLookupState
-    {
-        None = 0,
-        Complete = 1,
-        ExistingTrnFound = 3,
-        EmailOfExistingAccountForTrnVerified = 4
     }
 
     private void UpdateAuthenticationStateWithUserDetails(User user)
@@ -689,8 +698,30 @@ public class AuthenticationState
             if (HaveCompletedTrnLookup || Trn is not null)
             {
                 TrnLookup = TrnLookupState.Complete;
+                RequiresTrnVerificationLevelElevation =
+                    TryGetOAuthState(out var oAuthState) && oAuthState.TrnMatchPolicy == TrnMatchPolicy.Strict &&
+                    user.EffectiveVerificationLevel != TrnVerificationLevel.Medium;
             }
         }
+        else
+        {
+            RequiresTrnVerificationLevelElevation = false;
+        }
+    }
+
+    public enum HasPreviousNameOption
+    {
+        Yes,
+        No,
+        PreferNotToSay
+    }
+
+    public enum TrnLookupState
+    {
+        None = 0,
+        Complete = 1,
+        ExistingTrnFound = 3,
+        EmailOfExistingAccountForTrnVerified = 4
     }
 }
 

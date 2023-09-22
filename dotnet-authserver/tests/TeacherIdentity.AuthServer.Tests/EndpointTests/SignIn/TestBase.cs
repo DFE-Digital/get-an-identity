@@ -51,7 +51,7 @@ public abstract partial class TestBase
                     req.EmailAddress == authState.EmailAddress &&
                     req.FirstName == authState.FirstName &&
                     req.LastName == authState.LastName &&
-                    req.NationalInsuranceNumber == authState.NationalInsuranceNumber &&
+                    req.NationalInsuranceNumber == (authState.NationalInsuranceNumber ?? string.Empty) &&
                     req.IttProviderName == authState.IttProviderName),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FindTeachersResponse()

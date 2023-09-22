@@ -7,13 +7,18 @@
             </a>
         </li>
         <li>
-            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Required" class="govuk-link">
+            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Required" asp-route-trn_match_policy="Strict" class="govuk-link">
                 Core + TRN lookup (Access your teaching qualifications)
             </a>
         </li>
         <li>
             <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Optional" class="govuk-link">
                 Core + TRN lookup (NPQ)
+            </a>
+        </li>
+        <li>
+            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Optional" asp-route-trn_match_policy="Strict" class="govuk-link">
+                Core + TRN lookup (Claim)
             </a>
         </li>
     </ul>

@@ -36,7 +36,33 @@ public class User
     public string? MobileNumber { get; set; }
     public MobileNumber? NormalizedMobileNumber { get; set; }
     public bool TrnLookupSupportTicketCreated { get; set; }
-
     public TrnVerificationLevel? TrnVerificationLevel { get; set; }
     public string? NationalInsuranceNumber { get; set; }
+
+    public TrnVerificationLevel? EffectiveVerificationLevel
+    {
+        get
+        {
+            if (Trn is null)
+            {
+                return null;
+            }
+
+            if (TrnVerificationLevel == Models.TrnVerificationLevel.Medium)
+            {
+                return Models.TrnVerificationLevel.Medium;
+            }
+
+            if (TrnAssociationSource == Models.TrnAssociationSource.TrnToken ||
+                TrnAssociationSource == Models.TrnAssociationSource.SupportUi)
+            {
+                return Models.TrnVerificationLevel.Medium;
+            }
+
+            return Models.TrnVerificationLevel.Low;
+        }
+    }
+
+    public static string NormalizeNationalInsuranceNumber(string? nationalInsuranceNumber) =>
+        new string((nationalInsuranceNumber ?? string.Empty).Where(char.IsAsciiLetterOrDigit).ToArray()).ToUpper();
 }

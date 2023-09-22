@@ -90,10 +90,7 @@ public class UserClaimHelper
         if (trnMatchPolicy is not null)
         {
             var haveSufficientTrnMatch = user.Trn is not null &&
-                (trnMatchPolicy == TrnMatchPolicy.Default ||
-                user.TrnVerificationLevel == TrnVerificationLevel.Medium ||
-                user.TrnAssociationSource == TrnAssociationSource.TrnToken ||
-                user.TrnAssociationSource == TrnAssociationSource.SupportUi);
+                (trnMatchPolicy == TrnMatchPolicy.Default || user.EffectiveVerificationLevel == TrnVerificationLevel.Medium);
 
             if (haveSufficientTrnMatch)
             {
@@ -106,7 +103,7 @@ public class UserClaimHelper
                 {
                     var dqtPerson = await _dqtApiClient.GetTeacherByTrn(user.Trn!) ?? throw new Exception($"Could not find teacher with TRN: '{user.Trn}'.");
                     var dqtRecordHasNino = !string.IsNullOrEmpty(dqtPerson.NationalInsuranceNumber);
-                    var niNumber = dqtRecordHasNino ? dqtPerson.NationalInsuranceNumber : user.NationalInsuranceNumber;
+                    var niNumber = User.NormalizeNationalInsuranceNumber(dqtRecordHasNino ? dqtPerson.NationalInsuranceNumber : user.NationalInsuranceNumber);
                     AddClaimIfHaveValue(claims, CustomClaims.NiNumber, niNumber);
                     claims.Add(new Claim(CustomClaims.TrnMatchNiNumber, dqtRecordHasNino.ToString()));
                 }

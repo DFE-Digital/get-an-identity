@@ -30,6 +30,7 @@ public class UserMapping : IEntityTypeConfiguration<User>
         builder.Property(u => u.MergedWithUserId);
         builder.Property(u => u.MobileNumber).HasMaxLength(100);
         builder.Property(u => u.NormalizedMobileNumber).HasMaxLength(15);
+        builder.Ignore(u => u.EffectiveVerificationLevel);
         builder.HasIndex(u => u.NormalizedMobileNumber).IsUnique().HasDatabaseName(User.MobileNumberUniqueIndexName).HasFilter("is_deleted = false and normalized_mobile_number is not null");
         builder.HasOne(u => u.MergedWithUser).WithMany(u => u.MergedUsers).HasForeignKey(u => u.MergedWithUserId);
         builder.HasOne(u => u.RegisteredWithClient).WithMany().HasForeignKey(u => u.RegisteredWithClientId).HasPrincipalKey(a => a.ClientId);
