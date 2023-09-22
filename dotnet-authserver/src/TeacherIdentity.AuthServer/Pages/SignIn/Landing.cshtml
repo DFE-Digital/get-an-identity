@@ -26,8 +26,10 @@
                         <li>teacher reference number (TRN)</li>
                     </ul>
                 }
-
-                <p>Once you’ve created an account, you can continue to <strong>@Model.ClientDisplayName</strong>.</p>
+                else
+                {
+                    <p>Once you’ve created an account, you can continue to <strong>@Model.ClientDisplayName</strong>.</p>
+                }
             }
 
             <govuk-details>

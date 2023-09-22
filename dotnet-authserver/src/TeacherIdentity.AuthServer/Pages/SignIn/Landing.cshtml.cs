@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
@@ -26,12 +25,10 @@ public class Landing : PageModel
 
     public TrnMatchPolicy? TrnMatchPolicy { get; set; }
 
-    public async override Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    public async Task OnGet()
     {
         ClientDisplayName = (await _currentClientProvider.GetCurrentClient())?.DisplayName;
 
         TrnMatchPolicy = _journey.AuthenticationState.OAuthState?.TrnMatchPolicy;
-
-        await base.OnPageHandlerExecutionAsync(context, next);
     }
 }

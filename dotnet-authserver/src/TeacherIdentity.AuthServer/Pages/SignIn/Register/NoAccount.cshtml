@@ -28,7 +28,21 @@
                     <li>name and date of birth</li>
                 </ul>
 
-                <p>Once you’ve created an account, you can continue to <strong>@Model.ClientDisplayName</strong>.</p>
+                @if (Model.ClientDisplayName is not null)
+                {
+                    @if (Model.TrnMatchPolicy == TrnMatchPolicy.Strict)
+                    {
+                        <p>To use your DfE Identity account to @Model.ClientDisplayName, you’ll also need your:</p>
+                        <ul class="govuk-list govuk-list--bullet">
+                            <li>National Insurance number</li>
+                            <li>teacher reference number (TRN)</li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>Once you’ve created an account, you can continue to <strong>@Model.ClientDisplayName</strong>.</p>
+                    }
+                }
 
                 <govuk-button type="submit" class="app-button--inverse govuk-!-margin-bottom-0">Create an account</govuk-button>
             </form>
