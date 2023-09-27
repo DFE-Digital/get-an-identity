@@ -5,5 +5,5 @@ namespace TeacherIdentity.AuthServer.Pages.Admin;
 
 public class IndexModel : PageModel
 {
-    public IActionResult OnGet() => RedirectToPage("/Admin/Clients");
+    public IActionResult OnGet() => RedirectToPage("/Admin/Users");
 }
