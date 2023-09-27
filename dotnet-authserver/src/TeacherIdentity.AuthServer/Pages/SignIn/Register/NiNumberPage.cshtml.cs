@@ -5,7 +5,7 @@ using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup))]
+[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup), typeof(ElevateTrnVerificationLevelJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class NiNumberPage : PageModel
 {
@@ -35,7 +35,7 @@ public class NiNumberPage : PageModel
     {
         if (submit == "ni_number_not_known")
         {
-            HttpContext.GetAuthenticationState().OnHasNationalInsuranceNumberSet(false);
+            _journey.AuthenticationState.OnHasNationalInsuranceNumberSet(false);
         }
         else
         {
@@ -44,7 +44,7 @@ public class NiNumberPage : PageModel
                 return this.PageWithErrors();
             }
 
-            HttpContext.GetAuthenticationState().OnNationalInsuranceNumberSet(NiNumber!);
+            _journey.AuthenticationState.OnNationalInsuranceNumberSet(NiNumber!);
         }
 
         return await _journey.Advance(CurrentStep);

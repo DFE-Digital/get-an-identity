@@ -17,6 +17,8 @@ public static class ServiceCollectionExtensions
             return provider.GetSignInJourney(authenticationState, httpContext);
         });
 
+        services.AddTransient<ElevateTrnVerificationLevelJourney>(sp => (ElevateTrnVerificationLevelJourney)sp.GetRequiredService<SignInJourney>());
+
         services
             .AddTransient<TrnLookupHelper>()
             .AddTransient<UserHelper>()

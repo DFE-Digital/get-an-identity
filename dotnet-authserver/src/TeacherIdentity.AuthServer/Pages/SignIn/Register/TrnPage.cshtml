@@ -25,15 +25,18 @@
 
             <govuk-button type="submit" class="govuk-visually-hidden" name="submit" value="hidden_submit"/>
 
-            <govuk-details>
-                <govuk-details-summary>I do not know my TRN</govuk-details-summary>
-                <govuk-details-text>
-                    <p>You can continue without it</p>
-                    <govuk-button type="submit" class="govuk-button--secondary" name="submit" value="trn_not_known">
-                        Continue without TRN
-                    </govuk-button>
-                </govuk-details-text>
-            </govuk-details>
+            @if (Model.ShowContinueWithoutTrnButton)
+            {
+                <govuk-details>
+                    <govuk-details-summary>I do not know my TRN</govuk-details-summary>
+                    <govuk-details-text>
+                        <p>You can continue without it</p>
+                        <govuk-button type="submit" class="govuk-button--secondary" name="submit" value="trn_not_known">
+                            Continue without TRN
+                        </govuk-button>
+                    </govuk-details-text>
+                </govuk-details>
+            }
 
             <govuk-button type="submit" name="submit" value="submit">Continue</govuk-button>
         </form>

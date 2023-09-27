@@ -3,12 +3,14 @@ using System.Text.Json;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Helpers;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Services.Zendesk;
 using ZendeskApi.Client.Models;
+using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Journeys;
 
@@ -66,7 +68,7 @@ public class UserHelper
 
         _dbContext.Users.Add(user);
 
-        _dbContext.AddEvent(new Events.UserRegisteredEvent()
+        _dbContext.AddEvent(new UserRegisteredEvent()
         {
             ClientId = authenticationState.OAuthState?.ClientId,
             CreatedUtc = _clock.UtcNow,
@@ -115,7 +117,7 @@ public class UserHelper
             await _trnTokenHelper.InvalidateTrnToken(authenticationState.TrnToken!, user.UserId);
         }
 
-        _dbContext.AddEvent(new Events.UserRegisteredEvent()
+        _dbContext.AddEvent(new UserRegisteredEvent()
         {
             ClientId = authenticationState.OAuthState?.ClientId,
             CreatedUtc = _clock.UtcNow,
@@ -157,7 +159,7 @@ public class UserHelper
 
         await _trnTokenHelper.InvalidateTrnToken(authenticationState.TrnToken!, user.UserId);
 
-        _dbContext.AddEvent(new Events.UserRegisteredEvent()
+        _dbContext.AddEvent(new UserRegisteredEvent()
         {
             ClientId = authenticationState.OAuthState?.ClientId,
             CreatedUtc = _clock.UtcNow,
@@ -246,7 +248,7 @@ public class UserHelper
 
         var user = await _dbContext.Users.Where(u => u.UserId == userId).SingleAsync();
         user.TrnLookupSupportTicketCreated = true;
-        _dbContext.AddEvent(new Events.TrnLookupSupportTicketCreatedEvent()
+        _dbContext.AddEvent(new TrnLookupSupportTicketCreatedEvent()
         {
             TicketId = ticketResponse.Ticket.Id,
             TicketComment = ticketComment,
@@ -270,21 +272,70 @@ public class UserHelper
         }
     }
 
+    public async Task ElevateTrnVerificationLevel(Guid userId, string trn, string nationalInsuranceNumber)
+    {
+        var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
+        user.Trn = trn;
+        user.TrnVerificationLevel = TrnVerificationLevel.Medium;
+
+        var changes = UserUpdatedEventChanges.TrnVerificationLevel;
+
+        if (nationalInsuranceNumber != user.NationalInsuranceNumber)
+        {
+            user.NationalInsuranceNumber = nationalInsuranceNumber;
+            changes |= UserUpdatedEventChanges.NationalInsuranceNumber;
+        }
+
+        _dbContext.AddEvent(new UserUpdatedEvent()
+        {
+            Changes = changes,
+            CreatedUtc = _clock.UtcNow,
+            Source = UserUpdatedEventSource.ChangedByUser,
+            UpdatedByClientId = null,
+            UpdatedByUserId = null,
+            User = user
+        });
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task SetNationalInsuranceNumber(Guid userId, string? nationalInsuranceNumber)
+    {
+        var user = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
+
+        if (User.NormalizeNationalInsuranceNumber(nationalInsuranceNumber) != User.NormalizeNationalInsuranceNumber(user.NationalInsuranceNumber))
+        {
+            user.NationalInsuranceNumber = nationalInsuranceNumber;
+
+            _dbContext.AddEvent(new UserUpdatedEvent()
+            {
+                Changes = UserUpdatedEventChanges.NationalInsuranceNumber,
+                CreatedUtc = _clock.UtcNow,
+                Source = UserUpdatedEventSource.ChangedByUser,
+                UpdatedByClientId = null,
+                UpdatedByUserId = null,
+                User = user
+            });
+
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+
     private async Task AssignDqtUserName(Guid userId, TeacherInfo dqtUser)
     {
         var existingUser = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
-        var changes = (existingUser.FirstName != dqtUser.FirstName ? Events.UserUpdatedEventChanges.FirstName : Events.UserUpdatedEventChanges.None) |
-                      ((existingUser.MiddleName ?? string.Empty) != dqtUser.MiddleName ? Events.UserUpdatedEventChanges.MiddleName : Events.UserUpdatedEventChanges.None) |
-                      (existingUser.LastName != dqtUser.LastName ? Events.UserUpdatedEventChanges.LastName : Events.UserUpdatedEventChanges.None);
+        var changes = (existingUser.FirstName != dqtUser.FirstName ? UserUpdatedEventChanges.FirstName : UserUpdatedEventChanges.None) |
+                      ((existingUser.MiddleName ?? string.Empty) != dqtUser.MiddleName ? UserUpdatedEventChanges.MiddleName : UserUpdatedEventChanges.None) |
+                      (existingUser.LastName != dqtUser.LastName ? UserUpdatedEventChanges.LastName : UserUpdatedEventChanges.None);
 
         existingUser.FirstName = dqtUser.FirstName;
         existingUser.MiddleName = dqtUser.MiddleName;
         existingUser.LastName = dqtUser.LastName;
 
-        _dbContext.AddEvent(new Events.UserUpdatedEvent()
+        _dbContext.AddEvent(new UserUpdatedEvent()
         {
-            Source = Events.UserUpdatedEventSource.DqtSynchronization,
+            Source = UserUpdatedEventSource.DqtSynchronization,
             CreatedUtc = _clock.UtcNow,
             Changes = changes,
             User = Events.User.FromModel(existingUser),

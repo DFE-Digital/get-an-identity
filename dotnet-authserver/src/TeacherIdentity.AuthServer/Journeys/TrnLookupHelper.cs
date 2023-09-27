@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Azure.Storage.Blobs;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Journeys;
@@ -36,9 +37,10 @@ public class TrnLookupHelper
         FindTeachersResponseResult? findTeachersResult;
         FindTeachersResponseResult[] findTeachersResults = Array.Empty<FindTeachersResponseResult>();
 
+        var trnMatchPolicy = (authenticationState.TryGetOAuthState(out var oAuthState) ? oAuthState.TrnMatchPolicy : null) ?? TrnMatchPolicy.Default;
+
         try
         {
-            authenticationState.TryGetOAuthState(out var oAuthState);
 
             var lookupResponse = await _dqtApiClient.FindTeachers(
                 new FindTeachersRequest()
@@ -48,9 +50,9 @@ public class TrnLookupHelper
                     FirstName = authenticationState.FirstName,
                     LastName = authenticationState.LastName,
                     IttProviderName = authenticationState.IttProviderName,
-                    NationalInsuranceNumber = NormalizeNino(authenticationState.NationalInsuranceNumber),
+                    NationalInsuranceNumber = User.NormalizeNationalInsuranceNumber(authenticationState.NationalInsuranceNumber),
                     Trn = NormalizeTrn(authenticationState.StatedTrn),
-                    TrnMatchPolicy = oAuthState?.TrnMatchPolicy
+                    TrnMatchPolicy = trnMatchPolicy
                 },
                 cts.Token);
 
@@ -69,7 +71,7 @@ public class TrnLookupHelper
             (findTeachersResult, trnLookupStatus) = ResolveTrn(findTeachersResults, authenticationState);
             if (findTeachersResult is not null)
             {
-                await CheckDqtTeacherNames(findTeachersResult);
+                await LogMissingNamesOnMatchedDqtRecord(findTeachersResult);
             }
 
             authenticationState.OnTrnLookupCompleted(findTeachersResult, trnLookupStatus);
@@ -89,16 +91,6 @@ public class TrnLookupHelper
             _ => (null, TrnLookupStatus.None)
         };
 
-    private static string? NormalizeNino(string? nino)
-    {
-        if (string.IsNullOrEmpty(nino))
-        {
-            return null;
-        }
-
-        return new string(nino.Where(char.IsAsciiLetterOrDigit).ToArray()).ToUpper();
-    }
-
     private static string? NormalizeTrn(string? trn)
     {
         if (string.IsNullOrEmpty(trn))
@@ -109,7 +101,7 @@ public class TrnLookupHelper
         return new string(trn.Where(char.IsAsciiDigit).ToArray());
     }
 
-    private async Task CheckDqtTeacherNames(FindTeachersResponseResult teacher)
+    private async Task LogMissingNamesOnMatchedDqtRecord(FindTeachersResponseResult teacher)
     {
         if (string.IsNullOrEmpty(teacher.FirstName) || string.IsNullOrEmpty(teacher.LastName))
         {

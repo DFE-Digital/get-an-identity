@@ -32,6 +32,8 @@ public class CompleteModel : PageModel
 
     public string? Trn { get; set; }
 
+    public bool? TrnVerificationElevationSuccessful { get; set; }
+
     public string? RedirectUri { get; set; }
 
     public string? ResponseMode { get; set; }
@@ -41,6 +43,8 @@ public class CompleteModel : PageModel
     public TrnLookupStatus? TrnLookupStatus { get; set; }
 
     public TrnRequirementType? TrnRequirementType { get; set; }
+
+    public TrnMatchPolicy? TrnMatchPolicy { get; set; }
 
     public string? ClientDisplayName { get; set; }
 
@@ -60,8 +64,10 @@ public class CompleteModel : PageModel
         Email = authenticationState.EmailAddress;
         FirstTimeSignInForEmail = authenticationState.FirstTimeSignInForEmail!.Value;
         Trn = authenticationState.Trn;
+        TrnVerificationElevationSuccessful = authenticationState.TrnVerificationElevationSuccessful;
         TrnLookupStatus = authenticationState.TrnLookupStatus;
         TrnRequirementType = authenticationState.OAuthState?.TrnRequirementType;
+        TrnMatchPolicy = authenticationState.OAuthState?.TrnMatchPolicy;
 
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == authenticationState.UserId);
         TrnLookupSupportTicketCreated = user?.TrnLookupSupportTicketCreated == true;

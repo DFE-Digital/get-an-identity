@@ -102,10 +102,10 @@ public partial class TestBase
         TrnRequirementType? trnRequirementType,
         HttpMethod method,
         string url,
-        HttpContent? content = null)
+        HttpContent? content = null,
+        TrnMatchPolicy? trnMatchPolicy = null)
     {
         // Arrange
-        var user = await TestData.CreateUser(hasTrn: true);
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => async s =>
             {
@@ -113,7 +113,8 @@ public partial class TestBase
                 await configureAuthenticationHelper(c)(s);
             },
             additionalScopes,
-            trnRequirementType);
+            trnRequirementType,
+            trnMatchPolicy);
 
         var fullUrl = new Url(url).SetQueryParam(AuthenticationStateMiddleware.IdQueryParameterName, authStateHelper.AuthenticationState.JourneyId);
         var request = new HttpRequestMessage(method, fullUrl);

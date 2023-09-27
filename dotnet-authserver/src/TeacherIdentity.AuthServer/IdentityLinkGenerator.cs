@@ -122,6 +122,10 @@ public abstract class IdentityLinkGenerator
 
     public string RegisterNoAccount() => Page("/SignIn/Register/NoAccount");
 
+    public string ElevateLanding() => Page("/SignIn/Elevate/Landing");
+
+    public string ElevateCheckAnswers() => Page("/SignIn/Elevate/CheckAnswers");
+
     public string Account(ClientRedirectInfo? clientRedirectInfo) =>
         Page("/Account/Index", authenticationJourneyRequired: false)
             .SetQueryParam(ClientRedirectInfo.QueryParameterName, clientRedirectInfo);

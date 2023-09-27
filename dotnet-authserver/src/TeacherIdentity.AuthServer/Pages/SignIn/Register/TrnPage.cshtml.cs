@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
-[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup))]
+[CheckJourneyType(typeof(CoreSignInJourneyWithTrnLookup), typeof(ElevateTrnVerificationLevelJourney))]
 [CheckCanAccessStep(CurrentStep)]
 public class TrnPage : PageModel
 {
@@ -26,6 +27,8 @@ public class TrnPage : PageModel
     [RegularExpression(@"\A\D*(\d{1}\D*){7}\D*\Z", ErrorMessage = "Your TRN number should contain 7 digits")]
     public string? StatedTrn { get; set; }
 
+    public bool ShowContinueWithoutTrnButton { get; set; }
+
     public void OnGet()
     {
         SetDefaultInputValues();
@@ -33,9 +36,9 @@ public class TrnPage : PageModel
 
     public async Task<IActionResult> OnPost(string submit)
     {
-        if (submit == "trn_not_known")
+        if (submit == "trn_not_known" && ShowContinueWithoutTrnButton)
         {
-            HttpContext.GetAuthenticationState().OnHasTrnSet(false);
+            _journey.AuthenticationState.OnHasTrnSet(false);
         }
         else
         {
@@ -44,10 +47,15 @@ public class TrnPage : PageModel
                 return this.PageWithErrors();
             }
 
-            HttpContext.GetAuthenticationState().OnTrnSet(StatedTrn);
+            _journey.AuthenticationState.OnTrnSet(StatedTrn);
         }
 
         return await _journey.Advance(CurrentStep);
+    }
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        ShowContinueWithoutTrnButton = _journey.GetType() != typeof(ElevateTrnVerificationLevelJourney);
     }
 
     private void SetDefaultInputValues()

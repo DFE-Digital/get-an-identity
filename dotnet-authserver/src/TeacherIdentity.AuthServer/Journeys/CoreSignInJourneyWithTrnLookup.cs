@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using User = TeacherIdentity.AuthServer.Models.User;
@@ -57,7 +58,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
                             AuthenticationState.IttProviderName,
                             AuthenticationState.StatedTrn,
                             client.DisplayName,
-                            AuthenticationState.OAuthState.TrnRequirementType == Models.TrnRequirementType.Required));
+                            AuthenticationState.OAuthState.TrnRequirementType == TrnRequirementType.Required));
                 }
             }
         }
@@ -98,6 +99,18 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         AuthenticationState.TrnLookupStatus.HasValue &&
         AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.Complete;
 
+    public override bool IsCompleted()
+    {
+        var finished = IsFinished();
+
+        if (finished && AuthenticationState.RequiresTrnVerificationLevelElevation == true)
+        {
+            return false;
+        }
+
+        return finished;
+    }
+
     public override bool CanAccessStep(string step) => step switch
     {
         CoreSignInJourney.Steps.CheckAnswers => (AreAllQuestionsAnswered() || FoundATrn) && AuthenticationState.ContactDetailsVerified,
@@ -113,8 +126,22 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         _ => base.CanAccessStep(step)
     };
 
+    public override string GetNextStepUrl(string currentStep) =>
+        currentStep switch
+        {
+            ElevateTrnVerificationLevelJourney.Steps.Landing => ElevateTrnVerificationLevelJourney.GetStartStepUrl(LinkGenerator),
+            _ => base.GetNextStepUrl(currentStep)
+        };
+
     protected override string? GetNextStep(string currentStep)
     {
+        // If we've signed a user in successfully and the TrnMatchPolicy is Strict
+        // but the user's TrnVerificationLevel is Low (or null) we need to switch to the 'elevate' journey
+        if (IsFinished() && AuthenticationState.RequiresTrnVerificationLevelElevation == true)
+        {
+            return ElevateTrnVerificationLevelJourney.GetStartStepUrl(LinkGenerator);
+        }
+
         var shouldCheckAnswers = (AreAllQuestionsAnswered() || FoundATrn) && !AuthenticationState.ExistingAccountFound;
 
         return (currentStep, AuthenticationState) switch

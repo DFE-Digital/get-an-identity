@@ -299,7 +299,7 @@ public class CompleteTests : TestBase
             new[]
             {
                 "We need to find your details in our records so you can use this service.",
-                "To fix this problem, please email our support team qts.enquiries@education.gov.uk",
+                "To fix this problem, please email our support team",
             }
         },
         {

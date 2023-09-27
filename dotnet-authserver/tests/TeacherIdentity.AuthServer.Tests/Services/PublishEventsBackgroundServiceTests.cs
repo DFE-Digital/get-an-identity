@@ -118,7 +118,9 @@ public class PublishEventsBackgroundServiceTests : IClassFixture<DbFixture>, IAs
             Trn = null,
             TrnAssociationSource = null,
             TrnLookupStatus = null,
+            TrnVerificationLevel = null,
             MobileNumber = _dbFixture.TestData.GenerateUniqueMobileNumber(),
+            NationalInsuranceNumber = null,
             UserId = Guid.NewGuid(),
             UserType = UserType.Default
         }

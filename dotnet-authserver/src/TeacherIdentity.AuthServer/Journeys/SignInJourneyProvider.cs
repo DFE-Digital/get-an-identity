@@ -6,6 +6,8 @@ public class SignInJourneyProvider
 {
     public SignInJourney GetSignInJourney(AuthenticationState authenticationState, HttpContext httpContext)
     {
+        var signInJourneyType = typeof(CoreSignInJourney);
+
         if (authenticationState.TryGetOAuthState(out var oAuthState) && authenticationState.UserRequirements.RequiresTrnLookup())
         {
 #pragma warning disable CS0612 // Type or member is obsolete
@@ -15,16 +17,16 @@ public class SignInJourneyProvider
             }
 #pragma warning restore CS0612 // Type or member is obsolete
 
-            return authenticationState.HasTrnToken ?
-                ActivatorUtilities.CreateInstance<TrnTokenSignInJourney>(httpContext.RequestServices, httpContext) :
-                ActivatorUtilities.CreateInstance<CoreSignInJourneyWithTrnLookup>(httpContext.RequestServices, httpContext);
+            signInJourneyType = authenticationState.HasTrnToken ? typeof(TrnTokenSignInJourney) :
+                authenticationState.RequiresTrnVerificationLevelElevation == true ? typeof(ElevateTrnVerificationLevelJourney) :
+                typeof(CoreSignInJourneyWithTrnLookup);
         }
 
         if (authenticationState.UserRequirements.HasFlag(UserRequirements.StaffUserType))
         {
-            return ActivatorUtilities.CreateInstance<StaffSignInJourney>(httpContext.RequestServices, httpContext);
+            signInJourneyType = typeof(StaffSignInJourney);
         }
 
-        return ActivatorUtilities.CreateInstance<CoreSignInJourney>(httpContext.RequestServices, httpContext);
+        return (SignInJourney)ActivatorUtilities.CreateInstance(httpContext.RequestServices, signInJourneyType, httpContext);
     }
 }
