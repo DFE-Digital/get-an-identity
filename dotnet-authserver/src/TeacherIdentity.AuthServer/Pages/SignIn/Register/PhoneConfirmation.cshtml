@@ -23,9 +23,18 @@
                 autocomplete="one-time-code"
                 label-class="govuk-label--s" />
 
-            <p>
-                <a href="@LinkGenerator.RegisterResendPhoneConfirmation()">I have not received a text message</a>
-            </p>
+            <govuk-details>
+                <govuk-details-summary>I have not received a code</govuk-details-summary>
+                <govuk-details-text>
+                    <p>
+                        We can <a href="@LinkGenerator.RegisterResendPhoneConfirmation()">send you another code</a>
+                        or you can continue without it.
+                    </p>
+                    <govuk-button type="submit" class="govuk-button--secondary" formaction="@LinkGenerator.RegisterPhoneContinueWithout()">
+                        Continue without it
+                    </govuk-button>
+                </govuk-details-text>
+            </govuk-details>
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>

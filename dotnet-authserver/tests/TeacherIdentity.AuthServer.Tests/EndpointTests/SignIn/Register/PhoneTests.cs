@@ -100,7 +100,6 @@ public class PhoneTests : TestBase
         Assert.Equal(StatusCodes.Status429TooManyRequests, (int)response.StatusCode);
     }
 
-
     [Fact]
     public async Task Post_EmptyMobileNumber_ReturnsError()
     {
@@ -188,6 +187,25 @@ public class PhoneTests : TestBase
 
         // Assert
         await AssertEx.HtmlResponseHasError(response, "MobileNumber", "Enter a valid mobile phone number");
+    }
+
+    [Fact]
+    public async Task PostContinueWithout_SetsContinueWithoutPhoneNumberOnAuthenticationStateAndRedirects()
+    {
+        // Arrange
+        var authStateHelper = await CreateAuthenticationStateHelper(_currentPageAuthenticationState(), additionalScopes: null);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/register/phone/ContinueWithout?{authStateHelper.ToQueryParam()}")
+        {
+            Content = new FormUrlEncodedContentBuilder()
+        };
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status302Found, (int)response.StatusCode);
+        Assert.True(authStateHelper.AuthenticationState.ContinueWithoutMobileNumber);
     }
 
     private readonly AuthenticationStateConfigGenerator _currentPageAuthenticationState = RegisterJourneyAuthenticationStateHelper.ConfigureAuthenticationStateForPage(RegisterJourneyPage.Phone);

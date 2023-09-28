@@ -24,7 +24,9 @@
                 </govuk-summary-list-row>
                 <govuk-summary-list-row>
                     <govuk-summary-list-row-key>Mobile phone</govuk-summary-list-row-key>
-                    <govuk-summary-list-row-value>@Model.MobilePhoneNumber</govuk-summary-list-row-value>
+                    <govuk-summary-list-row-value>
+                        <span fallback-text="Not provided">@Model.MobilePhoneNumber</span>
+                    </govuk-summary-list-row-value>
                     <govuk-summary-list-row-actions>
                         <govuk-summary-list-row-action href="@LinkGenerator.RegisterPhone()" visually-hidden-text="mobile phone">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>

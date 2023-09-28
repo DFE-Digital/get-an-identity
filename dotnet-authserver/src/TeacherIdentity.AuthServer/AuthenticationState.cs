@@ -108,6 +108,8 @@ public class AuthenticationState
     [JsonInclude]
     public bool MobileNumberVerified { get; private set; }
     [JsonInclude]
+    public bool ContinueWithoutMobileNumber { get; private set; }
+    [JsonInclude]
     public Guid? ExistingAccountUserId { get; private set; }
     [JsonInclude]
     public string? ExistingAccountEmail { get; private set; }
@@ -162,7 +164,9 @@ public class AuthenticationState
     [JsonIgnore]
     public bool HasIttProviderSet => HasIttProvider.HasValue;
     [JsonIgnore]
-    public bool ContactDetailsVerified => EmailAddressVerified && MobileNumberVerified;
+    public bool ContactDetailsVerified => EmailAddressVerified && MobileNumberVerifiedOrSkipped;
+    [JsonIgnore]
+    public bool MobileNumberVerifiedOrSkipped => MobileNumberVerified || ContinueWithoutMobileNumber;
     [JsonIgnore]
     public bool HasTrnToken => !string.IsNullOrEmpty(TrnToken);
     [JsonIgnore]
@@ -242,6 +246,7 @@ public class AuthenticationState
         HasPreviousName = default;
         MobileNumber = default;
         MobileNumberVerified = default;
+        ContinueWithoutMobileNumber = default;
         ExistingAccountUserId = default;
         ExistingAccountEmail = default;
         ExistingAccountMobileNumber = default;
@@ -313,6 +318,7 @@ public class AuthenticationState
 
         MobileNumberVerified = true;
         FirstTimeSignInForEmail = user is null;
+        ContinueWithoutMobileNumber = false;
 
         if (user is not null)
         {
@@ -390,12 +396,12 @@ public class AuthenticationState
             throw new InvalidOperationException($"Email has not been verified.");
         }
 
-        if (MobileNumber is null)
+        if (MobileNumber is null && !ContinueWithoutMobileNumber)
         {
             throw new InvalidOperationException($"{nameof(MobileNumber)} is not known.");
         }
 
-        if (!MobileNumberSet)
+        if (!MobileNumberVerified && !ContinueWithoutMobileNumber)
         {
             throw new InvalidOperationException($"Mobile number has not been verified.");
         }
@@ -565,6 +571,14 @@ public class AuthenticationState
     {
         MobileNumber = mobileNumber;
         MobileNumberVerified = false;
+        ContinueWithoutMobileNumber = false;
+    }
+
+    public void OnContinueWithoutMobileNumber()
+    {
+        MobileNumber = null;
+        MobileNumberVerified = false;
+        ContinueWithoutMobileNumber = true;
     }
 
     public void OnHaveResumedCompletedJourney()
