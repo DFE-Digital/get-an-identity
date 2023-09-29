@@ -65,7 +65,7 @@
                     <govuk-pagination>
                         @if (Model.PreviousPage.HasValue)
                         {
-                            <govuk-pagination-previous asp-page="Users" asp-all-route-data="@Model.GetPage((int)Model.PreviousPage!)"/>
+                            <govuk-pagination-previous asp-page="Users" asp-all-route-data="@Model.GetPage((int)Model.PreviousPage!)" asp-route-usersearch="@Model.UserSearch" />
                         }
 
                         @for (int i = 0; i < Model.PaginationPages!.Length; i++)
@@ -77,12 +77,12 @@
                                 <govuk-pagination-ellipsis/>
                             }
 
-                            <govuk-pagination-item asp-page="Users" asp-all-route-data=@Model.GetPage(item) is-current="@(item == Model.PageNumber)">@item</govuk-pagination-item>
+                            <govuk-pagination-item asp-page="Users" asp-all-route-data=@Model.GetPage(item) is-current="@(item == Model.PageNumber)" asp-route-usersearch="@Model.UserSearch">@item</govuk-pagination-item>
                         }
 
                         @if (Model.NextPage.HasValue)
                         {
-                            <govuk-pagination-next asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.NextPage!)/>
+                            <govuk-pagination-next asp-page="Users" asp-all-route-data=@Model.GetPage((int)Model.NextPage!) asp-route-usersearch="@Model.UserSearch" />
                         }
                     </govuk-pagination>
                 }
