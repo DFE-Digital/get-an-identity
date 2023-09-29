@@ -23,14 +23,14 @@ public abstract class IdentityLinkGenerator
 
     protected abstract bool TryGetAuthenticationState([NotNullWhen(true)] out AuthenticationState? authenticationState);
 
-    protected virtual string Page(string pageName, bool authenticationJourneyRequired = true)
+    protected virtual string Page(string pageName, string? handler = null, bool authenticationJourneyRequired = true)
     {
         if (!TryGetAuthenticationState(out var authenticationState) && authenticationJourneyRequired)
         {
             throw new InvalidOperationException($"The current request has no {nameof(AuthenticationState)}.");
         }
 
-        var url = new Url(LinkGenerator.GetPathByPage(pageName));
+        var url = new Url(LinkGenerator.GetPathByPage(pageName, handler));
 
         if (authenticationState is not null)
         {
@@ -77,6 +77,8 @@ public abstract class IdentityLinkGenerator
     public string RegisterInstitutionEmail() => Page("/SignIn/Register/InstitutionEmail");
 
     public string RegisterPhone() => Page("/SignIn/Register/Phone");
+
+    public string RegisterPhoneContinueWithout() => Page("/SignIn/Register/Phone", handler: "ContinueWithout");
 
     public string RegisterPhoneConfirmation() => Page("/SignIn/Register/PhoneConfirmation");
 

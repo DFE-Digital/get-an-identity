@@ -1,4 +1,4 @@
-@page "/sign-in/register/phone"
+@page "/sign-in/register/phone/{handler?}"
 @model TeacherIdentity.AuthServer.Pages.SignIn.Register.Phone
 @{
     ViewBag.Title = "Your mobile number";
@@ -21,6 +21,15 @@
                 autocomplete="tel"
                 input-class="govuk-input--extra-letter-spacing"
                 label-class="govuk-label--s" />
+
+            <govuk-details>
+                <govuk-details-summary>I do not have access to a mobile phone</govuk-details-summary>
+                <govuk-details-text>
+                    <govuk-button type="submit" class="govuk-button--secondary" formaction="@LinkGenerator.RegisterPhoneContinueWithout()">
+                        Continue without it
+                    </govuk-button>
+                </govuk-details-text>
+            </govuk-details>
 
             <govuk-button type="submit">Continue</govuk-button>
         </form>

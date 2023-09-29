@@ -45,7 +45,14 @@ public class Phone : BasePhonePageModel
             return pinGenerationResult.Result!;
         }
 
-        HttpContext.GetAuthenticationState().OnMobileNumberSet(MobileNumber!);
+        _journey.AuthenticationState.OnMobileNumberSet(MobileNumber!);
+
+        return await _journey.Advance(CurrentStep);
+    }
+
+    public async Task<IActionResult> OnPostContinueWithout()
+    {
+        _journey.AuthenticationState.OnContinueWithoutMobileNumber();
 
         return await _journey.Advance(CurrentStep);
     }
