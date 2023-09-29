@@ -224,8 +224,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
     protected override bool AreAllQuestionsAnswered() =>
         AuthenticationState.EmailAddressSet &&
         AuthenticationState.EmailAddressVerified &&
-        AuthenticationState.MobileNumberSet &&
-        AuthenticationState.MobileNumberVerified &&
+        AuthenticationState.MobileNumberVerifiedOrSkipped &&
         AuthenticationState.NameSet &&
         AuthenticationState.DateOfBirthSet &&
         AuthenticationState.HasNationalInsuranceNumberSet &&
