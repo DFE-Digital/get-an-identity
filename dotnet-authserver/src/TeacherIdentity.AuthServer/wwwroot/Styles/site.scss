@@ -44,12 +44,16 @@ p {
     margin-bottom: 20px;
   }
 
-  a:not(:focus) {
+  a:not(:focus):not(.govuk-button) {
     color: inherit;
   }
 
   .govuk-button {
-    color: govuk-colour("blue") !important;
+    color: govuk-colour("blue");
+
+    :focus {
+      color: govuk-color("black");
+    }
   }
 
   .govuk-heading-m {
