@@ -1,19 +1,6 @@
 @{
     ViewBag.ServiceUrl = LinkGenerator.Account(Context.GetClientRedirectInfo());
     Layout = "/Views/Shared/_Layout.cshtml";
-
-    var signOutUrl = Context.GetClientRedirectInfo()?.SignOutUri ?? LinkGenerator.SignOut();
-}
-
-@section HeaderNav {
-    <nav aria-label="Menu" class="govuk-header__navigation">
-        <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu" hidden>Menu</button>
-        <ul id="navigation" class="govuk-header__navigation-list">
-            <li class="govuk-header__navigation-item @(Context.Request.Path.StartsWithSegments("/sign-out") ? "govuk-header__navigation-item--active" : "")">
-                <a class="govuk-header__link" href="@signOutUrl">Sign out</a>
-            </li>
-        </ul>
-    </nav>
 }
 
 @section BeforeContent {

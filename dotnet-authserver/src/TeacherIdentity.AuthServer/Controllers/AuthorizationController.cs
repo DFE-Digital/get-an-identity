@@ -405,13 +405,17 @@ public class AuthorizationController : Controller
     [ActionName(nameof(SignOut)), HttpPost("~/connect/signout")]
     public async Task<IActionResult> SignOutPost()
     {
+        var redirectUri = HttpContext.TryGetAuthenticationState(out var authenticationState) ?
+            authenticationState.PostSignInUrl :
+            "/";
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         return SignOut(
             authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
             properties: new AuthenticationProperties
             {
-                RedirectUri = "/"
+                RedirectUri = redirectUri
             });
     }
 

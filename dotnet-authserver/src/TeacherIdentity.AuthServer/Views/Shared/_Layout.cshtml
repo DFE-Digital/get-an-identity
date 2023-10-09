@@ -1,4 +1,5 @@
 @using TeacherIdentity.AuthServer.Journeys;
+@using Microsoft.AspNetCore.Authentication;
 @inject TeacherIdentity.AuthServer.Oidc.ICurrentClientProvider CurrentClientProvider
 @inject ClientScopedViewHelper ClientScopedViewHelper
 @inject SignInJourneyProvider SignInJourneyProvider
@@ -13,6 +14,9 @@
 
     var serviceName = ViewBag.ServiceName ?? "DfE Identity account";
     var serviceUrl = ViewBag.ServiceUrl ?? "/";
+
+    var isSignedIn = (await Context.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)).Succeeded;
+    var signOutLink = Context.GetClientRedirectInfo()?.SignOutUri ?? LinkGenerator.SignOut();
 }
 
 @section Head {
@@ -45,7 +49,25 @@
                 <a href="@serviceUrl" class="govuk-header__link govuk-header__link--service-name">
                     @serviceName
                 </a>
-                @RenderSection("HeaderNav", required: false)
+
+                @if (IsSectionDefined("HeaderNav"))
+                {
+                    @RenderSection("HeaderNav")
+                }
+                else
+                {
+                    @if (isSignedIn)
+                    {
+                        <nav aria-label="Menu" class="govuk-header__navigation">
+                            <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu" hidden>Menu</button>
+                            <ul id="navigation" class="govuk-header__navigation-list">
+                                <li class="govuk-header__navigation-item @(Url.IsLocalUrl(signOutLink) && ViewContext.HttpContext.Request.Path == signOutLink ? "govuk-header__navigation-item--active" : "")">
+                                    <a class="govuk-header__link" href="@signOutLink">Sign out</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    }
+                }
             </div>
         </div>
     </header>
@@ -55,13 +77,13 @@
     @RenderSection("BeforeContent", required: false)
 }
 
-@if (TempData.TryGetFlashSuccess(out (string heading, string? message)? flashSuccess))
+@if (TempData.TryGetFlashSuccess(out (string Heading, string? Message)? flashSuccess))
 {
     <govuk-notification-banner type="Success">
-        <p class="govuk-notification-banner__heading">@flashSuccess.Value.heading</p>
-        @if (flashSuccess.Value.message is not null)
+        <p class="govuk-notification-banner__heading">@flashSuccess.Value.Heading</p>
+        @if (flashSuccess.Value.Message is not null)
         {
-            @foreach (var line in flashSuccess.Value.message.Split(Environment.NewLine))
+            @foreach (var line in flashSuccess.Value.Message.Split(Environment.NewLine))
             {
                 <span>@line</span><br/>
             }            

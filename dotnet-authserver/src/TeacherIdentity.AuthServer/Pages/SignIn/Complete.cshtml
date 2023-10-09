@@ -24,8 +24,6 @@
         }
     }
 
-    var signOutLink = LinkGenerator.SignOut();
-
     async Task RenderContent()
     {
         <govuk-panel class="app-panel--interruption">
@@ -133,17 +131,6 @@
             </govuk-panel-body>
         </govuk-panel>
     }
-}
-
-@section HeaderNav {
-    <nav aria-label="Menu" class="govuk-header__navigation ">
-        <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu" hidden>Menu</button>
-        <ul id="navigation" class="govuk-header__navigation-list">
-            <li class="govuk-header__navigation-item @(ViewContext.HttpContext.Request.Path == signOutLink ? "govuk-header__navigation-item--active" : "")">
-                <a class="govuk-header__link" href="@signOutLink">Sign out</a>
-            </li>
-        </ul>
-    </nav>
 }
 
 @if (Model.CanAccessService)
