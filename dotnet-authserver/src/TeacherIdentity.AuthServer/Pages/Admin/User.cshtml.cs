@@ -48,6 +48,8 @@ public class UserModel : PageModel
 
     public IEnumerable<Guid>? MergedUserIds { get; set; }
 
+    public TrnVerificationLevel? EffectiveVerificationLevel { get; set; }
+
     [FromRoute]
     public Guid UserId { get; set; }
 
@@ -71,7 +73,8 @@ public class UserModel : PageModel
                 u.Created,
                 u.UserType,
                 MergedUserIds = u.MergedUsers!.Select(mu => mu.UserId),
-                RegisteredWithClientDisplayName = u.RegisteredWithClient != null ? u.RegisteredWithClient.DisplayName : null
+                RegisteredWithClientDisplayName = u.RegisteredWithClient != null ? u.RegisteredWithClient.DisplayName : null,
+                u.EffectiveVerificationLevel
             })
             .SingleOrDefaultAsync();
 
@@ -96,6 +99,7 @@ public class UserModel : PageModel
         CanChangeDqtRecord = !HaveDqtRecord;
         MergedUserIds = user.MergedUserIds;
         DateOfBirth = user.DateOfBirth;
+        EffectiveVerificationLevel = user.EffectiveVerificationLevel;
 
         if (user.Trn is not null)
         {

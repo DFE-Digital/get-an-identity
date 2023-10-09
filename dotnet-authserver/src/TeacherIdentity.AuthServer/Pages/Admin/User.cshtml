@@ -125,6 +125,22 @@
                     <govuk-summary-list-row-key>TRN</govuk-summary-list-row-key>
                     <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
                 </govuk-summary-list-row>
+                @{
+                    if(Model.EffectiveVerificationLevel == TrnVerificationLevel.Low)
+                    {
+                      <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>TRN verification level</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value><govuk-tag class="govuk-tag--yellow">Low</govuk-tag></govuk-summary-list-row-value>
+                      </govuk-summary-list-row>
+                    }
+                    else if(Model.EffectiveVerificationLevel == TrnVerificationLevel.Medium)
+                    {
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>TRN verification level</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value><govuk-tag class="govuk-tag--blue">Medium</govuk-tag></govuk-summary-list-row-value>
+                        </govuk-summary-list-row>
+                    }
+                }
             </govuk-summary-list>
         </div>
     </section>

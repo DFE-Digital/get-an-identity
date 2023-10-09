@@ -1,3 +1,4 @@
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
 public class UserTests : TestBase
@@ -136,5 +137,59 @@ public class UserTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.Equal(mergedUser.UserId.ToString(), doc.GetSummaryListValueForKey("Merged user IDs"));
+    }
+
+    [Theory]
+    [InlineData(Models.TrnVerificationLevel.Low, "Low")]
+    [InlineData(Models.TrnVerificationLevel.Medium, "Medium")]
+    public async Task Get_ValidRequestForTrnVerificationLevel_RendersExpectedContent(Models.TrnVerificationLevel trnVerificationLevel, string verificationLevelString)
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true, userType: Models.UserType.Teacher, hasPreferredName: true, trnVerificationLevel: trnVerificationLevel);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
+
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = dqtDateOfBirth,
+                FirstName = dqtFirstName,
+                MiddleName = "",
+                LastName = dqtLastName,
+                NationalInsuranceNumber = dqtNino,
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false,
+                Email = null
+            });
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Equal(verificationLevelString, doc.GetSummaryListValueForKey("TRN verification level"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithoutTRN_DoesNotRenderTrnVerificationLevelSummaryRow()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: false, userType: Models.UserType.Teacher, hasPreferredName: true);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetSummaryListRowForKey("TRN verification level"));
     }
 }
