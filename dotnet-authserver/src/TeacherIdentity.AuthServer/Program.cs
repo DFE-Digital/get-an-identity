@@ -608,7 +608,7 @@ public class Program
                 a =>
                 {
                     a.UseDfeAnalytics();
-                    a.UseMiddleware<Infrastructure.Middleware.AppendSessionIdToAnalyticsEventsMiddleware>();
+                    a.UseMiddleware<Infrastructure.Middleware.AppendAuthorizationInfoToAnalyticsEventsMiddleware>();
                 });
         }
 
