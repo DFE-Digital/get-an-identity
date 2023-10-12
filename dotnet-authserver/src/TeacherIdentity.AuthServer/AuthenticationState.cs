@@ -150,6 +150,8 @@ public class AuthenticationState
     [JsonIgnore]
     public bool HasTrnSet => HasTrn.HasValue;
     [JsonIgnore]
+    public bool StatedTrnSet => StatedTrn is not null;
+    [JsonIgnore]
     public bool NameSet => HasName.HasValue;
     [JsonIgnore]
     public bool DateOfBirthSet => DateOfBirth.HasValue;

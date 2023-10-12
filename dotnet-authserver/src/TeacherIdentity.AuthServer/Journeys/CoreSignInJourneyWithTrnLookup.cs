@@ -118,8 +118,8 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         Steps.NiNumber => AuthenticationState is { HasNationalInsuranceNumber: true, ContactDetailsVerified: true },
         Steps.HasTrn => (AuthenticationState is ({ NationalInsuranceNumberSet: true } or { HasNationalInsuranceNumberSet: true, HasNationalInsuranceNumber: false }) and { ContactDetailsVerified: true }),
         Steps.Trn => AuthenticationState is { HasTrn: true, ContactDetailsVerified: true },
-        Steps.HasQts => AuthenticationState is ({ StatedTrn: { }, OAuthState: { TrnMatchPolicy: Models.TrnMatchPolicy.Default } } or { OAuthState: { TrnMatchPolicy: Models.TrnMatchPolicy.Default }, HasTrnSet: true, HasTrn: false }) and { ContactDetailsVerified: true },
-        Steps.IttProvider => AuthenticationState is { OAuthState: { TrnMatchPolicy: Models.TrnMatchPolicy.Default }, AwardedQts: true, ContactDetailsVerified: true },
+        Steps.HasQts => AuthenticationState is ({ StatedTrn: { }, OAuthState: { TrnMatchPolicy: TrnMatchPolicy.Default } } or { OAuthState: { TrnMatchPolicy: TrnMatchPolicy.Default }, HasTrnSet: true, HasTrn: false }) and { ContactDetailsVerified: true },
+        Steps.IttProvider => AuthenticationState is { OAuthState: { TrnMatchPolicy: TrnMatchPolicy.Default }, AwardedQts: true, ContactDetailsVerified: true },
         SignInJourney.Steps.TrnInUse => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
         SignInJourney.Steps.TrnInUseResendTrnOwnerEmailConfirmation => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.ExistingTrnFound,
         SignInJourney.Steps.TrnInUseChooseEmail => AuthenticationState.TrnLookup == AuthenticationState.TrnLookupState.EmailOfExistingAccountForTrnVerified,
@@ -152,7 +152,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
             (Steps.HasNiNumber, { HasNationalInsuranceNumber: false }) => shouldCheckAnswers ? CoreSignInJourney.Steps.CheckAnswers : Steps.HasTrn,
             (Steps.NiNumber, _) => shouldCheckAnswers ? CoreSignInJourney.Steps.CheckAnswers : Steps.HasTrn,
             (Steps.HasTrn, { HasTrn: true }) => Steps.Trn,
-            (Steps.HasTrn, { HasTrn: false, OAuthState.TrnMatchPolicy: Models.TrnMatchPolicy.Strict }) => CoreSignInJourney.Steps.CheckAnswers,
+            (Steps.HasTrn, { HasTrn: false, OAuthState.TrnMatchPolicy: TrnMatchPolicy.Strict }) => CoreSignInJourney.Steps.CheckAnswers,
             (Steps.HasTrn, { HasTrn: false }) => shouldCheckAnswers ? CoreSignInJourney.Steps.CheckAnswers : Steps.HasQts,
             (Steps.Trn, _) => shouldCheckAnswers ? CoreSignInJourney.Steps.CheckAnswers : Steps.HasQts,
             (Steps.HasQts, { AwardedQts: true }) => Steps.IttProvider,
@@ -229,8 +229,10 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         AuthenticationState.DateOfBirthSet &&
         AuthenticationState.HasNationalInsuranceNumberSet &&
         (AuthenticationState.NationalInsuranceNumberSet || AuthenticationState.HasNationalInsuranceNumber == false) &&
-        ((AuthenticationState.AwardedQtsSet &&
-        (AuthenticationState.HasIttProviderSet || AuthenticationState.AwardedQts == false) || (AuthenticationState.AwardedQtsSet == false && AuthenticationState?.OAuthState?.TrnMatchPolicy == Models.TrnMatchPolicy.Strict)));
+        AuthenticationState.HasTrnSet &&
+        (AuthenticationState.StatedTrnSet || AuthenticationState.HasTrn == false) &&
+        (AuthenticationState.AwardedQtsSet &&
+            (AuthenticationState.HasIttProviderSet || AuthenticationState.AwardedQts == false) || (AuthenticationState.AwardedQtsSet == false && AuthenticationState?.OAuthState?.TrnMatchPolicy == TrnMatchPolicy.Strict));
 
     public new static class Steps
     {

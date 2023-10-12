@@ -113,6 +113,10 @@ public class Register : IClassFixture<HostFixture>
 
         await page.SubmitRegisterNiNumberPage(nino);
 
+        await page.SubmitRegisterHasTrnPage(hasTrn: true);
+
+        await page.SubmitRegisterTrnPage(trn);
+
         await page.SubmitCheckAnswersPage();
 
         await page.SubmitCompletePageForNewUser(email);
