@@ -25,7 +25,7 @@ public class DqtApiClient : IDqtApiClient
             .SetQueryParam("ittProviderUkprn", request.IttProviderUkprn)
             .SetQueryParam("emailAddress", request.EmailAddress)
             .SetQueryParam("trn", request.Trn)
-            .SetQueryParam("trnMatchPolicy", request.TrnMatchPolicy);
+            .SetQueryParam("matchPolicy", request.TrnMatchPolicy);
 
         var response = await _client.GetAsync(url, cancellationToken);
         response.HandleErrorResponse();
