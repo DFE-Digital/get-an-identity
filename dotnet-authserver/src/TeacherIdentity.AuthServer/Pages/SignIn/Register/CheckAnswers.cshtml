@@ -54,9 +54,9 @@
                         <govuk-summary-list-row-action href="@LinkGenerator.RegisterDateOfBirth()" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
                     </govuk-summary-list-row-actions>
                 </govuk-summary-list-row>
-                @if (Model.RequiresTrnLookup == true)
+                @if (Model.RequiresTrnLookup)
                 {
-                    @if (Model.HasNationalInsuranceNumberSet == true)
+                    @if (Model.HasNationalInsuranceNumberSet)
                     {
                         <govuk-summary-list-row>
                             <govuk-summary-list-row-key>National Insurance number</govuk-summary-list-row-key>
@@ -68,7 +68,7 @@
                             </govuk-summary-list-row-actions>
                         </govuk-summary-list-row>
                     }
-                    @if (Model.AwardedQtsSet == true)
+                    @if (Model.AwardedQtsSet)
                     {
                         <govuk-summary-list-row>
                             <govuk-summary-list-row-key>Have you been awarded QTS?</govuk-summary-list-row-key>
@@ -87,6 +87,18 @@
                             </govuk-summary-list-row-value>
                             <govuk-summary-list-row-actions>
                                 <govuk-summary-list-row-action href="@LinkGenerator.RegisterIttProvider()" visually-hidden-text="teacher training provider">Change</govuk-summary-list-row-action>
+                            </govuk-summary-list-row-actions>
+                        </govuk-summary-list-row>
+                    }
+                    @if (Model.HasStatedTrnSet)
+                    {
+                        <govuk-summary-list-row>
+                            <govuk-summary-list-row-key>Teacher reference number (TRN)</govuk-summary-list-row-key>
+                            <govuk-summary-list-row-value>
+                                <span fallback-text="Not provided">@Model.StatedTrn</span>
+                            </govuk-summary-list-row-value>
+                            <govuk-summary-list-row-actions>
+                                <govuk-summary-list-row-action href="@LinkGenerator.RegisterHasTrn()" visually-hidden-text="teacher reference number (TRN)">Change</govuk-summary-list-row-action>
                             </govuk-summary-list-row-actions>
                         </govuk-summary-list-row>
                     }
