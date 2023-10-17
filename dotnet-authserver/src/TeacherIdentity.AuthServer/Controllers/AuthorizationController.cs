@@ -446,10 +446,13 @@ public class AuthorizationController : Controller
 
     private static IEnumerable<string> GetDestinations(Claim claim, ClaimsPrincipal principal)
     {
-        yield return Destinations.AccessToken;
-
         switch (claim.Type)
         {
+            case Claims.Subject:
+                yield return Destinations.AccessToken;
+                yield return Destinations.IdentityToken;
+                yield break;
+
             case Claims.Name:
             case Claims.GivenName:
             case Claims.MiddleName:
@@ -483,6 +486,10 @@ public class AuthorizationController : Controller
                 yield break;
 
             case CustomClaims.Trn:
+                yield return Destinations.AccessToken;
+                yield return Destinations.IdentityToken;
+                yield break;
+
             case CustomClaims.TrnLookupStatus:
             case CustomClaims.NiNumber:
             case CustomClaims.TrnMatchNiNumber:
