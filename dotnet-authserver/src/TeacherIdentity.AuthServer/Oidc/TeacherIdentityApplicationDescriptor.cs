@@ -27,6 +27,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
     public string? ServiceUrl { get; set; }
     public TrnRequirementType TrnRequirementType { get; set; }
     public TrnMatchPolicy TrnMatchPolicy { get; set; }
+    public bool BlockProhibitedTeachers { get; set; }
     public bool RaiseTrnResolutionSupportTickets { get; set; }
 
     public static TeacherIdentityApplicationDescriptor Create(
@@ -35,6 +36,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
         string? displayName,
         string? serviceUrl,
         TrnRequirementType trnRequirementType,
+        bool blockProhibitedTeachers,
         TrnMatchPolicy trnMatchProperty,
         bool raiseTrnResolutionSupportTickets,
         bool enableAuthorizationCodeGrant,
@@ -53,6 +55,7 @@ public class TeacherIdentityApplicationDescriptor : OpenIddictApplicationDescrip
             ServiceUrl = serviceUrl,
             TrnRequirementType = trnRequirementType,
             TrnMatchPolicy = trnMatchProperty,
+            BlockProhibitedTeachers = blockProhibitedTeachers,
             RaiseTrnResolutionSupportTickets = raiseTrnResolutionSupportTickets,
             Requirements =
             {

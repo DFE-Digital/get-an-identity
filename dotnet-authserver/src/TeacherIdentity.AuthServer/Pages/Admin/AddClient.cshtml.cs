@@ -40,8 +40,11 @@ public class AddClientModel : PageModel
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
 
-    [Display(Name = "TRN required", Description = "Whether the client requires a TRN")]
+    [Display(Name = "TRN requirement")]
     public bool? TrnRequired { get; set; }
+
+    [Display(Name = "Block prohibited teachers")]
+    public bool? BlockProhibitedTeachers { get; set; }
 
     [Display(Name = "Raise TRN resolution support tickets")]
     public bool RaiseTrnResolutionSupportTickets { get; set; }
@@ -113,6 +116,7 @@ public class AddClientModel : PageModel
             DisplayName!,
             ServiceUrl!,
             TrnRequired == true ? TrnRequirementType.Required : TrnRequirementType.Optional,
+            TrnRequired == true ? BlockProhibitedTeachers!.Value : false,
             TrnMatchPolicy!.Value,
             RaiseTrnResolutionSupportTickets,
             EnableAuthorizationCodeFlow,

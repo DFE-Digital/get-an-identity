@@ -117,6 +117,7 @@ public class AddClientTests : TestBase
                 { "DisplayName", displayName },
                 { "ServiceUrl", serviceUrl },
                 { "TrnRequired", trnRequirementType == TrnRequirementType.Required },
+                { "BlockProhibitedTeachers", bool.TrueString },
                 { "TrnMatchPolicy", trnMatchPolicy},
                 { "RaiseTrnResolutionSupportTickets", raiseTrnResolutionSupportTickets.ToString() },
                 { "EnableAuthorizationCodeFlow", bool.TrueString },
@@ -143,6 +144,7 @@ public class AddClientTests : TestBase
         Assert.Equal(displayName, application.DisplayName);
         Assert.Equal(serviceUrl, application.ServiceUrl);
         Assert.Equal(trnRequirementType, application.TrnRequirementType);
+        Assert.True(application.BlockProhibitedTeachers);
         Assert.Equal(trnMatchPolicy, application.TrnMatchPolicy);
         Assert.Equal(raiseTrnResolutionSupportTickets, application.RaiseTrnResolutionSupportTickets);
         Assert.Collection(

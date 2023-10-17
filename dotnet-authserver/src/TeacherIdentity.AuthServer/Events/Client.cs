@@ -11,6 +11,7 @@ public record Client
     public required string? ServiceUrl { get; init; }
     public required TrnRequirementType TrnRequirementType { get; init; }
     public required TrnMatchPolicy TrnMatchPolicy { get; set; }
+    public required bool BlockProhibitedTeachers { get; set; }
     public required bool RaiseTrnResolutionSupportTickets { get; init; }
     public required string[] RedirectUris { get; init; }
     public required string[] PostLogoutRedirectUris { get; init; }
@@ -23,6 +24,7 @@ public record Client
         ServiceUrl = descriptor.ServiceUrl,
         TrnRequirementType = descriptor.TrnRequirementType,
         TrnMatchPolicy = descriptor.TrnMatchPolicy,
+        BlockProhibitedTeachers = descriptor.BlockProhibitedTeachers,
         RaiseTrnResolutionSupportTickets = descriptor.RaiseTrnResolutionSupportTickets,
         RedirectUris = descriptor.RedirectUris.Select(u => u.ToString()).ToArray(),
         PostLogoutRedirectUris = descriptor.PostLogoutRedirectUris.Select(u => u.ToString()).ToArray(),
@@ -32,18 +34,19 @@ public record Client
             .ToArray()
     };
 
-    public static Client FromModel(Models.Application model) => new()
+    public static Client FromModel(Application model) => new()
     {
         ClientId = model.ClientId!,
         DisplayName = model.DisplayName,
         ServiceUrl = model.ServiceUrl,
         TrnRequirementType = model.TrnRequirementType,
         TrnMatchPolicy = model.TrnMatchPolicy,
+        BlockProhibitedTeachers = model.BlockProhibitedTeachers,
         RaiseTrnResolutionSupportTickets = model.RaiseTrnResolutionSupportTickets,
         RedirectUris = model.GetRedirectUris(),
         PostLogoutRedirectUris = model.GetPostLogoutRedirectUris(),
         Scopes = model.GetScopes()
     };
 
-    public static implicit operator Client(Models.Application model) => FromModel(model);
+    public static implicit operator Client(Application model) => FromModel(model);
 }

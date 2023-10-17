@@ -26,6 +26,7 @@ public class ClientConfigurationHelper
                 clientConfig.DisplayName,
                 clientConfig.ServiceUrl,
                 clientConfig.TrnRequirementType,
+                clientConfig.BlockProhibitedTeachers,
                 clientConfig.TrnMatchPolicy,
                 clientConfig.RaiseTrnResolutionSupportTickets,
                 clientConfig.EnableAuthorizationCodeGrant,
