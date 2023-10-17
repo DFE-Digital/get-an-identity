@@ -214,6 +214,7 @@ public class EditClientTests : TestBase
                 displayName,
                 serviceUrl,
                 TrnRequirementType.Required,
+                blockProhibitedTeachers: false,
                 TrnMatchPolicy.Default,
                 raiseTrnResolutionSupportTickets: false,
                 enableAuthorizationCodeGrant: true,

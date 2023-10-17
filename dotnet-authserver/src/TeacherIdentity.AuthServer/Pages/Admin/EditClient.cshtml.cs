@@ -46,8 +46,11 @@ public class EditClientModel : PageModel
     [Display(Name = "Service URL", Description = "The link used in the header to go back to the client")]
     public string? ServiceUrl { get; set; }
 
-    [Display(Name = "TRN required", Description = "Whether the client requires a TRN")]
+    [Display(Name = "TRN requirement")]
     public bool? TrnRequired { get; set; }
+
+    [Display(Name = "Block prohibited teachers")]
+    public bool BlockProhibitedTeachers { get; set; }
 
     [Display(Name = "Raise TRN resolution support tickets")]
     public bool RaiseTrnResolutionSupportTickets { get; set; }
@@ -82,6 +85,7 @@ public class EditClientModel : PageModel
         DisplayName = client.DisplayName;
         ServiceUrl = client.ServiceUrl;
         TrnRequired = client.TrnRequirementType == TrnRequirementType.Required;
+        BlockProhibitedTeachers = client.BlockProhibitedTeachers;
         TrnMatchPolicy = client.TrnMatchPolicy;
         RaiseTrnResolutionSupportTickets = client.RaiseTrnResolutionSupportTickets;
         EnableAuthorizationCodeFlow = client.GetPermissions().Contains(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
@@ -178,6 +182,12 @@ public class EditClientModel : PageModel
         {
             changes |= ClientUpdatedEventChanges.TrnRequirementType;
             await _applicationStore.SetTrnRequirementTypeAsync(client, trnRequirementType);
+        }
+
+        if (TrnRequired == true && BlockProhibitedTeachers != client.BlockProhibitedTeachers)
+        {
+            changes |= ClientUpdatedEventChanges.BlockProhibitedTeachers;
+            await _applicationStore.SetBlockProhibitedTeachersAsync(client, BlockProhibitedTeachers);
         }
 
         if (TrnMatchPolicy != client.TrnMatchPolicy)

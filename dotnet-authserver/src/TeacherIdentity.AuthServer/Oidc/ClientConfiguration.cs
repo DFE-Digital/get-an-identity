@@ -13,6 +13,7 @@ public class ClientConfiguration
     public required string DisplayName { get; set; }
     public string? ServiceUrl { get; set; }
     public required TrnRequirementType TrnRequirementType { get; set; }
+    public bool BlockProhibitedTeachers { get; set; }
     public required TrnMatchPolicy TrnMatchPolicy { get; set; }
     public bool RaiseTrnResolutionSupportTickets { get; set; }
     public string[]? Scopes { get; set; }

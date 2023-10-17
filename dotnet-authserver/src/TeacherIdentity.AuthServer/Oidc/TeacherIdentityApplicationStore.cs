@@ -87,6 +87,28 @@ public class TeacherIdentityApplicationStore : OpenIddictEntityFrameworkCoreAppl
         return default;
     }
 
+    public ValueTask<bool> GetBlockProhibitedTeachersAsync(Application application)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        return new ValueTask<bool>(application.BlockProhibitedTeachers);
+    }
+
+    public ValueTask SetBlockProhibitedTeachersAsync(Application application, bool blockProhibitedTeachers)
+    {
+        if (application is null)
+        {
+            throw new ArgumentNullException(nameof(application));
+        }
+
+        application.BlockProhibitedTeachers = blockProhibitedTeachers;
+
+        return default;
+    }
+
     public ValueTask<TrnMatchPolicy> GetTrnMatchPolicyAsync(Application application)
     {
         ArgumentNullException.ThrowIfNull(nameof(application));

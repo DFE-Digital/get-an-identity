@@ -20,5 +20,6 @@ public enum ClientUpdatedEventChanges
     GrantTypes = 1 << 6,
     TrnRequirementType = 1 << 7,
     RaiseTrnResolutionSupportTickets = 1 << 8,
-    TrnMatchPolicy = 1 << 9
+    TrnMatchPolicy = 1 << 9,
+    BlockProhibitedTeachers = 1 << 10,
 }

@@ -49,6 +49,9 @@ public class Application : OpenIddictEntityFrameworkCoreApplication<string, Auth
     public TrnMatchPolicy TrnMatchPolicy { get; set; }
 
     [DefaultValue(false)]
+    public bool BlockProhibitedTeachers { get; set; }
+
+    [DefaultValue(false)]
     public bool RaiseTrnResolutionSupportTickets { get; set; }
 
     public string[] GetGrantTypes() => GetPermissions()
