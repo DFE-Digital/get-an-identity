@@ -27,6 +27,7 @@ public class AuthorizationController : Controller
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
     private readonly TrnTokenHelper _trnTokenHelper;
+    private readonly IConfiguration _configuration;
 
     public AuthorizationController(
         TeacherIdentityApplicationManager applicationManager,
@@ -36,7 +37,8 @@ public class AuthorizationController : Controller
         UserClaimHelper userClaimHelper,
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
-        TrnTokenHelper trnTokenHelper)
+        TrnTokenHelper trnTokenHelper,
+        IConfiguration configuration)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -46,6 +48,7 @@ public class AuthorizationController : Controller
         _dbContext = dbContext;
         _clock = clock;
         _trnTokenHelper = trnTokenHelper;
+        _configuration = configuration;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -94,32 +97,54 @@ public class AuthorizationController : Controller
 
             if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
-                trnRequirementType = await GetTrnRequirementType(request);
-                trnMatchPolicy = await GetTrnMatchPolicy(request);
+                var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
+                var allowTrnConfigurationOverrides = client.ClientId == "testclient" || _configuration.GetValue<bool>("AllowTrnConfigurationOverrides", false);
 
-                if (trnRequirementType is null)
+                if (allowTrnConfigurationOverrides)
                 {
-                    return Forbid(
-                        authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                        properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                    var requestedTrnRequirement = request["trn_requirement"];
+                    if (requestedTrnRequirement.HasValue)
+                    {
+                        if (Enum.TryParse<TrnRequirementType>(requestedTrnRequirement?.Value as string, out var parsedTrnRequirementType))
                         {
-                            [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
-                            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                                "Invalid trn_requirement specified."
-                        }));
+                            trnRequirementType = parsedTrnRequirementType;
+                        }
+                        else
+                        {
+                            return Forbid(
+                                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                                properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                                {
+                                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                        "Invalid trn_requirement specified."
+                                }));
+                        }
+                    }
+
+                    var requestedTrnMatchPolicy = request["trn_match_policy"];
+                    if (requestedTrnMatchPolicy.HasValue)
+                    {
+                        if (Enum.TryParse<TrnMatchPolicy>(requestedTrnMatchPolicy?.Value as string, out var parsedTrnMatchPolicy))
+                        {
+                            trnMatchPolicy = parsedTrnMatchPolicy;
+                        }
+                        else
+                        {
+                            return Forbid(
+                                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                                properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                                {
+                                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                        "Invalid trn_match_policy specified."
+                                }));
+                        }
+                    }
                 }
 
-                if (trnMatchPolicy is null)
-                {
-                    return Forbid(
-                        authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                        properties: new AuthenticationProperties(new Dictionary<string, string?>()
-                        {
-                            [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
-                            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                                "Invalid trn_match_policy specified."
-                        }));
-                }
+                trnRequirementType ??= client.TrnRequirementType;
+                trnMatchPolicy ??= client.TrnMatchPolicy;
             }
 
             var sessionId = request["session_id"]?.Value as string;
@@ -488,42 +513,6 @@ public class AuthorizationController : Controller
         }
 
         return signedInUser;
-    }
-
-    private async Task<TrnRequirementType?> GetTrnRequirementType(OpenIddictRequest request)
-    {
-        var requestedTrnRequirement = request["trn_requirement"];
-
-        if (requestedTrnRequirement.HasValue)
-        {
-            if (!Enum.TryParse<TrnRequirementType>(requestedTrnRequirement?.Value as string, out var parsedTrnRequirementType))
-            {
-                return null;
-            }
-
-            return parsedTrnRequirementType;
-        }
-
-        var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
-        return client.TrnRequirementType;
-    }
-
-    private async Task<TrnMatchPolicy?> GetTrnMatchPolicy(OpenIddictRequest request)
-    {
-        var trnMatchPolicy = request["trn_match_policy"];
-
-        if (trnMatchPolicy.HasValue)
-        {
-            if (!Enum.TryParse<TrnMatchPolicy>(trnMatchPolicy?.Value as string, out var parsedTrnMatchPolicy))
-            {
-                return null;
-            }
-
-            return parsedTrnMatchPolicy;
-        }
-
-        var client = (await _applicationManager.FindByClientIdAsync(request.ClientId!))!;
-        return client.TrnMatchPolicy;
     }
 
     private async Task<ClaimsPrincipal?> InitializeAuthenticationState(User? signedInUser, EnhancedTrnToken? trnToken,
