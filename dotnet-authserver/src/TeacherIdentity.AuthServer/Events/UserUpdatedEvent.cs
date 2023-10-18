@@ -24,6 +24,7 @@ public enum UserUpdatedEventChanges
     PreferredName = 1 << 8,
     TrnVerificationLevel = 1 << 9,
     NationalInsuranceNumber = 1 << 10,
+    TrnAssociationSource = 1 << 11,
 }
 
 public enum UserUpdatedEventSource
