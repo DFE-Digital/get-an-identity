@@ -296,13 +296,13 @@ public static class PageExtensions
     public static async Task SubmitCheckAnswersPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/register/check-answers");
-        await page.ClickContinueButton();
+        await page.ClickButton("Create account");
     }
 
     public static async Task SubmitTrnTokenCheckAnswersPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/trn-token/check-answers");
-        await page.ClickContinueButton();
+        await page.ClickButton("Create account");
     }
 
     public static async Task ClickChangeLinkTrnTokenCheckAnswersPage(this IPage page, string testId)
@@ -420,6 +420,6 @@ public static class PageExtensions
     public static async Task SubmitElevateCheckAnswersPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/sign-in/elevate/check-answers");
-        await page.ClickButton("Continue");
+        await page.ClickButton("Submit request");
     }
 }
