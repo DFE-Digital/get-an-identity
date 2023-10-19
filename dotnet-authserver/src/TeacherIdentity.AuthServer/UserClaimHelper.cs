@@ -59,7 +59,7 @@ public class UserClaimHelper
             return Array.Empty<Claim>();
         }
 
-        var fullName = user.MiddleName is null
+        var fullName = string.IsNullOrWhiteSpace(user.MiddleName)
             ? $"{user.FirstName} {user.LastName}"
             : $"{user.FirstName} {user.MiddleName} {user.LastName}";
 
