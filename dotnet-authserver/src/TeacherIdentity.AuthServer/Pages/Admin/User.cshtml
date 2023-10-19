@@ -131,6 +131,9 @@
                       <govuk-summary-list-row>
                             <govuk-summary-list-row-key>TRN verification level</govuk-summary-list-row-key>
                             <govuk-summary-list-row-value><govuk-tag class="govuk-tag--yellow">Low</govuk-tag></govuk-summary-list-row-value>
+                            <govuk-summary-list-row-actions>
+                             <govuk-summary-list-row-action asp-page="ElevateUserTrnVerification" asp-route-userId="@Model.UserId" visually-hidden-text="TRN verification level">Elevate</govuk-summary-list-row-action>
+                            </govuk-summary-list-row-actions>
                       </govuk-summary-list-row>
                     }
                     else if(Model.EffectiveVerificationLevel == TrnVerificationLevel.Medium)
