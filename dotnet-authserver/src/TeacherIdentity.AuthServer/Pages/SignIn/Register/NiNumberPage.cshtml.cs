@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
+using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.SignIn.Register;
 
@@ -19,6 +20,8 @@ public class NiNumberPage : PageModel
     }
 
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
+
+    public TrnMatchPolicy? TrnMatchPolicy => _journey.AuthenticationState.TryGetOAuthState(out var oAuthState) ? oAuthState.TrnMatchPolicy : null;
 
     [BindProperty]
     [Display(Name = "What is your National Insurance number?", Description = "It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.")]
