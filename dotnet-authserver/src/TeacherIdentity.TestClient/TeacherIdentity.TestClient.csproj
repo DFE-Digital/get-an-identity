@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GovUk.Frontend.AspNetCore" Version="1.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.4" />
+    <PackageReference Include="GovUk.Frontend.AspNetCore" Version="1.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.13" />
   </ItemGroup>
 
 </Project>

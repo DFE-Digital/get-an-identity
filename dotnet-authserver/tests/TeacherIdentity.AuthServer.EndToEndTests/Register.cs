@@ -620,7 +620,7 @@ public class Register : IClassFixture<HostFixture>
         var invalidEmailSuffix = "invalid.sch.uk";
         await _hostFixture.TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
-        var institutionEmail = $"james@{invalidEmailSuffix}";
+        var institutionEmail = $"{Faker.Internet.Email().Split('@')[0]}@{invalidEmailSuffix}";
         var personalEmail = Faker.Internet.Email();
         var expectedEmail = useInstitutionEmail ? institutionEmail : personalEmail;
 

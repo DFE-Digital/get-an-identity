@@ -775,7 +775,7 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var invalidEmailSuffix = "invalid.sch.uk";
         await _hostFixture.TestData.EnsureEstablishmentDomain(invalidEmailSuffix);
 
-        var newInstitutionEmail = $"james@{invalidEmailSuffix}";
+        var newInstitutionEmail = $"{Faker.Internet.Email().Split('@')[0]}@{invalidEmailSuffix}";
         var newPersonalEmail = Faker.Internet.Email();
         var newExpectedEmail = useInstitutionEmail ? newInstitutionEmail : newPersonalEmail;
 
