@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using OpenIddict.Abstractions;
 using TeacherIdentity.AuthServer.Infrastructure.Middleware;
 using TeacherIdentity.AuthServer.Models;
@@ -30,7 +29,7 @@ public static class HttpContextExtensions
     }
 
     /// <summary>
-    /// Signs in a user using the <see cref="CookieAuthenticationDefaults.AuthenticationScheme"/> scheme.
+    /// Signs in a user using the <see cref="AuthenticationSchemes.Cookie"/> scheme.
     /// </summary>
     /// <remarks>
     /// If the user is already signed in, <paramref name="newClaims"/> will be combined with the existing claims.
@@ -41,7 +40,7 @@ public static class HttpContextExtensions
         bool resetIssued,
         TimeSpan? minExpires = null)
     {
-        var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        var scheme = AuthenticationSchemes.Cookie;
 
         var authenticateResult = await httpContext.AuthenticateAsync(scheme);
 

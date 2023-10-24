@@ -5,7 +5,6 @@ using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Services.BackgroundJobs;
 using TeacherIdentity.AuthServer.Services.UserImport;

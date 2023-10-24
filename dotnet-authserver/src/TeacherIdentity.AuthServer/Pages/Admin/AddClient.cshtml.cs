@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
-using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 

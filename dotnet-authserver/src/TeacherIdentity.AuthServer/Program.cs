@@ -6,7 +6,6 @@ using GovUk.Frontend.AspNetCore;
 using Hangfire;
 using Joonasw.AspNetCore.SecurityHeaders;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -21,7 +20,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
-using OpenIddict.Server.AspNetCore;
 using Sentry.AspNetCore;
 using Serilog;
 using TeacherIdentity.AuthServer.Api;
@@ -107,8 +105,8 @@ public class Program
             options.DefaultButtonPreventDoubleClick = true;
         });
 
-        builder.Services.AddAuthentication(options => options.DefaultForbidScheme = CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
+        builder.Services.AddAuthentication(options => options.DefaultForbidScheme = AuthenticationSchemes.Cookie)
+            .AddCookie(AuthenticationSchemes.Cookie, options =>
             {
                 options.Cookie.Name = "tis-auth";
                 options.Cookie.HttpOnly = true;
@@ -167,7 +165,7 @@ public class Program
 
                     try
                     {
-                        var oidcAuthenticateResult = await httpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                        var oidcAuthenticateResult = await httpContext.AuthenticateAsync(AuthenticationSchemes.Oidc);
                         if (oidcAuthenticateResult.Succeeded)
                         {
                             user = oidcAuthenticateResult.Principal;
@@ -181,7 +179,7 @@ public class Program
 
                     if (user is null)
                     {
-                        var cookiesAuthenticateResult = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                        var cookiesAuthenticateResult = await httpContext.AuthenticateAsync(AuthenticationSchemes.Cookie);
                         if (cookiesAuthenticateResult.Succeeded)
                         {
                             user = cookiesAuthenticateResult.Principal;
@@ -209,10 +207,10 @@ public class Program
 
         builder.Services.Configure<AuthenticationOptions>(options =>
             options.AddScheme(
-                "Delegated",
+                AuthenticationSchemes.Delegated,
                 builder => builder.HandlerType = typeof(DelegatedAuthenticationHandler)));
 
-        builder.Services.Configure<DelegatedAuthenticationOptions>("Delegated", options =>
+        builder.Services.Configure<DelegatedAuthenticationOptions>(AuthenticationSchemes.Delegated, options =>
         {
             options.OnUserSignedIn = async (httpContext, principal) =>
             {
@@ -225,28 +223,28 @@ public class Program
             options.AddPolicy(
                 AuthorizationPolicies.Authenticated,
                 policy => policy
-                    .AddAuthenticationSchemes("Delegated")
-                    .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .AddAuthenticationSchemes(AuthenticationSchemes.Delegated)
+                    .AddAuthenticationSchemes(AuthenticationSchemes.Cookie)
                     .RequireAuthenticatedUser());
 
             options.AddPolicy(
                 AuthorizationPolicies.GetAnIdentityAdmin,
                 policy => policy
-                    .AddAuthenticationSchemes("Delegated")
+                    .AddAuthenticationSchemes(AuthenticationSchemes.Delegated)
                     .RequireAuthenticatedUser()
                     .RequireRole(StaffRoles.GetAnIdentityAdmin));
 
             options.AddPolicy(
                 AuthorizationPolicies.GetAnIdentitySupport,
                 policy => policy
-                    .AddAuthenticationSchemes("Delegated")
+                    .AddAuthenticationSchemes(AuthenticationSchemes.Delegated)
                     .RequireAuthenticatedUser()
                     .RequireRole(StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport));
 
             options.AddPolicy(
                 AuthorizationPolicies.Staff,
                 policy => policy
-                    .AddAuthenticationSchemes("Delegated")
+                    .AddAuthenticationSchemes(AuthenticationSchemes.Delegated)
                     .RequireAuthenticatedUser()
                     .RequireClaim(CustomClaims.UserType, UserClaimHelper.MapUserTypeToClaimValue(UserType.Staff)));
 

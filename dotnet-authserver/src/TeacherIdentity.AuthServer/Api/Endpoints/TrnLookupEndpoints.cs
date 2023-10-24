@@ -1,7 +1,6 @@
 using MiniValidation;
 using TeacherIdentity.AuthServer.Api.Endpoints;
 using TeacherIdentity.AuthServer.Api.Validation;
-using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Oidc.Endpoints;

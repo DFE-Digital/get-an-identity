@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TeacherIdentity.AuthServer.Journeys;
@@ -33,7 +32,7 @@ public class SignOutModel : PageModel
             returnUrl = signInJourney.GetStartStepUrl();
         }
 
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignOutAsync(AuthenticationSchemes.Cookie);
         return Redirect(returnUrl);
     }
 }

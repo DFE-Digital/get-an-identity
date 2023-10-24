@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
@@ -67,7 +66,7 @@ public class AuthorizationController : Controller
         //  - If a max_age parameter was provided and the authentication cookie is not considered "fresh" enough.
         //  - If the user is signed in but we're missing some information (e.g more claims have been specified).
 
-        var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var authenticateResult = await HttpContext.AuthenticateAsync(AuthenticationSchemes.Cookie);
 
         if (!UserRequirementsExtensions.TryGetUserRequirementsForScopes(
                 request.HasScope,
@@ -75,7 +74,7 @@ public class AuthorizationController : Controller
                 out _))
         {
             return Forbid(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                authenticationSchemes: AuthenticationSchemes.Oidc,
                 properties: new AuthenticationProperties(new Dictionary<string, string?>()
                 {
                     [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidScope,
@@ -132,7 +131,7 @@ public class AuthorizationController : Controller
                         else
                         {
                             return Forbid(
-                                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                                authenticationSchemes: AuthenticationSchemes.Oidc,
                                 properties: new AuthenticationProperties(new Dictionary<string, string?>()
                                 {
                                     [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
@@ -183,7 +182,7 @@ public class AuthorizationController : Controller
         if (request.HasPrompt(Prompts.None))
         {
             return Forbid(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                authenticationSchemes: AuthenticationSchemes.Oidc,
                 properties: new AuthenticationProperties(new Dictionary<string, string?>()
                 {
                     [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
@@ -215,7 +214,7 @@ public class AuthorizationController : Controller
             if (request.HasPrompt(Prompts.None))
             {
                 return Forbid(
-                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    authenticationSchemes: AuthenticationSchemes.Oidc,
                     properties: new AuthenticationProperties(new Dictionary<string, string?>()
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.LoginRequired,
@@ -244,7 +243,7 @@ public class AuthorizationController : Controller
         if (cookiesPrincipal.GetUserType() == UserType.Staff &&
             !authenticationState.UserRequirements.VerifyStaffUserRequirements(cookiesPrincipal))
         {
-            return Forbid(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Forbid(AuthenticationSchemes.Cookie);
         }
 
         var subject = cookiesPrincipal.FindFirstValue(Claims.Subject)!;
@@ -268,7 +267,7 @@ public class AuthorizationController : Controller
             // immediately return an error if no authorization can be found in the database.
             case ConsentTypes.External when !authorizations.Any():
                 return Forbid(
-                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    authenticationSchemes: AuthenticationSchemes.Oidc,
                     properties: new AuthenticationProperties(new Dictionary<string, string?>()
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.ConsentRequired,
@@ -284,7 +283,7 @@ public class AuthorizationController : Controller
                 var claims = await _userClaimHelper.GetPublicClaims(userId, authenticationState.OAuthState!.TrnMatchPolicy);
 
                 // Create the claims-based identity that will be used by OpenIddict to generate tokens.
-                var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                var identity = new ClaimsIdentity(AuthenticationSchemes.Oidc);
                 identity.AddClaims(claims);
 
                 var principal = new ClaimsPrincipal(identity);
@@ -319,14 +318,14 @@ public class AuthorizationController : Controller
 
                 await HttpContext.SaveUserSignedInEvent(principal);
 
-                return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                return SignIn(principal, AuthenticationSchemes.Oidc);
 
             // At this point, no authorization was found in the database and an error must be returned
             // if the client application specified prompt=none in the authorization request.
             case ConsentTypes.Explicit when request.HasPrompt(Prompts.None):
             case ConsentTypes.Systematic when request.HasPrompt(Prompts.None):
                 return Forbid(
-                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    authenticationSchemes: AuthenticationSchemes.Oidc,
                     properties: new AuthenticationProperties(new Dictionary<string, string?>()
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.ConsentRequired,
@@ -369,7 +368,7 @@ public class AuthorizationController : Controller
         if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
         {
             // Retrieve the claims principal stored in the authorization code/refresh token.
-            var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal!;
+            var principal = (await HttpContext.AuthenticateAsync(AuthenticationSchemes.Oidc)).Principal!;
 
             foreach (var claim in principal.Claims)
             {
@@ -377,7 +376,7 @@ public class AuthorizationController : Controller
             }
 
             // Returning a SignInResult will ask OpenIddict to issue the appropriate access/identity tokens.
-            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return SignIn(principal, AuthenticationSchemes.Oidc);
         }
         else if (request.IsClientCredentialsGrantType())
         {
@@ -418,7 +417,7 @@ public class AuthorizationController : Controller
                 claim.SetDestinations(GetDestinations(claim, principal));
             }
 
-            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return SignIn(principal, AuthenticationSchemes.Oidc);
         }
 
         throw new InvalidOperationException("The specified grant type is not supported.");
@@ -434,10 +433,10 @@ public class AuthorizationController : Controller
             authenticationState.PostSignInUrl :
             "/";
 
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignOutAsync(AuthenticationSchemes.Cookie);
 
         return SignOut(
-            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            authenticationSchemes: AuthenticationSchemes.Oidc,
             properties: new AuthenticationProperties
             {
                 RedirectUri = redirectUri

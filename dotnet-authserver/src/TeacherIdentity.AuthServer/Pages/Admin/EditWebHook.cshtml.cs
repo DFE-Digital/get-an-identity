@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Infrastructure.ModelBinding;
-using TeacherIdentity.AuthServer.Infrastructure.Security;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Notifications;
 using TeacherIdentity.AuthServer.Notifications.Messages;
