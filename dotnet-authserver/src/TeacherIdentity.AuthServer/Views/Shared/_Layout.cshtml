@@ -16,7 +16,7 @@
     var serviceName = ViewBag.ServiceName ?? "DfE Identity account";
     var serviceUrl = ViewBag.ServiceUrl ?? "/";
 
-    var isSignedIn = (await Context.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)).Succeeded;
+    var isSignedIn = (await Context.AuthenticateAsync(AuthenticationSchemes.Cookie)).Succeeded;
     var signOutLink = Context.GetClientRedirectInfo()?.SignOutUri ?? LinkGenerator.SignOut();
 }
 

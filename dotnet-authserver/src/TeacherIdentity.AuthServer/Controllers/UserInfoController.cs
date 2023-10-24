@@ -18,7 +18,7 @@ public class UserInfoController : Controller
         _userClaimHelper = userClaimHelper;
     }
 
-    [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = AuthenticationSchemes.Oidc)]
     [HttpGet("~/connect/userinfo"), HttpPost("~/connect/userinfo"), Produces("application/json")]
     public async Task<IActionResult> UserInfo()
     {
@@ -33,7 +33,7 @@ public class UserInfoController : Controller
         if (claims.Count == 0)
         {
             return Challenge(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                authenticationSchemes: AuthenticationSchemes.Oidc,
                 properties: new AuthenticationProperties(new Dictionary<string, string?>()
                 {
                     [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidToken,

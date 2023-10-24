@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 
 namespace TeacherIdentity.AuthServer.Infrastructure.Security;
@@ -18,7 +17,7 @@ namespace TeacherIdentity.AuthServer.Infrastructure.Security;
 /// </remarks>
 public class DelegatedAuthenticationHandler : IAuthenticationHandler
 {
-    private const string DelegatingScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    private const string DelegatingScheme = AuthenticationSchemes.Cookie;
     private const string SignedInToDelegatedSchemeClaimType = "_delegated-sign-in-scheme";
 
     private readonly IOptionsMonitor<DelegatedAuthenticationOptions> _optionsMonitor;

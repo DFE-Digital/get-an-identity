@@ -5,7 +5,6 @@ using Swashbuckle.AspNetCore.Annotations;
 using TeacherIdentity.AuthServer.Api.Filters;
 using TeacherIdentity.AuthServer.Api.V1.Requests;
 using TeacherIdentity.AuthServer.Api.V1.Responses;
-using TeacherIdentity.AuthServer.Infrastructure.Security;
 
 namespace TeacherIdentity.AuthServer.Api.V1.Controllers;
 

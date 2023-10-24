@@ -1,6 +1,5 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -121,7 +120,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             // Add the custom test cookie authentication handler
             services.AddSingleton<CurrentUserIdContainer>();
             services.PostConfigure<AuthenticationOptions>(options =>
-                options.Schemes.Single(s => s.Name == CookieAuthenticationDefaults.AuthenticationScheme).HandlerType = typeof(TestCookieAuthenticationHandler));
+                options.Schemes.Single(s => s.Name == AuthenticationSchemes.Cookie).HandlerType = typeof(TestCookieAuthenticationHandler));
 
             services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -129,7 +128,7 @@ public class HostFixture : WebApplicationFactory<TeacherIdentity.AuthServer.Prog
             });
 
             // Disable tracking sign in events from the Delegated authentication handler
-            services.PostConfigure<DelegatedAuthenticationOptions>("Delegated", options =>
+            services.PostConfigure<DelegatedAuthenticationOptions>(AuthenticationSchemes.Delegated, options =>
             {
                 options.OnUserSignedIn = (httpContext, principal) => Task.CompletedTask;
             });
