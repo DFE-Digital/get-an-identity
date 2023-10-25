@@ -13,11 +13,11 @@ public static class ServiceCollectionExtensions
     {
         if (!environment.IsUnitTests() && !environment.IsEndToEndTests())
         {
-            services.AddHangfire(configuration => configuration
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UsePostgreSqlStorage(postgresConnectionString));
+            services.AddHangfire(config =>
+                config.UsePostgreSqlStorage(o => o.UseNpgsqlConnection(postgresConnectionString))
+                    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings());
 
             services.AddHangfireServer();
 
