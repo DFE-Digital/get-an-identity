@@ -42,7 +42,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = trnToken.Email
+                Email = trnToken.Email,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -92,7 +93,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = trnToken.Email
+                Email = trnToken.Email,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -143,7 +145,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = trnToken.Email
+                Email = trnToken.Email,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -769,7 +772,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = trnToken.Email
+                Email = trnToken.Email,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         var invalidEmailSuffix = "invalid.sch.uk";
@@ -929,7 +933,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Email = email
+                Email = email,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         return await _hostFixture.TestData.GenerateTrnToken(trn, email: email);

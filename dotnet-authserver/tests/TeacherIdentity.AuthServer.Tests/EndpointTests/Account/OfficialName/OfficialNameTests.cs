@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialName;
 
@@ -62,7 +63,8 @@ public class OfficialNameTests : TestBase
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
     }
 }

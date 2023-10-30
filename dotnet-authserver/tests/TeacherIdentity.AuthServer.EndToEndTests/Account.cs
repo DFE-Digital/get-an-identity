@@ -68,7 +68,8 @@ public class Account : IClassFixture<HostFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Email = null
+            Email = null,
+            Alerts = Array.Empty<AlertInfo>()
         };
 
         ConfigureDqtApiGetTeacherResponse(user.Trn!, dqtTeacherInfo);
@@ -157,7 +158,8 @@ public class Account : IClassFixture<HostFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Email = null
+            Email = null,
+            Alerts = Array.Empty<AlertInfo>()
         };
 
         ConfigureDqtApiGetTeacherResponse(user.Trn!, dqtTeacherInfo);

@@ -191,7 +191,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -232,7 +233,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -273,7 +275,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -316,7 +319,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -359,7 +363,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -402,7 +407,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         using var dbContext = _dbFixture.GetDbContext();

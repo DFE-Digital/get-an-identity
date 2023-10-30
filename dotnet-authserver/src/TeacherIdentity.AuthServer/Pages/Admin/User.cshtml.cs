@@ -49,6 +49,8 @@ public class UserModel : PageModel
 
     public TrnVerificationLevel? EffectiveVerificationLevel { get; set; }
 
+    public bool HasProhibitions { get; set; }
+
     [FromRoute]
     public Guid UserId { get; set; }
 
@@ -112,6 +114,7 @@ public class UserModel : PageModel
             DqtName = $"{dqtUser.FirstName} {dqtUser.LastName}";
             DqtDateOfBirth = dqtUser.DateOfBirth;
             DqtNationalInsuranceNumber = dqtUser.NationalInsuranceNumber;
+            HasProhibitions = dqtUser.Alerts.Any(y => y.AlertType == AlertType.Prohibition);
         }
 
         return Page();

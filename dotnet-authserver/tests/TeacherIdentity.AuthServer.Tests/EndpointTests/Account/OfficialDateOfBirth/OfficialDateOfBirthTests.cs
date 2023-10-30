@@ -1,4 +1,5 @@
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialDateOfBirth;
 
@@ -61,7 +62,8 @@ public class OfficialDateOfBirthTests : TestBase
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = hasPendingDateOfBirthChange,
                 PendingNameChange = false,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
     }
 

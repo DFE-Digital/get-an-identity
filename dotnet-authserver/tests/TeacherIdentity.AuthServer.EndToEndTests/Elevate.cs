@@ -62,7 +62,8 @@ public class Elevate : IClassFixture<HostFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         await page.SubmitElevateCheckAnswersPage();
@@ -171,7 +172,8 @@ public class Elevate : IClassFixture<HostFixture>
             NationalInsuranceNumber = nino,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Trn = user.Trn!
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>()
         });
 
         await page.SubmitElevateCheckAnswersPage();

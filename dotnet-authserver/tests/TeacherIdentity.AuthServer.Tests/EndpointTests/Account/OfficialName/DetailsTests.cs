@@ -1,3 +1,4 @@
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using User = TeacherIdentity.AuthServer.Models.User;
 
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Account.OfficialName;
@@ -203,7 +204,8 @@ public class DetailsTests : TestBase
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
     }
 

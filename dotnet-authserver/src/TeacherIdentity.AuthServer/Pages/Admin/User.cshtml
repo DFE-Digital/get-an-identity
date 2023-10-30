@@ -6,12 +6,24 @@
 }
 
 @section BeforeContent {
-    <govuk-back-link asp-page="Users"/>
+    <govuk-back-link asp-page="Users" />
 }
 
 <h1 class="govuk-heading-l">
     @Model.Name
 </h1>
+
+
+@if (Model.HasProhibitions)
+{
+    <section class="govuk-!-margin-bottom-6">
+        <govuk-warning-text icon-fallback-text="Warning" data-testid="user-has-prohibitions">
+            <span>This user has prohibitions and cannot access every service</span>
+        </govuk-warning-text>
+    </section>
+}
+
+
 
 <section class="x-govuk-summary-card govuk-!-margin-bottom-6">
     <header class="x-govuk-summary-card__header">
@@ -126,17 +138,17 @@
                     <govuk-summary-list-row-value>@Model.Trn</govuk-summary-list-row-value>
                 </govuk-summary-list-row>
                 @{
-                    if(Model.EffectiveVerificationLevel == TrnVerificationLevel.Low)
+                    if (Model.EffectiveVerificationLevel == TrnVerificationLevel.Low)
                     {
-                      <govuk-summary-list-row>
+                        <govuk-summary-list-row>
                             <govuk-summary-list-row-key>TRN verification level</govuk-summary-list-row-key>
                             <govuk-summary-list-row-value><govuk-tag class="govuk-tag--yellow">Low</govuk-tag></govuk-summary-list-row-value>
                             <govuk-summary-list-row-actions>
-                             <govuk-summary-list-row-action asp-page="ElevateUserTrnVerification" asp-route-userId="@Model.UserId" visually-hidden-text="TRN verification level">Elevate</govuk-summary-list-row-action>
+                                <govuk-summary-list-row-action asp-page="ElevateUserTrnVerification" asp-route-userId="@Model.UserId" visually-hidden-text="TRN verification level">Elevate</govuk-summary-list-row-action>
                             </govuk-summary-list-row-actions>
-                      </govuk-summary-list-row>
+                        </govuk-summary-list-row>
                     }
-                    else if(Model.EffectiveVerificationLevel == TrnVerificationLevel.Medium)
+                    else if (Model.EffectiveVerificationLevel == TrnVerificationLevel.Medium)
                     {
                         <govuk-summary-list-row>
                             <govuk-summary-list-row-key>TRN verification level</govuk-summary-list-row-key>

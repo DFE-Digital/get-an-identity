@@ -68,7 +68,8 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
             NationalInsuranceNumber = null,
             PendingNameChange = false,
             PendingDateOfBirthChange = false,
-            Email = Faker.Internet.Email()
+            Email = Faker.Internet.Email(),
+            Alerts = Array.Empty<AlertInfo>()
         };
 
         var dqtApiClient = Mock.Of<IDqtApiClient>();
@@ -151,7 +152,8 @@ public class SyncNamesWithDqtJobTests : IClassFixture<DbFixture>, IAsyncLifetime
             NationalInsuranceNumber = null,
             PendingNameChange = false,
             PendingDateOfBirthChange = false,
-            Email = Faker.Internet.Email()
+            Email = Faker.Internet.Email(),
+            Alerts = Array.Empty<AlertInfo>()
         };
 
         var dqtApiClient = Mock.Of<IDqtApiClient>();
