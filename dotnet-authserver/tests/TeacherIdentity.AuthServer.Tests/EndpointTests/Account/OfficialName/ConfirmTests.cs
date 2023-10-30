@@ -185,7 +185,8 @@ public class ConfirmTests : TestBase
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
     }
 }

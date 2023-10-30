@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Events;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
+using TeacherIdentity.AuthServer.Services.DqtApi;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 using TeacherIdentity.AuthServer.Tests.Infrastructure;
 
@@ -484,7 +485,8 @@ public class EmailConfirmationTests : TestBase
                 NationalInsuranceNumber = Faker.Identification.UkNationalInsuranceNumber(),
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = false,
-                PendingNameChange = false
+                PendingNameChange = false,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: null);

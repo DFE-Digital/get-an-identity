@@ -1,3 +1,4 @@
+
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public record TeacherInfo
@@ -11,4 +12,17 @@ public record TeacherInfo
     public required bool PendingNameChange { get; init; }
     public required bool PendingDateOfBirthChange { get; init; }
     public required string? Email { get; init; }
+    public required IReadOnlyCollection<AlertInfo> Alerts { get; init; }
 }
+
+public record AlertInfo
+{
+    public required AlertType AlertType { get; init; }
+    public required string DqtSanctionCode { get; init; }
+}
+
+public enum AlertType
+{
+    Prohibition
+}
+

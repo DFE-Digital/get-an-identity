@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Flurl;
 using TeacherIdentity.AuthServer.Infrastructure.Http;
 
@@ -6,6 +8,14 @@ namespace TeacherIdentity.AuthServer.Services.DqtApi;
 public class DqtApiClient : IDqtApiClient
 {
     private readonly HttpClient _client;
+
+    private static JsonSerializerOptions _serializerOptions { get; } = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+    {
+        Converters =
+        {
+            new JsonStringEnumConverter(),
+        }
+    };
 
     public DqtApiClient(HttpClient httpClient)
     {
@@ -34,7 +44,7 @@ public class DqtApiClient : IDqtApiClient
 
     public async Task<TeacherInfo?> GetTeacherByTrn(string trn, CancellationToken cancellationToken)
     {
-        var response = await _client.GetAsync($"/v3/teachers/{trn}?include=PendingDetailChanges", cancellationToken);
+        var response = await _client.GetAsync($"/v3/teachers/{trn}?include=PendingDetailChanges,Alerts", cancellationToken);
 
         if ((int)response.StatusCode == StatusCodes.Status404NotFound)
         {
@@ -42,7 +52,7 @@ public class DqtApiClient : IDqtApiClient
         }
 
         response.HandleErrorResponse();
-        return await response.Content.ReadFromJsonAsync<TeacherInfo>(cancellationToken: cancellationToken);
+        return await response.Content.ReadFromJsonAsync<TeacherInfo>(options: _serializerOptions, cancellationToken: cancellationToken);
     }
 
     public async Task<GetIttProvidersResponse> GetIttProviders(CancellationToken cancellationToken)

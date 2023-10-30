@@ -1,4 +1,6 @@
 
+using TeacherIdentity.AuthServer.Services.DqtApi;
+
 namespace TeacherIdentity.AuthServer.Tests.EndpointTests.Admin;
 
 public class UserTests : TestBase
@@ -100,7 +102,8 @@ public class UserTests : TestBase
                 Trn = user.Trn!,
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
@@ -163,7 +166,8 @@ public class UserTests : TestBase
                 Trn = user.Trn!,
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         // Act
@@ -191,5 +195,81 @@ public class UserTests : TestBase
 
         var doc = await response.GetDocument();
         Assert.Null(doc.GetSummaryListRowForKey("TRN verification level"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithTrnAndProhibitions_RendersWarning()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true, userType: Models.UserType.Default);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
+
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = dqtDateOfBirth,
+                FirstName = dqtFirstName,
+                MiddleName = "",
+                LastName = dqtLastName,
+                NationalInsuranceNumber = dqtNino,
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false,
+                Email = null,
+                Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "" } }
+            });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.NotNull(doc.GetElementByTestId("user-has-prohibitions"));
+    }
+
+    [Fact]
+    public async Task Get_ValidRequestForUserWithTrnAndNoProhibition_DoesNotRenderWarning()
+    {
+        // Arrange
+        var user = await TestData.CreateUser(hasTrn: true, userType: Models.UserType.Default);
+
+        var dqtFirstName = Faker.Name.First();
+        var dqtLastName = Faker.Name.Last();
+        var dqtDateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var dqtNino = Faker.Identification.UkNationalInsuranceNumber();
+
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            {
+                DateOfBirth = dqtDateOfBirth,
+                FirstName = dqtFirstName,
+                MiddleName = "",
+                LastName = dqtLastName,
+                NationalInsuranceNumber = dqtNino,
+                Trn = user.Trn!,
+                PendingNameChange = false,
+                PendingDateOfBirthChange = false,
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
+            });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var doc = await response.GetDocument();
+        Assert.Null(doc.GetElementByTestId("user-has-prohibitions"));
     }
 }

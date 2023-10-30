@@ -133,7 +133,8 @@ public class IndexTests : TestBase
                 Trn = user.Trn!,
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -186,7 +187,8 @@ public class IndexTests : TestBase
                 Trn = user.Trn!,
                 PendingNameChange = false,
                 PendingDateOfBirthChange = hasPendingReview,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");
@@ -218,7 +220,8 @@ public class IndexTests : TestBase
                 Trn = user.Trn!,
                 PendingNameChange = true,
                 PendingDateOfBirthChange = false,
-                Email = null
+                Email = null,
+                Alerts = Array.Empty<AlertInfo>()
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/account");

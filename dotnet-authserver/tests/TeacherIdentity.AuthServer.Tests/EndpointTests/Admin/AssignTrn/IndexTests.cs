@@ -299,7 +299,8 @@ public class IndexTests : TestBase
                 Trn = trn,
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
-                Email = email ?? Faker.Internet.Email()
+                Email = email ?? Faker.Internet.Email(),
+                Alerts = Array.Empty<AlertInfo>()
             });
     }
 }
