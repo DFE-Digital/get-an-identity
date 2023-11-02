@@ -81,6 +81,12 @@ public class Program
                         ctx.ProtocolMessage.SetParameter("trn_match_policy", trnMatchPolicy);
                     }
 
+                    var blockProhibitedTeachers = ctx.HttpContext.Request.Query["block_prohibited_teachers"].ToString();
+                    if (!string.IsNullOrEmpty(blockProhibitedTeachers))
+                    {
+                        ctx.ProtocolMessage.SetParameter("block_prohibited_teachers", blockProhibitedTeachers);
+                    }
+
                     var trnToken = ctx.HttpContext.Request.Query["trn_token"].ToString();
                     if (!string.IsNullOrEmpty(trnToken))
                     {

@@ -93,6 +93,7 @@ public class AuthorizationController : Controller
 
             TrnRequirementType? trnRequirementType = null;
             TrnMatchPolicy? trnMatchPolicy = null;
+            bool? blockProhibitedTeachers = null;
 
             if (userRequirements.HasFlag(UserRequirements.TrnHolder))
             {
@@ -140,10 +141,31 @@ public class AuthorizationController : Controller
                                 }));
                         }
                     }
+
+                    var requestedBlockProhibitedTeachers = request["block_prohibited_teachers"];
+                    if (requestedBlockProhibitedTeachers.HasValue)
+                    {
+                        if (bool.TryParse(requestedBlockProhibitedTeachers?.Value as string, out var parsedBlockProhibitedTeachers))
+                        {
+                            blockProhibitedTeachers = parsedBlockProhibitedTeachers;
+                        }
+                        else
+                        {
+                            return Forbid(
+                                authenticationSchemes: AuthenticationSchemes.Oidc,
+                                properties: new AuthenticationProperties(new Dictionary<string, string?>()
+                                {
+                                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidRequest,
+                                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                        "Invalid block_prohibited_teachers specified."
+                                }));
+                        }
+                    }
                 }
 
                 trnRequirementType ??= client.TrnRequirementType;
                 trnMatchPolicy ??= client.TrnMatchPolicy;
+                blockProhibitedTeachers ??= client.BlockProhibitedTeachers;
             }
 
             var sessionId = request["session_id"]?.Value as string;
@@ -157,7 +179,8 @@ public class AuthorizationController : Controller
                 oAuthState: new OAuthAuthorizationState(request.ClientId!, request.Scope!, request.RedirectUri)
                 {
                     TrnRequirementType = trnRequirementType,
-                    TrnMatchPolicy = trnMatchPolicy
+                    TrnMatchPolicy = trnMatchPolicy,
+                    BlockProhibitedTeachers = blockProhibitedTeachers
                 },
                 authenticateResult.Succeeded != true);
 

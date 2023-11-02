@@ -234,7 +234,7 @@ public class CompleteTests : TestBase
             false,
             new[]
             {
-                "You cannot access this service yet",
+                $"You cannot {TestClients.DefaultClient.DisplayName} online",
                 "This could be because you do not have teaching qualifications, for example, qualified teacher status (QTS).",
                 "You’ve created a DfE Identity account. When you’re eligible to use this service, you can sign in just using your email"
             }
@@ -250,7 +250,7 @@ public class CompleteTests : TestBase
             true,
             new[]
             {
-                "You cannot access this service yet",
+                $"You cannot {TestClients.DefaultClient.DisplayName} online",
                 "We need to do some more checks to see if your details are in our records.",
                 "We’ll email you when we’ve completed those checks - we may need some more information.",
                 "You’ve created a DfE Identity account. To sign in to this service in the future, you’ll just need your email address"
@@ -282,7 +282,7 @@ public class CompleteTests : TestBase
             false,
             new[]
             {
-                "You cannot access this service yet",
+                $"You cannot {TestClients.DefaultClient.DisplayName} online",
                 "This could be because you do not have teaching qualifications, for example, qualified teacher status (QTS).",
                 "You’ve signed in to your DfE Identity account"
             }
@@ -313,7 +313,7 @@ public class CompleteTests : TestBase
             true,
             new[]
             {
-                "You cannot access this service yet",
+                $"You cannot {TestClients.DefaultClient.DisplayName} online",
                 "We need to do some more checks to see if your details are in our records.",
                 "We’ll email you when we’ve completed those checks - we may need some more information.",
                 "You’ve signed in to your DfE Identity account"
