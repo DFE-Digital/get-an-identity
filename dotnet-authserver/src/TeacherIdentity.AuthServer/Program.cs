@@ -357,10 +357,10 @@ public class Program
                 options.SetIssuer(new Uri(baseAddress));
 
                 options
-                    .SetAuthorizationEndpointUris("connect/authorize")
-                    .SetLogoutEndpointUris("connect/signout")
-                    .SetTokenEndpointUris("connect/token")
-                    .SetUserinfoEndpointUris("connect/userinfo");
+                    .SetAuthorizationEndpointUris("/connect/authorize")
+                    .SetLogoutEndpointUris("/connect/signout")
+                    .SetTokenEndpointUris("/connect/token")
+                    .SetUserinfoEndpointUris("/connect/userinfo");
 
                 options
                     .AllowAuthorizationCodeFlow()
