@@ -759,6 +759,7 @@ public class OAuthAuthorizationState
     public string? RedirectUri { get; }
     public TrnRequirementType? TrnRequirementType { get; init; }
     public TrnMatchPolicy? TrnMatchPolicy { get; set; }
+    public bool? BlockProhibitedTeachers { get; set; }
 
     public string ResolveServiceUrl(Application application)
     {

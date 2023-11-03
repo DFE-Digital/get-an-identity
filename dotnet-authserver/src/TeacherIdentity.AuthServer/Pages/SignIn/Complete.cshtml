@@ -5,7 +5,7 @@
 @{
     ViewBag.Title = Model.TrnVerificationElevationSuccessful == true ? "The information you gave has been verified" :
         Model.TrnVerificationElevationSuccessful == false ? "The information you gave could not be verified" :
-        !Model.CanAccessService ? "You cannot access this service yet" :
+        !Model.CanAccessService ? $"You cannot {Model.ClientDisplayName} online" :
         Model.FirstTimeSignInForEmail ? "You’ve created a DfE Identity account" :
         "You’ve signed in to your DfE Identity account";
 
@@ -50,7 +50,19 @@
                 }
                 else if (Model.TrnRequirementType == TrnRequirementType.Required)
                 {
-                    if (Model.TrnLookupStatus == TrnLookupStatus.Found)
+                    if (Model.TrnLookupStatus == TrnLookupStatus.Found && !Model.CanAccessService)
+                    {
+                        if (Model.FirstTimeSignInForEmail)
+                        {
+                            <p>You’ve created a DfE Identity account but cannot use it for this service.</p>
+                        }
+
+                        <p>
+                            Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a>
+                            to find out how to @Model.ClientDisplayName.
+                        </p>
+                    }
+                    else if (Model.TrnLookupStatus == TrnLookupStatus.Found)
                     {
                         if (Model.FirstTimeSignInForEmail)
                         {
