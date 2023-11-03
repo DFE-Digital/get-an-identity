@@ -629,7 +629,7 @@ public class AuthenticationState
                 user.EffectiveVerificationLevel != TrnVerificationLevel.Medium :
                 null;
         HaveCompletedTrnLookup = user?.CompletedTrnLookup is not null;
-        TrnLookup = user?.CompletedTrnLookup is not null ? TrnLookupState.Complete : TrnLookupState.None;
+        TrnLookup = user?.CompletedTrnLookup is not null || user?.Trn is not null ? TrnLookupState.Complete : TrnLookupState.None;
         UserType = user?.UserType;
         StaffRoles = user?.StaffRoles;
         TrnLookupStatus = user?.TrnLookupStatus;
