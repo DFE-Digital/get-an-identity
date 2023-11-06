@@ -108,13 +108,13 @@ public class UsersModel : PageModel
         var pageData = new Dictionary<string, string>
         {
             { "PageNumber", pageNumber.ToString() },
+            { "UserSearch", UserSearch ?? "" }
         };
 
         for (var i = 0; i < LookupStatus!.Length; i++)
         {
             pageData.Add($"LookupStatus[{i}]", LookupStatus[i].ToString()!);
         }
-
         return pageData;
     }
 
