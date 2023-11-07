@@ -10,6 +10,8 @@ namespace TeacherIdentity.AuthServer.Notifications.WebHooks;
 
 public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotificationPublisher, IAsyncDisposable, IHostedService
 {
+    private const int MaxDeadLetterDescriptionLength = 4096;
+
     private static readonly TimeSpan[] _retryIntervals = new[]
     {
         TimeSpan.FromSeconds(30),
@@ -110,7 +112,10 @@ public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotification
             {
                 _logger.LogError(ex, "Failed processing message after {RetryNumber} retries.", retryNumber);
 
-                await arg.DeadLetterMessageAsync(message, deadLetterReason: "Could not deliver web hook", deadLetterErrorDescription: ex.ToString());
+                await arg.DeadLetterMessageAsync(
+                    message,
+                    deadLetterReason: "Could not deliver web hook",
+                    deadLetterErrorDescription: ex.ToString().Truncate(MaxDeadLetterDescriptionLength));
                 return;
             }
 
@@ -153,5 +158,22 @@ public sealed class ServiceBusWebHookNotificationPublisher : WebHookNotification
     {
         public const string Endpoint = "Endpoint";
         public const string RetryNumber = "RetryNumber";
+    }
+}
+
+file static class StringExtensions
+{
+    private const string TruncatedSuffix = "...";
+
+    public static string Truncate(this string str, int length)
+    {
+        if (length <= TruncatedSuffix.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length));
+        }
+
+        return str.Length > length ?
+            str[..(length - TruncatedSuffix.Length + 1)] + TruncatedSuffix :
+            str;
     }
 }
