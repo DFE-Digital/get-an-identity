@@ -83,6 +83,7 @@ public class Confirm : PageModel
         if (!await ChangeDateOfBirthEnabled())
         {
             context.Result = BadRequest();
+            return;
         }
 
         if (DateOfBirth is null)
