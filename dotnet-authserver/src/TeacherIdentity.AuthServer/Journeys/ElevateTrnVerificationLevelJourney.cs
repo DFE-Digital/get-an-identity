@@ -40,7 +40,7 @@ public class ElevateTrnVerificationLevelJourney : SignInJourney
         Steps.Landing => true,
         CoreSignInJourneyWithTrnLookup.Steps.NiNumber => true,
         CoreSignInJourneyWithTrnLookup.Steps.Trn => AuthenticationState.HasNationalInsuranceNumber.HasValue,
-        Steps.CheckAnswers => AuthenticationState.HasNationalInsuranceNumber == true && AuthenticationState.StatedTrn is not null,
+        Steps.CheckAnswers => AuthenticationState.HasNationalInsuranceNumber.HasValue && AuthenticationState.StatedTrn is not null,
         _ => false
     };
 
