@@ -51,7 +51,8 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>, IAsyncLifetime
             PendingNameChange = false,
             PendingDateOfBirthChange = false,
             Email = null,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         };
 
         var getTeacherByTrnResultTest23 = new TeacherInfo()
@@ -65,7 +66,8 @@ public class UserImportProcessorTests : IClassFixture<DbFixture>, IAsyncLifetime
             PendingNameChange = false,
             PendingDateOfBirthChange = false,
             Email = null,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         };
 
         return new TheoryData<UserImportTestScenarioData>()

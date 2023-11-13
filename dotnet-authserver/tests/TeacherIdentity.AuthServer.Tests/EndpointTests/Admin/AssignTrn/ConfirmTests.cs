@@ -554,7 +554,8 @@ public class ConfirmTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
                 Email = email ?? Faker.Internet.Email(),
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
     }
 }

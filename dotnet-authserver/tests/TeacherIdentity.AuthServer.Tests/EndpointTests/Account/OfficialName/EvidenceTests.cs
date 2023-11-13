@@ -228,7 +228,8 @@ public class EvidenceTests : TestBase
                 PendingDateOfBirthChange = false,
                 PendingNameChange = hasPendingNameChange,
                 Email = null,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
     }
 

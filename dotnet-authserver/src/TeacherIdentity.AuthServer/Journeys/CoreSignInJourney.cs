@@ -30,6 +30,7 @@ public class CoreSignInJourney : SignInJourney
         return step switch
         {
             Steps.Landing => true,
+            Steps.Blocked => AuthenticationState.Blocked == true,
             SignInJourney.Steps.Email => true,
             SignInJourney.Steps.EmailConfirmation => AuthenticationState is { EmailAddressSet: true, EmailAddressVerified: false },
             Steps.NoAccount => AuthenticationState.EmailAddressVerified,
@@ -148,6 +149,7 @@ public class CoreSignInJourney : SignInJourney
         SignInJourney.Steps.Email => LinkGenerator.Email(),
         SignInJourney.Steps.EmailConfirmation => LinkGenerator.EmailConfirmation(),
         Steps.Landing => LinkGenerator.Landing(),
+        Steps.Blocked => LinkGenerator.Blocked(),
         Steps.Email => LinkGenerator.RegisterEmail(),
         Steps.EmailConfirmation => LinkGenerator.RegisterEmailConfirmation(),
         Steps.InstitutionEmail => LinkGenerator.RegisterInstitutionEmail(),
@@ -208,5 +210,6 @@ public class CoreSignInJourney : SignInJourney
         public const string ChangeEmailRequest = $"{nameof(CoreSignInJourney)}.{nameof(ChangeEmailRequest)}";
         public const string CheckAnswers = $"{nameof(CoreSignInJourney)}.{nameof(CheckAnswers)}";
         public const string NoAccount = $"{nameof(CoreSignInJourney)}.{nameof(NoAccount)}";
+        public const string Blocked = $"{nameof(CoreSignInJourney)}.{nameof(Blocked)}";
     }
 }

@@ -137,7 +137,7 @@ public abstract class SignInJourney
     {
         if (user.Trn is not null)
         {
-            await UserHelper.EnsureDqtUserNameMatch(user, AuthenticationState);
+            await UserHelper.SyncStateFromDqtRecord(user, AuthenticationState);
         }
         await AuthenticationState.SignIn(HttpContext);
     }

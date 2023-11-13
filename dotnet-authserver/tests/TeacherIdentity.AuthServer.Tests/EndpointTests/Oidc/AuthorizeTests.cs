@@ -525,7 +525,8 @@ public class AuthorizeTests : TestBase
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
                 Email = null,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
     }
 }

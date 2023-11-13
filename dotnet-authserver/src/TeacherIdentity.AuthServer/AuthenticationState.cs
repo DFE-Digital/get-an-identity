@@ -143,6 +143,8 @@ public class AuthenticationState
     public bool? RequiresTrnVerificationLevelElevation { get; private set; }
     public bool? TrnVerificationElevationSuccessful { get; set; }
 
+    public bool? Blocked { get; set; }
+
     [JsonIgnore]
     public bool EmailAddressSet => EmailAddress is not null;
     [JsonIgnore]

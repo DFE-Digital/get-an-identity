@@ -22,6 +22,21 @@ public class Elevate : IClassFixture<HostFixture>
         var user = await _hostFixture.TestData.CreateUser(hasTrn: true, trnVerificationLevel: TrnVerificationLevel.Low);
         var nino = Faker.Identification.UkNationalInsuranceNumber();
 
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new TeacherInfo()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
@@ -63,7 +78,8 @@ public class Elevate : IClassFixture<HostFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         await page.SubmitElevateCheckAnswersPage();
@@ -83,6 +99,21 @@ public class Elevate : IClassFixture<HostFixture>
     {
         var user = await _hostFixture.TestData.CreateUser(hasTrn: true, trnVerificationLevel: TrnVerificationLevel.Low);
         var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -123,6 +154,21 @@ public class Elevate : IClassFixture<HostFixture>
     {
         var user = await _hostFixture.TestData.CreateUser(hasTrn: true, trnVerificationLevel: TrnVerificationLevel.Low);
         var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new TeacherInfo()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -173,7 +219,8 @@ public class Elevate : IClassFixture<HostFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         await page.SubmitElevateCheckAnswersPage();
@@ -182,6 +229,90 @@ public class Elevate : IClassFixture<HostFixture>
 
         user = await _hostFixture.TestData.WithDbContext(dbContext => dbContext.Users.SingleAsync(u => u.UserId == user.UserId));
         await page.AssertSignedInOnTestClient(user, expectTrn: true, expectNiNumber: true);
+    }
+
+    [Fact]
+    public async Task UserSignsInWithLowVerificationLevelAndHasProhibitions_IsShownBlockedPageForServiceThatBlocksProhitiedTeachers()
+    {
+        var user = await _hostFixture.TestData.CreateUser(hasTrn: true, trnVerificationLevel: TrnVerificationLevel.Low);
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new TeacherInfo()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = new[]
+            {
+                new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1" }
+            },
+            AllowIdSignInWithProhibitions = false
+        });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead, trnMatchPolicy: TrnMatchPolicy.Strict, blockProhibitedTeachers: true);
+
+        await page.SignInFromLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage();
+
+        await page.AssertOnBlockedPage();
+    }
+
+    [Fact]
+    public async Task AlreadySignedInUserWithLowVerificationLevelHasProhibitions_IsShownBlockedPageForServiceThatBlocksProhitiedTeachers()
+    {
+        var user = await _hostFixture.TestData.CreateUser(hasTrn: true, trnVerificationLevel: TrnVerificationLevel.Low);
+        var nino = Faker.Identification.UkNationalInsuranceNumber();
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new TeacherInfo()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = nino,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = new[]
+            {
+                new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1" }
+            },
+            AllowIdSignInWithProhibitions = false
+        });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead, trnMatchPolicy: TrnMatchPolicy.Default);
+
+        await page.SignInFromLandingPage();
+
+        await page.SubmitEmailPage(user.EmailAddress);
+
+        await page.SubmitEmailConfirmationPage();
+
+        await page.SubmitCompletePageForExistingUser();
+
+        await page.AssertSignedInOnTestClient(user, expectNiNumber: false);
+
+        await context.ClearCookiesForTestClient();
+
+        await page.StartOAuthJourney(additionalScope: CustomScopes.DqtRead, trnMatchPolicy: TrnMatchPolicy.Strict, blockProhibitedTeachers: true);
+
+        await page.AssertOnBlockedPage();
     }
 
     private void ConfigureDqtApiFindTeachersRequest(FindTeachersResponseResult? result)

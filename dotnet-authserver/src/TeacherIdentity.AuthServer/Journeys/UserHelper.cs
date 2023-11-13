@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Azure.Storage.Blobs;
@@ -261,17 +262,43 @@ public class UserHelper
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task EnsureDqtUserNameMatch(User user, AuthenticationState authenticationState)
+    public async Task SyncStateFromDqtRecord(User user, AuthenticationState authenticationState)
     {
-        var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!);
+        Debug.Assert(user.Trn is not null);
+        var dqtUser = await _dqtApiClient.GetTeacherByTrn(user.Trn!) ??
+            throw new Exception($"Failed to lookup teacher by TRN: '{user.Trn}'.");
 
-        if (await CheckDqtTeacherRecordIsValid(dqtUser) &&
+        if (await CheckDqtTeacherRecordHasValidNames(dqtUser) &&
             NameHelper.GetFullName(user.FirstName, user.MiddleName, user.LastName) !=
             NameHelper.GetFullName(dqtUser!.FirstName, dqtUser.MiddleName, dqtUser.LastName))
         {
-            await AssignDqtUserName(user.UserId, dqtUser);
+            await SyncNameFromDqtRecord(user.UserId, dqtUser);
             authenticationState.OnNameSet(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName);
         }
+
+        CheckCanAccessService(authenticationState, dqtUser);
+    }
+
+    public async Task CheckCanAccessService(AuthenticationState authenticationState)
+    {
+        if (!(authenticationState is { Trn: not null, OAuthState: { TrnRequirementType: TrnRequirementType.Required, BlockProhibitedTeachers: true } }))
+        {
+            authenticationState.Blocked = false;
+            return;
+        }
+
+        var dqtUser = await _dqtApiClient.GetTeacherByTrn(authenticationState.Trn!) ??
+            throw new Exception($"Failed to lookup teacher by TRN: '{authenticationState.Trn}'.");
+
+        CheckCanAccessService(authenticationState, dqtUser);
+    }
+
+    private void CheckCanAccessService(AuthenticationState authenticationState, TeacherInfo teacherInfo)
+    {
+        authenticationState.Blocked =
+            authenticationState is { Trn: not null, OAuthState: { TrnRequirementType: TrnRequirementType.Required, BlockProhibitedTeachers: true } } &&
+                teacherInfo.Alerts.Any(a => a.AlertType == AlertType.Prohibition) &&
+                !teacherInfo.AllowIdSignInWithProhibitions;
     }
 
     public async Task ElevateTrnVerificationLevel(Guid userId, string trn, string nationalInsuranceNumber)
@@ -323,7 +350,7 @@ public class UserHelper
         }
     }
 
-    private async Task AssignDqtUserName(Guid userId, TeacherInfo dqtUser)
+    private async Task SyncNameFromDqtRecord(Guid userId, TeacherInfo dqtUser)
     {
         var existingUser = await _dbContext.Users.SingleAsync(u => u.UserId == userId);
 
@@ -348,13 +375,8 @@ public class UserHelper
         await _dbContext.SaveChangesAsync();
     }
 
-    private async Task<bool> CheckDqtTeacherRecordIsValid(TeacherInfo? teacher)
+    private async Task<bool> CheckDqtTeacherRecordHasValidNames(TeacherInfo teacher)
     {
-        if (teacher is null)
-        {
-            return false;
-        }
-
         if (string.IsNullOrEmpty(teacher.FirstName) || string.IsNullOrEmpty(teacher.LastName))
         {
             try

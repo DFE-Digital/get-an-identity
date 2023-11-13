@@ -103,7 +103,8 @@ public class UserTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
                 Email = null,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
@@ -167,7 +168,8 @@ public class UserTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
                 Email = null,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         // Act
@@ -220,7 +222,8 @@ public class UserTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
                 Email = null,
-                Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "" } }
+                Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "" } },
+                AllowIdSignInWithProhibitions = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");
@@ -258,7 +261,8 @@ public class UserTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
                 Email = null,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         var request = new HttpRequestMessage(HttpMethod.Get, $"/admin/users/{user.UserId}");

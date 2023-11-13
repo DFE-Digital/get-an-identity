@@ -461,6 +461,21 @@ public class Register : IClassFixture<HostFixture>
     {
         var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true);
 
+        ConfigureDqtApiGetTeacherByTrnRequest(existingUser.Trn!, new()
+        {
+            FirstName = existingUser.FirstName,
+            MiddleName = existingUser.MiddleName ?? string.Empty,
+            LastName = existingUser.LastName,
+            DateOfBirth = existingUser.DateOfBirth,
+            Email = existingUser.EmailAddress,
+            NationalInsuranceNumber = existingUser.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = existingUser.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
 
@@ -490,6 +505,21 @@ public class Register : IClassFixture<HostFixture>
     {
         var email = Faker.Internet.Email();
         var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true, hasMobileNumber: true);
+
+        ConfigureDqtApiGetTeacherByTrnRequest(existingUser.Trn!, new()
+        {
+            FirstName = existingUser.FirstName,
+            MiddleName = existingUser.MiddleName ?? string.Empty,
+            LastName = existingUser.LastName,
+            DateOfBirth = existingUser.DateOfBirth,
+            Email = existingUser.EmailAddress,
+            NationalInsuranceNumber = existingUser.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = existingUser.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -528,6 +558,21 @@ public class Register : IClassFixture<HostFixture>
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
 
         var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true);
+
+        ConfigureDqtApiGetTeacherByTrnRequest(existingUser.Trn!, new()
+        {
+            FirstName = existingUser.FirstName,
+            MiddleName = existingUser.MiddleName ?? string.Empty,
+            LastName = existingUser.LastName,
+            DateOfBirth = existingUser.DateOfBirth,
+            Email = existingUser.EmailAddress,
+            NationalInsuranceNumber = existingUser.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = existingUser.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -574,6 +619,21 @@ public class Register : IClassFixture<HostFixture>
         var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
 
         var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: true);
+
+        ConfigureDqtApiGetTeacherByTrnRequest(existingUser.Trn!, new()
+        {
+            FirstName = existingUser.FirstName,
+            MiddleName = existingUser.MiddleName ?? string.Empty,
+            LastName = existingUser.LastName,
+            DateOfBirth = existingUser.DateOfBirth,
+            Email = existingUser.EmailAddress,
+            NationalInsuranceNumber = existingUser.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = existingUser.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();
@@ -689,6 +749,70 @@ public class Register : IClassFixture<HostFixture>
             });
     }
 
+    [Fact]
+    public async Task UserMatchesToDqtRecord_IsShownBlockedPageForServiceThatBlocksProhitiedTeachers()
+    {
+        var email = Faker.Internet.Email();
+        var mobileNumber = _hostFixture.TestData.GenerateUniqueMobileNumber();
+        var firstName = Faker.Name.First();
+        var lastName = Faker.Name.Last();
+        var dateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth());
+        var trn = _hostFixture.TestData.GenerateTrn();
+
+        ConfigureDqtApiFindTeachersRequest(result: new()
+        {
+            DateOfBirth = dateOfBirth,
+            FirstName = firstName,
+            MiddleName = null,
+            LastName = lastName,
+            EmailAddresses = new[] { email },
+            HasActiveSanctions = false,
+            NationalInsuranceNumber = null,
+            Trn = trn,
+            Uid = Guid.NewGuid().ToString()
+        });
+
+        ConfigureDqtApiGetTeacherByTrnRequest(trn, new()
+        {
+            DateOfBirth = dateOfBirth,
+            FirstName = firstName,
+            MiddleName = "",
+            LastName = lastName,
+            Email = email,
+            NationalInsuranceNumber = null,
+            Trn = trn,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1" } },
+            AllowIdSignInWithProhibitions = false
+        });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, TrnRequirementType.Required, blockProhibitedTeachers: true);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterPhonePage(mobileNumber);
+
+        await page.SubmitRegisterPhoneConfirmationPage();
+
+        await page.SubmitRegisterNamePage(firstName, lastName);
+
+        await page.SubmitRegisterPreferredNamePage();
+
+        await page.SubmitDateOfBirthPage(dateOfBirth);
+
+        await page.SubmitCheckAnswersPage();
+
+        await page.AssertOnBlockedPage();
+    }
+
     private void ConfigureDqtApiFindTeachersRequest(FindTeachersResponseResult? result)
     {
         var results = result is not null ? new[] { result } : Array.Empty<FindTeachersResponseResult>();
@@ -699,5 +823,12 @@ public class Register : IClassFixture<HostFixture>
             {
                 Results = results
             });
+    }
+
+    private void ConfigureDqtApiGetTeacherByTrnRequest(string trn, TeacherInfo? result)
+    {
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
     }
 }

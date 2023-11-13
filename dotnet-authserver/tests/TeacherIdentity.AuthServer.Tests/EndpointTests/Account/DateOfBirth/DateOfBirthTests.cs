@@ -181,7 +181,7 @@ public class DateOfBirthTests : TestBase
     private void MockDqtApiResponse(User user, bool hasDobConflict, bool hasPendingDobChange)
     {
         HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthServer.Services.DqtApi.TeacherInfo()
+            .ReturnsAsync(new TeacherInfo()
             {
                 DateOfBirth = hasDobConflict ? user.DateOfBirth!.Value.AddDays(1) : user.DateOfBirth!.Value,
                 FirstName = user.FirstName,
@@ -192,7 +192,8 @@ public class DateOfBirthTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = hasPendingDobChange,
                 Email = null,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
     }
 }

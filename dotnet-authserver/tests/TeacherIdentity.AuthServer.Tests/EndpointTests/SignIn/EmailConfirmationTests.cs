@@ -304,6 +304,22 @@ public class EmailConfirmationTests : TestBase
         // Arrange
         var user = await TestData.CreateUser(hasTrn: hasTrn);
 
+        HostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(user.Trn!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TeacherInfo()
+            {
+                DateOfBirth = DateOnly.FromDateTime(Faker.Identification.DateOfBirth()),
+                Email = Faker.Internet.Email(),
+                FirstName = user.FirstName,
+                MiddleName = user.MiddleName ?? string.Empty,
+                LastName = user.LastName,
+                NationalInsuranceNumber = user.NationalInsuranceNumber,
+                Trn = user.Trn!,
+                PendingDateOfBirthChange = false,
+                PendingNameChange = false,
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
+            });
+
         var userVerificationService = HostFixture.Services.GetRequiredService<IUserVerificationService>();
         var pinResult = await userVerificationService.GenerateEmailPin(user.EmailAddress);
 
@@ -486,7 +502,8 @@ public class EmailConfirmationTests : TestBase
                 Trn = user.Trn!,
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         var authStateHelper = await CreateAuthenticationStateHelper(c => c.EmailSet(user.EmailAddress), additionalScopes: null);

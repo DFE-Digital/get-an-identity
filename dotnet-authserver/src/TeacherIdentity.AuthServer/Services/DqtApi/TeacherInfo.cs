@@ -13,6 +13,7 @@ public record TeacherInfo
     public required bool PendingDateOfBirthChange { get; init; }
     public required string? Email { get; init; }
     public required IReadOnlyCollection<AlertInfo> Alerts { get; init; }
+    public required bool AllowIdSignInWithProhibitions { get; set; }
 }
 
 public record AlertInfo
