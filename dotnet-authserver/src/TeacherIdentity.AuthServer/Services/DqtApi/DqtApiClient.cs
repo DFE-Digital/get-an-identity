@@ -44,7 +44,7 @@ public class DqtApiClient : IDqtApiClient
 
     public async Task<TeacherInfo?> GetTeacherByTrn(string trn, CancellationToken cancellationToken)
     {
-        var response = await _client.GetAsync($"/v3/teachers/{trn}?include=PendingDetailChanges,Alerts", cancellationToken);
+        var response = await _client.GetAsync($"/v3/teachers/{trn}?include=PendingDetailChanges,Alerts,_AllowIdSignInWithProhibitions", cancellationToken);
 
         if ((int)response.StatusCode == StatusCodes.Status404NotFound)
         {

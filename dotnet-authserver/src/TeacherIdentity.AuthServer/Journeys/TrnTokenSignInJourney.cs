@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TeacherIdentity.AuthServer.Models;
 
@@ -18,6 +19,16 @@ public class TrnTokenSignInJourney : SignInJourney
 
     public override async Task<IActionResult> CreateUser(string currentStep)
     {
+        await UserHelper.CheckCanAccessService(AuthenticationState);
+        Debug.Assert(AuthenticationState.Blocked.HasValue);
+
+        if (AuthenticationState.Blocked == true)
+        {
+            var nextPageUrl = GetNextStepUrl(currentStep);
+            Debug.Assert(nextPageUrl == GetStepUrl(CoreSignInJourney.Steps.Blocked));
+            return new RedirectResult(nextPageUrl);
+        }
+
         var user = await UserHelper.CreateUserWithTrnToken(AuthenticationState);
 
         AuthenticationState.OnUserRegistered(user);

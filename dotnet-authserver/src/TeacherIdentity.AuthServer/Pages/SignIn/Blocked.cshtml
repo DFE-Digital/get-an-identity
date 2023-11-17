@@ -1,0 +1,18 @@
+@page "/sign-in/blocked"
+@inject IConfiguration Configuration
+@model TeacherIdentity.AuthServer.Pages.SignIn.BlockedModel
+@{
+    ViewBag.Title = $"You cannot {Model.ClientName}";
+}
+
+<div class="govuk-panel app-panel--interruption" data-testid="landing-panel">
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+
+            <p>
+                Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> to find out how to @Model.ClientName.
+            </p>
+        </div>
+    </div>
+</div>

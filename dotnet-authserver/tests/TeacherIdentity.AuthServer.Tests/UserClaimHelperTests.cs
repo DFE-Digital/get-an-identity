@@ -192,7 +192,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -234,7 +235,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -276,7 +278,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -320,7 +323,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -364,7 +368,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         using var dbContext = _dbFixture.GetDbContext();
@@ -408,7 +413,8 @@ public class UserClaimHelperTests : IClassFixture<DbFixture>
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
             Trn = user.Trn!,
-            Alerts = Array.Empty<AlertInfo>()
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
         });
 
         using var dbContext = _dbFixture.GetDbContext();

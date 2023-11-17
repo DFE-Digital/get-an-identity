@@ -43,7 +43,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
                 Email = trnToken.Email,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -94,7 +95,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
                 Email = trnToken.Email,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -146,7 +148,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
                 Email = trnToken.Email,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         await using var context = await _hostFixture.CreateBrowserContext();
@@ -184,6 +187,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var page = await context.NewPageAsync();
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await SignInUser(user, page, context);
 
@@ -239,6 +257,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
         var differentTrn = _hostFixture.TestData.GenerateTrn();
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         await SignInUser(user, page, context);
 
@@ -385,6 +418,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
         var differentTrn = _hostFixture.TestData.GenerateTrn();
 
+        ConfigureDqtApiGetTeacherByTrnRequest(differentTrn, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
         var trnToken = await CreateValidTrnToken(trn: differentTrn, email: user.EmailAddress);
 
         var email = Faker.Internet.Email();
@@ -501,6 +549,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
 
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
         var differentTrn = _hostFixture.TestData.GenerateTrn();
         var differentEmail = _hostFixture.TestData.GenerateUniqueEmail();
 
@@ -594,6 +657,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
 
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
         var differentTrn = _hostFixture.TestData.GenerateTrn();
 
         var trnToken = await CreateValidTrnToken(trn: differentTrn, firstName: user.FirstName, lastName: user.LastName, dateOfBirth: user.DateOfBirth);
@@ -621,6 +699,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
         var page = await context.NewPageAsync();
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
+
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
 
         var differentTrn = _hostFixture.TestData.GenerateTrn();
 
@@ -724,6 +817,21 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
 
         var user = await _hostFixture.TestData.CreateUser(userType: UserType.Default, hasTrn: true);
 
+        ConfigureDqtApiGetTeacherByTrnRequest(user.Trn!, new()
+        {
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName ?? string.Empty,
+            LastName = user.LastName,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.EmailAddress,
+            NationalInsuranceNumber = user.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = user.Trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
         var differentTrn = _hostFixture.TestData.GenerateTrn();
         var trnToken = await CreateValidTrnToken(differentTrn);
 
@@ -773,7 +881,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
                 Email = trnToken.Email,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         var invalidEmailSuffix = "invalid.sch.uk";
@@ -934,7 +1043,8 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
                 PendingDateOfBirthChange = false,
                 PendingNameChange = false,
                 Email = email,
-                Alerts = Array.Empty<AlertInfo>()
+                Alerts = Array.Empty<AlertInfo>(),
+                AllowIdSignInWithProhibitions = false
             });
 
         return await _hostFixture.TestData.GenerateTrnToken(trn, email: email);
@@ -950,5 +1060,12 @@ public class TrnTokenSignInJourney : IClassFixture<HostFixture>
             {
                 Results = results
             });
+    }
+
+    private void ConfigureDqtApiGetTeacherByTrnRequest(string trn, TeacherInfo? result)
+    {
+        _hostFixture.DqtApiClient
+            .Setup(mock => mock.GetTeacherByTrn(trn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
     }
 }

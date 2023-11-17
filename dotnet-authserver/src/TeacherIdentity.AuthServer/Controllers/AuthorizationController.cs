@@ -26,6 +26,7 @@ public class AuthorizationController : Controller
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly IClock _clock;
     private readonly TrnTokenHelper _trnTokenHelper;
+    private readonly UserHelper _userHelper;
     private readonly IConfiguration _configuration;
 
     public AuthorizationController(
@@ -37,6 +38,7 @@ public class AuthorizationController : Controller
         TeacherIdentityServerDbContext dbContext,
         IClock clock,
         TrnTokenHelper trnTokenHelper,
+        UserHelper userHelper,
         IConfiguration configuration)
     {
         _applicationManager = applicationManager;
@@ -47,6 +49,7 @@ public class AuthorizationController : Controller
         _dbContext = dbContext;
         _clock = clock;
         _trnTokenHelper = trnTokenHelper;
+        _userHelper = userHelper;
         _configuration = configuration;
     }
 
@@ -544,18 +547,22 @@ public class AuthorizationController : Controller
         return signedInUser;
     }
 
-    private async Task<ClaimsPrincipal?> InitializeAuthenticationState(User? signedInUser, EnhancedTrnToken? trnToken,
+    private async Task<ClaimsPrincipal?> InitializeAuthenticationState(
+        User? signedInUser,
+        EnhancedTrnToken? trnToken,
         AuthenticationState authenticationState)
     {
         if (trnToken is null)
         {
             authenticationState.OnSignedInUserProvided(signedInUser);
+            await CheckCanAccessService();
             return null;
         }
 
         if (signedInUser is not null)
         {
             _trnTokenHelper.InitializeAuthenticationStateForSignedInUser(signedInUser, authenticationState, trnToken);
+            await CheckCanAccessService();
             return null;
         }
 
@@ -566,6 +573,7 @@ public class AuthorizationController : Controller
             if (existingValidUser.Trn is null || existingValidUser.Trn == trnToken.Trn)
             {
                 _trnTokenHelper.InitializeAuthenticationStateForExistingUser(existingValidUser, authenticationState, trnToken);
+                await CheckCanAccessService();
                 return await authenticationState.SignIn(HttpContext);
             }
         }
@@ -574,8 +582,17 @@ public class AuthorizationController : Controller
             var existingAccountMatch = await _trnTokenHelper.GetExistingAccountMatchForToken(trnToken);
             authenticationState.OnExistingAccountSearch(existingAccountMatch);
             authenticationState.OnTrnTokenProvided(trnToken);
+            await CheckCanAccessService();
         }
 
         return null;
+
+        async Task CheckCanAccessService()
+        {
+            if (authenticationState.Trn is not null)
+            {
+                await _userHelper.CheckCanAccessService(authenticationState);
+            }
+        }
     }
 }

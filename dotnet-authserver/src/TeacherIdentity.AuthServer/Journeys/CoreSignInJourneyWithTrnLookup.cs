@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TeacherIdentity.AuthServer.Models;
@@ -12,6 +13,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
     private readonly TrnLookupHelper _trnLookupHelper;
     private readonly TeacherIdentityApplicationManager _applicationManager;
     private readonly IBackgroundJobScheduler _backgroundJobScheduler;
+    private readonly ElevateTrnVerificationLevelJourney _elevateJourney;
 
     public CoreSignInJourneyWithTrnLookup(
         HttpContext httpContext,
@@ -25,10 +27,21 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         _trnLookupHelper = trnLookupHelper;
         _applicationManager = applicationManager;
         _backgroundJobScheduler = backgroundJobScheduler;
+
+        _elevateJourney = new ElevateTrnVerificationLevelJourney(trnLookupHelper, httpContext, linkGenerator, userHelper);
     }
 
     public override async Task<IActionResult> CreateUser(string currentStep)
     {
+        await UserHelper.CheckCanAccessService(AuthenticationState);
+        Debug.Assert(AuthenticationState.Blocked.HasValue);
+
+        if (AuthenticationState.Blocked == true)
+        {
+            var nextPageUrl = GetStepUrl(CoreSignInJourney.Steps.Blocked);
+            return new RedirectResult(nextPageUrl);
+        }
+
         using var suppressUniqueIndexViolationScope = SentryErrors.Suppress<DbUpdateException>(ex => ex.IsUniqueIndexViolation(User.TrnUniqueIndexName));
         try
         {
@@ -129,7 +142,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
     public override string GetNextStepUrl(string currentStep) =>
         currentStep switch
         {
-            ElevateTrnVerificationLevelJourney.Steps.Landing => ElevateTrnVerificationLevelJourney.GetStartStepUrl(LinkGenerator),
+            ElevateTrnVerificationLevelJourney.Steps.Landing => _elevateJourney.GetStartStepUrl(),
             _ => base.GetNextStepUrl(currentStep)
         };
 
@@ -139,7 +152,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
         // but the user's TrnVerificationLevel is Low (or null) we need to switch to the 'elevate' journey
         if (IsFinished() && AuthenticationState.RequiresTrnVerificationLevelElevation == true)
         {
-            return ElevateTrnVerificationLevelJourney.GetStartStepUrl(LinkGenerator);
+            return _elevateJourney.GetStartStepUrl();
         }
 
         var shouldCheckAnswers = (AreAllQuestionsAnswered() || FoundATrn) && !AuthenticationState.ExistingAccountFound;
@@ -209,7 +222,7 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
             _ => base.GetLastAccessibleStepUrl(requestedStep)
         };
 
-    public override Task<IActionResult> OnEmailVerified(User? user, string currentStep)
+    public override async Task<IActionResult> OnEmailVerified(User? user, string currentStep)
     {
         if (user is not null && user.UserType == Models.UserType.Default && user.TrnLookupStatus is null)
         {
@@ -218,7 +231,19 @@ public class CoreSignInJourneyWithTrnLookup : CoreSignInJourney
             throw new NotImplementedException("Cannot lookup a TRN for an existing user.");
         }
 
-        return base.OnEmailVerified(user, currentStep);
+        var result = await base.OnEmailVerified(user, currentStep);
+
+        if (user is not null)
+        {
+            await UserHelper.CheckCanAccessService(AuthenticationState);
+
+            if (AuthenticationState.Blocked == true)
+            {
+                return new RedirectResult(GetStepUrl(CoreSignInJourney.Steps.Blocked));
+            }
+        }
+
+        return result;
     }
 
     protected override bool AreAllQuestionsAnswered() =>

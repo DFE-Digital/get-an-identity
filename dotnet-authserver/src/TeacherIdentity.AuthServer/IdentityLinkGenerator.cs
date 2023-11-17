@@ -40,6 +40,8 @@ public abstract class IdentityLinkGenerator
         return url;
     }
 
+    public string Blocked() => Page("/SignIn/Blocked");
+
     public string CompleteAuthorization() => Page("/SignIn/Complete");
 
     public string Reset() => Page("/SignIn/Reset");

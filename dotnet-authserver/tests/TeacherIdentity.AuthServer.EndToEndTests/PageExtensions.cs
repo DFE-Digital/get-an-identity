@@ -39,7 +39,8 @@ public static class PageExtensions
         string? additionalScope = null,
         TrnRequirementType? trnRequirement = null,
         string? trnToken = null,
-        TrnMatchPolicy trnMatchPolicy = TrnMatchPolicy.Default)
+        TrnMatchPolicy trnMatchPolicy = TrnMatchPolicy.Default,
+        bool? blockProhibitedTeachers = null)
     {
         var allScopes = new List<string>()
         {
@@ -67,6 +68,11 @@ public static class PageExtensions
         }
 
         url.SetQueryParam("trn_match_policy", trnMatchPolicy.ToString());
+
+        if (blockProhibitedTeachers is not null)
+        {
+            url.SetQueryParam("block_prohibited_teachers", blockProhibitedTeachers.ToString());
+        }
 
         await page.GotoAsync(url);
     }
@@ -152,6 +158,11 @@ public static class PageExtensions
     public static async Task AssertOnAccountPage(this IPage page)
     {
         await page.WaitForUrlPathAsync("/account");
+    }
+
+    public static async Task AssertOnBlockedPage(this IPage page)
+    {
+        await page.WaitForUrlPathAsync("/sign-in/blocked");
     }
 
     public static async Task SignOutFromAccountPageWithoutClientContext(this IPage page)

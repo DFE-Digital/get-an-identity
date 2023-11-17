@@ -16,8 +16,6 @@ public class ElevateTrnVerificationLevelJourney : SignInJourney
         _trnLookupHelper = trnLookupHelper;
     }
 
-    public static string GetStartStepUrl(IdentityLinkGenerator linkGenerator) => linkGenerator.ElevateLanding();
-
     public async Task LookupTrn()
     {
         var trn = await _trnLookupHelper.LookupTrn(AuthenticationState);
@@ -41,6 +39,7 @@ public class ElevateTrnVerificationLevelJourney : SignInJourney
         CoreSignInJourneyWithTrnLookup.Steps.NiNumber => true,
         CoreSignInJourneyWithTrnLookup.Steps.Trn => AuthenticationState.HasNationalInsuranceNumber.HasValue,
         Steps.CheckAnswers => AuthenticationState.HasNationalInsuranceNumber.HasValue && AuthenticationState.StatedTrn is not null,
+        CoreSignInJourney.Steps.Blocked => AuthenticationState.Blocked == true,
         _ => false
     };
 
@@ -60,10 +59,12 @@ public class ElevateTrnVerificationLevelJourney : SignInJourney
         _ => null
     };
 
-    protected override string GetStartStep() => Steps.Landing;
+    protected override string GetStartStep() =>
+        AuthenticationState.Blocked == true ? CoreSignInJourney.Steps.Blocked : Steps.Landing;
 
     protected override string GetStepUrl(string step) => step switch
     {
+        CoreSignInJourney.Steps.Blocked => LinkGenerator.Blocked(),
         Steps.Landing => LinkGenerator.ElevateLanding(),
         CoreSignInJourneyWithTrnLookup.Steps.NiNumber => LinkGenerator.RegisterNiNumber(),
         CoreSignInJourneyWithTrnLookup.Steps.Trn => LinkGenerator.RegisterTrn(),
