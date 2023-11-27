@@ -10,8 +10,9 @@
         <div class="govuk-grid-column-full">
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
+            @* N.B. This support email is deliberately different to the generic support email address *@
             <p>
-                Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> to find out how to @Model.ClientName.
+                Email <a href="mailto:qts.enquiries@education.gov.uk">qts.enquiries@education.gov.uk</a> to find out how to @Model.ClientName.
             </p>
         </div>
     </div>
