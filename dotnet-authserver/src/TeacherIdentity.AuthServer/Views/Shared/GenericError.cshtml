@@ -1,10 +1,10 @@
 @{
-    ViewBag.Title = "Sorry, there is a problem with the service";
+    ViewBag.Title = "Sorry, there is a problem with the DfE Identity service";
 }
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Sorry, there is a problem with the service</h1>
-        <p>Try again later.</p>
+        <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+        <vc:client-scoped-partial view-name="_Error.{0}" />
     </div>
 </div>
