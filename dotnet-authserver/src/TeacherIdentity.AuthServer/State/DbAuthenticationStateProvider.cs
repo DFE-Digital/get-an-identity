@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
-using Polly;
 using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.State;
@@ -36,54 +35,30 @@ public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider
     {
         var userJourneyIds = GetUserJourneyIdsFromCookie(httpContext);
 
-        _transaction ??= await CreateTransaction();
-
-        var retryPolicy = Policy
-            .Handle<InvalidOperationException>(IsPostgresSerializationError)
-            .RetryAsync(
-                3,
-                onRetryAsync: async (ex, retryCount) =>
-                {
-                    // Transaction will be aborted at this point - create a new one
-                    await _transaction.DisposeAsync();
-                    _transaction = await CreateTransaction();
-                });
+        _transaction ??= await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
 
         if (httpContext.Request.Query.TryGetValue(AuthenticationStateMiddleware.IdQueryParameterName, out var asidStr) &&
             Guid.TryParse(asidStr, out var journeyId) &&
             userJourneyIds.Contains(journeyId))
         {
-            return await retryPolicy.ExecuteAsync(async () =>
+            var dbAuthState = await _dbContext.AuthenticationStates.FromSqlInterpolated(
+                    $"select * from authentication_states where journey_id = {journeyId} for update")
+                .SingleOrDefaultAsync();
+
+            if (dbAuthState is not null)
             {
-                using var suppressScope = SentryErrors.Suppress(IsPostgresSerializationError);
-
-                var dbAuthState = await _dbContext.AuthenticationStates.FromSqlInterpolated(
-                        $"select * from authentication_states where journey_id = {journeyId} for update")
-                    .SingleOrDefaultAsync();
-
-                if (dbAuthState is not null)
+                try
                 {
-                    try
-                    {
-                        return AuthenticationState.Deserialize(dbAuthState.Payload);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Failed deserializing {nameof(AuthenticationState)}.");
-                    }
+                    return AuthenticationState.Deserialize(dbAuthState.Payload);
                 }
-
-                return null;
-            });
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed deserializing {nameof(AuthenticationState)}.");
+                }
+            }
         }
 
         return null;
-
-        static bool IsPostgresSerializationError(Exception ex) =>
-            ex.InnerException is PostgresException pex && pex.SqlState == PostgresErrorCodes.SerializationFailure;
-
-        Task<IDbContextTransaction> CreateTransaction() =>
-            _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead);
     }
 
     public async Task SetAuthenticationState(HttpContext httpContext, AuthenticationState authenticationState)
