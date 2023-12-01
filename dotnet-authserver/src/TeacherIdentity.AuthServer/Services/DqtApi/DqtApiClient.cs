@@ -7,6 +7,8 @@ namespace TeacherIdentity.AuthServer.Services.DqtApi;
 
 public class DqtApiClient : IDqtApiClient
 {
+    public const int MaxEvidenceFileNameLength = 100;
+
     private readonly HttpClient _client;
 
     private static JsonSerializerOptions _serializerOptions { get; } = new JsonSerializerOptions(JsonSerializerDefaults.Web)

@@ -48,7 +48,7 @@ public class Confirm : PageModel
         var teacherDobChangeRequest = new TeacherDateOfBirthChangeRequest()
         {
             DateOfBirth = DateOfBirth!.Value,
-            EvidenceFileName = FileName!,
+            EvidenceFileName = FileName!.Truncate(DqtApiClient.MaxEvidenceFileNameLength),
             EvidenceFileUrl = sasUri,
             Trn = User.GetTrn()!
         };
