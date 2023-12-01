@@ -68,7 +68,7 @@ public class Confirm : PageModel
             FirstName = FirstName!,
             MiddleName = MiddleName,
             LastName = LastName!,
-            EvidenceFileName = FileName!,
+            EvidenceFileName = FileName!.Truncate(DqtApiClient.MaxEvidenceFileNameLength),
             EvidenceFileUrl = sasUri,
             Trn = User.GetTrn()!
         };
