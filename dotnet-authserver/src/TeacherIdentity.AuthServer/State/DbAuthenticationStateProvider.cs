@@ -58,7 +58,7 @@ public sealed class DbAuthenticationStateProvider : IAuthenticationStateProvider
                 using var suppressScope = SentryErrors.Suppress(IsPostgresSerializationError);
 
                 var dbAuthState = await _dbContext.AuthenticationStates.FromSqlInterpolated(
-                        $"select * from authentication_states where journey_id = {journeyId}")
+                        $"select * from authentication_states where journey_id = {journeyId} for update")
                     .SingleOrDefaultAsync();
 
                 if (dbAuthState is not null)
