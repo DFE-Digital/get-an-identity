@@ -88,6 +88,10 @@ public class UserHelper
             && !string.IsNullOrEmpty(authenticationState.DqtFirstName)
             && !string.IsNullOrEmpty(authenticationState.DqtLastName);
 
+        TrnVerificationLevel? trnVerificationLevel = authenticationState.Trn is null ? null :
+            authenticationState.TryGetOAuthState(out var oAuthState) && oAuthState.TrnMatchPolicy == TrnMatchPolicy.Strict ? TrnVerificationLevel.Medium :
+            TrnVerificationLevel.Low;
+
         var user = new User()
         {
             CompletedTrnLookup = _clock.UtcNow,
@@ -108,7 +112,7 @@ public class UserHelper
             LastSignedIn = _clock.UtcNow,
             RegisteredWithClientId = authenticationState.OAuthState?.ClientId,
             TrnLookupStatus = authenticationState.TrnLookupStatus,
-            TrnVerificationLevel = TrnVerificationLevel.Low,
+            TrnVerificationLevel = trnVerificationLevel,
             NationalInsuranceNumber = authenticationState.NationalInsuranceNumber,
         };
 
