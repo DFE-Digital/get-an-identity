@@ -23,6 +23,9 @@
                 autocomplete="one-time-code"
                 label-class="govuk-label--s" />
 
+            @* Pressing the Enter key will submit the first submit button - make sure it's the default action *@
+            <button type="submit" class="govuk-!-display-none"></button>
+
             <govuk-details>
                 <govuk-details-summary>I have not received a code</govuk-details-summary>
                 <govuk-details-text>
