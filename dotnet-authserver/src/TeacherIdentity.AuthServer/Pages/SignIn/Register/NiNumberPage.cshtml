@@ -15,6 +15,9 @@
                 <govuk-input-label is-page-heading="true" class="govuk-label--l"/>
             </govuk-input>
 
+            @* Pressing the Enter key will submit the first submit button - make sure it's the default action *@
+            <button type="submit" class="govuk-!-display-none"></button>
+
             <govuk-details>
                 <govuk-details-summary>
                     @(Model.TrnMatchPolicy == TrnMatchPolicy.Strict ? "I cannot provide my National Insurance number" : "I do not know my National Insurance number")

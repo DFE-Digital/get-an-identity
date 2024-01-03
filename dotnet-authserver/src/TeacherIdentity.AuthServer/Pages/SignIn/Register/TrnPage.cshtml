@@ -23,6 +23,9 @@
                 spellcheck="false"
                 label-class="govuk-label--s"/>
 
+            @* Pressing the Enter key will submit the first submit button - make sure it's the default action *@
+            <button type="submit" class="govuk-!-display-none"></button>
+
             @if (Model.ShowContinueWithoutTrnButton)
             {
                 <govuk-details>
