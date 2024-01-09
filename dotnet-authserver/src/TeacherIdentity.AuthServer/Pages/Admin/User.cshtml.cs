@@ -41,6 +41,8 @@ public class UserModel : PageModel
 
     public DateOnly? DateOfBirth { get; set; }
 
+    public string? NationalInsuranceNumber { get; set; }
+
     public string? DqtNationalInsuranceNumber { get; set; }
 
     public string? Trn { get; set; }
@@ -70,6 +72,7 @@ public class UserModel : PageModel
                 u.LastName,
                 u.PreferredName,
                 u.DateOfBirth,
+                u.NationalInsuranceNumber,
                 u.Trn,
                 u.Created,
                 u.UserType,
@@ -100,6 +103,7 @@ public class UserModel : PageModel
         CanChangeDqtRecord = !HaveDqtRecord;
         MergedUserIds = user.MergedUserIds;
         DateOfBirth = user.DateOfBirth;
+        NationalInsuranceNumber = user.NationalInsuranceNumber;
         EffectiveVerificationLevel = user.EffectiveVerificationLevel;
 
         if (user.Trn is not null)
