@@ -7,7 +7,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin;
 
-[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
+[Authorize(AuthorizationPolicies.GetAnIdentitySupport)]
 public class ElevateUserTrnVerificationModel : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
