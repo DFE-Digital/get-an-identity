@@ -301,19 +301,30 @@ public class TrnInUseChooseEmailTests : TestBase
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Post_ValidRequest_UpdatesUserAndRedirectsToNextPage(bool newEmailChosen)
+    [InlineData(false, TrnMatchPolicy.Default, TrnVerificationLevel.Low, TrnVerificationLevel.Low)]
+    [InlineData(false, TrnMatchPolicy.Default, TrnVerificationLevel.Medium, TrnVerificationLevel.Medium)]
+    [InlineData(false, TrnMatchPolicy.Strict, TrnVerificationLevel.Low, TrnVerificationLevel.Medium)]
+    [InlineData(false, TrnMatchPolicy.Strict, TrnVerificationLevel.Medium, TrnVerificationLevel.Medium)]
+    [InlineData(true, TrnMatchPolicy.Default, TrnVerificationLevel.Low, TrnVerificationLevel.Low)]
+    [InlineData(true, TrnMatchPolicy.Default, TrnVerificationLevel.Medium, TrnVerificationLevel.Medium)]
+    [InlineData(true, TrnMatchPolicy.Strict, TrnVerificationLevel.Low, TrnVerificationLevel.Medium)]
+    [InlineData(true, TrnMatchPolicy.Strict, TrnVerificationLevel.Medium, TrnVerificationLevel.Medium)]
+    public async Task Post_ValidRequest_UpdatesUserAndRedirectsToNextPage(
+        bool newEmailChosen,
+        TrnMatchPolicy trnMatchPolicy,
+        TrnVerificationLevel existingTrnVerificationLevel,
+        TrnVerificationLevel expectedNewTrnVerificationLevel)
     {
         // Arrange
         var email = Faker.Internet.Email();
-        var existingTrnOwner = await TestData.CreateUser(hasTrn: true);
+        var existingTrnOwner = await TestData.CreateUser(hasTrn: true, trnVerificationLevel: existingTrnVerificationLevel);
         var chosenEmail = newEmailChosen ? email : existingTrnOwner.EmailAddress;
 
         var authStateHelper = await CreateAuthenticationStateHelper(
             c => c.TrnLookupCompletedForExistingTrnAndOwnerEmailVerified(existingTrnOwner, email),
             CustomScopes.Trn,
-            trnRequirementType: null);
+            trnRequirementType: null,
+            trnMatchPolicy: trnMatchPolicy);
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/sign-in/trn/choose-email?{authStateHelper.ToQueryParam()}")
         {
@@ -340,12 +351,13 @@ public class TrnInUseChooseEmailTests : TestBase
 
             Assert.NotNull(user);
             Assert.Equal(chosenEmail, user.EmailAddress);
+            Assert.Equal(expectedNewTrnVerificationLevel, user.TrnVerificationLevel);
 
             return user.UserId;
         });
 
-        // Should get a UserUpdatedEvent if the email address was changed
-        if (newEmailChosen)
+        // Should get a UserUpdatedEvent if the email address or TrnVerificationLevel was changed
+        if (newEmailChosen || existingTrnVerificationLevel != expectedNewTrnVerificationLevel)
         {
             EventObserver.AssertEventsSaved(
                 e =>
@@ -354,6 +366,18 @@ public class TrnInUseChooseEmailTests : TestBase
                     Assert.Equal(Clock.UtcNow, userUpdatedEvent.CreatedUtc);
                     Assert.Equal(UserUpdatedEventSource.TrnMatchedToExistingUser, userUpdatedEvent.Source);
                     Assert.Equal(userId, userUpdatedEvent.User.UserId);
+
+                    if (newEmailChosen)
+                    {
+                        Assert.Equal(chosenEmail, userUpdatedEvent.User.EmailAddress);
+                        Assert.True(userUpdatedEvent.Changes.HasFlag(UserUpdatedEventChanges.EmailAddress));
+                    }
+
+                    if (existingTrnVerificationLevel != expectedNewTrnVerificationLevel)
+                    {
+                        Assert.Equal(expectedNewTrnVerificationLevel, userUpdatedEvent.User.TrnVerificationLevel);
+                        Assert.True(userUpdatedEvent.Changes.HasFlag(UserUpdatedEventChanges.TrnVerificationLevel));
+                    }
                 });
         }
         else

@@ -54,6 +54,11 @@ public class TrnInUseChooseEmailModel : PageModel
         }
 
         var authenticationState = _journey.AuthenticationState;
+        authenticationState.EnsureOAuthState();
+
+        var journeyTrnVerificationLevel = authenticationState.OAuthState.TrnMatchPolicy == TrnMatchPolicy.Strict ?
+            TrnVerificationLevel.Medium :
+            TrnVerificationLevel.Low;
 
         var lookupState = await _dbContext.JourneyTrnLookupStates
             .SingleOrDefaultAsync(s => s.JourneyId == authenticationState.JourneyId);
@@ -61,8 +66,14 @@ public class TrnInUseChooseEmailModel : PageModel
         var user = await _dbContext.Users.SingleAsync(u => u.EmailAddress == authenticationState.TrnOwnerEmailAddress);
 
         var emailChanged = user.EmailAddress != Email;
-
         user.EmailAddress = Email;
+
+        bool trnVerificationLevelChanged = false;
+        if (user.TrnVerificationLevel < journeyTrnVerificationLevel)
+        {
+            user.TrnVerificationLevel = journeyTrnVerificationLevel;
+            trnVerificationLevelChanged = true;
+        }
 
         if (lookupState is not null)
         {
@@ -70,14 +81,18 @@ public class TrnInUseChooseEmailModel : PageModel
             lookupState.UserId = user.UserId;
         }
 
-        if (emailChanged)
+        var changes = Events.UserUpdatedEventChanges.None |
+            (emailChanged ? Events.UserUpdatedEventChanges.EmailAddress : 0) |
+            (trnVerificationLevelChanged ? Events.UserUpdatedEventChanges.TrnVerificationLevel : 0);
+
+        if (changes != Events.UserUpdatedEventChanges.None)
         {
             user.Updated = _clock.UtcNow;
 
             _dbContext.AddEvent(new Events.UserUpdatedEvent()
             {
                 Source = Events.UserUpdatedEventSource.TrnMatchedToExistingUser,
-                Changes = Events.UserUpdatedEventChanges.EmailAddress,
+                Changes = changes,
                 CreatedUtc = _clock.UtcNow,
                 User = user,
                 UpdatedByUserId = user.UserId,
