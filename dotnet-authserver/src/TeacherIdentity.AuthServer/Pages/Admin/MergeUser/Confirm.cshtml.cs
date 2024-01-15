@@ -29,8 +29,9 @@ public class Confirm : PageModel
 
     public User? UserToMerge { get; set; }
 
-    [FromQuery(Name = "trn")]
+    [BindProperty]
     public string? ChosenTrn { get; set; }
+
 
     public void OnGet()
     {
@@ -121,6 +122,11 @@ public class Confirm : PageModel
 
     private bool ValidateChosenTrn()
     {
+        if (Request.Query.ContainsKey("trn"))
+        {
+            ChosenTrn = Request.Query["trn"];
+        }
+
         ChosenTrn = ChosenTrn == "None" ? null : ChosenTrn ?? User!.Trn;
         return ChosenTrn == User!.Trn || ChosenTrn == UserToMerge!.Trn;
     }
