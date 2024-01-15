@@ -69,7 +69,7 @@ public class TrnInUseChooseEmailModel : PageModel
         user.EmailAddress = Email;
 
         bool trnVerificationLevelChanged = false;
-        if (user.TrnVerificationLevel < journeyTrnVerificationLevel)
+        if ((user.TrnVerificationLevel ?? TrnVerificationLevel.Low) < journeyTrnVerificationLevel)
         {
             user.TrnVerificationLevel = journeyTrnVerificationLevel;
             trnVerificationLevelChanged = true;
