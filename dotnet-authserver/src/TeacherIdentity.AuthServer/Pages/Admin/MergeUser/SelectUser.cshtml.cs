@@ -18,11 +18,9 @@ public class Merge : PageModel
         _dbContext = dbContext;
     }
 
-    public ICollection<Guid>? UserIds { get; set; }
-
     [BindProperty]
-    [Display(Name = "Select which user to merge")]
-    [Required(ErrorMessage = "Select which user you want to merge")]
+    [Display(Name = "Enter the user ID to merge")]
+    [Required(ErrorMessage = "Enter the user ID to merge")]
     public Guid? UserIdToMerge { get; set; }
 
     [FromRoute]
@@ -34,14 +32,17 @@ public class Merge : PageModel
 
     public IActionResult OnPost()
     {
-        if (!ModelState.IsValid)
+        if (!UserIdToMerge.HasValue)
         {
-            return this.PageWithErrors();
+            ModelState.AddModelError(nameof(UserIdToMerge), "Enter the user ID of the user to merge.");
+        }
+        else if (UserIdToMerge.Value == UserId)
+        {
+            ModelState.AddModelError(nameof(UserIdToMerge), "User cannot be merged with itself.");
         }
 
-        if (UserIds == null || !UserIds.Contains((Guid)UserIdToMerge!))
+        if (!ModelState.IsValid)
         {
-            ModelState.AddModelError(nameof(UserIdToMerge), "You must select a user ID from the given list");
             return this.PageWithErrors();
         }
 
@@ -57,11 +58,6 @@ public class Merge : PageModel
             context.Result = NotFound();
             return;
         }
-
-        UserIds = _dbContext.Users
-            .Where(u => u.UserId != UserId && u.UserType == UserType.Default)
-            .Select(u => u.UserId)
-            .ToArray();
 
         await next();
     }

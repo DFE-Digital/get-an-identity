@@ -97,7 +97,7 @@ public class SelectUserTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "UserIdToMerge", "Select which user you want to merge");
+        await AssertEx.HtmlResponseHasError(response, "UserIdToMerge", "Enter the user ID to merge");
     }
 
     [Fact]
@@ -105,13 +105,13 @@ public class SelectUserTests : TestBase
     {
         // Arrange
         var user = await TestData.CreateUser(userType: UserType.Default, hasTrn: false);
-        var invalidUserToMerge = await TestData.CreateUser(userType: UserType.Staff, hasTrn: false);
+        var invalidUserToMergeId = user.UserId;
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/{user.UserId}/merge")
         {
             Content = new FormUrlEncodedContentBuilder()
             {
-                { "UserIdToMerge", invalidUserToMerge.UserId }
+                { "UserIdToMerge", invalidUserToMergeId }
             }
         };
 
@@ -119,7 +119,7 @@ public class SelectUserTests : TestBase
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        await AssertEx.HtmlResponseHasError(response, "UserIdToMerge", "You must select a user ID from the given list");
+        await AssertEx.HtmlResponseHasError(response, "UserIdToMerge", "User cannot be merged with itself.");
     }
 
     [Fact]
