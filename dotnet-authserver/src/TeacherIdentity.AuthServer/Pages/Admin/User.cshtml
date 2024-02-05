@@ -80,6 +80,9 @@
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Date of birth</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("d MMMM yyyy") : "")</govuk-summary-list-row-value>
+                <govuk-summary-list-row-actions>
+                    <govuk-summary-list-row-action asp-page="EditUserDateOfBirth" asp-route-userId="@Model.UserId" visually-hidden-text="date of birth">Change</govuk-summary-list-row-action>
+                </govuk-summary-list-row-actions>
             </govuk-summary-list-row>
             <govuk-summary-list-row>
                 <govuk-summary-list-row-key>DQT record</govuk-summary-list-row-key>
