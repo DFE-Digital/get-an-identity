@@ -319,6 +319,12 @@ public class UserHelper
             changes |= UserUpdatedEventChanges.NationalInsuranceNumber;
         }
 
+        if (user.TrnLookupStatus != TrnLookupStatus.Found)
+        {
+            user.TrnLookupStatus = TrnLookupStatus.Found;
+            changes |= UserUpdatedEventChanges.TrnLookupStatus;
+        }
+
         _dbContext.AddEvent(new UserUpdatedEvent()
         {
             Changes = changes,
