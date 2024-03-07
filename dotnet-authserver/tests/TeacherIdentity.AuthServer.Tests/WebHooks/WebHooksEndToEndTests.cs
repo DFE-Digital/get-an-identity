@@ -381,7 +381,7 @@ public class WebHooksEndToEndTests : TestBase
             NotificationId = Guid.NewGuid(),
             Message = new UserMergedMessage()
             {
-                MasterUser = user,
+                MasterUserId = user.UserId,
                 MergedUserId = mergedUserId
             },
             MessageType = UserMergedMessage.MessageTypeName,
@@ -408,19 +408,7 @@ public class WebHooksEndToEndTests : TestBase
                     notificationId = userCreatedNotification.NotificationId,
                     message = new
                     {
-                        masterUser = new
-                        {
-                            userId = user.UserId,
-                            dateOfBirth = user.DateOfBirth,
-                            emailAddress = user.EmailAddress,
-                            firstName = user.FirstName,
-                            middleName = user.MiddleName,
-                            lastName = user.LastName,
-                            preferredName = user.PreferredName,
-                            mobileNumber = user.MobileNumber,
-                            trn = user.Trn,
-                            trnLookupStatus = user.TrnLookupStatus.ToString()
-                        },
+                        masterUserId = user.UserId,
                         mergedUserId = mergedUserId
                     },
                     messageType = UserMergedMessage.MessageTypeName,
