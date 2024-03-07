@@ -74,8 +74,8 @@ public class PublishNotificationsEventObserver : IEventObserver
                 NotificationId = Guid.NewGuid(),
                 Message = new UserMergedMessage()
                 {
-                    MasterUser = userMerged.User,
-                    MergedUserId = userMerged.MergedWithUserId
+                    MasterUserId = userMerged.MergedWithUserId,
+                    MergedUserId = userMerged.User.UserId
                 },
                 MessageType = UserMergedMessage.MessageTypeName,
                 TimeUtc = userMerged.CreatedUtc
