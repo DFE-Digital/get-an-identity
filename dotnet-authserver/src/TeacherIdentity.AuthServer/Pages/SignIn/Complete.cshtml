@@ -37,7 +37,16 @@
                 else if (Model.TrnVerificationElevationSuccessful == false && Model.TrnRequirementType == TrnRequirementType.Required)
                 {
                     <p>You’ve signed in to your DfE Identity account but some of the additional information you gave could not be verified.</p>
-                    <p>Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> for help.</p>
+                    <p>
+                        Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> for help.
+                        You should include your:
+                        <ul class="govuk-list">
+                            <li>name</li>
+                            <li>date of birth</li>
+                            <li>National Insurance number - if you know it</li>
+                            <li>teacher reference number (TRN) - if you know it</li>
+                        </ul>
+                    </p>
                 }
                 else if (Model.TrnVerificationElevationSuccessful == false && Model.TrnRequirementType == TrnRequirementType.Optional)
                 {
@@ -46,7 +55,16 @@
                 else if (Model.TrnMatchPolicy == TrnMatchPolicy.Strict && Model.Trn is null && Model.TrnRequirementType == TrnRequirementType.Required)
                 {
                     <p>You’ve created a DfE Identity account but some of the information you gave could not be verified.</p>
-                    <p>Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> for help.</p>
+                    <p>
+                        Email <a href="mailto:@(Configuration["SupportEmail"])">@(Configuration["SupportEmail"])</a> for help.
+                        You should include your:
+                        <ul class="govuk-list">
+                            <li>name</li>
+                            <li>date of birth</li>
+                            <li>National Insurance number - if you know it</li>
+                            <li>teacher reference number (TRN) - if you know it</li>
+                        </ul>
+                    </p>
                 }
                 else if (Model.TrnRequirementType == TrnRequirementType.Required)
                 {
