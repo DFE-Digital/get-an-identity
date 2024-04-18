@@ -141,10 +141,10 @@ variable "domain" {
   type = string
 }
 
-variable "statuscake_ssl_contact_group" {
-  type        = string
-  default     = null
-  description = "ID of the StatusCake contact group. If empty, SSL check is not enabled"
+variable "statuscake_ssl_contact_groups" {
+  type        = list(string)
+  default     = []
+  description = "IDs of the StatusCake contact group. If empty, SSL check is not enabled"
 }
 
 locals {
