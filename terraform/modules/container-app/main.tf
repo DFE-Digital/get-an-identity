@@ -1,7 +1,7 @@
 locals {
   generated_yaml_path = abspath("${path.module}/.terraform/temp/container-app-${sha1(var.app_definition_yaml)}.yml")
 
-  app_name = yamldecode(var.app_definition_yaml).name
+  app_name       = yamldecode(var.app_definition_yaml).name
   resource_group = yamldecode(var.app_definition_yaml).resourcegroup
 }
 
