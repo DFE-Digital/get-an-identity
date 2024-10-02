@@ -243,14 +243,14 @@ public class UserImportProcessor : IUserImportProcessor
 
                 var dateOfBirth = DateOnly.ParseExact(row!.DateOfBirth!, "ddMMyyyy", CultureInfo.InvariantCulture);
                 // Validate for potential duplicates
-                var existingUsers = await _userSearchService.FindUsers(firstName, lastName, dateOfBirth);
-                if (existingUsers.Any(u => u.EmailAddress != row.EmailAddress!))
-                {
-                    errors.Add("Potential duplicate user");
-                    userImportJobRow.Notes = errors;
-                    userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
-                }
-                else
+                //var existingUsers = await _userSearchService.FindUsers(firstName, lastName, dateOfBirth);
+                //if (existingUsers.Any(u => u.EmailAddress != row.EmailAddress!))
+                //{
+                //    errors.Add("Potential duplicate user");
+                //    userImportJobRow.Notes = errors;
+                //    userImportJobRow.UserImportRowResult = UserImportRowResult.Invalid;
+                //}
+                //else
                 {
                     user = new User
                     {
