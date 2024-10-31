@@ -189,6 +189,9 @@ resource "azurerm_linux_web_app" "auth-server-app" {
     minimum_tls_version = "1.2"
     health_check_path   = "/health"
 
+    ip_restriction_default_action     = "Deny"
+    scm_ip_restriction_default_action = "Deny"
+
     #All ip_restriction properties need to be included due to the bug raised here: https://github.com/hashicorp/terraform-provider-azurerm/issues/17189
     ip_restriction {
       name     = "FrontDoor"
