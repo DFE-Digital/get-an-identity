@@ -12,11 +12,10 @@ public class TestCookieAuthenticationHandler : CookieAuthenticationHandler
     private readonly CurrentUserIdContainer _currentUserIdContainer;
 
     public TestCookieAuthenticationHandler(
-        CurrentUserIdContainer currentUserIdContainer,
         IOptionsMonitor<CookieAuthenticationOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        ISystemClock clock) : base(options, logger, encoder, clock)
+        CurrentUserIdContainer currentUserIdContainer) : base(options, logger, encoder)
     {
         _currentUserIdContainer = currentUserIdContainer;
     }

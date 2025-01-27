@@ -566,7 +566,7 @@ public class Program
         {
             options.PreSerializeFilters.Add((_, request) =>
             {
-                request.HttpContext.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+                request.HttpContext.Response.Headers.TryAdd("Cache-Control", "no-cache, no-store, must-revalidate");
             });
         });
 
