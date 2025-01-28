@@ -14,10 +14,12 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
     private readonly IApiClientRepository _clientRepository;
 
     public ApiKeyAuthenticationHandler(
+        IApiClientRepository clientRepository,
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        IApiClientRepository clientRepository) : base(options, logger, encoder)
+        ISystemClock clock)
+        : base(options, logger, encoder, clock)
     {
         _clientRepository = clientRepository;
     }

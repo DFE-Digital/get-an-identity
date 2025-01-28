@@ -56,7 +56,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '7.0.202'
 
       - name: Restore
         run: dotnet restore
@@ -80,7 +80,7 @@ jobs:
             echo "::notice::Linting entire codebase"
           fi
 
-          dotnet tool install -g dotnet-format --version "8.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet8/nuget/v3/index.json >/dev/null
+          dotnet tool install -g dotnet-format --version "7.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet7/nuget/v3/index.json >/dev/null
           dotnet-format --no-restore --verify-no-changes $INCLUDE_ARG
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -102,7 +102,7 @@ jobs:
           dotnet_test_args: '-e ConnectionStrings__DefaultConnection="Host=localhost;Username=postgres;Password=teacher_identity;Database=teacher_identity"'
 
       - name: Install Playwright
-        run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net8.0/playwright.ps1 install
+        run: pwsh ./tests/TeacherIdentity.AuthServer.EndToEndTests/bin/Release/net7.0/playwright.ps1 install
         if: github.event_name != 'push'
         working-directory: dotnet-authserver
 
