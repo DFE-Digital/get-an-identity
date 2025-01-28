@@ -9,6 +9,7 @@ resource "azurerm_monitor_diagnostic_setting" "getanid-keyvault-diagnostics" {
 
     retention_policy {
       enabled = local.keyvault_logging_enabled
+      days    = 0 # unlimited
     }
   }
 
