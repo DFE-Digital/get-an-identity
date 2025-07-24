@@ -165,7 +165,7 @@ public class ConfirmTests : TestBase
         }
 
         HostFixture.DqtEvidenceStorageService.Verify(s => s.GetSasConnectionString(It.IsAny<string>(), It.IsAny<int>()));
-        HostFixture.DqtApiClient.Verify(s => s.PostTeacherNameChange(It.IsAny<TeacherNameChangeRequest>(), It.IsAny<CancellationToken>()));
+        HostFixture.DqtApiClient.Verify(s => s.PostTeacherNameChange(It.IsAny<string>(), It.IsAny<TeacherNameChangeRequest>(), It.IsAny<CancellationToken>()));
 
         var redirectedResponse = await response.FollowRedirect(HttpClient);
         var redirectedDoc = await redirectedResponse.GetDocument();

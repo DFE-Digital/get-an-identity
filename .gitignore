@@ -1,3 +1,4 @@
 docs/.structurizr/**
 fetch_config.rb
 /.vs
+.idea

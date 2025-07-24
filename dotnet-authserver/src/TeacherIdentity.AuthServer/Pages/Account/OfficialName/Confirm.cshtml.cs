@@ -65,15 +65,15 @@ public class Confirm : PageModel
 
         var teacherNameChangeRequest = new TeacherNameChangeRequest()
         {
+            EmailAddress = User.GetEmailAddress(),
             FirstName = FirstName!,
             MiddleName = MiddleName,
             LastName = LastName!,
             EvidenceFileName = FileName!.Truncate(DqtApiClient.MaxEvidenceFileNameLength),
-            EvidenceFileUrl = sasUri,
-            Trn = User.GetTrn()!
+            EvidenceFileUrl = sasUri
         };
 
-        await _dqtApiClient.PostTeacherNameChange(teacherNameChangeRequest);
+        await _dqtApiClient.PostTeacherNameChange(User.GetTrn(), teacherNameChangeRequest);
 
         var preferredNameMessage = string.Empty;
         var user = await _dbContext.Users.SingleAsync(u => u.UserId == User.GetUserId());
