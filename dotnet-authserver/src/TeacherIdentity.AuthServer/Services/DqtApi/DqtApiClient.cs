@@ -1,6 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Server;
 using TeacherIdentity.AuthServer.Infrastructure.Http;
 
 namespace TeacherIdentity.AuthServer.Services.DqtApi;
@@ -10,6 +14,8 @@ public class DqtApiClient : IDqtApiClient
     public const int MaxEvidenceFileNameLength = 100;
 
     private readonly HttpClient _client;
+    private readonly IOptions<OpenIddictServerOptions> _openIddictServerOptionsAccessor;
+    private readonly JsonWebTokenHandler _jwtHandler = new JsonWebTokenHandler();
 
     private static JsonSerializerOptions _serializerOptions { get; } = new JsonSerializerOptions(JsonSerializerDefaults.Web)
     {
@@ -19,9 +25,10 @@ public class DqtApiClient : IDqtApiClient
         }
     };
 
-    public DqtApiClient(HttpClient httpClient)
+    public DqtApiClient(HttpClient httpClient, IOptions<OpenIddictServerOptions> openIddictServerOptionsAccessor)
     {
         _client = httpClient;
+        _openIddictServerOptionsAccessor = openIddictServerOptionsAccessor;
     }
 
     public async Task<FindTeachersResponse> FindTeachers(FindTeachersRequest request, CancellationToken cancellationToken)
@@ -64,18 +71,42 @@ public class DqtApiClient : IDqtApiClient
         return (await response.Content.ReadFromJsonAsync<GetIttProvidersResponse>(cancellationToken: cancellationToken))!;
     }
 
-    public async Task PostTeacherNameChange(TeacherNameChangeRequest request, CancellationToken cancellationToken = default)
+    public async Task PostTeacherNameChange(string trn, TeacherNameChangeRequest body, CancellationToken cancellationToken = default)
     {
-        HttpContent content = JsonContent.Create(request);
-        var response = await _client.PostAsync("/v3/teachers/name-changes", content, cancellationToken);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/v3/person/name-changes")
+        {
+            Content = JsonContent.Create(body)
+        };
+        request.Headers.TryAddWithoutValidation("X-Api-Version", "20250627");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(trn));
+        var response = await _client.SendAsync(request, cancellationToken);
         response.HandleErrorResponse();
     }
 
-    public async Task PostTeacherDateOfBirthChange(TeacherDateOfBirthChangeRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task PostTeacherDateOfBirthChange(string trn, TeacherDateOfBirthChangeRequest body, CancellationToken cancellationToken = default)
     {
-        HttpContent content = JsonContent.Create(request);
-        var response = await _client.PostAsync("/v3/teachers/date-of-birth-changes", content, cancellationToken);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/v3/person/date-of-birth-changes")
+        {
+            Content = JsonContent.Create(body)
+        };
+        request.Headers.TryAddWithoutValidation("X-Api-Version", "20250627");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(trn));
+        var response = await _client.SendAsync(request, cancellationToken);
         response.HandleErrorResponse();
+    }
+
+    private string CreateJwt(string trn)
+    {
+        var tokenDescriptor = new SecurityTokenDescriptor();
+        tokenDescriptor.Issuer = _openIddictServerOptionsAccessor.Value.Issuer!.ToString();
+        tokenDescriptor.SigningCredentials = _openIddictServerOptionsAccessor.Value.SigningCredentials.First();
+
+        tokenDescriptor.Claims = new Dictionary<string, object>
+        {
+            ["scope"] = "dqt:read",
+            ["trn"] = trn
+        };
+
+        return _jwtHandler.CreateToken(tokenDescriptor);
     }
 }

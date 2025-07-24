@@ -47,13 +47,13 @@ public class Confirm : PageModel
 
         var teacherDobChangeRequest = new TeacherDateOfBirthChangeRequest()
         {
+            EmailAddress = User.GetEmailAddress(),
             DateOfBirth = DateOfBirth!.Value,
             EvidenceFileName = FileName!.Truncate(DqtApiClient.MaxEvidenceFileNameLength),
-            EvidenceFileUrl = sasUri,
-            Trn = User.GetTrn()!
+            EvidenceFileUrl = sasUri
         };
 
-        await _dqtApiClient.PostTeacherDateOfBirthChange(teacherDobChangeRequest);
+        await _dqtApiClient.PostTeacherDateOfBirthChange(User.GetTrn(), teacherDobChangeRequest);
 
         TempData.SetFlashSuccess(
             "We’ve received your request to change your date of birth",

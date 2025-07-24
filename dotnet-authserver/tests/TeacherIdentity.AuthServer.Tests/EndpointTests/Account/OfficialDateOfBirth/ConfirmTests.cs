@@ -99,7 +99,7 @@ public class ConfirmTests : TestBase
         Assert.Equal($"/account?{_clientRedirectInfo.ToQueryParam()}", response.Headers.Location?.OriginalString);
 
         HostFixture.DqtEvidenceStorageService.Verify(s => s.GetSasConnectionString(It.IsAny<string>(), It.IsAny<int>()));
-        HostFixture.DqtApiClient.Verify(s => s.PostTeacherDateOfBirthChange(It.IsAny<TeacherDateOfBirthChangeRequest>(), It.IsAny<CancellationToken>()));
+        HostFixture.DqtApiClient.Verify(s => s.PostTeacherDateOfBirthChange(It.IsAny<string>(), It.IsAny<TeacherDateOfBirthChangeRequest>(), It.IsAny<CancellationToken>()));
 
         var redirectedResponse = await response.FollowRedirect(HttpClient);
         var redirectedDoc = await redirectedResponse.GetDocument();
