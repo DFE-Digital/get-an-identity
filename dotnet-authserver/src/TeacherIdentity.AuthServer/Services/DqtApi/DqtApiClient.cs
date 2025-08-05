@@ -100,6 +100,7 @@ public class DqtApiClient : IDqtApiClient
         var tokenDescriptor = new SecurityTokenDescriptor();
         tokenDescriptor.Issuer = _openIddictServerOptionsAccessor.Value.Issuer!.ToString();
         tokenDescriptor.SigningCredentials = _openIddictServerOptionsAccessor.Value.SigningCredentials.First();
+        tokenDescriptor.Expires = DateTime.UtcNow.AddHours(1);
 
         tokenDescriptor.Claims = new Dictionary<string, object>
         {
