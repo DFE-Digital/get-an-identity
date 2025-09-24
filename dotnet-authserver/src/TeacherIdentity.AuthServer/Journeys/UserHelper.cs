@@ -301,7 +301,7 @@ public class UserHelper
     {
         authenticationState.Blocked =
             authenticationState is { Trn: not null, OAuthState: { TrnRequirementType: TrnRequirementType.Required, BlockProhibitedTeachers: true } } &&
-                teacherInfo.Alerts.Any(a => a.AlertType == AlertType.Prohibition) &&
+                teacherInfo.Alerts.Any(a => a is { AlertType: AlertType.Prohibition, EndDate: null }) &&
                 !teacherInfo.AllowIdSignInWithProhibitions;
     }
 

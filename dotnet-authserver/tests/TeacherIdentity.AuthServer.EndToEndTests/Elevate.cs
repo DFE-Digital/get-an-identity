@@ -250,7 +250,7 @@ public class Elevate : IClassFixture<HostFixture>
             Trn = user.Trn!,
             Alerts = new[]
             {
-                new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1" }
+                new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1", EndDate = null }
             },
             AllowIdSignInWithProhibitions = false
         });
@@ -288,7 +288,7 @@ public class Elevate : IClassFixture<HostFixture>
             Trn = user.Trn!,
             Alerts = new[]
             {
-                new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1" }
+                new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1", EndDate = null }
             },
             AllowIdSignInWithProhibitions = false
         });
