@@ -222,7 +222,7 @@ public class UserTests : TestBase
                 PendingNameChange = false,
                 PendingDateOfBirthChange = false,
                 Email = null,
-                Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "" } },
+                Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "", EndDate = null } },
                 AllowIdSignInWithProhibitions = false
             });
 

@@ -20,6 +20,7 @@ public record AlertInfo
 {
     public required AlertType AlertType { get; init; }
     public required string DqtSanctionCode { get; init; }
+    public required DateOnly? EndDate { get; init; }
 }
 
 public enum AlertType

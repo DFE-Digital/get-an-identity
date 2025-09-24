@@ -783,7 +783,7 @@ public class Register : IClassFixture<HostFixture>
             Trn = trn,
             PendingDateOfBirthChange = false,
             PendingNameChange = false,
-            Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1" } },
+            Alerts = new[] { new AlertInfo() { AlertType = AlertType.Prohibition, DqtSanctionCode = "G1", EndDate = null } },
             AllowIdSignInWithProhibitions = false
         });
 
