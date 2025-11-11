@@ -228,6 +228,7 @@ resource "azurerm_linux_web_app_slot" "auth-server-stage" {
   count          = var.enable_blue_green ? 1 : 0
   name           = local.web_app_slot_name
   app_service_id = azurerm_linux_web_app.auth-server-app.id
+  https_only     = true
   site_config {
     http2_enabled       = true
     minimum_tls_version = "1.2"
