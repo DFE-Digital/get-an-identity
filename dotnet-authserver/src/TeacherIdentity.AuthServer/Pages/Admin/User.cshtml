@@ -13,7 +13,6 @@
     @Model.Name
 </h1>
 
-
 @if (Model.HasProhibitions)
 {
     <section class="govuk-!-margin-bottom-6">
@@ -23,7 +22,14 @@
     </section>
 }
 
-
+@if (Model.IsBlocked)
+{
+    <section class="govuk-!-margin-bottom-6">
+        <govuk-warning-text icon-fallback-text="Warning">
+            <span>This user’s TRN has been leaked and must verify their identity before they can sign in</span>
+        </govuk-warning-text>
+    </section>
+}
 
 <section class="x-govuk-summary-card govuk-!-margin-bottom-6">
     <header class="x-govuk-summary-card__header">

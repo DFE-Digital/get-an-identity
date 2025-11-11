@@ -53,6 +53,8 @@ public class UserModel : PageModel
 
     public bool HasProhibitions { get; set; }
 
+    public bool IsBlocked { get; set; }
+
     [FromRoute]
     public Guid UserId { get; set; }
 
@@ -119,6 +121,8 @@ public class UserModel : PageModel
             DqtDateOfBirth = dqtUser.DateOfBirth;
             DqtNationalInsuranceNumber = dqtUser.NationalInsuranceNumber;
             HasProhibitions = dqtUser.Alerts.Any(y => y.AlertType == AlertType.Prohibition);
+
+            IsBlocked = await _dbContext.Set<TrnRequiringVerification>().AnyAsync(v => v.Trn == user.Trn);
         }
 
         return Page();
