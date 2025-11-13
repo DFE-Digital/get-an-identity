@@ -280,7 +280,7 @@ public class UserHelper
             authenticationState.OnNameSet(dqtUser.FirstName, dqtUser.MiddleName, dqtUser.LastName);
         }
 
-        CheckCanAccessService(authenticationState, dqtUser);
+        await CheckCanAccessServiceAsync(authenticationState, dqtUser);
     }
 
     public async Task CheckCanAccessService(AuthenticationState authenticationState)
@@ -294,15 +294,20 @@ public class UserHelper
         var dqtUser = await _dqtApiClient.GetTeacherByTrn(authenticationState.Trn!) ??
             throw new Exception($"Failed to lookup teacher by TRN: '{authenticationState.Trn}'.");
 
-        CheckCanAccessService(authenticationState, dqtUser);
+        await CheckCanAccessServiceAsync(authenticationState, dqtUser);
     }
 
-    private void CheckCanAccessService(AuthenticationState authenticationState, TeacherInfo teacherInfo)
+    private async Task CheckCanAccessServiceAsync(AuthenticationState authenticationState, TeacherInfo teacherInfo)
     {
         authenticationState.Blocked =
             authenticationState is { Trn: not null, OAuthState: { TrnRequirementType: TrnRequirementType.Required, BlockProhibitedTeachers: true } } &&
                 teacherInfo.Alerts.Any(a => a is { AlertType: AlertType.Prohibition, EndDate: null }) &&
                 !teacherInfo.AllowIdSignInWithProhibitions;
+
+        if (authenticationState is { Blocked: false, Trn: not null })
+        {
+            authenticationState.Blocked = await _dbContext.Set<TrnRequiringVerification>().AnyAsync(v => v.Trn == authenticationState.Trn);
+        }
     }
 
     public async Task ElevateTrnVerificationLevel(Guid userId, string trn, string nationalInsuranceNumber)
