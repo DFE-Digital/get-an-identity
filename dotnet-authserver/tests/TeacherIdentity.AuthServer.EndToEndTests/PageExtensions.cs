@@ -208,6 +208,12 @@ public static class PageExtensions
         await page.ClickContinueButton();
     }
 
+    public static async Task SubmitMergeUserPage(this IPage page, string userId)
+    {
+        await page.FillAsync("[name='UserIdToMerge']", userId);
+        await page.ClickContinueButton();
+    }
+
     public static async Task SubmitTrnChooseEmailPage(this IPage page, string email)
     {
         await page.WaitForUrlPathAsync("/sign-in/trn/choose-email");

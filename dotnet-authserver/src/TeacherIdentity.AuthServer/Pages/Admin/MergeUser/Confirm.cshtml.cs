@@ -7,7 +7,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin.MergeUser;
 
-[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
+[Authorize(AuthorizationPolicies.GetAnIdentityMergeUser)]
 public class Confirm : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
