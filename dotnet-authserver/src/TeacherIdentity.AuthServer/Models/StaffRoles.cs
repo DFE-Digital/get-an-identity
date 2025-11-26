@@ -4,11 +4,13 @@ public static class StaffRoles
 {
     public const string GetAnIdentityAdmin = "GetAnIdentityAdmin";
     public const string GetAnIdentitySupport = "GetAnIdentitySupport";
+    public const string GetAnIdentitySupportMergeUser = "GetAnIdentitySupportMergeUser";
 
     public static string[] All { get; } = new[]
     {
         GetAnIdentityAdmin,
-        GetAnIdentitySupport
+        GetAnIdentitySupport,
+        GetAnIdentitySupportMergeUser
     };
 
     public static string[] None { get; } = Array.Empty<string>();
@@ -17,6 +19,7 @@ public static class StaffRoles
     {
         GetAnIdentityAdmin => "Get an identity admin",
         GetAnIdentitySupport => "Get an identity support",
+        GetAnIdentitySupportMergeUser => "Get an identity support merge user",
         _ => throw new ArgumentException("Unknown role.", nameof(roleName))
     };
 }

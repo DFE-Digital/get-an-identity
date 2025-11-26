@@ -8,6 +8,7 @@ public static class AuthorizationPolicies
     public const string Authenticated = "Authenticated";
     public const string GetAnIdentityAdmin = "GetAnIdentityAdmin";
     public const string GetAnIdentitySupport = "GetAnIdentitySupport";
+    public const string GetAnIdentityMergeUser = "GetAnIdentityMergeUser";
     public const string Staff = "Staff";
     public const string TrnLookupApi = "API:TrnLookup";
 }

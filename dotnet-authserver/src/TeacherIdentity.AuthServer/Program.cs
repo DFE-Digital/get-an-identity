@@ -242,6 +242,13 @@ public class Program
                     .RequireRole(StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupport));
 
             options.AddPolicy(
+                AuthorizationPolicies.GetAnIdentityMergeUser,
+                policy => policy
+                    .AddAuthenticationSchemes(AuthenticationSchemes.Delegated)
+                    .RequireAuthenticatedUser()
+                    .RequireRole(StaffRoles.GetAnIdentityAdmin, StaffRoles.GetAnIdentitySupportMergeUser));
+
+            options.AddPolicy(
                 AuthorizationPolicies.Staff,
                 policy => policy
                     .AddAuthenticationSchemes(AuthenticationSchemes.Delegated)

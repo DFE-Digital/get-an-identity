@@ -8,7 +8,7 @@ using TeacherIdentity.AuthServer.Models;
 
 namespace TeacherIdentity.AuthServer.Pages.Admin.MergeUser;
 
-[Authorize(AuthorizationPolicies.GetAnIdentityAdmin)]
+[Authorize(AuthorizationPolicies.GetAnIdentityMergeUser)]
 public class ChooseTrn : PageModel
 {
     private readonly TeacherIdentityServerDbContext _dbContext;
