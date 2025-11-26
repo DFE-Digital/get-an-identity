@@ -15,7 +15,7 @@ public class Confirm : IClassFixture<HostFixture>
     [Fact]
     public async Task StaffUser_WithMergeUserRole_CanMergeTwoUsers()
     {
-        var staffUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles:new [] { StaffRoles.GetAnIdentitySupportMergeUser, StaffRoles.GetAnIdentitySupport });
+        var staffUser = await _hostFixture.TestData.CreateUser(userType: UserType.Staff, staffRoles: new[] { StaffRoles.GetAnIdentitySupportMergeUser, StaffRoles.GetAnIdentitySupport });
         var teacherUser1 = await _hostFixture.TestData.CreateUser(hasTrn: false, trnVerificationLevel: TrnVerificationLevel.Low);
         var teacherUser2 = await _hostFixture.TestData.CreateUser(hasTrn: false);
 
