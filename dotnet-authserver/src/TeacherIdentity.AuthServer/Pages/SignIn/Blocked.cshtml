@@ -13,7 +13,17 @@
             <h1 class="govuk-heading-l">@ViewBag.Title</h1>
 
             <p>
-                Email <a href="mailto:@supportEmail">@supportEmail</a> to find out how to @Model.ClientName.
+                Email <a href="mailto:@supportEmail">@supportEmail</a> with your:
+                <ul class="govuk-list--bullet">
+                    <li>first and last name</li>
+                    <li>teacher reference number (TRN)</li>
+                    <li>National Insurance number</li>
+                    <li>valid photo ID (for example, a driving licence or passport)</li>
+                </ul>
+            </p>
+
+            <p>
+                Once we’ve verified your details, we’ll give you access to the service.
             </p>
         </div>
     </div>
