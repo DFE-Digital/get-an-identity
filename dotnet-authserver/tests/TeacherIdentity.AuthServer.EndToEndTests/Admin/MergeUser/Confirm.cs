@@ -58,8 +58,7 @@ public class Confirm : IClassFixture<HostFixture>
         var teacherUser2 = await _hostFixture.TestData.CreateUser(hasTrn: true);
         _hostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(teacherUser1.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
         {
-            DateOfBirth = null,
-            //DateOfBirth = teacherUser1.DateOfBirth,
+            DateOfBirth = teacherUser1.DateOfBirth,
             Email = teacherUser1.EmailAddress,
             FirstName = teacherUser1.FirstName,
             MiddleName = teacherUser1.MiddleName ?? string.Empty,
@@ -73,8 +72,7 @@ public class Confirm : IClassFixture<HostFixture>
         });
         _hostFixture.DqtApiClient.Setup(mock => mock.GetTeacherByTrn(teacherUser2.Trn!, It.IsAny<CancellationToken>())).ReturnsAsync(new TeacherInfo()
         {
-            DateOfBirth = null,
-            //DateOfBirth = teacherUser2.DateOfBirth,
+            DateOfBirth = teacherUser2.DateOfBirth,
             Email = teacherUser2.EmailAddress,
             FirstName = teacherUser2.FirstName,
             MiddleName = teacherUser2.MiddleName ?? string.Empty,
