@@ -101,6 +101,12 @@
                 }
             </govuk-summary-list-row>
             <govuk-summary-list-row>
+                <govuk-summary-list-row-key>User ID</govuk-summary-list-row-key>
+                <govuk-summary-list-row-value>
+                    @Model.UserId
+                </govuk-summary-list-row-value>
+            </govuk-summary-list-row>
+            <govuk-summary-list-row>
                 <govuk-summary-list-row-key>Merged user IDs</govuk-summary-list-row-key>
                 <govuk-summary-list-row-value>
                     @if (Model.MergedUserIds.IsNullOrEmpty())
