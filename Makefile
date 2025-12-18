@@ -57,7 +57,7 @@ ci:	## Run in automation environment
 	$(eval SP_AUTH=true)
 
 tags: ##Tags that will be added to resource group on it's creation in ARM template
-	$(eval RG_TAGS=$(shell echo '{"Portfolio": "Early years and Schools Group", "Parent Business":"Teaching Regulation Agency", "Product" : "Get an Identity", "Service Line": "Teaching Workforce", "Service": "Teacher Services", "Service Offering": "Get an Identity", "Environment" : "$(ENV_TAG)"}' | jq . ))
+	$(eval RG_TAGS=$(shell echo '{"Portfolio": "Early years and Schools Group", "Parent Business":"Teaching Regulation Agency", "Product" : "Get an Identity", "Service Line": "Teaching Workforce", "Service": "Teacher Services", "Service Offering": "Teaching Record System", "Environment" : "$(ENV_TAG)"}' | jq . ))
 
 .PHONY: install-fetch-config
 install-fetch-config: ## Install the fetch-config script, for viewing/editing secrets in Azure Key Vault
