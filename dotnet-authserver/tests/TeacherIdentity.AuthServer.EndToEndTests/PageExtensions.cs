@@ -40,8 +40,11 @@ public static class PageExtensions
         TrnRequirementType? trnRequirement = null,
         string? trnToken = null,
         TrnMatchPolicy trnMatchPolicy = TrnMatchPolicy.Default,
-        bool? blockProhibitedTeachers = null)
+        bool? blockProhibitedTeachers = null,
+        string? clientId = null)
     {
+
+
         var allScopes = new List<string>()
         {
             "email",
@@ -56,6 +59,11 @@ public static class PageExtensions
 
         var url = new Url("/profile")
             .SetQueryParam("scope", string.Join("+", allScopes), isEncoded: true);
+
+        if (clientId is not null)
+        {
+            url.SetQueryParam("client_id", clientId);
+        }
 
         if (trnRequirement is not null)
         {

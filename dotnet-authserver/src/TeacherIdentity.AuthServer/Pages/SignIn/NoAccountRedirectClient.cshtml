@@ -1,0 +1,14 @@
+@page "/sign-in/no-account-redirect-client"
+@model TeacherIdentity.AuthServer.Pages.SignIn.NoAccountRedirectClient
+
+@{
+    ViewBag.Title = "No DfE Identity account found";
+}
+
+<div>
+    <h1 class="govuk-heading-l">@ViewBag.Title</h1>
+    <p>We could not find a DfE Identity account for your email</p>
+    <p class="govuk-body govuk-!-margin-bottom-6">
+        <a href="@(Model.RedirectUrl)">Sign in</a> to use your existing account details
+    </p>
+</div>
