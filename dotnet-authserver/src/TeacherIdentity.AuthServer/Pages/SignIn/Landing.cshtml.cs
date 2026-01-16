@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
@@ -15,20 +16,23 @@ public class Landing : PageModel
 
     public Landing(
         SignInJourney journey,
-        ICurrentClientProvider currentClientProvider)
+        ICurrentClientProvider currentClientProvider,
+        IOptions<PreventRegistrationOptions> preventRegistrationOptions)
     {
         _journey = journey;
         _currentClientProvider = currentClientProvider;
+        PreventRegistrationOptions = preventRegistrationOptions.Value;
     }
 
     public string? ClientDisplayName { get; set; }
-
     public TrnMatchPolicy? TrnMatchPolicy { get; set; }
+    public PreventRegistrationOptions PreventRegistrationOptions { get; }
+    public Application? CurrentClient { get; private set; }
 
     public async Task OnGet()
     {
-        ClientDisplayName = (await _currentClientProvider.GetCurrentClient())?.DisplayName;
-
+        CurrentClient = await _currentClientProvider.GetCurrentClient();
+        ClientDisplayName = CurrentClient?.DisplayName;
         TrnMatchPolicy = _journey.AuthenticationState.OAuthState?.TrnMatchPolicy;
     }
 }
