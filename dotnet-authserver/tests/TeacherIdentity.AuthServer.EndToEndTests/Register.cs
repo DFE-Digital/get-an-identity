@@ -4,6 +4,7 @@ using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
+
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
 public class Register : IClassFixture<HostFixture>
@@ -14,6 +15,36 @@ public class Register : IClassFixture<HostFixture>
     {
         _hostFixture = hostFixture;
         _hostFixture.OnTestStarting();
+        _hostFixture.RestartAuthServerAsync().GetAwaiter().GetResult();
+    }
+
+    [Fact]
+    public async Task NewUser_WithRedirectClientSkipsLandingPage()
+    {
+        _hostFixture.SetPreventRegistrationClientRedirects(
+            new Dictionary<string, string>
+            {
+                [_hostFixture.TestClientId] = "https://google.com"
+            });
+        await _hostFixture.RestartAuthServerAsync();
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.WaitForUrlPathAsync("/sign-in/register/email");
+    }
+
+    [Fact]
+    public async Task NewUser_WithoutRedirectClientDoesNotSkipLandingPage()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.RegisterFromLandingPage();
     }
 
     [Fact]

@@ -30,6 +30,7 @@ public class HostFixture : IAsyncLifetime
     private Host<TestClient.Program>? _clientHost;
     private IPlaywright? _playright;
     private bool _disposed = false;
+    private PreventRegistrationOptions? _preventRegistrationOptionsOverride;
 
     private readonly List<string> _capturedAccessTokens = new();
 
@@ -54,6 +55,8 @@ public class HostFixture : IAsyncLifetime
     public virtual string TestClientId { get; } = "testclient";
 
     public TestData TestData => AuthServerServices.GetRequiredService<TestData>();
+
+    public ClientConfiguration[] Clients { get; private set; } = Array.Empty<ClientConfiguration>();
 
     public Task<IBrowserContext> CreateBrowserContext() =>
         Browser!.NewContextAsync(new()
@@ -104,6 +107,7 @@ public class HostFixture : IAsyncLifetime
         var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>() ?? Array.Empty<ClientConfiguration>();
 
         await clientHelper.UpsertClients(clients);
+        Clients = clients;
 
         _clientHost = CreateClientHost(testConfiguration.GetSection("TestClient"));
 
@@ -127,6 +131,7 @@ public class HostFixture : IAsyncLifetime
 
     public void OnTestStarting()
     {
+        _preventRegistrationOptionsOverride = null;
         DqtApiClient.Reset();
         DqtEvidenceStorageService.Reset();
         EventObserver.Clear();
@@ -163,6 +168,16 @@ public class HostFixture : IAsyncLifetime
                     services.AddSingleton(new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
+
+                    if (_preventRegistrationOptionsOverride is not null)
+                    {
+                        services.Configure<PreventRegistrationOptions>(opts =>
+                        {
+                            opts.ClientRedirects =
+                                new Dictionary<string, string>(
+                                    _preventRegistrationOptionsOverride.ClientRedirects);
+                        });
+                    }
 
                     // Publish events synchronously
                     services.AddSingleton<PublishEventsDbCommandInterceptor>();
@@ -299,5 +314,36 @@ public class HostFixture : IAsyncLifetime
                 }
             }
         }
+    }
+
+    public void SetPreventRegistrationClientRedirects(
+        IReadOnlyDictionary<string, string> clientRedirects)
+    {
+        _preventRegistrationOptionsOverride = new PreventRegistrationOptions
+        {
+            ClientRedirects = clientRedirects.ToDictionary(
+                kvp => kvp.Key.ToString(),
+                kvp => kvp.Value)
+        };
+    }
+
+    public async Task RestartAuthServerAsync()
+    {
+        if (_authServerHost is not null)
+        {
+            await _authServerHost.DisposeAsync();
+            _authServerHost = null;
+        }
+
+        var testConfiguration = GetTestConfiguration();
+
+        _authServerHost = CreateAuthServerHost(
+            testConfiguration.GetSection("AuthorizationServer"));
+
+        AuthServerServices = _authServerHost.Services;
+
+        // Re-register clients after restart
+        var clientHelper = new ClientConfigurationHelper(AuthServerServices);
+        await clientHelper.UpsertClients(Clients);
     }
 }
