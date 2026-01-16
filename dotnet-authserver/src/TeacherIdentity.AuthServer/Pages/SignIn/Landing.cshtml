@@ -2,8 +2,15 @@
 @model TeacherIdentity.AuthServer.Pages.SignIn.Landing
 @{
     ViewBag.Title = "Create a DfE Identity account";
-}
 
+    var currentClient = Model.CurrentClient!;
+
+    if (currentClient?.ClientId is { } clientId &&
+        Model.PreventRegistrationOptions.ClientRedirects.SingleOrDefault(x=>x.ClientId == clientId) is { })
+    {
+        Response.Redirect(LinkGenerator.RegisterEmail());
+    }
+}
 <div class="govuk-panel app-panel--interruption" data-testid="landing-panel">
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full" data-testid="landing-content">
