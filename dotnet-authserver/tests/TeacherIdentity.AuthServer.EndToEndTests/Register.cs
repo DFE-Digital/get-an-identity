@@ -813,6 +813,61 @@ public class Register : IClassFixture<HostFixture>
         await page.AssertOnBlockedPage();
     }
 
+    [Fact]
+    public async Task ExistingUserWithoutTrn_AttemptsToReRegister_SignsIntoAccountAndStrictMatchesTrn()
+    {
+        var email = Faker.Internet.Email();
+        var ni = Faker.Identification.UkNationalInsuranceNumber();
+        var existingUser = await _hostFixture.TestData.CreateUser(hasTrn: false, hasMobileNumber: false, email: email, nationalInsuranceNumber: ni);
+        var trn = _hostFixture.TestData.GenerateTrn();
+        ConfigureDqtApiGetTeacherByTrnRequest(trn!, new()
+        {
+            FirstName = existingUser.FirstName,
+            MiddleName = existingUser.MiddleName ?? string.Empty,
+            LastName = existingUser.LastName,
+            DateOfBirth = existingUser.DateOfBirth,
+            Email = existingUser.EmailAddress,
+            NationalInsuranceNumber = existingUser.NationalInsuranceNumber,
+            PendingDateOfBirthChange = false,
+            PendingNameChange = false,
+            Trn = trn!,
+            Alerts = Array.Empty<AlertInfo>(),
+            AllowIdSignInWithProhibitions = false
+        });
+
+        ConfigureDqtApiFindTeachersRequest(result: new()
+        {
+            DateOfBirth = existingUser.DateOfBirth,
+            FirstName = existingUser.FirstName,
+            MiddleName = null,
+            LastName = existingUser.LastName,
+            EmailAddresses = new[] { email },
+            HasActiveSanctions = false,
+            NationalInsuranceNumber = null,
+            Trn = trn,
+            Uid = Guid.NewGuid().ToString()
+        });
+
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(CustomScopes.DqtRead, trnRequirement: TrnRequirementType.Required, trnMatchPolicy: TrnMatchPolicy.Strict);
+
+        await page.RegisterFromLandingPage();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.SubmitRegisterNiNumberPage(ni);
+
+        await page.SubmitRegisterTrnPage(trn);
+
+        await page.SubmitElevateCheckAnswersPage();
+
+        await page.WaitForUrlPathAsync("/sign-in/complete");
+    }
+
     private void ConfigureDqtApiFindTeachersRequest(FindTeachersResponseResult? result)
     {
         var results = result is not null ? new[] { result } : Array.Empty<FindTeachersResponseResult>();
