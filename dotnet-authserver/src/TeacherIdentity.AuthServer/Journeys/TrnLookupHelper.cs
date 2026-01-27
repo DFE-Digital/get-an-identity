@@ -47,8 +47,8 @@ public class TrnLookupHelper
                 {
                     DateOfBirth = authenticationState.DateOfBirth,
                     EmailAddress = authenticationState.EmailAddress,
-                    FirstName = authenticationState.FirstName,
-                    LastName = authenticationState.LastName,
+                    FirstName = authenticationState.FirstName?.Trim(),
+                    LastName = authenticationState.LastName?.Trim(),
                     IttProviderName = authenticationState.IttProviderName,
                     NationalInsuranceNumber = User.NormalizeNationalInsuranceNumber(authenticationState.NationalInsuranceNumber),
                     Trn = NormalizeTrn(authenticationState.StatedTrn),
