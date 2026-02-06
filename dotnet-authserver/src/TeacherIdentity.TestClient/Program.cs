@@ -29,7 +29,20 @@ public class Program
             .AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
-                options.DefaultChallengeScheme = "oidc";
+                options.DefaultChallengeScheme = "oidc-router";
+            })
+            .AddPolicyScheme("oidc-router", "OIDC Router", options =>
+            {
+                options.ForwardDefaultSelector = context =>
+                {
+                    var clientId = context.Request.Query["client_id"].ToString();
+
+                    return clientId switch
+                    {
+                        "prevent-registration-client" => "prevent-registrations-client",
+                        _ => "oidc"
+                    };
+                };
             })
             .AddCookie("Cookies", options =>
             {
@@ -121,7 +134,21 @@ public class Program
                     options.CorrelationCookie.SameSite = SameSiteMode.Lax;
                     options.NonceCookie.SameSite = SameSiteMode.Lax;
                 }
-            });
+            })
+            .AddOpenIdConnect("prevent-registrations-client", options =>
+            {
+                options.Authority = builder.Configuration["SignInAuthority"];
+                options.ClientId = "prevent-registration-client";
+                options.ClientSecret = builder.Configuration["ClientSecret"];
+                options.ResponseType = "code";
+                options.UsePkce = true;
+                options.CallbackPath = "/oidc/callback";
+                options.SignedOutCallbackPath = "/oidc/signout-callback";
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.SaveTokens = true;
+                options.RequireHttpsMetadata = false;
+            }); ;
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {

@@ -15,6 +15,7 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
+
     public EmailConfirmationModel(
         SignInJourney journey,
         TeacherIdentityServerDbContext dbContext,
