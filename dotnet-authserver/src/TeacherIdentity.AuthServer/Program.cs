@@ -444,7 +444,7 @@ public class Program
 
         builder.Services.AddCsp(nonceByteAmount: 32);
 
-        builder.Services.AddApplicationInsightsTelemetry();
+        builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddHsts(options =>
         {
@@ -461,8 +461,6 @@ public class Program
         }
 
         builder.Services.AddApiSwagger();
-
-        builder.Services.AddApplicationInsightsTelemetryProcessor<Infrastructure.ApplicationInsights.FilterDependenciesTelemetryProcessor>();
 
         if (builder.Environment.IsProduction())
         {

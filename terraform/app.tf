@@ -20,7 +20,6 @@ locals {
     local.auth_server_notify_domain_allow_list_env_vars,
     {
       EnvironmentName                              = local.hosting_environment,
-      ApplicationInsights__ConnectionString        = azurerm_application_insights.insights.connection_string,
       ConnectionStrings__DefaultConnection         = "Server=${local.postgres_server_name}.postgres.database.azure.com;User Id=${local.infrastructure_secrets.POSTGRES_ADMIN_USERNAME};Password=${local.infrastructure_secrets.POSTGRES_ADMIN_PASSWORD};Database=${local.postgres_database_name};Port=5432;Trust Server Certificate=true;",
       ConnectionStrings__Redis                     = azurerm_redis_cache.redis.primary_connection_string,
       ConnectionStrings__DataProtectionBlobStorage = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.data-protection.name};AccountKey=${azurerm_storage_account.data-protection.primary_access_key}",
@@ -144,20 +143,6 @@ resource "azurerm_log_analytics_workspace" "analytics" {
   }
 }
 
-resource "azurerm_application_insights" "insights" {
-  name                 = local.app_insights_name
-  location             = data.azurerm_resource_group.group.location
-  resource_group_name  = data.azurerm_resource_group.group.name
-  application_type     = "web"
-  daily_data_cap_in_gb = var.application_insights_daily_data_cap_mb
-  retention_in_days    = var.application_insights_retention_days
-
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
-}
 resource "azurerm_service_plan" "service-plan" {
   name                   = local.app_service_plan_name
   location               = data.azurerm_resource_group.group.location
