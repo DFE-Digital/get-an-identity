@@ -4,8 +4,7 @@ namespace TeacherIdentity.AuthServer;
 
 public class PreventRegistrationOptions
 {
-    [Required]
-    public List<PreventRegistrationOptionsClientRedirect> ClientRedirects { get; set; }
+    [Required] public required List<PreventRegistrationOptionsClientRedirect> ClientRedirects { get; set; } = new();
 }
 
 public class PreventRegistrationOptionsClientRedirect
