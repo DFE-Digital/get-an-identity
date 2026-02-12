@@ -22,11 +22,13 @@ public class Register : IClassFixture<HostFixture>
     public async Task NewUser_WithRedirectClientSkipsLandingPage()
     {
         _hostFixture.SetPreventRegistrationClientRedirects(
-            new Dictionary<string, string>
+            new List<PreventRegistrationOptionsClientRedirect>
             {
-                [_hostFixture.TestClientId] = "https://google.com"
+                new PreventRegistrationOptionsClientRedirect()
+                {
+                    ClientId = _hostFixture.TestClientId, RedirectUri = "https://example.com/redirect"
+                }
             });
-        await _hostFixture.RestartAuthServerAsync();
 
         await using var context = await _hostFixture.CreateBrowserContext();
         var page = await context.NewPageAsync();

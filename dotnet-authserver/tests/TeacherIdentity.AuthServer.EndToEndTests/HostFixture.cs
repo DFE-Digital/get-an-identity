@@ -173,9 +173,7 @@ public class HostFixture : IAsyncLifetime
                     {
                         services.Configure<PreventRegistrationOptions>(opts =>
                         {
-                            opts.ClientRedirects =
-                                new Dictionary<string, string>(
-                                    _preventRegistrationOptionsOverride.ClientRedirects);
+                            opts.ClientRedirects = _preventRegistrationOptionsOverride.ClientRedirects;
                         });
                     }
 
@@ -317,13 +315,11 @@ public class HostFixture : IAsyncLifetime
     }
 
     public void SetPreventRegistrationClientRedirects(
-        IReadOnlyDictionary<string, string> clientRedirects)
+        List<PreventRegistrationOptionsClientRedirect> clientRedirects)
     {
         _preventRegistrationOptionsOverride = new PreventRegistrationOptions
         {
-            ClientRedirects = clientRedirects.ToDictionary(
-                kvp => kvp.Key.ToString(),
-                kvp => kvp.Value)
+            ClientRedirects = clientRedirects
         };
     }
 
