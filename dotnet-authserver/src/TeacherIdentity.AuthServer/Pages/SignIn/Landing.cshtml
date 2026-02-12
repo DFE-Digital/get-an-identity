@@ -6,7 +6,7 @@
     var currentClient = Model.CurrentClient!;
 
     if (currentClient?.ClientId is { } clientId &&
-        Model.PreventRegistrationOptions.ClientRedirects.TryGetValue(clientId, out _))
+        Model.PreventRegistrationOptions.ClientRedirects.SingleOrDefault(x=>x.ClientId == clientId) is { })
     {
         Response.Redirect(LinkGenerator.RegisterEmail());
     }

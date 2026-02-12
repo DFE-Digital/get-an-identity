@@ -69,9 +69,9 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
         {
             var application = await _currentClientProvider.GetCurrentClient()!;
             var clientName = application!.ClientId?.ToString();
+            var redirect = _preventRegistrationOptions.ClientRedirects.SingleOrDefault(x => x.ClientId == application!.Id!);
 
-            if (clientName is not null &&
-                _preventRegistrationOptions.ClientRedirects.TryGetValue(clientName, out _))
+            if (clientName is not null && redirect != null)
             {
                 return Redirect(_journey.LinkGenerator.NoAccountRedirectClient());
             }
