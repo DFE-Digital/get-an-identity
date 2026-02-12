@@ -15,22 +15,12 @@ public class Register : IClassFixture<HostFixture>
     {
         _hostFixture = hostFixture;
         _hostFixture.OnTestStarting();
-        _hostFixture.RestartAuthServerAsync().GetAwaiter().GetResult();
     }
 
     [Fact]
     public async Task NewUser_WithRedirectClientSkipsLandingPage()
     {
-        _hostFixture.SetPreventRegistrationClientRedirects(
-            new List<PreventRegistrationOptionsClientRedirect>
-            {
-                new PreventRegistrationOptionsClientRedirect()
-                {
-                    ClientId = _hostFixture.TestClientId, RedirectUri = "https://example.com/redirect"
-                }
-            });
-
-        await using var context = await _hostFixture.CreateBrowserContext();
+        await using var context = await _hostFixture.CreateRedirectBrowserContext();
         var page = await context.NewPageAsync();
 
         await page.StartOAuthJourney();
