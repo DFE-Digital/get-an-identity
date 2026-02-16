@@ -69,7 +69,7 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
         {
             var application = await _currentClientProvider.GetCurrentClient()!;
             var clientName = application!.ClientId?.ToString();
-            var redirect = _preventRegistrationOptions.ClientRedirects.SingleOrDefault(x => x.ClientId == application!.Id!);
+            var redirect = _preventRegistrationOptions.ClientRedirects.SingleOrDefault(x => x.ClientId.Equals(application!.ClientId!, StringComparison.OrdinalIgnoreCase));
 
             if (clientName is not null && redirect != null)
             {

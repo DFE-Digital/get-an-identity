@@ -39,6 +39,22 @@ public class Register : IClassFixture<HostFixture>
         await page.RegisterFromLandingPage();
     }
 
+     [Fact]
+    public async Task NewUser_RedirectClient_CannotRegisterNewAccount()
+    {
+        var email = Faker.Internet.Email();
+        await using var context = await _hostFixture.CreateRedirectBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.WaitForUrlPathAsync("/sign-in/no-account-redirect-client");
+    }
+
     [Fact]
     public async Task NewUser_WithoutTrnLookup_CanRegister()
     {
