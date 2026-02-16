@@ -26,6 +26,9 @@ public class Register : IClassFixture<HostFixture>
         await page.StartOAuthJourney();
 
         await page.WaitForUrlPathAsync("/sign-in/register/email");
+
+        var backLink = page.GetByTestId("page-back-link");
+        Assert.Equal(0, await backLink.CountAsync());
     }
 
     [Fact]
@@ -37,6 +40,9 @@ public class Register : IClassFixture<HostFixture>
         await page.StartOAuthJourney();
 
         await page.RegisterFromLandingPage();
+
+        var backLink = page.GetByTestId("page-back-link");
+        Assert.Equal(1, await backLink.CountAsync());
     }
 
      [Fact]

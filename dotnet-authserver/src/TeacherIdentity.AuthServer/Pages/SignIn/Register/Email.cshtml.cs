@@ -1,7 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -15,14 +18,30 @@ public class EmailModel : BaseEmailPageModel
 
     private readonly SignInJourney _journey;
 
+    private readonly ICurrentClientProvider _currentClientProvider;
+    public PreventRegistrationOptions PreventRegistrationOptions { get; init; }
+    public Application? CurrentClient { get; private set; }
+
     public EmailModel(
         IUserVerificationService userVerificationService,
         SignInJourney journey,
-        TeacherIdentityServerDbContext dbContext) :
+        TeacherIdentityServerDbContext dbContext,
+        IOptions<PreventRegistrationOptions> preventRegistrationOptions,
+        ICurrentClientProvider currentClientProvider) :
         base(userVerificationService, dbContext)
     {
         _journey = journey;
+        PreventRegistrationOptions = preventRegistrationOptions.Value;
+        _currentClientProvider = currentClientProvider;
     }
+
+    public bool ShowBackLink =>
+        CurrentClient?.ClientId is not { } clientId ||
+        !PreventRegistrationOptions.ClientRedirects
+            .Any(x => string.Equals(
+                x.ClientId,
+                clientId,
+                StringComparison.OrdinalIgnoreCase));
 
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
 
@@ -59,5 +78,13 @@ public class EmailModel : BaseEmailPageModel
     private void SetDefaultInputValues()
     {
         Email ??= _journey.AuthenticationState.EmailAddress;
+    }
+
+    public override async Task OnPageHandlerExecutionAsync(
+        PageHandlerExecutingContext context,
+        PageHandlerExecutionDelegate next)
+    {
+        CurrentClient = await _currentClientProvider.GetCurrentClient();
+        await next();
     }
 }
