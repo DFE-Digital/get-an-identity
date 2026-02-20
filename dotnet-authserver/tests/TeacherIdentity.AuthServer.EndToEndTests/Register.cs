@@ -45,7 +45,7 @@ public class Register : IClassFixture<HostFixture>
         Assert.Equal(1, await backLink.CountAsync());
     }
 
-     [Fact]
+    [Fact]
     public async Task NewUser_RedirectClient_CannotRegisterNewAccount()
     {
         var email = Faker.Internet.Email();
