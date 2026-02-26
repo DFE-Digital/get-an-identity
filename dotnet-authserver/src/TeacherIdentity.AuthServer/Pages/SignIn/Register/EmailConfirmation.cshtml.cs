@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -16,15 +18,22 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 
     private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
+    private readonly PreventRegistrationOptions _preventRegistrationOptions;
+    private readonly ICurrentClientProvider _currentClientProvider;
 
     public EmailConfirmationModel(
         IUserVerificationService userVerificationService,
         PinValidator pinValidator,
-        TeacherIdentityServerDbContext dbContext, SignInJourney journey)
+        TeacherIdentityServerDbContext dbContext,
+        SignInJourney journey,
+        IOptions<PreventRegistrationOptions> preventRegistrationOptions,
+        ICurrentClientProvider currentClientProvider)
         : base(userVerificationService, pinValidator)
     {
         _dbContext = dbContext;
         _journey = journey;
+        _preventRegistrationOptions = preventRegistrationOptions.Value;
+        _currentClientProvider = currentClientProvider;
     }
 
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
@@ -56,6 +65,20 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
 
+        // prevent user from registering by redirecting user
+        if (user == null)
+        {
+            var application = await _currentClientProvider.GetCurrentClient()!;
+            var clientName = application!.ClientId?.ToString();
+            var redirect = _preventRegistrationOptions.ClientRedirects.SingleOrDefault(x => x.ClientId.Equals(application!.ClientId!, StringComparison.OrdinalIgnoreCase));
+
+            if (clientName is not null && redirect != null)
+            {
+                return Redirect(_journey.LinkGenerator.NoAccountRedirectClient());
+            }
+        }
+
         return await _journey.OnEmailVerified(user, CurrentStep);
+
     }
 }

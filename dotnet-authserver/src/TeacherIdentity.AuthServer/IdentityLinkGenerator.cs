@@ -47,6 +47,7 @@ public abstract class IdentityLinkGenerator
     public string Reset() => Page("/SignIn/Reset");
 
     public string Email() => Page("/SignIn/Email");
+    public string NoAccountRedirectClient() => Page("/SignIn/NoAccountRedirectClient");
 
     public string EmailConfirmation() => Page("/SignIn/EmailConfirmation");
 

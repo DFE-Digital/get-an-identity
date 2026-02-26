@@ -17,6 +17,34 @@ public class Register : IClassFixture<HostFixture>
     }
 
     [Fact]
+    public async Task NewUser_WithRedirectClientSkipsLandingPage()
+    {
+        await using var context = await _hostFixture.CreateRedirectBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.WaitForUrlPathAsync("/sign-in/register/email");
+
+        var backLink = page.GetByTestId("page-back-link");
+        Assert.Equal(0, await backLink.CountAsync());
+    }
+
+    [Fact]
+    public async Task NewUser_WithoutRedirectClientDoesNotSkipLandingPage()
+    {
+        await using var context = await _hostFixture.CreateBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.RegisterFromLandingPage();
+
+        var backLink = page.GetByTestId("page-back-link");
+        Assert.Equal(1, await backLink.CountAsync());
+    }
+
+    [Fact]
     public async Task NewUser_WithoutTrnLookup_CanRegister()
     {
         var email = Faker.Internet.Email();

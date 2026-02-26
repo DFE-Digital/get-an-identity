@@ -53,7 +53,11 @@ public class Program
         var baseAddress = builder.Configuration["BaseAddress"] ?? throw new Exception("BaseAddress missing from configuration.");
 
         builder.Host.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
-
+        builder.Services
+            .AddOptions<PreventRegistrationOptions>()
+            .Bind(builder.Configuration.GetSection("PreventRegistrationClients"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         builder.WebHost.ConfigureKestrel(options =>
         {
             options.AddServerHeader = false;
