@@ -87,6 +87,7 @@ public class AuthorizationController : Controller
 
         var trnToken = userRequirements.HasFlag(UserRequirements.TrnHolder) ? await _trnTokenHelper.GetValidTrnToken(request) : null;
         var cookiesPrincipal = authenticateResult.Principal;
+        var registrationToken = request["registration_token"];
 
         // Ensure we have a journey to store state for this request.
         // This also tracks when we have enough information about the user to satisfy the request.
@@ -185,7 +186,8 @@ public class AuthorizationController : Controller
                     TrnMatchPolicy = trnMatchPolicy,
                     BlockProhibitedTeachers = blockProhibitedTeachers
                 },
-                authenticateResult.Succeeded != true);
+                authenticateResult.Succeeded != true,
+                registrationToken: registrationToken?.ToString());
 
             var signedInUser = await GetSignedInUser(authenticateResult, userRequirements);
             var existingUserClaimsPrincipal = await InitializeAuthenticationState(signedInUser, trnToken, authenticationState);
