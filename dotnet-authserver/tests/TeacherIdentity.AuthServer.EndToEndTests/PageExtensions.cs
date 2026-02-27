@@ -40,7 +40,8 @@ public static class PageExtensions
         TrnRequirementType? trnRequirement = null,
         string? trnToken = null,
         TrnMatchPolicy trnMatchPolicy = TrnMatchPolicy.Default,
-        bool? blockProhibitedTeachers = null)
+        bool? blockProhibitedTeachers = null,
+        string? registrationToken = null)
     {
         var allScopes = new List<string>()
         {
@@ -72,6 +73,11 @@ public static class PageExtensions
         if (blockProhibitedTeachers is not null)
         {
             url.SetQueryParam("block_prohibited_teachers", blockProhibitedTeachers.ToString());
+        }
+
+        if (registrationToken is not null)
+        {
+            url.SetQueryParam("registration_token", registrationToken);
         }
 
         await page.GotoAsync(url);
