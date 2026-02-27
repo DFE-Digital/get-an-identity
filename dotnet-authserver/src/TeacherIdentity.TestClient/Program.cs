@@ -95,6 +95,12 @@ public class Program
 
                     ctx.ProtocolMessage.SetParameter("session_id", ctx.HttpContext.Session.Id);
 
+                    var registrationToken = ctx.HttpContext.Request.Query["registration_token"].ToString();
+                    if (!string.IsNullOrEmpty(registrationToken))
+                    {
+                        ctx.ProtocolMessage.SetParameter("registration_token", registrationToken);
+                    }
+
                     return Task.CompletedTask;
                 };
 

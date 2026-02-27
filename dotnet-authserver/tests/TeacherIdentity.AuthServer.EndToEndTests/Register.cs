@@ -896,6 +896,39 @@ public class Register : IClassFixture<HostFixture>
         await page.WaitForUrlPathAsync("/sign-in/complete");
     }
 
+    [Fact]
+    public async Task NewUser_ClientHasRedirectWithoutAccessToken_CannotRegisterNewAccount()
+    {
+        var email = Faker.Internet.Email();
+        await using var context = await _hostFixture.CreateRedirectBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney();
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.WaitForUrlPathAsync("/sign-in/no-account-redirect-client");
+    }
+
+    [Fact]
+    public async Task NewUser_ClientHasRedirectWithAccessToken_CanCreateNewAccount()
+    {
+        var registrationToken = _hostFixture.Configuration["RegistrationToken"];
+        var email = Faker.Internet.Email();
+        await using var context = await _hostFixture.CreateRedirectBrowserContext();
+        var page = await context.NewPageAsync();
+
+        await page.StartOAuthJourney(registrationToken: registrationToken);
+
+        await page.SubmitRegisterEmailPage(email);
+
+        await page.SubmitRegisterEmailConfirmationPage();
+
+        await page.WaitForUrlPathAsync("/sign-in/register/phone");
+    }
+
     private void ConfigureDqtApiFindTeachersRequest(FindTeachersResponseResult? result)
     {
         var results = result is not null ? new[] { result } : Array.Empty<FindTeachersResponseResult>();

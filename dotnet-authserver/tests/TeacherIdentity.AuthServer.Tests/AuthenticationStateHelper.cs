@@ -29,7 +29,8 @@ public sealed class AuthenticationStateHelper
         string? additionalScopes,
         TrnRequirementType? trnRequirementType,
         TrnMatchPolicy? trnMatchPolicy,
-        TeacherIdentityApplicationDescriptor? client)
+        TeacherIdentityApplicationDescriptor? client,
+        string? registrationToken)
     {
         var authenticationStateProvider = (TestAuthenticationStateProvider)hostFixture.Services.GetRequiredService<IAuthenticationStateProvider>();
 
@@ -61,6 +62,11 @@ public sealed class AuthenticationStateHelper
         if (trnMatchPolicy is not null)
         {
             authorizationUrl += $"&trn_match_policy={trnMatchPolicy}";
+        }
+
+        if (registrationToken is not null)
+        {
+            authorizationUrl += $"&registration_token={registrationToken}";
         }
 
         var authenticationState = new AuthenticationState(
