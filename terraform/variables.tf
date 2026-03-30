@@ -147,6 +147,17 @@ variable "statuscake_ssl_contact_groups" {
   description = "IDs of the StatusCake contact group. If empty, SSL check is not enabled"
 }
 
+variable "postgres_version" {
+  description = "PostgreSQL version for flexible server"
+  type        = number
+  default     = 12
+
+  validation {
+    condition     = contains([12, 13, 14, 15], var.postgres_version)
+    error_message = "Postgres version must be one of: 12, 13, 14, 15."
+  }
+}
+
 locals {
   hosting_environment          = var.environment_name
   auth_server_app_name         = "${var.resource_prefix}getanid-${var.environment_name}${var.app_suffix}-auths-app"
