@@ -4,6 +4,7 @@ using TeacherIdentity.AuthServer.Models;
 using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Services.DqtApi;
 
+
 namespace TeacherIdentity.AuthServer.EndToEndTests;
 
 public class Register : IClassFixture<HostFixture>
