@@ -25,9 +25,11 @@ public class HostFixture : IAsyncLifetime
 {
     public const string AuthServerBaseUrl = "http://localhost:55341";
     public const string ClientBaseUrl = "http://localhost:55342";
+    public const string RedirectClientBaseUrl = "http://localhost:55343";
 
     private Host<TeacherIdentity.AuthServer.Program>? _authServerHost;
     private Host<TestClient.Program>? _clientHost;
+    private Host<TestClient.Program>? _redirectclientHost;
     private IPlaywright? _playright;
     private bool _disposed = false;
 
@@ -49,16 +51,27 @@ public class HostFixture : IAsyncLifetime
 
     public Mock<IDqtEvidenceStorageService> DqtEvidenceStorageService { get; } = new();
 
-    public CaptureEventObserver EventObserver => (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
+    public CaptureEventObserver EventObserver =>
+        (CaptureEventObserver)AuthServerServices.GetRequiredService<IEventObserver>();
 
     public virtual string TestClientId { get; } = "testclient";
+    public virtual string RedirectTestClientId { get; } = "redirecttestclient";
 
     public TestData TestData => AuthServerServices.GetRequiredService<TestData>();
+
+    public ClientConfiguration[] Clients { get; private set; } = Array.Empty<ClientConfiguration>();
 
     public Task<IBrowserContext> CreateBrowserContext() =>
         Browser!.NewContextAsync(new()
         {
             BaseURL = ClientBaseUrl,
+            ViewportSize = ViewportSize.NoViewport
+        });
+
+    public Task<IBrowserContext> CreateRedirectBrowserContext() =>
+        Browser!.NewContextAsync(new()
+        {
+            BaseURL = RedirectClientBaseUrl,
             ViewportSize = ViewportSize.NoViewport
         });
 
@@ -83,6 +96,11 @@ public class HostFixture : IAsyncLifetime
             await _clientHost.DisposeAsync();
         }
 
+        if (_redirectclientHost != null)
+        {
+            await _redirectclientHost.DisposeAsync();
+        }
+
         if (_authServerHost != null)
         {
             await _authServerHost.DisposeAsync();
@@ -93,19 +111,21 @@ public class HostFixture : IAsyncLifetime
     {
         var testConfiguration = GetTestConfiguration();
 
-        DbHelper = new DbHelper(testConfiguration["AuthorizationServer:ConnectionStrings:DefaultConnection"] ??
-            throw new Exception("Connection string DefaultConnection is missing."));
+        DbHelper = new DbHelper(testConfiguration["AuthorizationServer:ConnectionStrings:DefaultConnection"] ?? throw new Exception("Connection string DefaultConnection is missing."));
         await DbHelper.ResetSchema();
 
         _authServerHost = CreateAuthServerHost(testConfiguration.GetSection("AuthorizationServer"));
         AuthServerServices = _authServerHost.Services;
 
         var clientHelper = new ClientConfigurationHelper(AuthServerServices);
-        var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>() ?? Array.Empty<ClientConfiguration>();
+        var clients = testConfiguration.GetSection("Clients").Get<ClientConfiguration[]>() ??
+                      Array.Empty<ClientConfiguration>();
 
         await clientHelper.UpsertClients(clients);
+        Clients = clients;
 
         _clientHost = CreateClientHost(testConfiguration.GetSection("TestClient"));
+        _redirectclientHost = CreateRedirectClientHost(testConfiguration.GetSection("RedirectTestClient"));
 
         _playright = await Playwright.CreateAsync();
 
@@ -157,12 +177,26 @@ public class HostFixture : IAsyncLifetime
 
                 builder.ConfigureServices(services =>
                 {
-                    services.Configure<OpenIddictServerAspNetCoreOptions>(options => options.DisableTransportSecurityRequirement = true);
+                    services.Configure<OpenIddictServerAspNetCoreOptions>(options =>
+                        options.DisableTransportSecurityRequirement = true);
                     services.AddSingleton<IDqtApiClient>(DqtApiClient.Object);
                     services.AddSingleton<IDqtEvidenceStorageService>(DqtEvidenceStorageService.Object);
-                    services.AddSingleton(new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
+                    services.AddSingleton(new BlobServiceClient(
+                        "DefaultEndpointsProtocol=https;AccountName=MyAccount;AccountKey=MyAccountKey;EndpointSuffix=core.windows.net"));
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
+
+                    services.Configure<PreventRegistrationOptions>(opts =>
+                    {
+                        opts.ClientRedirects = new List<PreventRegistrationOptionsClientRedirect>()
+                        {
+                            new()
+                            {
+                                ClientId = RedirectTestClientId,
+                                RedirectUri = "http://google.com"
+                            }
+                        };
+                    });
 
                     // Publish events synchronously
                     services.AddSingleton<PublishEventsDbCommandInterceptor>();
@@ -171,7 +205,8 @@ public class HostFixture : IAsyncLifetime
                         var coreOptionsExtension = inner.GetExtension<CoreOptionsExtension>();
 
                         return (DbContextOptions<TeacherIdentityServerDbContext>)inner.WithExtension(
-                            coreOptionsExtension.WithInterceptors(new[] { sp.GetRequiredService<PublishEventsDbCommandInterceptor>() }));
+                            coreOptionsExtension.WithInterceptors(new[]
+                                { sp.GetRequiredService<PublishEventsDbCommandInterceptor>() }));
                     });
                 });
             });
@@ -179,6 +214,26 @@ public class HostFixture : IAsyncLifetime
     private Host<TestClient.Program> CreateClientHost(IConfiguration configuration) =>
         Host<TestClient.Program>.CreateHost(
             ClientBaseUrl,
+            builder =>
+            {
+                builder.UseConfiguration(configuration);
+
+                builder.ConfigureServices(services =>
+                {
+                    services.PostConfigure<OpenIdConnectOptions>("oidc", options =>
+                    {
+                        options.Events.OnTokenResponseReceived = ctx =>
+                        {
+                            _capturedAccessTokens.Add(ctx.TokenEndpointResponse.AccessToken);
+                            return Task.CompletedTask;
+                        };
+                    });
+                });
+            });
+
+    private Host<TestClient.Program> CreateRedirectClientHost(IConfiguration configuration) =>
+        Host<TestClient.Program>.CreateHost(
+            RedirectClientBaseUrl,
             builder =>
             {
                 builder.UseConfiguration(configuration);
@@ -224,7 +279,7 @@ public class HostFixture : IAsyncLifetime
             Action<IWebHostBuilder> configureWebHostBuilder)
         {
             var applicationFactory = new KestrelWebApplicationFactory<T>(url, configureWebHostBuilder);
-            _ = applicationFactory.Services;  // Starts the server
+            _ = applicationFactory.Services; // Starts the server
             return new Host<T>(applicationFactory);
         }
 

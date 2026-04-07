@@ -26,7 +26,8 @@ public class AuthenticationState
         DateTime startedAt,
         string? sessionId = null,
         OAuthAuthorizationState? oAuthState = null,
-        bool? firstTimeSignInForEmail = null)
+        bool? firstTimeSignInForEmail = null,
+        string? registrationToken = null)
     {
         JourneyId = journeyId;
         UserRequirements = userRequirements;
@@ -35,6 +36,7 @@ public class AuthenticationState
         StartedAt = startedAt;
         OAuthState = oAuthState;
         FirstTimeSignInForEmail = firstTimeSignInForEmail;
+        RegistrationToken = registrationToken;
     }
 
     public static TimeSpan AuthCookieLifetime { get; } = TimeSpan.FromHours(1);
@@ -179,6 +181,8 @@ public class AuthenticationState
     public bool PreferredNameSet => !string.IsNullOrEmpty(PreferredName);
     [JsonIgnore]
     public bool HasMiddleName => !string.IsNullOrEmpty(MiddleName);
+    [JsonInclude]
+    public string? RegistrationToken { get; private set; }
 
     public static ClaimsPrincipal CreatePrincipal(IEnumerable<Claim> claims)
     {

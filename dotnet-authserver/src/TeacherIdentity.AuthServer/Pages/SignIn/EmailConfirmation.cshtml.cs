@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TeacherIdentity.AuthServer.Journeys;
 using TeacherIdentity.AuthServer.Models;
+using TeacherIdentity.AuthServer.Oidc;
 using TeacherIdentity.AuthServer.Pages.Common;
 using TeacherIdentity.AuthServer.Services.UserVerification;
 
@@ -15,11 +17,14 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     private readonly SignInJourney _journey;
     private readonly TeacherIdentityServerDbContext _dbContext;
 
+
     public EmailConfirmationModel(
         SignInJourney journey,
         TeacherIdentityServerDbContext dbContext,
         IUserVerificationService userVerificationService,
-        PinValidator pinValidator)
+        PinValidator pinValidator,
+        IOptions<PreventRegistrationOptions> preventRegistrationOptions,
+        ICurrentClientProvider currentClientProvider)
         : base(userVerificationService, pinValidator)
     {
         _journey = journey;
