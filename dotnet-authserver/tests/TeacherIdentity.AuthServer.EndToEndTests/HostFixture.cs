@@ -111,8 +111,7 @@ public class HostFixture : IAsyncLifetime
     {
         var testConfiguration = GetTestConfiguration();
 
-        DbHelper = new DbHelper(testConfiguration["AuthorizationServer:ConnectionStrings:DefaultConnection"] ??
-                                throw new Exception("Connection string DefaultConnection is missing."));
+        DbHelper = new DbHelper(testConfiguration["AuthorizationServer:ConnectionStrings:DefaultConnection"] ?? throw new Exception("Connection string DefaultConnection is missing."));
         await DbHelper.ResetSchema();
 
         _authServerHost = CreateAuthServerHost(testConfiguration.GetSection("AuthorizationServer"));
@@ -187,7 +186,6 @@ public class HostFixture : IAsyncLifetime
                     services.AddSingleton<IEventObserver, CaptureEventObserver>();
                     services.AddSingleton<TestData>();
 
-
                     services.Configure<PreventRegistrationOptions>(opts =>
                     {
                         opts.ClientRedirects = new List<PreventRegistrationOptionsClientRedirect>()
@@ -199,7 +197,6 @@ public class HostFixture : IAsyncLifetime
                             }
                         };
                     });
-
 
                     // Publish events synchronously
                     services.AddSingleton<PublishEventsDbCommandInterceptor>();
@@ -253,7 +250,6 @@ public class HostFixture : IAsyncLifetime
                     });
                 });
             });
-
 
     private static IConfiguration GetTestConfiguration() =>
         new ConfigurationBuilder()

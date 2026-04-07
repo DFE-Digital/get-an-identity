@@ -20,6 +20,7 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
     private readonly TeacherIdentityServerDbContext _dbContext;
     private readonly PreventRegistrationOptions _preventRegistrationOptions;
     private readonly ICurrentClientProvider _currentClientProvider;
+    private readonly IConfiguration _configuration;
 
     public EmailConfirmationModel(
         IUserVerificationService userVerificationService,
@@ -27,13 +28,15 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
         TeacherIdentityServerDbContext dbContext,
         SignInJourney journey,
         IOptions<PreventRegistrationOptions> preventRegistrationOptions,
-        ICurrentClientProvider currentClientProvider)
+        ICurrentClientProvider currentClientProvider,
+        IConfiguration configuration)
         : base(userVerificationService, pinValidator)
     {
         _dbContext = dbContext;
         _journey = journey;
         _preventRegistrationOptions = preventRegistrationOptions.Value;
         _currentClientProvider = currentClientProvider;
+        _configuration = configuration;
     }
 
     public string BackLink => _journey.GetPreviousStepUrl(CurrentStep);
@@ -65,7 +68,15 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
 
         var user = await _dbContext.Users.Where(u => u.EmailAddress == Email).SingleOrDefaultAsync();
 
-        if (user == null)
+        // prevent user from registering by redirecting user
+        //
+        // If user does not exist
+        // AND
+        // We have a redirect setup for the clientid
+        // AND
+        // Registration Token is either not present or does not match Registration Token
+        var whiteListedRegistrationToken = _configuration.GetValue<string>("RegistrationToken");
+        if (user == null && (_journey.AuthenticationState.RegistrationToken is null || !whiteListedRegistrationToken!.Equals(_journey.AuthenticationState.RegistrationToken, StringComparison.Ordinal)))
         {
             var application = await _currentClientProvider.GetCurrentClient()!;
             var clientName = application!.ClientId?.ToString();
@@ -77,7 +88,7 @@ public class EmailConfirmationModel : BaseEmailConfirmationPageModel
             }
         }
 
-
         return await _journey.OnEmailVerified(user, CurrentStep);
+
     }
 }

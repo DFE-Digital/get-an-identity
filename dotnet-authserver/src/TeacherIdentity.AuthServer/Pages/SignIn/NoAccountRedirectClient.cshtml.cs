@@ -22,7 +22,7 @@ public class NoAccountRedirectClient : PageModel
     public async Task<IActionResult> OnGet()
     {
         var application = await _currentClientProvider.GetCurrentClient()!;
-        var redirect = _preventRegistrationOptions.ClientRedirects.SingleOrDefault(x => x.ClientId == application!.Id!);
+        var redirect = _preventRegistrationOptions.ClientRedirects.SingleOrDefault(x => x.ClientId == application!.ClientId!);
         if (redirect != null)
         {
             RedirectUrl = redirect.RedirectUri;

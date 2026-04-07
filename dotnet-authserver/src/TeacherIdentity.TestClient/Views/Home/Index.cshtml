@@ -7,7 +7,7 @@
             </a>
         </li>
         <li>
-            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Required" asp-route-trn_match_policy="Strict" asp-route-block_prohibited_teachers="true" class="govuk-link">
+            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Required"  asp-route-trn_match_policy="Strict" asp-route-block_prohibited_teachers="true" class="govuk-link">
                 Core + TRN lookup (Access your teaching qualifications)
             </a>
         </li>
@@ -19,6 +19,11 @@
         <li>
             <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Optional" asp-route-trn_match_policy="Strict" class="govuk-link">
                 Core + TRN lookup (Claim)
+            </a>
+        </li>
+        <li>
+            <a asp-action="Profile" asp-route-scope="email openid profile dqt:read" asp-route-trn_requirement="Required" asp-route-registration_token="testclient" asp-route-trn_match_policy="Strict" asp-route-block_prohibited_teachers="true" class="govuk-link">
+                Core + TRN lookup (Access your teaching qualifications with Registration Token)
             </a>
         </li>
     </ul>
