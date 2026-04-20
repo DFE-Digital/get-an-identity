@@ -43,15 +43,6 @@ jobs:
           secrets: "BACKUP-STORAGE-CONNECTION-STRING"
 
       - uses: DfE-Digital/keyvault-yaml-secret@v1
-        id: get_monitoring_secret
-        with:
-          keyvault: ${{ env.KEY_VAULT_NAME }}
-          secret: MONITORING
-          key: SLACK_WEBHOOK
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      - uses: DfE-Digital/keyvault-yaml-secret@v1
         id: get_infrastructure_secrets
         with:
           keyvault: ${{ env.KEY_VAULT_NAME }}
@@ -95,13 +86,12 @@ jobs:
           --connection-string '${{ steps.get_storage_secret.outputs.BACKUP-STORAGE-CONNECTION-STRING }}' \
           --overwrite true
 
-      - name: Notify Slack channel on job failure
-        if: failure()
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_USERNAME: CI Deployment
-          SLACK_TITLE: Database backup failure
-          SLACK_MESSAGE: Production database backup job failed. Also check the azure postgres server firewall rules.
-          SLACK_WEBHOOK: ${{ steps.get_monitoring_secret.outputs.SLACK_WEBHOOK }}
-          SLACK_COLOR: failure
-          SLACK_FOOTER: Sent from backup job in database-backup workflow
+      - name: Notify teams channel failure
+        if: ${{ failure() }}
+        uses: DFE-Digital/github-actions/send-to-teams-channel@master
+        with:
+          teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: Database backup failure
+          service: ${{ vars.TEAMS_MSG_SERVICE_NAME }}
+          message: |
+            Production database backup job failed. Also check the azure postgres server firewall rules.
