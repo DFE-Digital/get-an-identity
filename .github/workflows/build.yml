@@ -138,16 +138,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
 
-      - name: Get MONITORING secret
-        uses: DfE-Digital/keyvault-yaml-secret@v1
-        id: get_monitoring_secret
-        with:
-          keyvault: ${{ env.KEY_VAULT_NAME }}
-          secret: MONITORING
-          key: SLACK_WEBHOOK
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Get INFRASTRUCTURE secret
         uses: DFE-Digital/keyvault-yaml-secret@v1
         if: github.actor != 'dependabot[bot]'
