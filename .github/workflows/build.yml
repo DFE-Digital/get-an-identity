@@ -166,7 +166,7 @@ jobs:
 
       - name: Run Snyk to check auth server Docker image for vulnerabilities
         if: github.actor != 'dependabot[bot]'
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@9adf32b1121593767fc3c057af55b55db032dc04 # Pinned at v1.0.0
         env:
           SNYK_TOKEN: ${{ steps.get-secret.outputs.snyk_token }}
         with:
@@ -206,7 +206,7 @@ jobs:
         working-directory: terraform
 
       - name: Lint
-        uses: reviewdog/action-tflint@master
+        uses: reviewdog/action-tflint@54a5e5aed57dcfbb4662ec548de876df33d6288d # Pinned at v1.25.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tflint_rulesets: azurerm
