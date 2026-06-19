@@ -91,13 +91,43 @@ terraform-init:
 	terraform -chdir=terraform init -backend-config workspace_variables/${DEPLOY_ENV}.backend.tfvars $(backend_config) -upgrade -reconfigure
 
 terraform-plan: terraform-init
-	terraform -chdir=terraform plan -var-file workspace_variables/${DEPLOY_ENV}.tfvars.json
+	terraform -chdir=terraform plan ${DETAILED_EXITCODE} -var-file workspace_variables/${DEPLOY_ENV}.tfvars.json
 
 terraform-apply: terraform-init
 	terraform -chdir=terraform apply -var-file workspace_variables/${DEPLOY_ENV}.tfvars.json ${AUTO_APPROVE}
 
 terraform-destroy: terraform-init
 	terraform -chdir=terraform destroy -var-file workspace_variables/${DEPLOY_ENV}.tfvars.json ${AUTO_APPROVE}
+
+domains-infra-init: domains composed-variables set-azure-account
+	rm -rf terraform/domains/infrastructure/vendor/modules/domains
+	git clone --depth=1 --single-branch --branch ${TERRAFORM_MODULES_TAG} https://github.com/DFE-Digital/terraform-modules.git terraform/domains/infrastructure/vendor/modules/domains
+
+	terraform -chdir=terraform/domains/infrastructure init -reconfigure -upgrade \
+		-backend-config=resource_group_name=${RESOURCE_GROUP_NAME} \
+		-backend-config=storage_account_name=${STORAGE_ACCOUNT_NAME} \
+		-backend-config=key=domains_infrastructure.tfstate
+
+domains-infra-plan: domains domains-infra-init  ## Terraform plan for DNS infrastructure (DNS zone and front door). Usage: make domains-infra-plan
+	terraform -chdir=terraform/domains/infrastructure plan ${DETAILED_EXITCODE} -var-file config/zones.tfvars.json
+
+domains-infra-apply: domains domains-infra-init  ## Terraform apply for DNS infrastructure (DNS zone and front door). Usage: make domains-infra-apply
+	terraform -chdir=terraform/domains/infrastructure apply -var-file config/zones.tfvars.json ${AUTO_APPROVE}
+
+domains-init: domains composed-variables set-azure-account
+	rm -rf terraform/domains/environment_domains/vendor/modules/domains
+	git clone --depth=1 --single-branch --branch ${TERRAFORM_MODULES_TAG} https://github.com/DFE-Digital/terraform-modules.git terraform/domains/environment_domains/vendor/modules/domains
+
+	terraform -chdir=terraform/domains/environment_domains init -upgrade -reconfigure \
+		-backend-config=resource_group_name=${RESOURCE_GROUP_NAME} \
+		-backend-config=storage_account_name=${STORAGE_ACCOUNT_NAME} \
+		-backend-config=key=${ENVIRONMENT}.tfstate
+
+domains-plan: domains-init  ## Terraform plan for DNS environment domains. Usage: make development domains-plan
+	terraform -chdir=terraform/domains/environment_domains plan ${DETAILED_EXITCODE} -var-file config/${CONFIG}.tfvars.json
+
+domains-apply: domains-init ## Terraform apply for DNS environment domains. Usage: make development domains-apply
+	terraform -chdir=terraform/domains/environment_domains apply -var-file config/${CONFIG}.tfvars.json ${AUTO_APPROVE}
 
 deploy-azure-resources: set-azure-account tags # make dev deploy-azure-resources CONFIRM_DEPLOY=1
 	$(if $(CONFIRM_DEPLOY), , $(error can only run with CONFIRM_DEPLOY))
