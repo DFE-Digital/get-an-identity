@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Validate ${{ matrix.display }}
-        uses: DFE-Digital/github-actions/validate-infra@master
+        uses: DFE-Digital/github-actions/validate-infra@2872-validate-infra-wrong-sha
         with:
           azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
           environment: production
@@ -32,3 +32,4 @@ jobs:
           service: ${{ vars.TEAMS_MSG_SERVICE_NAME }}
           teams-webhook-url: ${{ secrets.TEAMS_WEBHOOK_URL_INFRA }}
           image-prefix: authserver-
+          target-branch: 2872-validate-infra-wrong-sha
