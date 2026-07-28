@@ -7,7 +7,7 @@ namespace TeacherIdentity.AuthServer.Pages.Account;
 
 public abstract class BaseEvidencePage : PageModel
 {
-    public const int MaxFileSizeMb = 3;
+    public const int MaxFileSizeMb = 10;
 
     private readonly IDqtEvidenceStorageService _dqtEvidenceStorage;
 
@@ -19,7 +19,7 @@ public abstract class BaseEvidencePage : PageModel
     [BindProperty]
     [Required(ErrorMessage = "Select a file")]
     [FileExtensions(".pdf", ".jpg", ".jpeg", ".png", ErrorMessage = "The selected file must be an image or a PDF")]
-    [FileSize(MaxFileSizeMb * 1024 * 1024, ErrorMessage = "The selected file must be smaller than 3MB")]
+    [FileSize(MaxFileSizeMb * 1024 * 1024, ErrorMessage = "The selected file must be smaller than 10MB")]
     public IFormFile? EvidenceFile { get; set; }
 
     protected string GenerateFileId()
